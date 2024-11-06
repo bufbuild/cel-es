@@ -162,14 +162,14 @@ const toUintFunc = Func.unary(UINT, [], (id, x) => {
 });
 
 const doubleToDouble = Func.unary(DOUBLE, [olc.DOUBLE_TO_DOUBLE], identityOp);
-const intToDoubleOp: StrictUnaryOp = (id, x) => {
+const intToDoubleOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "bigint") {
     return Number(x);
   }
   return undefined;
 };
 const intToDoubleFunc = Func.unary(DOUBLE, [olc.INT_TO_DOUBLE], intToDoubleOp);
-const uintToDoubleOp: StrictUnaryOp = (id, x) => {
+const uintToDoubleOp: StrictUnaryOp = (_id, x) => {
   if (x instanceof CelUint) {
     return Number(x.value);
   }
@@ -180,7 +180,7 @@ const uintToDoubleFunc = Func.unary(
   [olc.UINT_TO_DOUBLE],
   uintToDoubleOp
 );
-const stringToDoubleOp: StrictUnaryOp = (id, x) => {
+const stringToDoubleOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "string") {
     return Number(x);
   }
@@ -207,7 +207,7 @@ const toDoubleFunc = Func.unary(DOUBLE, [], (id, x) => {
 });
 
 const boolToBool = Func.unary(BOOL, [olc.BOOL_TO_BOOL], identityOp);
-const stringToBoolOp: StrictUnaryOp = (id, x) => {
+const stringToBoolOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "string") {
     return x === "true";
   }
@@ -226,7 +226,7 @@ const toBoolFunc = Func.unary(BOOL, [], (id, x) => {
 });
 
 const bytesToBytes = Func.unary(BYTES, [olc.BYTES_TO_BYTES], identityOp);
-const stringToByesOp: StrictUnaryOp = (id, x) => {
+const stringToByesOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "string") {
     return Buffer.from(x);
   }
@@ -249,7 +249,7 @@ const toBytesFunc = Func.unary(BYTES, [], (id, x) => {
 });
 
 const stringToString = Func.unary(STRING, [olc.STRING_TO_STRING], identityOp);
-const boolToStringOp: StrictUnaryOp = (id, x) => {
+const boolToStringOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "boolean") {
     return x ? "true" : "false";
   }
@@ -260,14 +260,14 @@ const boolToStringFunc = Func.unary(
   [olc.BOOL_TO_STRING],
   boolToStringOp
 );
-const intToStringOp: StrictUnaryOp = (id, x) => {
+const intToStringOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "bigint") {
     return x.toString();
   }
   return undefined;
 };
 const intToStringFunc = Func.unary(STRING, [olc.INT_TO_STRING], intToStringOp);
-const uintToStringOp: StrictUnaryOp = (id, x) => {
+const uintToStringOp: StrictUnaryOp = (_id, x) => {
   if (x instanceof CelUint) {
     return x.value.toString();
   }
@@ -278,7 +278,7 @@ const uintToStringFunc = Func.unary(
   [olc.UINT_TO_STRING],
   uintToStringOp
 );
-const doubleToStringOp: StrictUnaryOp = (id, x) => {
+const doubleToStringOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "number") {
     return x.toString();
   }
@@ -306,7 +306,7 @@ const bytesToStringFunc = Func.unary(
   [olc.BYTES_TO_STRING],
   bytesToStringOp
 );
-const timestampToStringOp: StrictUnaryOp = (id, x) => {
+const timestampToStringOp: StrictUnaryOp = (_id, x) => {
   if (x instanceof Timestamp) {
     return x.toJson() as string;
   }
@@ -371,7 +371,7 @@ const stringToTimestampFunc = Func.unary(
   [olc.STRING_TO_TIMESTAMP],
   stringToTimestampOp
 );
-const intToTimestampOp: StrictUnaryOp = (id, x) => {
+const intToTimestampOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "bigint") {
     return Timestamp.fromDate(new Date(Number(x)));
   }
@@ -412,7 +412,7 @@ const stringToDurationFunc = Func.unary(
   [olc.STRING_TO_DURATION],
   stringToDurationOp
 );
-const intToDurationOp: StrictUnaryOp = (id, x) => {
+const intToDurationOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "bigint") {
     return new Duration({ seconds: x });
   }
@@ -436,7 +436,7 @@ const toDurationFunc = Func.unary(DURATION, [], (id, x) => {
   }
 });
 
-const typeFunc = Func.newVarArg("type", [], (id, x) => {
+const typeFunc = Func.newVarArg("type", [], (_id, x) => {
   const args = coerceToValues(x);
   if (args instanceof CelError || args instanceof CelUnknown) {
     return args;
@@ -447,7 +447,7 @@ const typeFunc = Func.newVarArg("type", [], (id, x) => {
   return type.getCelType(args[0]);
 });
 
-const toDynOp: StrictUnaryOp = (id, x) => {
+const toDynOp: StrictUnaryOp = (_id, x) => {
   return x;
 };
 const toDynFunc = Func.unary("dyn", [olc.TO_DYN], toDynOp);

@@ -102,7 +102,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
         return compareBytes(lhs, rhs) === 0;
       } else if (lhs instanceof Message && rhs instanceof Message) {
         // TODO(afuller): Figure out why this is needed.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-argument
         return lhs.getType() === rhs.getType() && lhs.equals(rhs as any);
       }
     }

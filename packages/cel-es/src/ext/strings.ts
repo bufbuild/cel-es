@@ -86,7 +86,7 @@ const lastIndexOfFunc = Func.newStrict(
 const lowerAsciiFunc = Func.unary(
   "lowerAscii",
   ["string_lower_ascii"],
-  (id: number, str: CelVal) => {
+  (_id: number, str: CelVal) => {
     if (typeof str !== "string") {
       return undefined;
     }
@@ -107,7 +107,7 @@ const lowerAsciiFunc = Func.unary(
 const upperAsciiFunc = Func.unary(
   "upperAscii",
   ["string_upper_ascii"],
-  (id: number, str: CelVal) => {
+  (_id: number, str: CelVal) => {
     if (typeof str !== "string") {
       return undefined;
     }
@@ -127,7 +127,7 @@ const upperAsciiFunc = Func.unary(
 const replaceFunc = Func.newStrict(
   "replace",
   ["string_replace_string_string", "string_replace_string_string_int"],
-  (id: number, args) => {
+  (_id: number, args) => {
     if (!argsMatchInt(args, type.STRING, type.STRING, type.STRING)) {
       return undefined;
     }
@@ -155,7 +155,7 @@ const replaceFunc = Func.newStrict(
 const splitFunc = Func.newStrict(
   "split",
   ["string_split_string", "string_split_string_int"],
-  (id: number, args: CelVal[]) => {
+  (_idid: number, args: CelVal[]) => {
     if (!argsMatchInt(args, type.STRING, type.STRING)) {
       return undefined;
     }
@@ -211,7 +211,7 @@ const WHITE_SPACE = new Set([
 const trimFunc = Func.unary(
   "trim",
   ["string_trim"],
-  (id: number, str: CelVal) => {
+  (_id: number, str: CelVal) => {
     if (typeof str !== "string") {
       return undefined;
     }
@@ -268,7 +268,7 @@ const QUOTE_MAP: Map<number, string> = new Map([
   [0x22, '\\"'],
   [0x5c, "\\\\"],
 ]);
-function quoteString(id: number, str: string): string {
+function quoteString(_id: number, str: string): string {
   let result = '"';
   for (let i = 0; i < str.length; i++) {
     const c = str.charCodeAt(i);
@@ -403,7 +403,7 @@ export class Formatter {
     return CelErrors.invalidArgument(id, "format", "invalid integer value");
   }
 
-  public formatHexString(id: number, val: string): string {
+  public formatHexString(_id: number, val: string): string {
     let result = "";
     for (let i = 0; i < val.length; i++) {
       const c = val.charCodeAt(i);
@@ -412,7 +412,7 @@ export class Formatter {
     return result;
   }
 
-  public formatHexBytes(id: number, val: Uint8Array): string {
+  public formatHexBytes(_id: number, val: Uint8Array): string {
     let result = "";
     for (let i = 0; i < val.length; i++) {
       result += val[i].toString(16);

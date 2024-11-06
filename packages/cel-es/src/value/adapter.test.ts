@@ -7,8 +7,8 @@ import { Namespace } from "./namespace.js";
 import { CelList, CelMap, CelUint, type CelVal } from "./value.js";
 import * as type from "./type.js";
 
-suite("adapter tests", () => {
-  test("main namespace", () => {
+void suite("adapter tests", () => {
+  void test("main namespace", () => {
     const c = new Namespace("");
 
     const actual = c.resolveCandidateNames("a.b.c");
@@ -16,7 +16,7 @@ suite("adapter tests", () => {
     assert.deepEqual(actual, expected);
   });
 
-  test("named namespace", () => {
+  void test("named namespace", () => {
     const c = new Namespace("a.b.c.M.N");
 
     let actual = c.resolveCandidateNames("R.s");
@@ -34,7 +34,7 @@ suite("adapter tests", () => {
     assert.deepEqual(actual, expected);
   });
 
-  test("equals", () => {
+  void test("equals", () => {
     assert.ok(NATIVE_ADAPTER.equals(true, true));
     assert.ok(!NATIVE_ADAPTER.equals(true, false));
     assert.ok(NATIVE_ADAPTER.equals(-0.0, 0.0));
@@ -43,19 +43,19 @@ suite("adapter tests", () => {
     assert.ok(!NATIVE_ADAPTER.equals(NaN, NaN));
   });
 
-  test("bool", () => {
+  void test("bool", () => {
     assert.equal(NATIVE_ADAPTER.toCel(true), true);
     assert.equal(NATIVE_ADAPTER.toCel(false), false);
     assert.equal(NATIVE_ADAPTER.fromCel(true), true);
     assert.equal(NATIVE_ADAPTER.fromCel(false), false);
   });
 
-  test("null", () => {
+  void test("null", () => {
     assert.equal(NATIVE_ADAPTER.toCel(null), null);
     assert.equal(NATIVE_ADAPTER.fromCel(null), null);
   });
 
-  test("number", () => {
+  void test("number", () => {
     assert.equal(NATIVE_ADAPTER.toCel(1), 1);
     assert.equal(NATIVE_ADAPTER.fromCel(1), 1);
 
@@ -66,7 +66,7 @@ suite("adapter tests", () => {
     assert.equal(NATIVE_ADAPTER.fromCel(-Infinity), -Infinity);
   });
 
-  test("bigint", () => {
+  void test("bigint", () => {
     assert.equal(NATIVE_ADAPTER.toCel(1n), 1n);
     assert.equal(NATIVE_ADAPTER.fromCel(1n), 1n);
 
@@ -76,7 +76,7 @@ suite("adapter tests", () => {
     assert.deepEqual(NATIVE_ADAPTER.toCel(9223372036854775808n), new CelUint(9223372036854775808n));
   });
 
-  test("string", () => {
+  void test("string", () => {
     assert.equal(NATIVE_ADAPTER.toCel(""), "");
     assert.equal(NATIVE_ADAPTER.fromCel(""), "");
 
@@ -84,7 +84,7 @@ suite("adapter tests", () => {
     assert.equal(NATIVE_ADAPTER.fromCel("abc"), "abc");
   });
 
-  test("list", () => {
+  void test("list", () => {
     assert.equal(NATIVE_ADAPTER.toCel([]), EMPTY_LIST);
     assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_LIST), []);
 
@@ -93,7 +93,7 @@ suite("adapter tests", () => {
     assert.deepEqual(NATIVE_ADAPTER.fromCel(new CelList([1n, new CelUint(2n), 3], CEL_ADAPTER, type.DYN_MAP)), [1n, 2n, 3]);
   });
 
-  test("map", () => {
+  void test("map", () => {
     assert.equal(NATIVE_ADAPTER.toCel(new Map()), EMPTY_MAP);
     assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_MAP), new Map());
 

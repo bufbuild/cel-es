@@ -3,8 +3,8 @@ import * as assert from "node:assert/strict";
 
 import * as type from "./type.js";
 
-suite("type", () => {
-  test("scalar types", () => {
+void suite("type", () => {
+  void test("scalar types", () => {
     assert.equal(type.BOOL.name, "bool");
     assert.equal(type.UINT.name, "uint");
     assert.equal(type.INT.name, "int");
@@ -13,7 +13,7 @@ suite("type", () => {
     assert.equal(type.BYTES.name, "bytes");
   });
 
-  test("list type", () => {
+  void test("list type", () => {
     assert.equal(type.LIST.name, "list");
     assert.equal(type.LIST.fullname(), "list(dyn)");
     assert.ok(type.LIST.elemType === type.DYN);
@@ -23,7 +23,7 @@ suite("type", () => {
     assert.ok(!other.identical(type.LIST));
   });
 
-  test("map type", () => {
+  void test("map type", () => {
     assert.equal(type.DYN_MAP.name, "map");
     assert.equal(type.DYN_MAP.fullname(), "map(dyn, dyn)");
     assert.ok(type.DYN_MAP.keyType === type.DYN);
@@ -36,7 +36,7 @@ suite("type", () => {
     assert.ok(!other.identical(type.DYN_MAP));
   });
 
-  test("type type", () => {
+  void test("type type", () => {
     assert.equal(type.TYPE.name, "type");
     assert.equal(type.TYPE.fullname(), "type");
     assert.ok(!type.TYPE.equals(type.DYN));

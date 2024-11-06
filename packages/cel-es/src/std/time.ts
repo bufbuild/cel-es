@@ -7,7 +7,7 @@ import { CelErrors } from "../value/value.js";
 
 type TimeFunc = (val: Date) => number;
 
-function makeTimeOp(op: string, t: TimeFunc): StrictOp {
+function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
   return (id, args) => {
     if (!(args[0] instanceof Timestamp)) {
       return undefined;
@@ -103,7 +103,7 @@ const timestampToSecondsFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_SECONDS, olc.TIMESTAMP_TO_SECONDS_WITH_TZ],
   timestampToSecondsOp
 );
-const durationToSecondsOp: StrictUnaryOp = (id, val) => {
+const durationToSecondsOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
     return val.seconds;
   }
@@ -136,7 +136,7 @@ const timestampToHoursFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_HOURS, olc.TIMESTAMP_TO_HOURS_WITH_TZ],
   timestampToHoursOp
 );
-const durationToHoursOp: StrictUnaryOp = (id, val) => {
+const durationToHoursOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
     return val.seconds / 3600n;
   }
@@ -166,7 +166,7 @@ const timestampToMinutesFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_MINUTES, olc.TIMESTAMP_TO_MINUTES_WITH_TZ],
   timestampToMinutesOp
 );
-const durationToMinutesOp: StrictUnaryOp = (id, val) => {
+const durationToMinutesOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
     return val.seconds / 60n;
   }
@@ -200,7 +200,7 @@ const timestampToMillisecondsFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_MILLISECONDS, olc.TIMESTAMP_TO_MILLISECONDS_WITH_TZ],
   timestampToMillisecondsOp
 );
-const durationToMillisecondsOp: StrictUnaryOp = (id, val) => {
+const durationToMillisecondsOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
     return BigInt(val.nanos) / 1000000n;
   }

@@ -22,7 +22,7 @@ import {
 } from "../value/value.js";
 
 const MAX_INT = 9223372036854775807n;
-// eslint-disable-next-line @typescript-eslint/no-loss-of-precision
+// eslint-disable-next-line no-loss-of-precision
 const MAX_INT_NUM = 9223372036854775807.0;
 const MIN_INT = -9223372036854775808n;
 const MIN_INT_NUM = -9223372036854775808.0;
@@ -94,7 +94,7 @@ const addUintOp: StrictOp = (id, args) => {
 };
 const addUintFunc = Func.newStrict(opc.ADD, [olc.ADD_UINT64], addUintOp);
 
-const addDoubleOp: StrictOp = (id, args) => {
+const addDoubleOp: StrictOp = (_id, args) => {
   let sum = 0;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -107,7 +107,7 @@ const addDoubleOp: StrictOp = (id, args) => {
 };
 const addDoubleFunc = Func.newStrict(opc.ADD, [olc.ADD_DOUBLE], addDoubleOp);
 
-const addStringOp: StrictOp = (id, args) => {
+const addStringOp: StrictOp = (_id, args) => {
   let sum = "";
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -120,7 +120,7 @@ const addStringOp: StrictOp = (id, args) => {
 };
 const addStringFunc = Func.newStrict(opc.ADD, [olc.ADD_STRING], addStringOp);
 
-const addBytesOp: StrictOp = (id: number, args: CelVal[]) => {
+const addBytesOp: StrictOp = (_id: number, args: CelVal[]) => {
   let length = 0;
   const data: Uint8Array[] = [];
   for (let i = 0; i < args.length; i++) {
@@ -143,7 +143,7 @@ const addBytesOp: StrictOp = (id: number, args: CelVal[]) => {
 };
 const addBytesFunc = Func.newStrict(opc.ADD, [olc.ADD_BYTES], addBytesOp);
 
-const addListOp: StrictOp = (id: number, args: CelVal[]) => {
+const addListOp: StrictOp = (_id: number, args: CelVal[]) => {
   const first = args[0];
   if (!(first instanceof CelList)) {
     return undefined;
@@ -282,7 +282,7 @@ const subUintOp: StrictBinaryOp = (id, lhs, rhs) => {
   return undefined;
 };
 const subUintFunc = Func.binary(opc.SUBTRACT, [olc.SUBTRACT_UINT64], subUintOp);
-const subDoubleOp: StrictBinaryOp = (id, lhs, rhs) => {
+const subDoubleOp: StrictBinaryOp = (_id, lhs, rhs) => {
   if (typeof lhs === "number" && typeof rhs === "number") {
     return lhs - rhs;
   }
@@ -370,7 +370,7 @@ const mulUintFunc = Func.newStrict(
   mulUintOp
 );
 
-const mulDoubleOp: StrictOp = (id, args) => {
+const mulDoubleOp: StrictOp = (_id, args) => {
   let product = 1;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -422,7 +422,7 @@ const divUintOp: StrictBinaryOp = (id, lhs, rhs) => {
   return undefined;
 };
 const divUintFunc = Func.binary(opc.DIVIDE, [olc.DIVIDE_UINT64], divUintOp);
-const divDoubleOp: StrictBinaryOp = (id, lhs, rhs) => {
+const divDoubleOp: StrictBinaryOp = (_id, lhs, rhs) => {
   if (typeof lhs === "number" && typeof rhs === "number") {
     return lhs / rhs;
   }
@@ -484,7 +484,7 @@ const negIntOp: StrictUnaryOp = (id, arg) => {
   return undefined;
 };
 const negIntFunc = Func.unary(opc.NEGATE, [olc.NEGATE_INT64], negIntOp);
-const negDoubleOp: StrictUnaryOp = (id, arg) => {
+const negDoubleOp: StrictUnaryOp = (_id, arg) => {
   if (typeof arg === "number") {
     return -arg;
   }

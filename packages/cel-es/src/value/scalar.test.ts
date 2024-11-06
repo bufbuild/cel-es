@@ -7,24 +7,24 @@ import { CEL_ADAPTER } from "../adapter/cel.js";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
 import { CelUint, newDuration } from "./value.js";
 
-suite("scalar", () => {
-  test("bool", () => {
+void suite("scalar", () => {
+  void test("bool", () => {
     assert.equal(NATIVE_ADAPTER.toCel(true), true);
     assert.equal(NATIVE_ADAPTER.toCel(false), false);
   });
 
-  test("uint", () => {
+  void test("uint", () => {
     assert.equal(CelUint.EMPTY.value, 0n);
     assert.equal(new CelUint(1n).value, 1n);
     assert.equal(CelUint.ONE.value, 1n);
   });
 
-  test("double", () => {
+  void test("double", () => {
     assert.equal(CEL_ADAPTER.equals(-0, 0), true);
     assert.equal(CEL_ADAPTER.equals(NaN, NaN), false);
   });
 
-  test("duration", () => {
+  void test("duration", () => {
     let actual = newDuration(0, 0n, -1);
     assert.ok(actual instanceof Duration);
     assert.equal(actual.seconds, -1n);
