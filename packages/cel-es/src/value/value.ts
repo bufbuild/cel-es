@@ -1,4 +1,3 @@
-/* eslint-disable no-param-reassign */
 import {
   Any,
   BoolValue,
@@ -300,7 +299,7 @@ export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
     return result;
   }
 
-  accessByIndex(id: number, index: number | bigint): CelResult | undefined {
+  accessByIndex(_id: number, index: number | bigint): CelResult | undefined {
     let result = this.nativeKeyMap.get(index);
     if (result === undefined) {
       if (typeof index === "number" && Number.isInteger(index)) {
@@ -313,7 +312,7 @@ export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
     return this.adapter.toCel(result);
   }
 
-  accessByName(id: number, name: unknown): CelResult | undefined {
+  accessByName(_id: number, name: unknown): CelResult | undefined {
     return this.adapter.toCel(this.nativeKeyMap.get(name));
   }
 
@@ -417,7 +416,7 @@ export class ConcreteType extends CelType {
   }
 }
 
-export class WrapperType<T extends Message> extends CelType {
+export class WrapperType<_T extends Message> extends CelType {
   constructor(public wrapped: CelType) {
     super(
       "wrapper(" + wrapped.name + ")",
@@ -465,7 +464,7 @@ export function isCelResult(val: unknown): val is CelResult {
 }
 
 export function coerceToBool(
-  id: number,
+  _id: number,
   val: CelResult | undefined
 ): CelResult<boolean> {
   if (val instanceof CelError || val instanceof CelUnknown) {
@@ -610,10 +609,10 @@ export class CelErrors {
   static invalidTz(id: number, timezone: string): CelError {
     return new CelError(Number(id), `invalid timezone: ${timezone}`);
   }
-  static badTimestamp(id: number, seconds: bigint, nanos: number): CelError {
+  static badTimestamp(id: number, _seconds: bigint, _nanos: number): CelError {
     return new CelError(Number(id), "timestamp out of range");
   }
-  static badDuration(id: number, seconds: bigint, nanos: number): CelError {
+  static badDuration(id: number, _seconds: bigint, _nanos: number): CelError {
     return new CelError(Number(id), "duration out of range");
   }
   static badIndexAccess(id: number, type: CelType): CelError {

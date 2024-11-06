@@ -393,7 +393,7 @@ export class ProtoValAdapter implements CelValAdapter {
     throw new Error("not implemented.");
   }
 
-  valueFromCel(id: number, celVal: CelVal): CelResult<CelObject> {
+  valueFromCel(_id: number, celVal: CelVal): CelResult<CelObject> {
     const val = new Value();
     switch (typeof celVal) {
       case "boolean":
@@ -454,8 +454,8 @@ export class ProtoValAdapter implements CelValAdapter {
   }
 
   valueFromRepeated(
-    id: number,
-    field: FieldInfo,
+    _id: number,
+    _field: FieldInfo,
     val: CelResult
   ): CelResult<unknown[]> {
     if (val instanceof CelList) {
@@ -590,7 +590,7 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
     return EMPTY_PROVIDER.findIdent(id, ident);
   }
 
-  unpackAny(id: number, any: Any): CelResult {
+  unpackAny(_id: number, any: Any): CelResult {
     const message = any.unpack(this.adapter.registry);
     if (message === undefined) {
       return any;

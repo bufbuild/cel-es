@@ -101,7 +101,7 @@ export class EmptyProvider implements CelValProvider {
     }
   }
 
-  findIdent(id: number, ident: string): CelResult | undefined {
+  findIdent(_id: number, ident: string): CelResult | undefined {
     switch (ident) {
       case "int":
         return type.INT;

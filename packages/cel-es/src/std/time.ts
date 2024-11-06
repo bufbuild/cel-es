@@ -32,7 +32,7 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
     const result = t(val);
     try {
       return BigInt(result);
-    } catch (e) {
+    } catch (_e) {
       throw new Error(
         `Error converting ${result} of ${String(val)} of ${String(
           args[0].toJson()

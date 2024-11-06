@@ -35,7 +35,7 @@ export enum DispatchType {
   Strict = 1, // All args must be unwrapped CelVals
 }
 
-export const identityOp: UnaryOp = (id: number, arg: CelResult) => arg;
+export const identityOp: UnaryOp = (_id: number, arg: CelResult) => arg;
 
 export interface CallDispatch {
   dispatch(
