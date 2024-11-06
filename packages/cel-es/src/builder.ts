@@ -13,7 +13,7 @@ import {
 
 const encoder = new TextEncoder();
 
-export default class ExprBuilder {
+export class ExprBuilder {
   private prevId = 0n;
   public sourceInfo: SourceInfo = new SourceInfo();
 
