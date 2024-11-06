@@ -6,7 +6,7 @@
 
 
 
-import ExprBuilder from "./builder.ts";
+import { ExprBuilder } from "./builder.js";
 const builder = new ExprBuilder();
 
 function peg$subclass(child, parent) {
