@@ -37,7 +37,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   accessByIndex(
     id: number,
     obj: ExprType,
-    index: number | bigint
+    index: number | bigint,
   ): ExprResult | undefined {
     if (isCelVal(obj)) {
       return CEL_ADAPTER.accessByIndex(id, obj, index);
@@ -64,7 +64,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   accessMapByIndex(
     _id: number,
     _obj: MapValue,
-    _index: number | bigint
+    _index: number | bigint,
   ): ExprResult | undefined {
     throw new Error("Method not implemented.");
   }
@@ -72,7 +72,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   accessListByIndex(
     _id: number,
     obj: ListValue,
-    index: number | bigint
+    index: number | bigint,
   ): ExprResult | undefined {
     const i = Number(index);
     if (i < 0 || i >= obj.values.length) {
@@ -94,7 +94,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   accessByName(
     id: number,
     obj: ExprType,
-    name: string
+    name: string,
   ): ExprResult | undefined {
     if (isCelVal(obj)) {
       return CEL_ADAPTER.accessByName(id, obj, name);
@@ -111,7 +111,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   accessValueByName(
     id: number,
     value: Value,
-    name: string
+    name: string,
   ): ExprResult | undefined {
     switch (value.kind.case) {
       case "mapValue":
@@ -221,7 +221,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
           new MapValue_Entry({
             key: this.celToValue(key as CelVal),
             value: this.celToValue(val as CelVal),
-          })
+          }),
         );
       });
       return new Value({ kind: { case: "mapValue", value: map } });

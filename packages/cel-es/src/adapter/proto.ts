@@ -119,7 +119,7 @@ export class ProtoValAdapter implements CelValAdapter {
         this,
         celA,
         celB,
-        this.getMetadata(a.getType()).FIELD_NAMES
+        this.getMetadata(a.getType()).FIELD_NAMES,
       );
     }
     return a.equals(b);
@@ -151,7 +151,7 @@ export class ProtoValAdapter implements CelValAdapter {
           return new CelObject(
             native,
             this,
-            this.getMetadata(native.getType()).TYPE
+            this.getMetadata(native.getType()).TYPE,
           );
       }
     }
@@ -165,7 +165,7 @@ export class ProtoValAdapter implements CelValAdapter {
   accessByName(
     id: number,
     obj: AnyMessage,
-    name: string
+    name: string,
   ): ProtoResult | undefined {
     if (isProtoMsg(obj)) {
       const fields = this.getMetadata(obj.getType()).FIELDS;
@@ -197,7 +197,7 @@ export class ProtoValAdapter implements CelValAdapter {
   accessByIndex(
     id: number,
     obj: ProtoValue,
-    index: number | bigint
+    index: number | bigint,
   ): ProtoResult | undefined {
     if (isProtoMsg(obj)) {
       return undefined;
@@ -243,7 +243,7 @@ export class ProtoValAdapter implements CelValAdapter {
         return new CelObject(
           value ?? {},
           this,
-          new type.MapType(getScalarType(field.K), getType(field.V))
+          new type.MapType(getScalarType(field.K), getType(field.V)),
         );
       default:
         throw new Error("Unexpected field kind");
@@ -252,7 +252,7 @@ export class ProtoValAdapter implements CelValAdapter {
   accessProtoRepeatedField(
     field: FieldInfo,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- proto type system too complex
-    value: any[] | undefined
+    value: any[] | undefined,
   ): ProtoResult | undefined {
     switch (field.kind) {
       case "scalar":
@@ -266,7 +266,7 @@ export class ProtoValAdapter implements CelValAdapter {
             return new CelList(
               value?.map((v) => new CelUint(BigInt(v))) ?? [],
               this,
-              type.LIST_UINT
+              type.LIST_UINT,
             );
           case ScalarType.INT32:
           case ScalarType.SINT32:
@@ -274,7 +274,7 @@ export class ProtoValAdapter implements CelValAdapter {
             return new CelList(
               value?.map((v) => BigInt(v)) ?? [],
               this,
-              type.LIST_INT
+              type.LIST_INT,
             );
           case ScalarType.INT64:
           case ScalarType.SINT64:
@@ -295,13 +295,13 @@ export class ProtoValAdapter implements CelValAdapter {
         return new CelList(
           value ?? [],
           this,
-          new type.ListType(new CelType(field.T.typeName))
+          new type.ListType(new CelType(field.T.typeName)),
         );
       case "enum":
         return new CelList(
           value ?? [],
           this,
-          new type.ListType(new CelType(field.T.typeName))
+          new type.ListType(new CelType(field.T.typeName)),
         );
       default:
         throw new Error("Method not implemented.");
@@ -422,7 +422,7 @@ export class ProtoValAdapter implements CelValAdapter {
   messageFromStruct(
     id: number,
     mtype: MessageType,
-    obj: StructAccess
+    obj: StructAccess,
   ): CelResult {
     const fields = this.getMetadata(mtype).FIELDS;
     const result = new mtype();
@@ -456,7 +456,7 @@ export class ProtoValAdapter implements CelValAdapter {
   valueFromRepeated(
     _id: number,
     _field: FieldInfo,
-    val: CelResult
+    val: CelResult,
   ): CelResult<unknown[]> {
     if (val instanceof CelList) {
       const result: unknown[] = [];
@@ -522,7 +522,7 @@ class ProtoMetadata {
 
   constructor(
     public readonly messageType: MessageType,
-    adapter: ProtoValAdapter
+    adapter: ProtoValAdapter,
   ) {
     this.DEFAULT_PROTO = new messageType();
     const wk_type = type.WK_PROTO_TYPES.get(messageType.typeName);
@@ -562,7 +562,7 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
   newValue(
     id: number,
     typeName: string,
-    obj: CelObject | CelMap
+    obj: CelObject | CelMap,
   ): CelResult | undefined {
     const result = EMPTY_PROVIDER.newValue(id, typeName, obj);
     if (result !== undefined) {
@@ -598,7 +598,7 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
     return new CelObject(
       message,
       this.adapter,
-      this.adapter.getMetadata(message.getType()).TYPE
+      this.adapter.getMetadata(message.getType()).TYPE,
     );
   }
 }
@@ -635,7 +635,7 @@ function getType(
   V:
     | { readonly kind: "scalar"; readonly T: ScalarType }
     | { readonly kind: "enum"; readonly T: EnumType }
-    | { readonly kind: "message"; readonly T: MessageType<AnyMessage> }
+    | { readonly kind: "message"; readonly T: MessageType<AnyMessage> },
 ): CelType {
   switch (V.kind) {
     case "scalar":

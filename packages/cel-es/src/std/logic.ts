@@ -29,7 +29,7 @@ const notStrictlyFalse = Func.newVarArg(
       return false;
     }
     return true;
-  }
+  },
 );
 
 const notFunc = Func.unary(opc.LOGICAL_NOT, [olc.LOGICAL_NOT], (id, x) => {
@@ -71,7 +71,7 @@ const andFunc = Func.newVarArg(
       return CelErrors.merge(errors);
     }
     return undefined;
-  }
+  },
 );
 
 const orFunc = Func.newVarArg(
@@ -102,7 +102,7 @@ const orFunc = Func.newVarArg(
       return CelErrors.merge(errors);
     }
     return undefined;
-  }
+  },
 );
 
 const eqFunc = Func.binary(opc.EQUALS, [olc.EQUALS], (id, x, y) => {
@@ -145,7 +145,7 @@ const ltFunc = Func.binary(
       return cmp;
     }
     return cmp < 0;
-  }
+  },
 );
 
 const leFunc = Func.binary(
@@ -176,7 +176,7 @@ const leFunc = Func.binary(
       return cmp;
     }
     return cmp <= 0;
-  }
+  },
 );
 
 const gtFunc = Func.binary(
@@ -207,7 +207,7 @@ const gtFunc = Func.binary(
       return cmp;
     }
     return cmp > 0;
-  }
+  },
 );
 
 const geFunc = Func.binary(
@@ -238,7 +238,7 @@ const geFunc = Func.binary(
       return cmp;
     }
     return cmp >= 0;
-  }
+  },
 );
 
 const containsStringOp: StrictBinaryOp = (id, x, y) => {
@@ -250,7 +250,7 @@ const containsStringOp: StrictBinaryOp = (id, x, y) => {
 const containsStringFunc = Func.binary(
   olc.CONTAINS,
   [olc.CONTAINS_STRING],
-  containsStringOp
+  containsStringOp,
 );
 const containsFunc = Func.binary(olc.CONTAINS, [], (id, x, y) => {
   if (typeof x === "string") {
@@ -268,7 +268,7 @@ const endsWithStringOp: StrictBinaryOp = (id, x, y) => {
 const endsWithStringFunc = Func.binary(
   olc.ENDS_WITH,
   [olc.ENDS_WITH_STRING],
-  endsWithStringOp
+  endsWithStringOp,
 );
 const endsWithFunc = Func.binary(olc.ENDS_WITH, [], (id, x, y) => {
   if (typeof x === "string") {
@@ -286,7 +286,7 @@ const startsWithOp: StrictBinaryOp = (id, x, y) => {
 const startsWithStringFunc = Func.binary(
   olc.STARTS_WITH,
   [olc.STARTS_WITH_STRING],
-  startsWithOp
+  startsWithOp,
 );
 const startsWithFunc = Func.binary(olc.STARTS_WITH, [], (id, x, y) => {
   if (typeof x === "string") {
@@ -305,7 +305,7 @@ const matchesStringOp: StrictBinaryOp = (id, x, y) => {
 const matchesStringFunc = Func.binary(
   olc.MATCHES,
   [olc.MATCHES_STRING],
-  matchesStringOp
+  matchesStringOp,
 );
 const matchesFunc = Func.binary(olc.MATCHES, [], (id, x, y) => {
   if (typeof x === "string") {
@@ -323,7 +323,7 @@ const sizeStringOp: StrictUnaryOp = (id: number, x: CelVal) => {
 const sizeStringFunc = Func.unary(
   olc.SIZE,
   [olc.SIZE_STRING, olc.SIZE_STRING_INST],
-  sizeStringOp
+  sizeStringOp,
 );
 const SizeBytesOp: StrictUnaryOp = (id: number, x: CelVal) => {
   if (x instanceof Uint8Array) {
@@ -334,7 +334,7 @@ const SizeBytesOp: StrictUnaryOp = (id: number, x: CelVal) => {
 const sizeBytesFunc = Func.unary(
   olc.SIZE,
   [olc.SIZE_BYTES, olc.SIZE_BYTES_INST],
-  SizeBytesOp
+  SizeBytesOp,
 );
 const sizeListOp: StrictUnaryOp = (id: number, x: CelVal) => {
   if (x instanceof CelList) {
@@ -345,7 +345,7 @@ const sizeListOp: StrictUnaryOp = (id: number, x: CelVal) => {
 const sizeListFunc = Func.unary(
   olc.SIZE,
   [olc.SIZE_LIST, olc.SIZE_LIST_INST],
-  sizeListOp
+  sizeListOp,
 );
 const sizeMapOp: StrictUnaryOp = (id: number, x: CelVal) => {
   if (x instanceof CelMap) {
@@ -356,7 +356,7 @@ const sizeMapOp: StrictUnaryOp = (id: number, x: CelVal) => {
 const sizeMapFunc = Func.unary(
   olc.SIZE,
   [olc.SIZE_MAP, olc.SIZE_MAP_INST],
-  sizeMapOp
+  sizeMapOp,
 );
 
 const sizeFunc = Func.unary(olc.SIZE, [], (id, x) => {

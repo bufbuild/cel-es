@@ -26,7 +26,7 @@ export class ExprBuilder {
 
   public newConstExpr(
     offset: number,
-    constantKind: Constant["constantKind"]
+    constantKind: Constant["constantKind"],
   ): Expr {
     const expr = this.nextExpr(offset);
     expr.exprKind = {
@@ -59,7 +59,7 @@ export class ExprBuilder {
     offset: number,
     target: Expr,
     functionName: string,
-    args: Expr[]
+    args: Expr[],
   ): Expr {
     const expr = this.nextExpr(offset);
     expr.exprKind = {
@@ -96,7 +96,7 @@ export class ExprBuilder {
           }
 
           return [...bytes, ...chunk];
-        }, [])
+        }, []),
       ),
     });
   }
@@ -196,7 +196,7 @@ export class ExprBuilder {
     x: string,
     init: boolean,
     step: Expr,
-    cond: Expr
+    cond: Expr,
   ) {
     const expr = this.nextExpr(offset);
     expr.exprKind = {
@@ -251,7 +251,7 @@ export class ExprBuilder {
         this.newCallExpr(offset, "!_", [
           this.newIdentExpr(offset, "__result__"),
         ]),
-      ])
+      ]),
     );
   }
 
@@ -267,7 +267,7 @@ export class ExprBuilder {
       ]),
       this.newCallExpr(offset, "@not_strictly_false", [
         this.newIdentExpr(offset, "__result__"),
-      ])
+      ]),
     );
   }
 
@@ -279,7 +279,7 @@ export class ExprBuilder {
       this.newCallExpr(offset, "_+_", [
         this.newIdentExpr(offset, "__result__"),
         this.newListExpr(offset, [step]),
-      ])
+      ]),
     );
   }
 
@@ -295,7 +295,7 @@ export class ExprBuilder {
           this.newListExpr(offset, [this.newIdentExpr(offset, x)]),
         ]),
         this.newIdentExpr(offset, "__result__"),
-      ])
+      ]),
     );
   }
 
@@ -353,35 +353,35 @@ export class ExprBuilder {
               offset,
               call.exprKind.value.target,
               varName.exprKind.value.name,
-              call.exprKind.value.args[1]
+              call.exprKind.value.args[1],
             );
           case "all":
             return this.expandAllMacro(
               offset,
               call.exprKind.value.target,
               varName.exprKind.value.name,
-              call.exprKind.value.args[1]
+              call.exprKind.value.args[1],
             );
           case "map":
             return this.expandMapMacro(
               offset,
               call.exprKind.value.target,
               varName.exprKind.value.name,
-              call.exprKind.value.args[1]
+              call.exprKind.value.args[1],
             );
           case "filter":
             return this.expandFilterMacro(
               offset,
               call.exprKind.value.target,
               varName.exprKind.value.name,
-              call.exprKind.value.args[1]
+              call.exprKind.value.args[1],
             );
           case "exists_one":
             return this.expandExistsOne(
               offset,
               call.exprKind.value.target,
               varName.exprKind.value.name,
-              call.exprKind.value.args[1]
+              call.exprKind.value.args[1],
             );
         }
       }
@@ -392,7 +392,7 @@ export class ExprBuilder {
   public newMapEntry(
     offset: number,
     key: Expr,
-    value: Expr
+    value: Expr,
   ): Expr_CreateStruct_Entry {
     const id = ++this.prevId;
     this.sourceInfo.positions[id.toString()] = offset;
@@ -409,7 +409,7 @@ export class ExprBuilder {
   public newStructExpr(
     offset: number,
     entries: Expr_CreateStruct_Entry[],
-    messageName?: string
+    messageName?: string,
   ): Expr {
     const expr = this.nextExpr(offset);
     expr.exprKind = {
@@ -427,7 +427,7 @@ export class ExprBuilder {
   public newStructEntry(
     offset: number,
     field: string,
-    value: Expr
+    value: Expr,
   ): Expr_CreateStruct_Entry {
     const id = ++this.prevId;
     this.sourceInfo.positions[id.toString()] = offset;

@@ -190,7 +190,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
   accessByIndex(
     id: number,
     obj: CelVal,
-    index: number | bigint
+    index: number | bigint,
   ): CelVal | undefined {
     if (obj instanceof CelMap || obj instanceof CelList) {
       return obj.accessByIndex(id, index) as CelVal;
@@ -271,7 +271,7 @@ export function equalsStruct<K = unknown>(
   adapter: CelValAdapter,
   a: FieldAccess<K>,
   b: FieldAccess<K>,
-  fields: K[]
+  fields: K[],
 ): CelResult<boolean> {
   for (const field of fields) {
     let va = a.accessByName(id, field);

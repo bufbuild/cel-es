@@ -73,7 +73,10 @@ void suite("adapter tests", () => {
     assert.equal(NATIVE_ADAPTER.toCel(-1n), -1n);
     assert.equal(NATIVE_ADAPTER.fromCel(-1n), -1n);
 
-    assert.deepEqual(NATIVE_ADAPTER.toCel(9223372036854775808n), new CelUint(9223372036854775808n));
+    assert.deepEqual(
+      NATIVE_ADAPTER.toCel(9223372036854775808n),
+      new CelUint(9223372036854775808n),
+    );
   });
 
   void test("string", () => {
@@ -88,9 +91,20 @@ void suite("adapter tests", () => {
     assert.equal(NATIVE_ADAPTER.toCel([]), EMPTY_LIST);
     assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_LIST), []);
 
-    assert.deepEqual(NATIVE_ADAPTER.toCel([1, 2, 3]), new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST));
-    assert.deepEqual(NATIVE_ADAPTER.fromCel(new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST)), [1, 2, 3]);
-    assert.deepEqual(NATIVE_ADAPTER.fromCel(new CelList([1n, new CelUint(2n), 3], CEL_ADAPTER, type.DYN_MAP)), [1n, 2n, 3]);
+    assert.deepEqual(
+      NATIVE_ADAPTER.toCel([1, 2, 3]),
+      new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST),
+    );
+    assert.deepEqual(
+      NATIVE_ADAPTER.fromCel(new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST)),
+      [1, 2, 3],
+    );
+    assert.deepEqual(
+      NATIVE_ADAPTER.fromCel(
+        new CelList([1n, new CelUint(2n), 3], CEL_ADAPTER, type.DYN_MAP),
+      ),
+      [1n, 2n, 3],
+    );
   });
 
   void test("map", () => {
@@ -102,7 +116,10 @@ void suite("adapter tests", () => {
       ["b", 2n],
       ["c", 3],
     ]);
-    assert.deepEqual(NATIVE_ADAPTER.toCel(testMap), new CelMap(testMap, NATIVE_ADAPTER, type.DYN_MAP));
+    assert.deepEqual(
+      NATIVE_ADAPTER.toCel(testMap),
+      new CelMap(testMap, NATIVE_ADAPTER, type.DYN_MAP),
+    );
     assert.deepEqual(
       NATIVE_ADAPTER.fromCel(
         new CelMap(
@@ -112,8 +129,8 @@ void suite("adapter tests", () => {
             ["c", 3],
           ]),
           CEL_ADAPTER,
-          type.DYN_MAP
-        )
+          type.DYN_MAP,
+        ),
       ),
       testMap,
     );

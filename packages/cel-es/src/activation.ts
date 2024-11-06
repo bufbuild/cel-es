@@ -15,7 +15,7 @@ export class EmptyActivation implements Activation {
 export class MapActivation implements Activation {
   constructor(
     private map: Map<string, unknown>,
-    private readonly adapter = NATIVE_ADAPTER
+    private readonly adapter = NATIVE_ADAPTER,
   ) {}
 
   resolve(name: string): RawResult | undefined {
@@ -26,7 +26,7 @@ export class MapActivation implements Activation {
 export class ObjectActivation implements Activation {
   constructor(
     private readonly data: object,
-    private readonly adapter: CelValAdapter
+    private readonly adapter: CelValAdapter,
   ) {}
 
   resolve(name: string): RawResult | undefined {
@@ -38,7 +38,7 @@ export class VarActivation implements Activation {
   constructor(
     public readonly name: string,
     public value: RawResult,
-    public readonly parent: Activation
+    public readonly parent: Activation,
   ) {}
 
   resolve(name: string): RawResult | undefined {

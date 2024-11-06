@@ -22,7 +22,7 @@ export interface AttributeFactory {
     cond: Interpretable,
     t: Attribute,
     f: Attribute,
-    unwrap: Unwrapper
+    unwrap: Unwrapper,
   ): Attribute;
   createMaybe(id: number, name: string): Attribute;
   createRelative(id: number, operand: Interpretable): Attribute;
@@ -40,7 +40,7 @@ export interface Access<T = unknown> {
   accessIfPresent(
     vars: Activation,
     obj: RawVal<T>,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult<T> | undefined;
 
   // If the access is optional.
@@ -63,7 +63,7 @@ function attrAccess<T = unknown>(
   factory: AttributeFactory,
   vars: Activation,
   obj: RawVal<T>,
-  accAttr: Attribute
+  accAttr: Attribute,
 ): RawResult<T> | undefined {
   const val = accAttr.resolve(vars);
   if (val === undefined) {
@@ -80,7 +80,7 @@ function attrAccessIfPresent<T = unknown>(
   vars: Activation,
   obj: RawVal<T>,
   accAttr: Attribute,
-  presenceOnly: boolean
+  presenceOnly: boolean,
 ): RawResult<T> | undefined {
   const val = accAttr.resolve(vars);
   if (val === undefined) {
@@ -98,7 +98,7 @@ function attrAccessIfPresent<T = unknown>(
 function applyAccesses<T = unknown>(
   vars: Activation,
   obj: RawVal<T>,
-  accesses: Access[]
+  accesses: Access[],
 ): RawResult<T> | undefined {
   if (accesses.length === 0) {
     return obj;
@@ -122,7 +122,7 @@ class AbsoluteAttr implements NamespacedAttribute {
     readonly nsNames: string[],
     public accesses_: Access[],
     readonly provider: CelValProvider,
-    readonly factory: AttributeFactory
+    readonly factory: AttributeFactory,
   ) {
     if (nsNames.length === 0) {
       throw new Error("No names provided");
@@ -152,7 +152,7 @@ class AbsoluteAttr implements NamespacedAttribute {
   accessIfPresent(
     vars: Activation,
     obj: RawVal,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
@@ -182,7 +182,7 @@ class ConditionalAttr implements Attribute {
     readonly t: Attribute,
     readonly f: Attribute,
     readonly factory: AttributeFactory,
-    readonly unwrap: Unwrapper
+    readonly unwrap: Unwrapper,
   ) {}
 
   isOptional(): boolean {
@@ -201,7 +201,7 @@ class ConditionalAttr implements Attribute {
   accessIfPresent(
     vars: Activation,
     obj: RawVal,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
@@ -224,7 +224,7 @@ class MaybeAttr implements Attribute {
     public readonly id: number,
     public readonly attrs: NamespacedAttribute[],
     public readonly provider: CelValProvider,
-    public readonly factory: AttributeFactory
+    public readonly factory: AttributeFactory,
   ) {}
 
   isOptional(): boolean {
@@ -261,7 +261,7 @@ class MaybeAttr implements Attribute {
   accessIfPresent(
     vars: Activation,
     obj: RawVal,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
@@ -282,7 +282,7 @@ class RelativeAttr implements Attribute {
     public readonly id: number,
     public readonly operand: Interpretable,
     private accesses_: Access[],
-    public readonly factory: AttributeFactory
+    public readonly factory: AttributeFactory,
   ) {}
 
   isOptional(): boolean {
@@ -300,7 +300,7 @@ class RelativeAttr implements Attribute {
   accessIfPresent(
     vars: Activation,
     obj: RawVal,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
@@ -319,7 +319,7 @@ class StringAccess implements Access {
     public readonly id: number,
     readonly name: string,
     readonly celVal: CelVal,
-    readonly optional: boolean
+    readonly optional: boolean,
   ) {}
 
   isOptional(): boolean {
@@ -337,7 +337,7 @@ class StringAccess implements Access {
   accessIfPresent(
     _vars: Activation,
     obj: RawVal,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult | undefined {
     const val = obj.adapter.accessByName(this.id, obj.value, this.name);
     if (val === undefined && !this.optional && !presenceOnly) {
@@ -352,7 +352,7 @@ class NumAccess implements Access {
     public readonly id: number,
     readonly index: number,
     readonly celVal: CelVal,
-    readonly optional: boolean
+    readonly optional: boolean,
   ) {}
 
   isOptional(): boolean {
@@ -373,7 +373,7 @@ class NumAccess implements Access {
   accessIfPresent(
     _vars: Activation,
     obj: RawVal,
-    _presenceOnly: boolean
+    _presenceOnly: boolean,
   ): RawResult | undefined {
     const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
     if (raw === undefined && !this.optional) {
@@ -388,7 +388,7 @@ class IntAccess implements Access {
     public readonly id: number,
     public readonly index: bigint,
     public readonly celVal: CelVal,
-    public readonly optional: boolean
+    public readonly optional: boolean,
   ) {}
 
   access(_vars: Activation, obj: RawVal): RawResult | undefined {
@@ -405,7 +405,7 @@ class IntAccess implements Access {
   accessIfPresent(
     _vars: Activation,
     obj: RawVal,
-    _presenceOnly: boolean
+    _presenceOnly: boolean,
   ): RawResult | undefined {
     const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
     if (raw === undefined && !this.optional) {
@@ -423,7 +423,7 @@ class ErrorAttr implements Attribute {
   constructor(
     public readonly id: number,
     public readonly error: CelError,
-    private readonly opt: boolean
+    private readonly opt: boolean,
   ) {}
 
   addAccess(_access: Access): void {
@@ -445,7 +445,7 @@ class ErrorAttr implements Attribute {
   accessIfPresent(
     _vars: Activation,
     _obj: RawVal,
-    _presenceOnly: boolean
+    _presenceOnly: boolean,
   ): RawResult | undefined {
     return this.error;
   }
@@ -456,7 +456,7 @@ class EvalAccess implements Access {
     public readonly id: number,
     readonly key: Interpretable,
     readonly factory: AttributeFactory,
-    readonly optional: boolean
+    readonly optional: boolean,
   ) {}
 
   access(vars: Activation, obj: RawVal): RawResult | undefined {
@@ -474,7 +474,7 @@ class EvalAccess implements Access {
   accessIfPresent(
     vars: Activation,
     obj: RawVal,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult | undefined {
     const key = this.key.eval(vars);
     if (key instanceof CelError || key instanceof CelUnknown) {
@@ -490,7 +490,10 @@ class EvalAccess implements Access {
 }
 
 export class ConcreteAttributeFactory implements AttributeFactory {
-  constructor(public provider: CelValProvider, public container: Namespace) {}
+  constructor(
+    public provider: CelValProvider,
+    public container: Namespace,
+  ) {}
 
   createAbsolute(id: number, names: string[]): NamespacedAttribute {
     return new AbsoluteAttr(id, names, [], this.provider, this);
@@ -501,7 +504,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
     cond: Interpretable,
     t: Attribute,
     f: Attribute,
-    unwrap: Unwrapper
+    unwrap: Unwrapper,
   ): Attribute {
     return new ConditionalAttr(id, cond, t, f, this, unwrap);
   }
@@ -511,7 +514,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
       id,
       [this.createAbsolute(id, this.container.resolveCandidateNames(name))],
       this.provider,
-      this
+      this,
     );
   }
 

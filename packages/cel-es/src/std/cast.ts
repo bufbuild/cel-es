@@ -75,7 +75,7 @@ const timestampToIntOp: StrictUnaryOp = (id, x) => {
 const timestampToIntFunc = Func.unary(
   INT,
   [olc.TIMESTAMP_TO_INT],
-  timestampToIntOp
+  timestampToIntOp,
 );
 const durationToIntOp: StrictUnaryOp = (id, x) => {
   if (x instanceof Duration) {
@@ -90,7 +90,7 @@ const durationToIntOp: StrictUnaryOp = (id, x) => {
 const durationToIntFunc = Func.unary(
   INT,
   [olc.DURATION_TO_INT],
-  durationToIntOp
+  durationToIntOp,
 );
 
 const toIntFunc = Func.unary(INT, [], (id, x) => {
@@ -178,7 +178,7 @@ const uintToDoubleOp: StrictUnaryOp = (_id, x) => {
 const uintToDoubleFunc = Func.unary(
   DOUBLE,
   [olc.UINT_TO_DOUBLE],
-  uintToDoubleOp
+  uintToDoubleOp,
 );
 const stringToDoubleOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "string") {
@@ -189,7 +189,7 @@ const stringToDoubleOp: StrictUnaryOp = (_id, x) => {
 const stringToDoubleFunc = Func.unary(
   DOUBLE,
   [olc.STRING_TO_DOUBLE],
-  stringToDoubleOp
+  stringToDoubleOp,
 );
 const toDoubleFunc = Func.unary(DOUBLE, [], (id, x) => {
   switch (type.getCelType(x)) {
@@ -235,7 +235,7 @@ const stringToByesOp: StrictUnaryOp = (_id, x) => {
 const stringToBytesFunc = Func.unary(
   BYTES,
   [olc.STRING_TO_BYTES],
-  stringToByesOp
+  stringToByesOp,
 );
 const toBytesFunc = Func.unary(BYTES, [], (id, x) => {
   switch (type.getCelType(x)) {
@@ -258,7 +258,7 @@ const boolToStringOp: StrictUnaryOp = (_id, x) => {
 const boolToStringFunc = Func.unary(
   STRING,
   [olc.BOOL_TO_STRING],
-  boolToStringOp
+  boolToStringOp,
 );
 const intToStringOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "bigint") {
@@ -276,7 +276,7 @@ const uintToStringOp: StrictUnaryOp = (_id, x) => {
 const uintToStringFunc = Func.unary(
   STRING,
   [olc.UINT_TO_STRING],
-  uintToStringOp
+  uintToStringOp,
 );
 const doubleToStringOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "number") {
@@ -287,7 +287,7 @@ const doubleToStringOp: StrictUnaryOp = (_id, x) => {
 const doubleToStringFunc = Func.unary(
   STRING,
   [olc.DOUBLE_TO_STRING],
-  doubleToStringOp
+  doubleToStringOp,
 );
 const bytesToStringOp: StrictUnaryOp = (id, x) => {
   if (x instanceof Uint8Array) {
@@ -304,7 +304,7 @@ const bytesToStringOp: StrictUnaryOp = (id, x) => {
 const bytesToStringFunc = Func.unary(
   STRING,
   [olc.BYTES_TO_STRING],
-  bytesToStringOp
+  bytesToStringOp,
 );
 const timestampToStringOp: StrictUnaryOp = (_id, x) => {
   if (x instanceof Timestamp) {
@@ -315,7 +315,7 @@ const timestampToStringOp: StrictUnaryOp = (_id, x) => {
 const timestampToStringFunc = Func.unary(
   STRING,
   [olc.TIMESTAMP_TO_STRING],
-  timestampToStringOp
+  timestampToStringOp,
 );
 const durationToStringOp: StrictUnaryOp = (id, x) => {
   if (x instanceof Duration) {
@@ -326,7 +326,7 @@ const durationToStringOp: StrictUnaryOp = (id, x) => {
 const durationToStringFunc = Func.unary(
   STRING,
   [olc.DURATION_TO_STRING],
-  durationToStringOp
+  durationToStringOp,
 );
 const toStrFunc = Func.unary(STRING, [], (id, x) => {
   switch (type.getCelType(x)) {
@@ -354,7 +354,7 @@ const toStrFunc = Func.unary(STRING, [], (id, x) => {
 const timestampToTimestamp = Func.unary(
   TIMESTAMP,
   [olc.TIMESTAMP_TO_TIMESTAMP],
-  identityOp
+  identityOp,
 );
 const stringToTimestampOp: StrictUnaryOp = (id, x) => {
   if (typeof x === "string") {
@@ -369,7 +369,7 @@ const stringToTimestampOp: StrictUnaryOp = (id, x) => {
 const stringToTimestampFunc = Func.unary(
   TIMESTAMP,
   [olc.STRING_TO_TIMESTAMP],
-  stringToTimestampOp
+  stringToTimestampOp,
 );
 const intToTimestampOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "bigint") {
@@ -380,7 +380,7 @@ const intToTimestampOp: StrictUnaryOp = (_id, x) => {
 const intToTimestampFunc = Func.unary(
   TIMESTAMP,
   [olc.INT_TO_TIMESTAMP],
-  intToTimestampOp
+  intToTimestampOp,
 );
 const toTimestampFunc = Func.unary(TIMESTAMP, [], (id, x) => {
   switch (type.getCelType(x)) {
@@ -398,7 +398,7 @@ const toTimestampFunc = Func.unary(TIMESTAMP, [], (id, x) => {
 const durationToDuration = Func.unary(
   DURATION,
   [olc.DURATION_TO_DURATION],
-  identityOp
+  identityOp,
 );
 
 const stringToDurationOp: StrictUnaryOp = (id, x) => {
@@ -410,7 +410,7 @@ const stringToDurationOp: StrictUnaryOp = (id, x) => {
 const stringToDurationFunc = Func.unary(
   DURATION,
   [olc.STRING_TO_DURATION],
-  stringToDurationOp
+  stringToDurationOp,
 );
 const intToDurationOp: StrictUnaryOp = (_id, x) => {
   if (typeof x === "bigint") {
@@ -421,7 +421,7 @@ const intToDurationOp: StrictUnaryOp = (_id, x) => {
 const intToDurationFunc = Func.unary(
   DURATION,
   [olc.INT_TO_DURATION],
-  intToDurationOp
+  intToDurationOp,
 );
 const toDurationFunc = Func.unary(DURATION, [], (id, x) => {
   switch (type.getCelType(x)) {

@@ -8,9 +8,7 @@ import {
   type CelParser,
   CelPlanner,
 } from "@bufbuild/cel-es";
-import {
-  SimpleTest,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
+import { SimpleTest } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
 import { createRegistry } from "@bufbuild/protobuf";
 import * as test_all_types_pb2 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto2/test_all_types_pb.js";
 import * as test_all_types_pb3 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto3/test_all_types_pb.js";
@@ -19,7 +17,7 @@ import * as assert from "node:assert/strict";
 
 export const TEST_REGISTRY: IMessageTypeRegistry = createRegistry(
   test_all_types_pb2.TestAllTypes,
-  test_all_types_pb3.TestAllTypes
+  test_all_types_pb3.TestAllTypes,
 );
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
@@ -37,7 +35,7 @@ export function runSimpleTestCase(celParser: CelParser, testCase: SimpleTest) {
         assert.deepEqual(result, testCase.resultMatcher.value);
       } else {
         const expected = EXPR_VAL_ADAPTER.valToCel(
-          testCase.resultMatcher.value
+          testCase.resultMatcher.value,
         );
         if (!CEL_ADAPTER.equals(result, expected)) {
           const actual = EXPR_VAL_ADAPTER.celToValue(result);
@@ -54,7 +52,7 @@ export function runSimpleTestCase(celParser: CelParser, testCase: SimpleTest) {
       break;
     default:
       throw new Error(
-        `Unsupported result case: ${testCase.resultMatcher.case}`
+        `Unsupported result case: ${testCase.resultMatcher.case}`,
       );
   }
 }

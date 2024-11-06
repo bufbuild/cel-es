@@ -44,7 +44,7 @@ export class TypeType extends CelType {
   constructor(readonly elemType: CelType | undefined) {
     super(
       "type",
-      elemType === undefined ? undefined : "type(" + elemType.fullname() + ")"
+      elemType === undefined ? undefined : "type(" + elemType.fullname() + ")",
     );
   }
 }
@@ -68,10 +68,13 @@ export const LIST_DURATION = new ListType(DURATION);
 export const LIST_TYPE = new ListType(TYPE);
 
 export class MapType extends CelType {
-  constructor(readonly keyType: CelType, readonly valueType: CelType) {
+  constructor(
+    readonly keyType: CelType,
+    readonly valueType: CelType,
+  ) {
     super(
       "map",
-      "map(" + keyType.fullname() + ", " + valueType.fullname() + ")"
+      "map(" + keyType.fullname() + ", " + valueType.fullname() + ")",
     );
   }
 }

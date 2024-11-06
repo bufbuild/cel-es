@@ -36,7 +36,7 @@ export class EmptyProvider implements CelValProvider {
   newValue(
     id: number,
     typeName: string,
-    obj: CelObject | CelMap
+    obj: CelObject | CelMap,
   ): CelResult | undefined {
     switch (typeName) {
       case "google.protobuf.BoolValue": {

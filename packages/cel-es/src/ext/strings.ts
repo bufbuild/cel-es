@@ -46,7 +46,7 @@ const charAtFunc = Func.binary(
       return CelErrors.indexOutOfBounds(id, i, str.length);
     }
     return str.charAt(i);
-  }
+  },
 );
 
 const indexOfFunc = Func.newStrict(
@@ -63,7 +63,7 @@ const indexOfFunc = Func.newStrict(
       return CelErrors.indexOutOfBounds(id, start, str.length);
     }
     return str.indexOf(substr, start);
-  }
+  },
 );
 
 const lastIndexOfFunc = Func.newStrict(
@@ -80,7 +80,7 @@ const lastIndexOfFunc = Func.newStrict(
       return CelErrors.indexOutOfBounds(id, start, str.length);
     }
     return str.lastIndexOf(substr, start);
-  }
+  },
 );
 
 const lowerAsciiFunc = Func.unary(
@@ -101,7 +101,7 @@ const lowerAsciiFunc = Func.unary(
       }
     }
     return result;
-  }
+  },
 );
 
 const upperAsciiFunc = Func.unary(
@@ -121,7 +121,7 @@ const upperAsciiFunc = Func.unary(
       }
     }
     return result;
-  }
+  },
 );
 
 const replaceFunc = Func.newStrict(
@@ -149,7 +149,7 @@ const replaceFunc = Func.newStrict(
       index = result.indexOf(substr, offset);
     }
     return result;
-  }
+  },
 );
 
 const splitFunc = Func.newStrict(
@@ -166,7 +166,7 @@ const splitFunc = Func.newStrict(
       return new CelList([str], CEL_ADAPTER, type.LIST_STRING);
     }
     return new CelList(str.split(sep, num), CEL_ADAPTER, type.LIST_STRING);
-  }
+  },
 );
 
 const substringFunc = Func.newStrict(
@@ -198,7 +198,7 @@ const substringFunc = Func.newStrict(
       return CelErrors.invalidArgument(id, "substring", "start > end");
     }
     return str.substring(Number(start), Number(end));
-  }
+  },
 );
 
 // The set of white space characters defined by the unicode standard.
@@ -225,7 +225,7 @@ const trimFunc = Func.unary(
       end--;
     }
     return str.substring(start, end + 1);
-  }
+  },
 );
 
 const joinFunc = Func.newStrict(
@@ -244,7 +244,7 @@ const joinFunc = Func.newStrict(
         return CelErrors.invalidArgument(
           id,
           "join",
-          "list contains non-string value"
+          "list contains non-string value",
         );
       }
       if (i > 0) {
@@ -253,7 +253,7 @@ const joinFunc = Func.newStrict(
       result += items[i];
     }
     return result;
-  }
+  },
 );
 
 const QUOTE_MAP: Map<number, string> = new Map([
@@ -286,7 +286,7 @@ const quoteFunc = Func.unary(
       return undefined;
     }
     return quoteString(id, str);
-  }
+  },
 );
 
 export class Formatter {
@@ -304,7 +304,7 @@ export class Formatter {
         return CelErrors.invalidArgument(
           id,
           "format",
-          "invalid floating point value"
+          "invalid floating point value",
         );
     }
   }
@@ -312,7 +312,7 @@ export class Formatter {
   public formatFloating(
     id: number,
     val: CelResult,
-    precision: number | undefined
+    precision: number | undefined,
   ): CelResult<string> {
     if (typeof val === "number") {
       if (isNaN(val)) {
@@ -338,14 +338,14 @@ export class Formatter {
     return CelErrors.invalidArgument(
       id,
       "format",
-      "invalid floating point value"
+      "invalid floating point value",
     );
   }
 
   public formatExponent(
     id: number,
     val: CelResult,
-    precision: number | undefined
+    precision: number | undefined,
   ): CelResult<string> {
     if (typeof val === "number") {
       if (isNaN(val)) {
@@ -364,7 +364,7 @@ export class Formatter {
     return CelErrors.invalidArgument(
       id,
       "format",
-      "invalid floating point value"
+      "invalid floating point value",
     );
   }
 
@@ -581,7 +581,7 @@ export class Formatter {
           return CelErrors.invalidArgument(
             id,
             "format",
-            "invalid format string"
+            "invalid format string",
           );
         }
         let c = format.charAt(i + 1);
@@ -606,7 +606,7 @@ export class Formatter {
             return CelErrors.invalidArgument(
               id,
               "format",
-              "invalid format string"
+              "invalid format string",
             );
           }
           c = format.charAt(i);
@@ -616,7 +616,7 @@ export class Formatter {
           return CelErrors.invalidArgument(
             id,
             "format",
-            "too few arguments for format string"
+            "too few arguments for format string",
           );
         }
         const val = items[j++];
@@ -650,7 +650,7 @@ export class Formatter {
             return CelErrors.invalidArgument(
               id,
               "format",
-              "invalid format string"
+              "invalid format string",
             );
         }
         if (str instanceof CelError || str instanceof CelUnknown) {
@@ -666,7 +666,7 @@ export class Formatter {
       return CelErrors.invalidArgument(
         id,
         "format",
-        "too many arguments for format string"
+        "too many arguments for format string",
       );
     }
     return result;
@@ -684,12 +684,12 @@ export function makeStringFormatFunc(formatter: Formatter): Func {
         return undefined;
       }
       return formatter.format(id, format, args);
-    }
+    },
   );
 }
 export function addStringsExt(
   funcs: FuncRegistry,
-  formatter: Formatter = DEFAULT_FORMATTER
+  formatter: Formatter = DEFAULT_FORMATTER,
 ) {
   funcs.add(charAtFunc);
   funcs.add(indexOfFunc);
@@ -706,7 +706,7 @@ export function addStringsExt(
 }
 
 export function makeStringExtFuncRegistry(
-  locale: string | undefined = undefined
+  locale: string | undefined = undefined,
 ): FuncRegistry {
   const funcs = new FuncRegistry();
   addStringsExt(funcs, new Formatter(locale));

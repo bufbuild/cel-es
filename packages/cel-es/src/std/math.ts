@@ -231,7 +231,7 @@ const addTimeFunc = Func.newStrict(
     olc.ADD_TIMESTAMP_DURATION,
     olc.ADD_DURATION_TIMESTAMP,
   ],
-  sumTimeOp
+  sumTimeOp,
 );
 
 const addFunc = Func.newStrict(opc.ADD, [], (id, args) => {
@@ -291,7 +291,7 @@ const subDoubleOp: StrictBinaryOp = (_id, lhs, rhs) => {
 const subDoubleFunc = Func.binary(
   opc.SUBTRACT,
   [olc.SUBTRACT_DOUBLE],
-  subDoubleOp
+  subDoubleOp,
 );
 const subTimeOp: StrictBinaryOp = (id, lhs, rhs) => {
   if (lhs instanceof Timestamp) {
@@ -314,7 +314,7 @@ const subTimeFunc = Func.binary(
     olc.SUBTRACT_DURATION_DURATION,
     olc.SUBTRACT_TIMESTAMP_DURATION,
   ],
-  subTimeOp
+  subTimeOp,
 );
 
 const subFunc = Func.binary(opc.SUBTRACT, [], (id, lhs, rhs) => {
@@ -367,7 +367,7 @@ const mulUintOp: StrictOp = (id, args) => {
 const mulUintFunc = Func.newStrict(
   opc.MULTIPLY,
   [olc.MULTIPLY_UINT64],
-  mulUintOp
+  mulUintOp,
 );
 
 const mulDoubleOp: StrictOp = (_id, args) => {
@@ -384,7 +384,7 @@ const mulDoubleOp: StrictOp = (_id, args) => {
 const mulDoubleFunc = Func.newStrict(
   opc.MULTIPLY,
   [olc.MULTIPLY_DOUBLE],
-  mulDoubleOp
+  mulDoubleOp,
 );
 
 const mulFunc = Func.newStrict(opc.MULTIPLY, [], (id, args) => {

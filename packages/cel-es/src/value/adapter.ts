@@ -10,7 +10,10 @@ import {
 
 /** A value bundled with it's associated adapter. */
 export class RawVal<V = unknown> {
-  constructor(public readonly adapter: CelValAdapter<V>, public value: V) {
+  constructor(
+    public readonly adapter: CelValAdapter<V>,
+    public value: V,
+  ) {
     if (adapter === undefined) {
       throw new Error("Adapter cannot be undefined");
     }
@@ -20,7 +23,7 @@ export class RawVal<V = unknown> {
   }
 
   static unwrap<V = unknown>(
-    raw: RawResult<V> | undefined
+    raw: RawResult<V> | undefined,
   ): CelResult<V> | undefined {
     if (
       raw instanceof CelError ||
@@ -41,7 +44,7 @@ export class RawVal<V = unknown> {
 
   static if<V>(
     adapter: CelValAdapter<V>,
-    value: CelResult<V> | undefined
+    value: CelResult<V> | undefined,
   ): RawResult<V> | undefined {
     if (value === undefined) {
       return undefined;
@@ -54,7 +57,7 @@ export type RawResult<V = unknown> = CelResult<RawVal<V>>;
 
 export function unwrapValues<V = CelVal>(
   args: V[],
-  adapter: CelValAdapter<V>
+  adapter: CelValAdapter<V>,
 ): V[] {
   return args.map((arg) => {
     return adapter.unwrap(arg);
@@ -63,7 +66,7 @@ export function unwrapValues<V = CelVal>(
 
 export function unwrapResults<V = CelVal>(
   args: CelResult<V>[],
-  unwrapper: Unwrapper
+  unwrapper: Unwrapper,
 ) {
   const unknowns: CelUnknown[] = [];
   const errors: CelError[] = [];

@@ -14,7 +14,7 @@ export interface CelValProvider<V = any> {
   newValue(
     id: number,
     typeName: string,
-    obj: CelObject | CelMap
+    obj: CelObject | CelMap,
   ): CelResult<V> | undefined;
 
   findType(candidate: string): CelType | undefined;

@@ -16,18 +16,18 @@ export type StrictUnaryOp = (id: number, arg: CelVal) => CelResult | undefined;
 export type BinaryOp = (
   id: number,
   lhs: CelResult,
-  rhs: CelResult
+  rhs: CelResult,
 ) => CelResult | undefined;
 export type StrictBinaryOp = (
   id: number,
   lhs: CelVal,
-  rhs: CelVal
+  rhs: CelVal,
 ) => CelResult | undefined;
 export type StrictOp = (id: number, args: CelVal[]) => CelResult | undefined;
 export type ResultOp = (
   id: number,
   args: CelResult[],
-  unwrap: Unwrapper
+  unwrap: Unwrapper,
 ) => CelResult | undefined;
 
 export enum DispatchType {
@@ -41,7 +41,7 @@ export interface CallDispatch {
   dispatch(
     id: number,
     args: CelResult[],
-    unwrap: Unwrapper
+    unwrap: Unwrapper,
   ): CelResult | undefined;
 }
 
@@ -55,13 +55,13 @@ export class Func implements CallDispatch {
     public readonly overloads: string[],
     private readonly call:
       | { type: DispatchType.Strict; op: StrictOp }
-      | { type: DispatchType.Result; op: ResultOp }
+      | { type: DispatchType.Result; op: ResultOp },
   ) {}
 
   public dispatch(
     id: number,
     args: CelResult[],
-    unwrap: Unwrapper
+    unwrap: Unwrapper,
   ): CelResult | undefined {
     if (this.call.type === DispatchType.Result) {
       return this.call.op(id, args, unwrap);

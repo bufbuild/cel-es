@@ -23,7 +23,7 @@ export function isCelNum(val: unknown): val is CelNum {
 export function newTimestamp(
   id: number,
   seconds: bigint,
-  nanos: number
+  nanos: number,
 ): Timestamp | CelError {
   if (nanos >= 1000000000) {
     seconds += BigInt(nanos / 1000000000);
@@ -42,7 +42,7 @@ export function newTimestamp(
 export function newDuration(
   id: number,
   seconds: bigint,
-  nanos: number
+  nanos: number,
 ): Duration | CelError {
   if (nanos >= 1000000000) {
     seconds += BigInt(nanos / 1000000000);
@@ -192,7 +192,7 @@ export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   accessByIndex(
     id: number,
     obj: V,
-    index: number | bigint
+    index: number | bigint,
   ): CelResult<V> | undefined;
   getFields(value: object): string[];
 }
@@ -220,7 +220,7 @@ export class ProtoNull {
   constructor(
     public readonly messageType: MessageType,
     public readonly defaultValue: CelVal,
-    public value: CelVal = null
+    public value: CelVal = null,
   ) {}
 }
 
@@ -244,7 +244,7 @@ export class CelList implements ListAccess {
   constructor(
     public value: unknown[],
     public readonly adapter: CelValAdapter,
-    public readonly type_: CelType
+    public readonly type_: CelType,
   ) {}
 
   getItems(): CelResult[] {
@@ -270,7 +270,7 @@ export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
   constructor(
     public value: Map<K, V>,
     public readonly adapter: CelValAdapter,
-    public type_: CelType
+    public type_: CelType,
   ) {
     this.nativeKeyMap = new Map();
     for (const [key, value] of this.value) {
@@ -325,7 +325,7 @@ export class CelObject implements StructAccess<unknown> {
   constructor(
     public value: object,
     public readonly adapter: CelValAdapter,
-    public type_: CelType
+    public type_: CelType,
   ) {
     if (isCelVal(value)) {
       throw new Error("Cannot wrap CelVal in CelObject");
@@ -373,7 +373,10 @@ export class CelObject implements StructAccess<unknown> {
  */
 export class CelType {
   readonly fullname_: string | undefined;
-  constructor(readonly name: string, fullname?: string) {
+  constructor(
+    readonly name: string,
+    fullname?: string,
+  ) {
     if (fullname !== undefined) {
       this.fullname_ = fullname;
     }
@@ -411,7 +414,10 @@ export class CelType {
 export class NumType extends CelType {}
 
 export class ConcreteType extends CelType {
-  constructor(name: string, public readonly EMPTY: CelVal) {
+  constructor(
+    name: string,
+    public readonly EMPTY: CelVal,
+  ) {
     super(name);
   }
 }
@@ -422,14 +428,17 @@ export class WrapperType<_T extends Message> extends CelType {
       "wrapper(" + wrapped.name + ")",
       wrapped.fullname_ === undefined
         ? undefined
-        : "wrapper(" + wrapped.fullname_ + ")"
+        : "wrapper(" + wrapped.fullname_ + ")",
     );
   }
 }
 
 export class CelError {
   public additional?: CelError[];
-  constructor(public id: number, public message: string) {}
+  constructor(
+    public id: number,
+    public message: string,
+  ) {}
 
   public add(additional: CelError) {
     if (this.additional === undefined) {
@@ -465,7 +474,7 @@ export function isCelResult(val: unknown): val is CelResult {
 
 export function coerceToBool(
   _id: number,
-  val: CelResult | undefined
+  val: CelResult | undefined,
 ): CelResult<boolean> {
   if (val instanceof CelError || val instanceof CelUnknown) {
     return val;
@@ -484,7 +493,7 @@ export function coerceToBool(
 
 export function coerceToBigInt(
   id: number,
-  val: CelResult | undefined
+  val: CelResult | undefined,
 ): CelResult<bigint> {
   if (val instanceof CelError || val instanceof CelUnknown) {
     return val;
@@ -503,7 +512,7 @@ export function coerceToBigInt(
 
 export function coerceToNumber(
   id: number,
-  val: CelResult | undefined
+  val: CelResult | undefined,
 ): CelResult<number> {
   if (val instanceof CelError || val instanceof CelUnknown) {
     return val;
@@ -522,7 +531,7 @@ export function coerceToNumber(
 
 export function coerceToString(
   id: number,
-  val: CelResult | undefined
+  val: CelResult | undefined,
 ): CelResult<string> {
   if (val instanceof CelError || val instanceof CelUnknown) {
     return val;
@@ -539,7 +548,7 @@ export function coerceToString(
 
 export function coerceToBytes(
   id: number,
-  val: CelResult | undefined
+  val: CelResult | undefined,
 ): CelResult<Uint8Array> {
   if (val instanceof CelError || val instanceof CelUnknown) {
     return val;
@@ -618,13 +627,13 @@ export class CelErrors {
   static badIndexAccess(id: number, type: CelType): CelError {
     return new CelError(
       Number(id),
-      `index access not supported for ${type.fullname()}`
+      `index access not supported for ${type.fullname()}`,
     );
   }
   static badStringAccess(id: number, typ: CelType): CelError {
     return new CelError(
       Number(id),
-      `${typ.fullname()} cannot be accessed by string`
+      `${typ.fullname()} cannot be accessed by string`,
     );
   }
   static mapKeyConflict(id: number, key: CelVal): CelError {
@@ -636,7 +645,7 @@ export class CelErrors {
   static identNotFound(id: number, ident: string, namespace: string): CelError {
     return new CelError(
       Number(id),
-      `undeclared reference to '${ident}' (in container '${namespace}')`
+      `undeclared reference to '${ident}' (in container '${namespace}')`,
     );
   }
   static indexOutOfBounds(id: number, index: number, length: number): CelError {
@@ -645,12 +654,12 @@ export class CelErrors {
   static fieldNotFound(
     id: number,
     name: unknown,
-    fields: unknown = undefined
+    fields: unknown = undefined,
   ): CelError {
     if (fields !== undefined) {
       return new CelError(
         id,
-        `field not found: ${String(name)} in ${String(fields)}`
+        `field not found: ${String(name)} in ${String(fields)}`,
       );
     }
     return new CelError(id, `field not found: ${String(name)}`);
@@ -671,19 +680,19 @@ export class CelErrors {
   static overflow(id: number, op: string, type: CelType): CelError {
     return new CelError(
       Number(id),
-      `${type.name} return error for overflow during ${op}`
+      `${type.name} return error for overflow during ${op}`,
     );
   }
   static overloadNotFound(
     id: number,
     name: string,
-    types: CelType[]
+    types: CelType[],
   ): CelError {
     return new CelError(
       id,
       `found no matching overload for '${name}' applied to '(${types
         .map((x) => x.name)
-        .join(", ")})'`
+        .join(", ")})'`,
     );
   }
 }

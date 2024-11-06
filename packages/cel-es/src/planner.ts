@@ -56,7 +56,7 @@ export class Planner {
   constructor(
     private readonly functions: Dispatcher,
     private readonly provider: CelValProvider = EMPTY_PROVIDER,
-    private readonly namespace: Namespace = Namespace.ROOT
+    private readonly namespace: Namespace = Namespace.ROOT,
   ) {
     this.factory = new ConcreteAttributeFactory(this.provider, this.namespace);
   }
@@ -67,7 +67,7 @@ export class Planner {
       case "identExpr":
         return new EvalAttr(
           this.factory.createMaybe(id, expr.exprKind.value.name),
-          false
+          false,
         );
       case "constExpr":
         return new EvalConst(id, this.constVal(expr.exprKind.value));
@@ -88,7 +88,7 @@ export class Planner {
 
   private planComprehension(
     id: number,
-    value: Expr_Comprehension
+    value: Expr_Comprehension,
   ): Interpretable {
     if (
       value.accuInit === undefined ||
@@ -113,7 +113,7 @@ export class Planner {
       accu,
       cond,
       step,
-      result
+      result,
     );
   }
 
@@ -216,7 +216,7 @@ export class Planner {
     return new EvalList(
       id,
       expr.elements.map((arg) => this.plan(arg)),
-      optionals
+      optionals,
     );
   }
 
@@ -227,7 +227,7 @@ export class Planner {
       if (qualName !== undefined) {
         const funcName = qualName + "." + call.function;
         for (const candidate of this.namespace.resolveCandidateNames(
-          funcName
+          funcName,
         )) {
           const func = this.functions.find(candidate);
           if (func !== undefined) {
@@ -237,7 +237,7 @@ export class Planner {
               "",
               func,
               call.args.map((arg) => this.plan(arg)),
-              this.provider.adapter
+              this.provider.adapter,
             );
           }
         }
@@ -265,14 +265,14 @@ export class Planner {
       "",
       this.functions.find(call.function),
       args,
-      this.provider.adapter
+      this.provider.adapter,
     );
   }
 
   private planCallConditional(
     id: number,
     _call: Expr_Call,
-    args: Interpretable[]
+    args: Interpretable[],
   ): Interpretable {
     const cond = args[0];
     const t = args[1];
@@ -285,16 +285,16 @@ export class Planner {
         cond,
         tAttr,
         fAttr,
-        this.provider.adapter
+        this.provider.adapter,
       ),
-      false
+      false,
     );
   }
 
   private planCallIndex(
     _call: Expr_Call,
     args: Interpretable[],
-    opt: boolean
+    opt: boolean,
   ): Interpretable {
     const op = args[0];
     const ind = args[1];
@@ -374,7 +374,7 @@ export class EvalHas implements Interpretable {
     public readonly id: number,
     private attr: Interpretable & Attribute,
     private access: Access,
-    readonly field: string
+    readonly field: string,
   ) {}
 
   eval(ctx: Activation): CelResult {
@@ -395,7 +395,10 @@ export class EvalHas implements Interpretable {
 }
 
 export class EvalError implements Interpretable {
-  constructor(public readonly id: number, private readonly msg: string) {}
+  constructor(
+    public readonly id: number,
+    private readonly msg: string,
+  ) {}
 
   eval(_ctx: Activation): CelResult {
     return new CelError(this.id, this.msg);
@@ -403,7 +406,10 @@ export class EvalError implements Interpretable {
 }
 
 export class EvalConst implements Interpretable {
-  constructor(public readonly id: number, public readonly value: CelVal) {}
+  constructor(
+    public readonly id: number,
+    public readonly value: CelVal,
+  ) {}
   eval(_ctx: Activation): CelResult {
     return this.value;
   }
@@ -411,7 +417,10 @@ export class EvalConst implements Interpretable {
 
 export class EvalAttr implements Attribute, Interpretable {
   public readonly id: number;
-  constructor(readonly attr: Attribute, readonly opt: boolean) {
+  constructor(
+    readonly attr: Attribute,
+    readonly opt: boolean,
+  ) {
     this.id = attr.id;
   }
   access(vars: Activation, obj: RawVal): RawResult | undefined {
@@ -421,7 +430,7 @@ export class EvalAttr implements Attribute, Interpretable {
   accessIfPresent(
     vars: Activation,
     obj: RawVal,
-    presenceOnly: boolean
+    presenceOnly: boolean,
   ): RawResult | undefined {
     return this.attr.accessIfPresent(vars, obj, presenceOnly);
   }
@@ -457,7 +466,7 @@ export class EvalCall implements Interpretable {
     public readonly overload: string,
     private readonly call: CallDispatch | undefined,
     public readonly args: Interpretable[],
-    public readonly adapter: CelValAdapter
+    public readonly adapter: CelValAdapter,
   ) {}
 
   public eval(ctx: Activation): CelResult {
@@ -477,7 +486,7 @@ export class EvalCall implements Interpretable {
     return CelErrors.overloadNotFound(
       this.id,
       this.name,
-      vals.map((x) => type.getCelType(x))
+      vals.map((x) => type.getCelType(x)),
     );
   }
 }
@@ -489,7 +498,7 @@ export class EvalObj implements InterpretableCtor {
     public fields: string[],
     public values: Interpretable[],
     public optionals: boolean[] | undefined,
-    public provider: CelValProvider
+    public provider: CelValProvider,
   ) {}
   type(): CelType {
     return this.provider.findType(this.typeName) as CelType;
@@ -588,7 +597,7 @@ export class EvalList implements InterpretableCtor {
   constructor(
     public readonly id: number,
     private readonly elems: Interpretable[],
-    _: boolean[] | undefined
+    _: boolean[] | undefined,
   ) {}
 
   eval(ctx: Activation): CelResult {
@@ -629,7 +638,7 @@ export class EvalMap implements InterpretableCtor {
     public readonly id: number,
     private readonly keys: Interpretable[],
     private readonly values: Interpretable[],
-    _: boolean[] | undefined
+    _: boolean[] | undefined,
   ) {}
 
   type(): CelType {
@@ -693,7 +702,7 @@ export class EvalFold implements Interpretable {
     public readonly accu: Interpretable,
     public readonly cond: Interpretable,
     public readonly step: Interpretable,
-    public readonly result: Interpretable
+    public readonly result: Interpretable,
   ) {}
 
   eval(ctx: Activation): CelResult {
@@ -708,7 +717,7 @@ export class EvalFold implements Interpretable {
     const accuCtx = new VarActivation(
       this.accuVar,
       new RawVal(CEL_ADAPTER, accuInit),
-      ctx
+      ctx,
     );
     const iterRange = this.iterRange.eval(ctx);
     if (iterRange instanceof CelError || iterRange instanceof CelUnknown) {
@@ -734,7 +743,7 @@ export class EvalFold implements Interpretable {
       const iterCtx = new VarActivation(
         this.iterVar,
         new RawVal(CEL_ADAPTER, item),
-        accuCtx
+        accuCtx,
       );
       const cond = this.cond.eval(iterCtx);
       if (cond instanceof CelError || cond instanceof CelUnknown) {

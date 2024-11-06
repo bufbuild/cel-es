@@ -8,11 +8,20 @@ import { CheckedExpr } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/checked_pb.
 import { ObjectActivation } from "./activation.js";
 import { CEL_ADAPTER } from "./adapter/cel.js";
 import { NATIVE_ADAPTER } from "./adapter/native.js";
-import { isProtoMsg, ProtoValAdapter, ProtoValProvider } from "./adapter/proto.js";
+import {
+  isProtoMsg,
+  ProtoValAdapter,
+  ProtoValProvider,
+} from "./adapter/proto.js";
 import { OrderedDispatcher, type Dispatcher } from "./func.js";
 import { Planner, type Interpretable } from "./planner.js";
 import { STD_FUNCS } from "./std/std.js";
-import { CelError, CelUnknown, isCelVal, type CelResult } from "./value/value.js";
+import {
+  CelError,
+  CelUnknown,
+  isCelVal,
+  type CelResult,
+} from "./value/value.js";
 import { Namespace } from "./value/namespace.js";
 
 /**
@@ -37,19 +46,19 @@ export class CelPlanner {
 
   public constructor(
     namespace: string | undefined = undefined,
-    registry: IMessageTypeRegistry = createRegistry()
+    registry: IMessageTypeRegistry = createRegistry(),
   ) {
     this.protoProvider = new ProtoValProvider(new ProtoValAdapter(registry));
     this.dispatcher = new OrderedDispatcher([STD_FUNCS]);
     this.planner = new Planner(
       this.dispatcher,
       this.protoProvider,
-      namespace === undefined ? undefined : new Namespace(namespace)
+      namespace === undefined ? undefined : new Namespace(namespace),
     );
   }
 
   public plan(
-    expr: Expr | ParsedExpr | CheckedExpr | undefined
+    expr: Expr | ParsedExpr | CheckedExpr | undefined,
   ): Interpretable {
     let maybeExpr: Expr | undefined = undefined;
     if (expr instanceof CheckedExpr) {
@@ -91,7 +100,7 @@ export class CelEnv {
 
   public constructor(
     namespace: string | undefined = undefined,
-    registry: IMessageTypeRegistry = createRegistry()
+    registry: IMessageTypeRegistry = createRegistry(),
   ) {
     this.planner = new CelPlanner(namespace, registry);
   }
@@ -104,7 +113,7 @@ export class CelEnv {
   }
 
   public plan(
-    expr: Expr | ParsedExpr | CheckedExpr | undefined
+    expr: Expr | ParsedExpr | CheckedExpr | undefined,
   ): Interpretable {
     return this.planner.plan(expr);
   }

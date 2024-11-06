@@ -1,7 +1,12 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { utcToZonedTime } from "date-fns-tz";
 
-import { Func, FuncRegistry, type StrictOp, type StrictUnaryOp } from "../func.js";
+import {
+  Func,
+  FuncRegistry,
+  type StrictOp,
+  type StrictUnaryOp,
+} from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { CelErrors } from "../value/value.js";
 
@@ -35,8 +40,8 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
     } catch (_e) {
       throw new Error(
         `Error converting ${result} of ${String(val)} of ${String(
-          args[0].toJson()
-        )} to BigInt`
+          args[0].toJson(),
+        )} to BigInt`,
       );
     }
   };
@@ -48,13 +53,13 @@ function makeTimeFunc(name: string, overloads: string[], t: TimeFunc): Func {
 const timeGeFullYearFunc = makeTimeFunc(
   olc.TIME_GET_FULL_YEAR,
   [olc.TIMESTAMP_TO_YEAR, olc.TIMESTAMP_TO_YEAR_WITH_TZ],
-  (val) => val.getFullYear()
+  (val) => val.getFullYear(),
 );
 
 const timeGetMonthFunc = makeTimeFunc(
   olc.TIME_GET_MONTH,
   [olc.TIMESTAMP_TO_MONTH, olc.TIMESTAMP_TO_MONTH_WITH_TZ],
-  (val) => val.getMonth()
+  (val) => val.getMonth(),
 );
 
 const timeGetDateFunc = makeTimeFunc(
@@ -63,7 +68,7 @@ const timeGetDateFunc = makeTimeFunc(
     olc.TIMESTAMP_TO_DAY_OF_MONTH_ONE_BASED,
     olc.TIMESTAMP_TO_DAY_OF_MONTH_ONE_BASED_WITH_TZ,
   ],
-  (val) => val.getDate()
+  (val) => val.getDate(),
 );
 
 const timeGetDayOfMonthFunc = makeTimeFunc(
@@ -72,7 +77,7 @@ const timeGetDayOfMonthFunc = makeTimeFunc(
     olc.TIMESTAMP_TO_DAY_OF_MONTH_ZERO_BASED,
     olc.TIMESTAMP_TO_DAY_OF_MONTH_ZERO_BASED_WITH_TZ,
   ],
-  (val) => val.getDate() - 1
+  (val) => val.getDate() - 1,
 );
 
 const timeGetDayOfYearFunc = makeTimeFunc(
@@ -84,24 +89,24 @@ const timeGetDayOfYearFunc = makeTimeFunc(
     const diff = val.getTime() - start.getTime();
     const oneDay = 1000 * 60 * 60 * 24;
     return Math.floor(diff / oneDay);
-  }
+  },
 );
 
 const timeGetDayOfWeekFunc = makeTimeFunc(
   olc.TIME_GET_DAY_OF_WEEK,
   [olc.TIMESTAMP_TO_DAY_OF_WEEK, olc.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ],
-  (val) => val.getDay()
+  (val) => val.getDay(),
 );
 
 // TimeGetSeconds
 const timestampToSecondsOp: StrictOp = makeTimeOp(
   olc.TIMESTAMP_TO_SECONDS,
-  (val) => val.getSeconds()
+  (val) => val.getSeconds(),
 );
 const timestampToSecondsFunc = Func.newStrict(
   olc.TIME_GET_SECONDS,
   [olc.TIMESTAMP_TO_SECONDS, olc.TIMESTAMP_TO_SECONDS_WITH_TZ],
-  timestampToSecondsOp
+  timestampToSecondsOp,
 );
 const durationToSecondsOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
@@ -112,7 +117,7 @@ const durationToSecondsOp: StrictUnaryOp = (_id, val) => {
 const durationToSecondsFunc = Func.unary(
   olc.TIME_GET_SECONDS,
   [olc.DURATION_TO_SECONDS],
-  durationToSecondsOp
+  durationToSecondsOp,
 );
 const timeGetSecondsFunc = Func.newStrict(
   olc.TIME_GET_SECONDS,
@@ -124,17 +129,17 @@ const timeGetSecondsFunc = Func.newStrict(
       return durationToSecondsOp(id, args[0]);
     }
     return undefined;
-  }
+  },
 );
 
 // TimeGetHours
 const timestampToHoursOp: StrictOp = makeTimeOp(olc.TIMESTAMP_TO_HOURS, (val) =>
-  val.getHours()
+  val.getHours(),
 );
 const timestampToHoursFunc = Func.newStrict(
   olc.TIME_GET_HOURS,
   [olc.TIMESTAMP_TO_HOURS, olc.TIMESTAMP_TO_HOURS_WITH_TZ],
-  timestampToHoursOp
+  timestampToHoursOp,
 );
 const durationToHoursOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
@@ -145,7 +150,7 @@ const durationToHoursOp: StrictUnaryOp = (_id, val) => {
 const DurationToHoursFunc = Func.unary(
   olc.TIME_GET_HOURS,
   [olc.DURATION_TO_HOURS],
-  durationToHoursOp
+  durationToHoursOp,
 );
 const timeGetHoursFunc = Func.newStrict(olc.TIME_GET_HOURS, [], (id, args) => {
   if (args[0] instanceof Timestamp) {
@@ -159,12 +164,12 @@ const timeGetHoursFunc = Func.newStrict(olc.TIME_GET_HOURS, [], (id, args) => {
 // TimeGetMinutes
 const timestampToMinutesOp: StrictOp = makeTimeOp(
   olc.TIMESTAMP_TO_MINUTES,
-  (val) => val.getMinutes()
+  (val) => val.getMinutes(),
 );
 const timestampToMinutesFunc = Func.newStrict(
   olc.TIME_GET_MINUTES,
   [olc.TIMESTAMP_TO_MINUTES, olc.TIMESTAMP_TO_MINUTES_WITH_TZ],
-  timestampToMinutesOp
+  timestampToMinutesOp,
 );
 const durationToMinutesOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
@@ -175,7 +180,7 @@ const durationToMinutesOp: StrictUnaryOp = (_id, val) => {
 const durationToMinutesFunc = Func.unary(
   olc.TIME_GET_MINUTES,
   [olc.DURATION_TO_MINUTES],
-  durationToMinutesOp
+  durationToMinutesOp,
 );
 const timeGetMinutesFunc = Func.newStrict(
   olc.TIME_GET_MINUTES,
@@ -187,18 +192,18 @@ const timeGetMinutesFunc = Func.newStrict(
       return durationToMinutesOp(id, args[0]);
     }
     return undefined;
-  }
+  },
 );
 
 // TimeGetMilliseconds
 const timestampToMillisecondsOp: StrictOp = makeTimeOp(
   olc.TIMESTAMP_TO_MILLISECONDS,
-  (val) => val.getMilliseconds()
+  (val) => val.getMilliseconds(),
 );
 const timestampToMillisecondsFunc = Func.newStrict(
   olc.TIME_GET_MILLISECONDS,
   [olc.TIMESTAMP_TO_MILLISECONDS, olc.TIMESTAMP_TO_MILLISECONDS_WITH_TZ],
-  timestampToMillisecondsOp
+  timestampToMillisecondsOp,
 );
 const durationToMillisecondsOp: StrictUnaryOp = (_id, val) => {
   if (val instanceof Duration) {
@@ -209,7 +214,7 @@ const durationToMillisecondsOp: StrictUnaryOp = (_id, val) => {
 const durationToMillisecondsFunc = Func.unary(
   olc.TIME_GET_MILLISECONDS,
   [olc.DURATION_TO_MILLISECONDS],
-  durationToMillisecondsOp
+  durationToMillisecondsOp,
 );
 
 const timeGetMillisecondsFunc = Func.newStrict(
@@ -222,7 +227,7 @@ const timeGetMillisecondsFunc = Func.newStrict(
       return durationToMillisecondsOp(id, args[0]);
     }
     return undefined;
-  }
+  },
 );
 
 export function addTime(funcs: FuncRegistry): void {

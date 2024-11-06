@@ -1,8 +1,5 @@
 export { STRINGS_FORMAT_TEST_CASES, STRINGS_EXT_TEST } from "./string_ext.js";
-export {
-  runSimpleTestCase,
-  TEST_REGISTRY,
-} from "./testing.js";
+export { runSimpleTestCase, TEST_REGISTRY } from "./testing.js";
 
 import { SimpleTestFile } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
 import { JSON as BASIC_TEST_JSON } from "./testdata/simple/basic.js";

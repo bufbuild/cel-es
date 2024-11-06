@@ -1,5 +1,5 @@
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
@@ -16,24 +16,24 @@ export default tseslint.config(
     },
   },
   {
-    "rules": {
+    rules: {
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
-          "args": "all",
-          "argsIgnorePattern": "^_",
-          "caughtErrors": "all",
-          "caughtErrorsIgnorePattern": "^_",
-          "destructuredArrayIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "ignoreRestSiblings": true
-        }
-      ]
-    }
+          args: "all",
+          argsIgnorePattern: "^_",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
   },
   {
     // disable type-aware linting on JS files
-    files: ['**/*.js'],
+    files: ["**/*.js"],
     ...tseslint.configs.disableTypeChecked,
   },
 );
