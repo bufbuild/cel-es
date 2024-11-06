@@ -1,9 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "all": "npm run build -ws packages/cel-es && npm run build -ws packages/cel-es-conformance && npm run test -ws packages/cel-es && npm run test -ws packages/cel-es-conformance",
-    "build": "npm run build -ws",
-    "test": "npx vitest run"
+    "all": "npm run generate -w packages/cel-es && npm run build -w packages/cel-es && npm run build -w packages/cel-es-conformance && npm run test -w packages/cel-es && npm run test -w packages/cel-es-conformance"
   },
   "workspaces": [
     "packages/cel-es",

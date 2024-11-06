@@ -11,7 +11,6 @@ import { ExprBuilder } from "./builder.js";
 import { ParsedExpr } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb.js";
 const builder = new ExprBuilder();
 
-
 function peg$subclass(child, parent) {
   function C() { this.constructor = child; }
   C.prototype = parent.prototype;
