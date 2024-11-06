@@ -1,5 +1,5 @@
-import { unwrapResults } from "./value/adapter";
-import { getCelType } from "./value/type";
+import { unwrapResults } from "./value/adapter.js";
+import { getCelType } from "./value/type.js";
 import {
   type CelResult,
   type CelVal,
@@ -7,7 +7,7 @@ import {
   CelError,
   CelUnknown,
   type Unwrapper,
-} from "./value/value";
+} from "./value/value.js";
 
 export type ZeroOp = (id: number) => CelResult | undefined;
 export type UnaryOp = (id: number, arg: CelResult) => CelResult | undefined;

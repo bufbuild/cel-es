@@ -1,4 +1,4 @@
-export { type CelParser, CelPlanner, CelEnv } from "./celenv";
+export { type CelParser, CelPlanner, CelEnv } from "./celenv.js";
 export {
   type CelResult,
   type CelVal,
@@ -12,14 +12,14 @@ export {
   CelUint,
   ProtoNull,
   CelObject,
-} from "./value/value";
-export { getCelType } from "./value/type";
-export { NATIVE_ADAPTER } from "./adapter/native";
-export { CEL_ADAPTER } from "./adapter/cel";
-export { EXPR_VAL_ADAPTER } from "./adapter/exprval";
-export { ObjectActivation } from "./activation";
-export { makeStringExtFuncRegistry } from "./ext/strings";
-export { ExprBuilder } from "./builder";
+} from "./value/value.js";
+export { getCelType } from "./value/type.js";
+export { NATIVE_ADAPTER } from "./adapter/native.js";
+export { CEL_ADAPTER } from "./adapter/cel.js";
+export { EXPR_VAL_ADAPTER } from "./adapter/exprval.js";
+export { ObjectActivation } from "./activation.js";
+export { makeStringExtFuncRegistry } from "./ext/strings.js";
+export { ExprBuilder } from "./builder.js";
 
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import {
@@ -27,8 +27,8 @@ import {
   newDuration as _newDuration,
   newTimestamp as _newTimestamp,
   parseDuration as _parseDuration,
-} from "./value/value";
-import { PeggyParser } from "./parser";
+} from "./value/value.js";
+import { PeggyParser } from "./parser.js";
 
 function throwIfError<T>(result: CelError | T): T {
   if (result instanceof CelError) {

@@ -6,10 +6,10 @@ import {
   type StrictBinaryOp,
   type StrictOp,
   type StrictUnaryOp,
-} from "../func";
-import * as opc from "../gen/dev/cel/expr/operator_const";
-import * as olc from "../gen/dev/cel/expr/overload_const";
-import * as type from "../value/type";
+} from "../func.js";
+import * as opc from "../gen/dev/cel/expr/operator_const.js";
+import * as olc from "../gen/dev/cel/expr/overload_const.js";
+import * as type from "../value/type.js";
 import {
   type CelVal,
   CelError,
@@ -19,7 +19,7 @@ import {
   newDuration,
   newTimestamp,
   CelErrors,
-} from "../value/value";
+} from "../value/value.js";
 
 const MAX_INT = 9223372036854775807n;
 // eslint-disable-next-line @typescript-eslint/no-loss-of-precision

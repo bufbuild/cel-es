@@ -1,6 +1,6 @@
 import { Any, Duration, Message, Timestamp } from "@bufbuild/protobuf";
 
-import { unwrapResults } from "../value/adapter";
+import { unwrapResults } from "../value/adapter.js";
 import {
   CelList,
   type CelValAdapter,
@@ -16,7 +16,7 @@ import {
   CelObject,
   CelUint,
   ProtoNull,
-} from "../value/value";
+} from "../value/value.js";
 
 function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
   const minLen = Math.min(lhs.length, rhs.length);

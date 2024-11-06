@@ -3,17 +3,17 @@ import { createRegistry, type IMessageTypeRegistry } from "@bufbuild/protobuf";
 import {
   Expr,
   ParsedExpr,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb";
-import { CheckedExpr } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/checked_pb";
-import { ObjectActivation } from "./activation";
-import { CEL_ADAPTER } from "./adapter/cel";
-import { NATIVE_ADAPTER } from "./adapter/native";
-import { isProtoMsg, ProtoValAdapter, ProtoValProvider } from "./adapter/proto";
-import { OrderedDispatcher, type Dispatcher } from "./func";
-import { Planner, type Interpretable } from "./planner";
-import { STD_FUNCS } from "./std/std";
-import { CelError, CelUnknown, isCelVal, type CelResult } from "./value/value";
-import { Namespace } from "./value/namespace";
+} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb.js";
+import { CheckedExpr } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/checked_pb.js";
+import { ObjectActivation } from "./activation.js";
+import { CEL_ADAPTER } from "./adapter/cel.js";
+import { NATIVE_ADAPTER } from "./adapter/native.js";
+import { isProtoMsg, ProtoValAdapter, ProtoValProvider } from "./adapter/proto.js";
+import { OrderedDispatcher, type Dispatcher } from "./func.js";
+import { Planner, type Interpretable } from "./planner.js";
+import { STD_FUNCS } from "./std/std.js";
+import { CelError, CelUnknown, isCelVal, type CelResult } from "./value/value.js";
+import { Namespace } from "./value/namespace.js";
 
 /**
  * A CEL parser interface

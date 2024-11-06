@@ -1,10 +1,10 @@
 import { describe, test, expect } from "vitest";
-import { CEL_ADAPTER } from "../adapter/cel";
-import { NATIVE_ADAPTER } from "../adapter/native";
-import { EMPTY_LIST, EMPTY_MAP } from "./empty";
-import { Namespace } from "./namespace";
-import { CelList, CelMap, CelUint, type CelVal } from "./value";
-import * as type from "./type";
+import { CEL_ADAPTER } from "../adapter/cel.js";
+import { NATIVE_ADAPTER } from "../adapter/native.js";
+import { EMPTY_LIST, EMPTY_MAP } from "./empty.js";
+import { Namespace } from "./namespace.js";
+import { CelList, CelMap, CelUint, type CelVal } from "./value.js";
+import * as type from "./type.js";
 
 describe("adapter tests", () => {
   test("main namespace", () => {

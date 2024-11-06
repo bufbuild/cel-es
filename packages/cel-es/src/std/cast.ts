@@ -1,8 +1,8 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 
-import { Func, FuncRegistry, identityOp, type StrictUnaryOp } from "../func";
-import * as olc from "../gen/dev/cel/expr/overload_const";
-import * as type from "../value/type";
+import { Func, FuncRegistry, identityOp, type StrictUnaryOp } from "../func.js";
+import * as olc from "../gen/dev/cel/expr/overload_const.js";
+import * as type from "../value/type.js";
 import {
   coerceToValues,
   CelError,
@@ -10,13 +10,13 @@ import {
   CelUint,
   parseDuration,
   CelErrors,
-} from "../value/value";
+} from "../value/value.js";
 import {
   isOverflowInt,
   isOverflowIntNum,
   isOverflowUint,
   isOverflowUintNum,
-} from "./math";
+} from "./math.js";
 
 export const INT = "int";
 export const UINT = "uint";

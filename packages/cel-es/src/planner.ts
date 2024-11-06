@@ -6,7 +6,7 @@ import {
   Expr_CreateList,
   Expr_CreateStruct,
   Expr_Select,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb";
+} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb.js";
 import {
   Any,
   BoolValue,
@@ -21,16 +21,16 @@ import {
   type Access,
   type Attribute,
   type AttributeFactory,
-} from "./access";
-import { VarActivation, type Activation } from "./activation";
-import { CEL_ADAPTER } from "./adapter/cel";
-import { type CallDispatch, type Dispatcher } from "./func";
-import * as opc from "./gen/dev/cel/expr/operator_const";
-import { RawVal, type RawResult } from "./value/adapter";
-import { EMPTY_LIST, EMPTY_MAP, EMPTY_PROVIDER } from "./value/empty";
-import { Namespace } from "./value/namespace";
-import { type CelValProvider } from "./value/provider";
-import * as type from "./value/type";
+} from "./access.js";
+import { VarActivation, type Activation } from "./activation.js";
+import { CEL_ADAPTER } from "./adapter/cel.js";
+import { type CallDispatch, type Dispatcher } from "./func.js";
+import * as opc from "./gen/dev/cel/expr/operator_const.js";
+import { RawVal, type RawResult } from "./value/adapter.js";
+import { EMPTY_LIST, EMPTY_MAP, EMPTY_PROVIDER } from "./value/empty.js";
+import { Namespace } from "./value/namespace.js";
+import { type CelValProvider } from "./value/provider.js";
+import * as type from "./value/type.js";
 import {
   CelError,
   CelList,
@@ -49,7 +49,7 @@ import {
   type CelVal,
   type CelValAdapter,
   CelErrors,
-} from "./value/value";
+} from "./value/value.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;

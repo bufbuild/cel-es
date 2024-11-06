@@ -1,32 +1,32 @@
-export { STRINGS_FORMAT_TEST_CASES, STRINGS_EXT_TEST } from "./string_ext";
+export { STRINGS_FORMAT_TEST_CASES, STRINGS_EXT_TEST } from "./string_ext.js";
 export {
   runSimpleTestFile,
   runSimpleTestSection,
   runSimpleTestCase,
   TEST_REGISTRY,
-} from "./testing";
+} from "./testing.js";
 
-import { SimpleTestFile } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb";
-import { JSON as BASIC_TEST_JSON } from "./testdata/simple/basic";
-import { JSON as COMPARISONS_TEST_JSON } from "./testdata/simple/comparisons";
-import { JSON as CONVERSIONS_TEST_JSON } from "./testdata/simple/conversions";
-import { JSON as DYNAMIC_TEST_JSON } from "./testdata/simple/dynamic";
-import { JSON as ENUMS_TEST_JSON } from "./testdata/simple/enums";
-import { JSON as FIELDS_TEST_JSON } from "./testdata/simple/fields";
-import { JSON as FP_MATH_TEST_JSON } from "./testdata/simple/fp_math";
-import { JSON as INTEGER_MATH_TEST_JSON } from "./testdata/simple/integer_math";
-import { JSON as LISTS_TEST_JSON } from "./testdata/simple/lists";
-import { JSON as LOGIC_TEST_JSON } from "./testdata/simple/logic";
-import { JSON as MACROS_TEST_JSON } from "./testdata/simple/macros";
-import { JSON as NAMESPACE_TEST_JSON } from "./testdata/simple/namespace";
-import { JSON as PARSE_TEST_JSON } from "./testdata/simple/parse";
-import { JSON as PLUMBING_TEST_JSON } from "./testdata/simple/plumbing";
-import { JSON as PROTO2_TEST_JSON } from "./testdata/simple/proto2";
-import { JSON as PROTO3_TEST_JSON } from "./testdata/simple/proto3";
-import { JSON as STRING_TEST_JSON } from "./testdata/simple/string";
-import { JSON as TIMESTAMPS_TEST_JSON } from "./testdata/simple/timestamps";
-import { JSON as UNKNOWNS_TEST_JSON } from "./testdata/simple/unknowns";
-import { TEST_REGISTRY } from "./testing";
+import { SimpleTestFile } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
+import { JSON as BASIC_TEST_JSON } from "./testdata/simple/basic.js";
+import { JSON as COMPARISONS_TEST_JSON } from "./testdata/simple/comparisons.js";
+import { JSON as CONVERSIONS_TEST_JSON } from "./testdata/simple/conversions.js";
+import { JSON as DYNAMIC_TEST_JSON } from "./testdata/simple/dynamic.js";
+import { JSON as ENUMS_TEST_JSON } from "./testdata/simple/enums.js";
+import { JSON as FIELDS_TEST_JSON } from "./testdata/simple/fields.js";
+import { JSON as FP_MATH_TEST_JSON } from "./testdata/simple/fp_math.js";
+import { JSON as INTEGER_MATH_TEST_JSON } from "./testdata/simple/integer_math.js";
+import { JSON as LISTS_TEST_JSON } from "./testdata/simple/lists.js";
+import { JSON as LOGIC_TEST_JSON } from "./testdata/simple/logic.js";
+import { JSON as MACROS_TEST_JSON } from "./testdata/simple/macros.js";
+import { JSON as NAMESPACE_TEST_JSON } from "./testdata/simple/namespace.js";
+import { JSON as PARSE_TEST_JSON } from "./testdata/simple/parse.js";
+import { JSON as PLUMBING_TEST_JSON } from "./testdata/simple/plumbing.js";
+import { JSON as PROTO2_TEST_JSON } from "./testdata/simple/proto2.js";
+import { JSON as PROTO3_TEST_JSON } from "./testdata/simple/proto3.js";
+import { JSON as STRING_TEST_JSON } from "./testdata/simple/string.js";
+import { JSON as TIMESTAMPS_TEST_JSON } from "./testdata/simple/timestamps.js";
+import { JSON as UNKNOWNS_TEST_JSON } from "./testdata/simple/unknowns.js";
+import { TEST_REGISTRY } from "./testing.js";
 
 function convertTestJson(json: any) {
   return SimpleTestFile.fromJson(json, { typeRegistry: TEST_REGISTRY });

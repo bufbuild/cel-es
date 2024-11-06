@@ -1,6 +1,6 @@
-import { NATIVE_ADAPTER } from "./adapter/native";
-import { type RawResult, RawVal } from "./value/adapter";
-import { type CelValAdapter } from "./value/value";
+import { NATIVE_ADAPTER } from "./adapter/native.js";
+import { type RawResult, RawVal } from "./value/adapter.js";
+import { type CelValAdapter } from "./value/value.js";
 
 export interface Activation {
   resolve(name: string): RawResult | undefined;

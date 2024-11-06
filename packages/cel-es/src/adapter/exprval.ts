@@ -1,13 +1,13 @@
 import { Any, Duration, Timestamp } from "@bufbuild/protobuf";
 
-import { ExprValue } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/eval_pb";
+import { ExprValue } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/eval_pb.js";
 import {
   ListValue,
   MapValue,
   MapValue_Entry,
   Value,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/value_pb";
-import * as type from "../value/type";
+} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/value_pb.js";
+import * as type from "../value/type.js";
 import {
   CelErrors,
   CelList,
@@ -20,8 +20,8 @@ import {
   type CelResult,
   type CelVal,
   type CelValAdapter,
-} from "../value/value";
-import { CEL_ADAPTER } from "./cel";
+} from "../value/value.js";
+import { CEL_ADAPTER } from "./cel.js";
 
 type ExprType = ExprValue | Value | ListValue | MapValue | CelVal;
 type ExprResult = CelResult<ExprType>;

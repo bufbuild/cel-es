@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 
-import * as type from "./type";
+import * as type from "./type.js";
 
 describe("type", () => {
   test("scalar types", () => {

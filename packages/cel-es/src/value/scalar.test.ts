@@ -1,9 +1,9 @@
 import { describe, test, expect } from "vitest";
 import { Duration } from "@bufbuild/protobuf";
 
-import { CEL_ADAPTER } from "../adapter/cel";
-import { NATIVE_ADAPTER } from "../adapter/native";
-import { CelUint, newDuration } from "./value";
+import { CEL_ADAPTER } from "../adapter/cel.js";
+import { NATIVE_ADAPTER } from "../adapter/native.js";
+import { CelUint, newDuration } from "./value.js";
 
 describe("scalar", () => {
   test("bool", () => {

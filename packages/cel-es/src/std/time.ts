@@ -1,9 +1,9 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 import { utcToZonedTime } from "date-fns-tz";
 
-import { Func, FuncRegistry, type StrictOp, type StrictUnaryOp } from "../func";
-import * as olc from "../gen/dev/cel/expr/overload_const";
-import { CelErrors } from "../value/value";
+import { Func, FuncRegistry, type StrictOp, type StrictUnaryOp } from "../func.js";
+import * as olc from "../gen/dev/cel/expr/overload_const.js";
+import { CelErrors } from "../value/value.js";
 
 type TimeFunc = (val: Date) => number;
 

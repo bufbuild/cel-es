@@ -13,12 +13,13 @@ import {
   SimpleTest,
   SimpleTestFile,
   SimpleTestSection,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb";
+} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
 import { createRegistry } from "@bufbuild/protobuf";
-import * as test_all_types_pb2 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto2/test_all_types_pb";
-import * as test_all_types_pb3 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto3/test_all_types_pb";
+import * as test_all_types_pb2 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto2/test_all_types_pb.js";
+import * as test_all_types_pb3 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto3/test_all_types_pb.js";
+import type { IMessageTypeRegistry } from "@bufbuild/protobuf";
 
-export const TEST_REGISTRY = createRegistry(
+export const TEST_REGISTRY: IMessageTypeRegistry = createRegistry(
   test_all_types_pb2.TestAllTypes,
   test_all_types_pb3.TestAllTypes
 );

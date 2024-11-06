@@ -1,8 +1,8 @@
-import { FuncRegistry } from "../func";
-import { addCasts } from "./cast";
-import { addLogic } from "./logic";
-import { addMath } from "./math";
-import { addTime } from "./time";
+import { FuncRegistry } from "../func.js";
+import { addCasts } from "./cast.js";
+import { addLogic } from "./logic.js";
+import { addMath } from "./math.js";
+import { addTime } from "./time.js";
 
 export function addStd(funcs: FuncRegistry) {
   addLogic(funcs);

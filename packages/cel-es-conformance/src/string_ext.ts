@@ -1,5 +1,5 @@
 import { CelUint, parseDuration } from "@bufbuild/cel-es";
-import { SimpleTestFile } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb";
+import { SimpleTestFile } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
 import { Timestamp } from "@bufbuild/protobuf";
 
 export const STRINGS_FORMAT_TEST_CASES = [

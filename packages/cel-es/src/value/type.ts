@@ -22,7 +22,7 @@ import {
   WrapperType,
   CelList,
   CelMap,
-} from "./value";
+} from "./value.js";
 
 export const DYN = new CelType("dyn");
 export const NULL = new ConcreteType("null_type", null);

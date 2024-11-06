@@ -8,9 +8,9 @@ import {
   UInt64Value,
 } from "@bufbuild/protobuf";
 
-import { CEL_ADAPTER } from "../adapter/cel";
-import { type CelValProvider } from "./provider";
-import * as type from "./type";
+import { CEL_ADAPTER } from "../adapter/cel.js";
+import { type CelValProvider } from "./provider.js";
+import * as type from "./type.js";
 import {
   CelError,
   CelUnknown,
@@ -25,7 +25,7 @@ import {
   coerceToNumber,
   coerceToString,
   CelType,
-} from "./value";
+} from "./value.js";
 
 export const EMPTY_LIST = new CelList([], CEL_ADAPTER, type.LIST);
 export const EMPTY_MAP = new CelMap(new Map(), CEL_ADAPTER, type.DYN_MAP);

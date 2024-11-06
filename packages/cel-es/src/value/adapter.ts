@@ -6,7 +6,7 @@ import {
   type CelValAdapter,
   type Unwrapper,
   CelErrors,
-} from "./value";
+} from "./value.js";
 
 /** A value bundled with it's associated adapter. */
 export class RawVal<V = unknown> {

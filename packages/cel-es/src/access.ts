@@ -1,9 +1,9 @@
-import { type Activation } from "./activation";
-import { CEL_ADAPTER } from "./adapter/cel";
-import { EvalAttr, type Interpretable } from "./planner";
-import { type RawResult, RawVal } from "./value/adapter";
-import { Namespace } from "./value/namespace";
-import { type CelValProvider } from "./value/provider";
+import { type Activation } from "./activation.js";
+import { CEL_ADAPTER } from "./adapter/cel.js";
+import { EvalAttr, type Interpretable } from "./planner.js";
+import { type RawResult, RawVal } from "./value/adapter.js";
+import { Namespace } from "./value/namespace.js";
+import { type CelValProvider } from "./value/provider.js";
 import {
   CelUint,
   type CelResult,
@@ -12,8 +12,8 @@ import {
   CelUnknown,
   type Unwrapper,
   CelErrors,
-} from "./value/value";
-import { getCelType } from "./value/type";
+} from "./value/value.js";
+import { getCelType } from "./value/type.js";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;

@@ -19,9 +19,9 @@ import {
   type IMessageTypeRegistry,
 } from "@bufbuild/protobuf";
 
-import { EMPTY_PROVIDER } from "../value/empty";
-import { type CelValProvider } from "../value/provider";
-import * as type from "../value/type";
+import { EMPTY_PROVIDER } from "../value/empty.js";
+import { type CelValProvider } from "../value/provider.js";
+import * as type from "../value/type.js";
 import {
   type CelValAdapter,
   type StructAccess,
@@ -43,9 +43,9 @@ import {
   CelUint,
   ProtoNull,
   CelErrors,
-} from "../value/value";
-import { CEL_ADAPTER, equalsStruct } from "./cel";
-import { NATIVE_ADAPTER } from "./native";
+} from "../value/value.js";
+import { CEL_ADAPTER, equalsStruct } from "./cel.js";
+import { NATIVE_ADAPTER } from "./native.js";
 
 type ProtoValue = CelVal | Message;
 type ProtoResult = CelResult<ProtoValue>;

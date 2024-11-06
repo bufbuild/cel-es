@@ -9,7 +9,7 @@ import {
   Expr_Ident,
   Expr_Select,
   SourceInfo,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb";
+} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb.js";
 
 const encoder = new TextEncoder();
 

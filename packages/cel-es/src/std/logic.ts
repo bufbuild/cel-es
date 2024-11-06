@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { CEL_ADAPTER } from "../adapter/cel";
+import { CEL_ADAPTER } from "../adapter/cel.js";
 import {
   Func,
   FuncRegistry,
   type StrictBinaryOp,
   type StrictUnaryOp,
-} from "../func";
-import * as opc from "../gen/dev/cel/expr/operator_const";
-import * as olc from "../gen/dev/cel/expr/overload_const";
+} from "../func.js";
+import * as opc from "../gen/dev/cel/expr/operator_const.js";
+import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import {
   type Unwrapper,
   type CelResult,
@@ -17,8 +17,8 @@ import {
   CelError,
   CelUnknown,
   CelErrors,
-} from "../value/value";
-import { getCelType } from "../value/type";
+} from "../value/value.js";
+import { getCelType } from "../value/type.js";
 
 const notStrictlyFalse = Func.newVarArg(
   opc.NOT_STRICTLY_FALSE,

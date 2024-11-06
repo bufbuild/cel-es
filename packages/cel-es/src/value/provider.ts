@@ -4,7 +4,7 @@ import {
   type CelResult,
   CelMap,
   CelObject,
-} from "./value";
+} from "./value.js";
 
 export interface CelValProvider<V = any> {
   /** The adapter used to produce values from this provider. */

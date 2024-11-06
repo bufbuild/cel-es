@@ -1,6 +1,6 @@
-import { isOverflowInt, isOverflowUint } from "../std/math";
-import { EMPTY_LIST, EMPTY_MAP } from "../value/empty";
-import * as type from "../value/type";
+import { isOverflowInt, isOverflowUint } from "../std/math.js";
+import { EMPTY_LIST, EMPTY_MAP } from "../value/empty.js";
+import * as type from "../value/type.js";
 import {
   type CelVal,
   isCelVal,
@@ -12,9 +12,9 @@ import {
   CelObject,
   CelUint,
   CelErrors,
-} from "../value/value";
-import { type CelResult, isCelResult } from "../value/value";
-import { CEL_ADAPTER } from "./cel";
+} from "../value/value.js";
+import { type CelResult, isCelResult } from "../value/value.js";
+import { CEL_ADAPTER } from "./cel.js";
 
 export class NativeValAdapter implements CelValAdapter {
   unwrap(val: CelVal): CelVal {

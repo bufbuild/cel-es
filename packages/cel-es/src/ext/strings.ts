@@ -1,8 +1,8 @@
 import { Duration, Timestamp } from "@bufbuild/protobuf";
 
-import { CEL_ADAPTER } from "../adapter/cel";
-import { argsMatch, Func, FuncRegistry } from "../func";
-import * as type from "../value/type";
+import { CEL_ADAPTER } from "../adapter/cel.js";
+import { argsMatch, Func, FuncRegistry } from "../func.js";
+import * as type from "../value/type.js";
 import {
   type CelResult,
   type CelVal,
@@ -13,7 +13,7 @@ import {
   CelUint,
   CelType,
   CelErrors,
-} from "../value/value";
+} from "../value/value.js";
 
 function toNum(number: unknown): number | undefined {
   switch (typeof number) {
