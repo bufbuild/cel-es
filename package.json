@@ -1,16 +1,13 @@
 {
   "private": true,
   "scripts": {
+    "all": "npm run build -ws packages/cel-es && npm run build -ws packages/cel-es-conformance && npm run test -ws packages/cel-es && npm run test -ws packages/cel-es-conformance",
     "build": "npm run build -ws",
-    "test": "npx vitest run",
-    "web-repl": "npm run dev -w cel-es-repl-web"
+    "test": "npx vitest run"
   },
   "workspaces": [
     "packages/cel-es",
-    "packages/cel-es-conformance",
-    "packages/cel-es-antlr4",
-    "packages/cel-es-web",
-    "packages/cel-es-repl-web"
+    "packages/cel-es-conformance"
   ],
   "devDependencies": {
     "@bufbuild/buf": "^1.21.0-1",
