@@ -4,13 +4,10 @@
   "private": true,
   "scripts": {
     "test": "vitest run",
-    "clean": "rm -rf ./dist/*",
-    "generate": "",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "../../node_modules/typescript/bin/tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esm": "../../node_modules/typescript/bin/tsc --project tsconfig.json --outDir ./dist/esm",
-    "run": "npm run build && node ./dist/cjs/index.js",
     "attw": "attw --pack"
   },
   "type": "module",
