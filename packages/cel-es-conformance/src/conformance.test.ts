@@ -1,9 +1,6 @@
-import {
-  CONFORMANCE_TEST_FILES,
-  runSimpleTestFile,
-} from "@bufbuild/cel-es-conformance";
 import { describe } from "vitest";
-import { CEL_PARSER } from "./index";
+import { CONFORMANCE_TEST_FILES, runSimpleTestFile } from "./index.js";
+import { CEL_PARSER } from "@bufbuild/cel-es";
 
 describe("Conformance Tests", () => {
   for (const file of CONFORMANCE_TEST_FILES) {
