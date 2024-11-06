@@ -13,6 +13,7 @@
     "test": "vitest run",
     "clean": "rm -rf ./dist/cjs/* ./dist/esm/* ./dist/types/*",
     "generate": "peggy -o src/grammar.js src/grammar.peggy",
+    "postgenerate": "node scripts/peggy2ts.js src/grammar.js",
     "build": "npm run build:cjs && npm run build:esm+types",
     "build:cjs": "tsc --project tsconfig.json --module commonjs --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esm+types": "tsc --project tsconfig.json --module ES2015 --verbatimModuleSyntax --outDir ./dist/esm --declaration --declarationDir ./dist/types && echo >./dist/esm/package.json '{\"type\":\"module\", \"sideEffects\":false}'"
