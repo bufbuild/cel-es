@@ -1,7 +1,7 @@
 {
   "private": true,
   "scripts": {
-    "all": "npm run generate -w packages/cel-es && npm run build -w packages/cel-es && npm run build -w packages/cel-es-conformance && npm run test -w packages/cel-es && npm run test -w packages/cel-es-conformance"
+    "all": "npm run generate -w packages/cel-es && npm run build -w packages/cel-es && npm run build -w packages/cel-es-conformance && npm run test -w packages/cel-es && npm run test -w packages/cel-es-conformance && npm run -ws attw"
   },
   "workspaces": [
     "packages/cel-es",
@@ -22,5 +22,8 @@
     "eslint-plugin-react-refresh": "^0.3.4",
     "typescript": "^5.1.3",
     "vite": "^4.3.9"
+  },
+  "dependencies": {
+    "@arethetypeswrong/cli": "^0.16.4"
   }
 }
