@@ -1,4 +1,5 @@
-import { describe, test, expect } from "vitest";
+import { suite, test } from "node:test";
+import * as assert from "node:assert/strict";
 import { CEL_ADAPTER } from "../adapter/cel.js";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./empty.js";
@@ -6,13 +7,13 @@ import { Namespace } from "./namespace.js";
 import { CelList, CelMap, CelUint, type CelVal } from "./value.js";
 import * as type from "./type.js";
 
-describe("adapter tests", () => {
+suite("adapter tests", () => {
   test("main namespace", () => {
     const c = new Namespace("");
 
     const actual = c.resolveCandidateNames("a.b.c");
     const expected = ["a.b.c"];
-    expect(actual).toStrictEqual(expected);
+    assert.deepEqual(actual, expected);
   });
 
   test("named namespace", () => {
@@ -27,94 +28,82 @@ describe("adapter tests", () => {
       "a.R.s",
       "R.s",
     ];
-    expect(actual).toStrictEqual(expected);
+    assert.deepEqual(actual, expected);
     actual = c.resolveCandidateNames(".R.s");
     expected = ["R.s"];
-    expect(actual).toStrictEqual(expected);
+    assert.deepEqual(actual, expected);
   });
 
   test("equals", () => {
-    expect(NATIVE_ADAPTER.equals(true, true)).toBe(true);
-    expect(NATIVE_ADAPTER.equals(true, false)).toBe(false);
-    expect(NATIVE_ADAPTER.equals(-0.0, 0.0)).toBe(true);
-    expect(NATIVE_ADAPTER.equals(-0.0, -0.0)).toBe(true);
-    expect(NATIVE_ADAPTER.equals(0.0, 0.0)).toBe(true);
-    expect(NATIVE_ADAPTER.equals(NaN, NaN)).toBe(false);
+    assert.ok(NATIVE_ADAPTER.equals(true, true));
+    assert.ok(!NATIVE_ADAPTER.equals(true, false));
+    assert.ok(NATIVE_ADAPTER.equals(-0.0, 0.0));
+    assert.ok(NATIVE_ADAPTER.equals(-0.0, -0.0));
+    assert.ok(NATIVE_ADAPTER.equals(0.0, 0.0));
+    assert.ok(!NATIVE_ADAPTER.equals(NaN, NaN));
   });
 
   test("bool", () => {
-    expect(NATIVE_ADAPTER.toCel(true)).toBe(true);
-    expect(NATIVE_ADAPTER.toCel(false)).toBe(false);
-    expect(NATIVE_ADAPTER.fromCel(true)).toBe(true);
-    expect(NATIVE_ADAPTER.fromCel(false)).toBe(false);
+    assert.equal(NATIVE_ADAPTER.toCel(true), true);
+    assert.equal(NATIVE_ADAPTER.toCel(false), false);
+    assert.equal(NATIVE_ADAPTER.fromCel(true), true);
+    assert.equal(NATIVE_ADAPTER.fromCel(false), false);
   });
 
   test("null", () => {
-    expect(NATIVE_ADAPTER.toCel(null)).toBe(null);
-    expect(NATIVE_ADAPTER.fromCel(null)).toBe(null);
+    assert.equal(NATIVE_ADAPTER.toCel(null), null);
+    assert.equal(NATIVE_ADAPTER.fromCel(null), null);
   });
 
   test("number", () => {
-    expect(NATIVE_ADAPTER.toCel(1)).toStrictEqual(1);
-    expect(NATIVE_ADAPTER.fromCel(1)).toStrictEqual(1);
+    assert.equal(NATIVE_ADAPTER.toCel(1), 1);
+    assert.equal(NATIVE_ADAPTER.fromCel(1), 1);
 
-    expect(NATIVE_ADAPTER.toCel(NaN)).toStrictEqual(NaN);
-    expect(NATIVE_ADAPTER.fromCel(NaN)).toStrictEqual(NaN);
+    assert.equal(NATIVE_ADAPTER.toCel(NaN), NaN);
+    assert.equal(NATIVE_ADAPTER.fromCel(NaN), NaN);
 
-    expect(NATIVE_ADAPTER.toCel(Infinity)).toStrictEqual(Infinity);
-    expect(NATIVE_ADAPTER.fromCel(-Infinity)).toStrictEqual(-Infinity);
+    assert.equal(NATIVE_ADAPTER.toCel(Infinity), Infinity);
+    assert.equal(NATIVE_ADAPTER.fromCel(-Infinity), -Infinity);
   });
 
   test("bigint", () => {
-    expect(NATIVE_ADAPTER.toCel(1n)).toStrictEqual(1n);
-    expect(NATIVE_ADAPTER.fromCel(1n)).toStrictEqual(1n);
+    assert.equal(NATIVE_ADAPTER.toCel(1n), 1n);
+    assert.equal(NATIVE_ADAPTER.fromCel(1n), 1n);
 
-    expect(NATIVE_ADAPTER.toCel(-1n)).toStrictEqual(-1n);
-    expect(NATIVE_ADAPTER.fromCel(-1n)).toStrictEqual(-1n);
+    assert.equal(NATIVE_ADAPTER.toCel(-1n), -1n);
+    assert.equal(NATIVE_ADAPTER.fromCel(-1n), -1n);
 
-    expect(NATIVE_ADAPTER.toCel(9223372036854775808n)).toStrictEqual(
-      new CelUint(9223372036854775808n)
-    );
+    assert.deepEqual(NATIVE_ADAPTER.toCel(9223372036854775808n), new CelUint(9223372036854775808n));
   });
 
   test("string", () => {
-    expect(NATIVE_ADAPTER.toCel("")).toStrictEqual("");
-    expect(NATIVE_ADAPTER.fromCel("")).toStrictEqual("");
+    assert.equal(NATIVE_ADAPTER.toCel(""), "");
+    assert.equal(NATIVE_ADAPTER.fromCel(""), "");
 
-    expect(NATIVE_ADAPTER.toCel("abc")).toStrictEqual("abc");
-    expect(NATIVE_ADAPTER.fromCel("abc")).toStrictEqual("abc");
+    assert.equal(NATIVE_ADAPTER.toCel("abc"), "abc");
+    assert.equal(NATIVE_ADAPTER.fromCel("abc"), "abc");
   });
 
   test("list", () => {
-    expect(NATIVE_ADAPTER.toCel([])).toBe(EMPTY_LIST);
-    expect(NATIVE_ADAPTER.fromCel(EMPTY_LIST)).toStrictEqual([]);
+    assert.equal(NATIVE_ADAPTER.toCel([]), EMPTY_LIST);
+    assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_LIST), []);
 
-    expect(NATIVE_ADAPTER.toCel([1, 2, 3])).toStrictEqual(
-      new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST)
-    );
-    expect(
-      NATIVE_ADAPTER.fromCel(new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST))
-    ).toStrictEqual([1, 2, 3]);
-    expect(
-      NATIVE_ADAPTER.fromCel(
-        new CelList([1n, new CelUint(2n), 3], CEL_ADAPTER, type.DYN_MAP)
-      )
-    ).toStrictEqual([1n, 2n, 3]);
+    assert.deepEqual(NATIVE_ADAPTER.toCel([1, 2, 3]), new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST));
+    assert.deepEqual(NATIVE_ADAPTER.fromCel(new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST)), [1, 2, 3]);
+    assert.deepEqual(NATIVE_ADAPTER.fromCel(new CelList([1n, new CelUint(2n), 3], CEL_ADAPTER, type.DYN_MAP)), [1n, 2n, 3]);
   });
 
   test("map", () => {
-    expect(NATIVE_ADAPTER.toCel(new Map())).toBe(EMPTY_MAP);
-    expect(NATIVE_ADAPTER.fromCel(EMPTY_MAP)).toStrictEqual(new Map());
+    assert.equal(NATIVE_ADAPTER.toCel(new Map()), EMPTY_MAP);
+    assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_MAP), new Map());
 
     const testMap = new Map<string, unknown>([
       ["a", 1n],
       ["b", 2n],
       ["c", 3],
     ]);
-    expect(NATIVE_ADAPTER.toCel(testMap)).toStrictEqual(
-      new CelMap(testMap, NATIVE_ADAPTER, type.DYN_MAP)
-    );
-    expect(
+    assert.deepEqual(NATIVE_ADAPTER.toCel(testMap), new CelMap(testMap, NATIVE_ADAPTER, type.DYN_MAP));
+    assert.deepEqual(
       NATIVE_ADAPTER.fromCel(
         new CelMap(
           new Map<CelVal, CelVal>([
@@ -125,7 +114,8 @@ describe("adapter tests", () => {
           CEL_ADAPTER,
           type.DYN_MAP
         )
-      )
-    ).toStrictEqual(testMap);
+      ),
+      testMap,
+    );
   });
 });

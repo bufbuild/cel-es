@@ -1,9 +1,19 @@
-import { describe } from "vitest";
-import { CONFORMANCE_TEST_FILES, runSimpleTestFile } from "./index.js";
+import { suite, test } from "node:test";
+import { CONFORMANCE_TEST_FILES, runSimpleTestCase } from "./index.js";
 import { CEL_PARSER } from "@bufbuild/cel-es";
 
-describe("Conformance Tests", () => {
+suite("Conformance Tests", () => {
   for (const file of CONFORMANCE_TEST_FILES) {
-    runSimpleTestFile(CEL_PARSER, file);
+    test(file.name, async () => {
+      for (const section of file.section) {
+        await test(section.name, async (t) => {
+          for (const simpleTest of section.test) {
+            await t.test(simpleTest.name, () => {
+              runSimpleTestCase(CEL_PARSER, simpleTest);
+            });
+          }
+        });
+      }
+    });
   }
 });

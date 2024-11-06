@@ -9,7 +9,7 @@
     "directory": "packages/cel-es"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "npx tsx --test ./src/*/*.test.ts",
     "generate": "peggy -o src/grammar.js src/grammar.peggy",
     "postgenerate": "node scripts/peggy2ts.js src/grammar.js",
     "prebuild": "rm -rf ./dist/*",
@@ -34,7 +34,6 @@
     "date-fns-tz": "^2.0.0"
   },
   "devDependencies": {
-    "vitest": "^0.32.2",
     "peggy": "^4.0.2"
   },
   "files": [

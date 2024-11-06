@@ -1,46 +1,43 @@
-import { describe, test, expect } from "vitest";
+import { suite, test } from "node:test";
+import * as assert from "node:assert/strict";
+
 import { Duration } from "@bufbuild/protobuf";
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
 import { CelUint, newDuration } from "./value.js";
 
-describe("scalar", () => {
+suite("scalar", () => {
   test("bool", () => {
-    expect(NATIVE_ADAPTER.toCel(true)).toBe(true);
-    expect(NATIVE_ADAPTER.toCel(false)).toBe(false);
+    assert.equal(NATIVE_ADAPTER.toCel(true), true);
+    assert.equal(NATIVE_ADAPTER.toCel(false), false);
   });
 
   test("uint", () => {
-    expect(CelUint.EMPTY.value).toBe(BigInt(0));
-    expect(new CelUint(BigInt(1)).value).toBe(BigInt(1));
+    assert.equal(CelUint.EMPTY.value, 0n);
+    assert.equal(new CelUint(1n).value, 1n);
+    assert.equal(CelUint.ONE.value, 1n);
   });
 
   test("double", () => {
-    expect(CEL_ADAPTER.equals(-0, 0)).toBe(true);
-    expect(CEL_ADAPTER.equals(NaN, NaN)).toBe(false);
+    assert.equal(CEL_ADAPTER.equals(-0, 0), true);
+    assert.equal(CEL_ADAPTER.equals(NaN, NaN), false);
   });
 
   test("duration", () => {
     let actual = newDuration(0, 0n, -1);
-    expect(actual).toBeInstanceOf(Duration);
-    if (actual instanceof Duration) {
-      expect(actual.seconds).toBe(-1n);
-      expect(actual.nanos).toBe(999999999);
-    }
+    assert.ok(actual instanceof Duration);
+    assert.equal(actual.seconds, -1n);
+    assert.equal(actual.nanos, 999999999);
 
     actual = newDuration(0, 0n, -999999999);
-    expect(actual).toBeInstanceOf(Duration);
-    if (actual instanceof Duration) {
-      expect(actual.seconds).toBe(-1n);
-      expect(actual.nanos).toBe(1);
-    }
+    assert.ok(actual instanceof Duration);
+    assert.equal(actual.seconds, -1n);
+    assert.equal(actual.nanos, 1);
 
     actual = newDuration(0, 0n, -1000000000);
-    expect(actual).toBeInstanceOf(Duration);
-    if (actual instanceof Duration) {
-      expect(actual.seconds).toBe(-1n);
-      expect(actual.nanos).toBe(0);
-    }
+    assert.ok(actual instanceof Duration);
+    assert.equal(actual.seconds, -1n);
+    assert.equal(actual.nanos, 0);
   });
 });

@@ -1,56 +1,57 @@
-import { describe, test, expect } from "vitest";
+import { suite, test } from "node:test";
+import * as assert from "node:assert/strict";
 
 import * as type from "./type.js";
 
-describe("type", () => {
+suite("type", () => {
   test("scalar types", () => {
-    expect(type.BOOL.name).toBe("bool");
-    expect(type.UINT.name).toBe("uint");
-    expect(type.INT.name).toBe("int");
-    expect(type.DOUBLE.name).toBe("double");
-    expect(type.STRING.name).toBe("string");
-    expect(type.BYTES.name).toBe("bytes");
+    assert.equal(type.BOOL.name, "bool");
+    assert.equal(type.UINT.name, "uint");
+    assert.equal(type.INT.name, "int");
+    assert.equal(type.DOUBLE.name, "double");
+    assert.equal(type.STRING.name, "string");
+    assert.equal(type.BYTES.name, "bytes");
   });
 
   test("list type", () => {
-    expect(type.LIST.name).toBe("list");
-    expect(type.LIST.fullname()).toBe("list(dyn)");
-    expect(type.LIST.elemType).toBe(type.DYN);
+    assert.equal(type.LIST.name, "list");
+    assert.equal(type.LIST.fullname(), "list(dyn)");
+    assert.ok(type.LIST.elemType === type.DYN);
     const other = new type.ListType(type.INT);
-    expect(other.name).toBe("list");
-    expect(other.fullname()).toBe("list(int)");
-    expect(other.equals(type.LIST)).toBe(true);
-    expect(other.identical(type.LIST)).toBe(false);
+    assert.equal(other.name, "list");
+    assert.ok(other.equals(type.LIST));
+    assert.ok(!other.identical(type.LIST));
   });
 
   test("map type", () => {
-    expect(type.DYN_MAP.name).toBe("map");
-    expect(type.DYN_MAP.fullname()).toBe("map(dyn, dyn)");
-    expect(type.DYN_MAP.keyType).toBe(type.DYN);
-    expect(type.DYN_MAP.valueType).toBe(type.DYN);
+    assert.equal(type.DYN_MAP.name, "map");
+    assert.equal(type.DYN_MAP.fullname(), "map(dyn, dyn)");
+    assert.ok(type.DYN_MAP.keyType === type.DYN);
+    assert.ok(type.DYN_MAP.valueType === type.DYN);
+
     const other = new type.MapType(type.INT, type.STRING);
-    expect(other.name).toBe("map");
-    expect(other.fullname()).toBe("map(int, string)");
-    expect(other.equals(type.DYN_MAP)).toBe(true);
-    expect(other.identical(type.DYN_MAP)).toBe(false);
+    assert.equal(other.name, "map");
+    assert.equal(other.fullname(), "map(int, string)");
+    assert.ok(other.equals(type.DYN_MAP));
+    assert.ok(!other.identical(type.DYN_MAP));
   });
 
   test("type type", () => {
-    expect(type.TYPE.name).toBe("type");
-    expect(type.TYPE.fullname()).toBe("type");
-    expect(type.TYPE.equals(type.DYN)).toBe(false);
-    expect(type.TYPE.identical(type.DYN)).toBe(false);
+    assert.equal(type.TYPE.name, "type");
+    assert.equal(type.TYPE.fullname(), "type");
+    assert.ok(!type.TYPE.equals(type.DYN));
+    assert.ok(!type.TYPE.identical(type.DYN));
 
     const other = new type.TypeType(type.INT);
-    expect(other.name).toBe("type");
-    expect(other.fullname()).toBe("type(int)");
-    expect(other.equals(type.TYPE)).toBe(true);
-    expect(other.identical(type.TYPE)).toBe(false);
+    assert.equal(other.name, "type");
+    assert.equal(other.fullname(), "type(int)");
+    assert.ok(other.equals(type.TYPE));
+    assert.ok(!other.identical(type.TYPE));
 
     const other2 = new type.TypeType(other);
-    expect(other2.name).toBe("type");
-    expect(other2.fullname()).toBe("type(type(int))");
-    expect(other2.equals(type.TYPE)).toBe(true);
-    expect(other2.identical(type.TYPE)).toBe(false);
+    assert.equal(other2.name, "type");
+    assert.equal(other2.fullname(), "type(type(int))");
+    assert.ok(other2.equals(type.TYPE));
+    assert.ok(!other2.identical(type.TYPE));
   });
 });

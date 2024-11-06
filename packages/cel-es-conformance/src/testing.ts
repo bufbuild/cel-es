@@ -1,4 +1,3 @@
-import { describe, test, expect } from "vitest";
 import {
   CelError,
   CelUnknown,
@@ -11,13 +10,12 @@ import {
 } from "@bufbuild/cel-es";
 import {
   SimpleTest,
-  SimpleTestFile,
-  SimpleTestSection,
 } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
 import { createRegistry } from "@bufbuild/protobuf";
 import * as test_all_types_pb2 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto2/test_all_types_pb.js";
 import * as test_all_types_pb3 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto3/test_all_types_pb.js";
 import type { IMessageTypeRegistry } from "@bufbuild/protobuf";
+import * as assert from "node:assert/strict";
 
 export const TEST_REGISTRY: IMessageTypeRegistry = createRegistry(
   test_all_types_pb2.TestAllTypes,
@@ -36,54 +34,27 @@ export function runSimpleTestCase(celParser: CelParser, testCase: SimpleTest) {
   switch (testCase.resultMatcher.case) {
     case "value":
       if (result instanceof CelError || result instanceof CelUnknown) {
-        expect(result).toStrictEqual(testCase.resultMatcher.value);
+        assert.deepEqual(result, testCase.resultMatcher.value);
       } else {
         const expected = EXPR_VAL_ADAPTER.valToCel(
           testCase.resultMatcher.value
         );
         if (!CEL_ADAPTER.equals(result, expected)) {
           const actual = EXPR_VAL_ADAPTER.celToValue(result);
-          expect(actual).toStrictEqual(testCase.resultMatcher.value);
+          assert.deepEqual(actual, testCase.resultMatcher.value);
         }
       }
       break;
     case "evalError":
     case "anyEvalErrors":
-      expect(result).toBeInstanceOf(CelError);
+      assert.ok(result instanceof CelError);
       break;
     case undefined:
-      expect(result).toStrictEqual(true);
+      assert.equal(result, true);
       break;
     default:
       throw new Error(
         `Unsupported result case: ${testCase.resultMatcher.case}`
       );
   }
-}
-
-export function runSimpleTestSection(
-  celParser: CelParser,
-  section: SimpleTestSection
-) {
-  describe(section.name, () => {
-    section.test.forEach((tc) => {
-      test(tc.name === "" ? tc.expr : tc.name, () => {
-        runSimpleTestCase(celParser, tc);
-      });
-    });
-  });
-}
-
-export function runSimpleTestFile(
-  celParser: CelParser,
-  testFile: SimpleTestFile
-) {
-  if (testFile.section.length === 0) {
-    return;
-  }
-  describe(testFile.name, () => {
-    testFile.section.forEach((section) => {
-      runSimpleTestSection(celParser, section);
-    });
-  });
 }
