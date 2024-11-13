@@ -1,4 +1,6 @@
-export const JSON = {
+import type {JsonValue} from "@bufbuild/protobuf";
+
+export const JSON: JsonValue = {
   name: "macros",
   description: "Tests for CEL macros.",
   section: [

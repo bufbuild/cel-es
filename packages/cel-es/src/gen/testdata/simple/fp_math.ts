@@ -1,4 +1,6 @@
-export const JSON = {
+import type {JsonValue} from "@bufbuild/protobuf";
+
+export const JSON: JsonValue = {
   name: "fp_math",
   description: "Tests for floating-point math.",
   section: [

@@ -1,4 +1,6 @@
-export const JSON = {
+import type {JsonValue} from "@bufbuild/protobuf";
+
+export const JSON: JsonValue = {
   name: "comparisons",
   description: "Tests for boolean-valued functions and operators.",
   section: [

@@ -1,4 +1,6 @@
-export const JSON = {
+import type {JsonValue} from "@bufbuild/protobuf";
+
+export const JSON: JsonValue = {
   name: "namespace",
   description: "Uses of qualified identifiers and namespaces.",
   section: [

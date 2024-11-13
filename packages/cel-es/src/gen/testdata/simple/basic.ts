@@ -1,4 +1,6 @@
-export const JSON = {
+import type {JsonValue} from "@bufbuild/protobuf";
+
+export const JSON: JsonValue = {
   name: "basic",
   description: "Basic conformance tests that all implementations should pass.",
   section: [

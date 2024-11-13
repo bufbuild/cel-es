@@ -1,4 +1,6 @@
-export const JSON = {
+import type {JsonValue} from "@bufbuild/protobuf";
+
+export const JSON: JsonValue = {
   name: "plumbing",
   description:
     "Check that the ConformanceService server can accept all arguments and return all responses.",

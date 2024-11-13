@@ -22,8 +22,12 @@ export const TEST_REGISTRY: IMessageTypeRegistry = createRegistry(
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
-export function runSimpleTestCase(celParser: CelParser, testCase: SimpleTest) {
-  const planner = new CelPlanner(testCase.container, TEST_REGISTRY);
+export function runSimpleTestCase(
+  celParser: CelParser,
+  testCase: SimpleTest,
+  registry: IMessageTypeRegistry,
+) {
+  const planner = new CelPlanner(testCase.container, registry);
   planner.addFuncs(STRINGS_EXT_FUNCS);
   const parsed = celParser.parse(testCase.expr);
   const plan = planner.plan(parsed);
