@@ -17,6 +17,7 @@ import { JSON as PLUMBING_TEST_JSON } from "./gen/testdata/simple/plumbing.js";
 import { JSON as PROTO2_TEST_JSON } from "./gen/testdata/simple/proto2.js";
 import { JSON as PROTO3_TEST_JSON } from "./gen/testdata/simple/proto3.js";
 import { JSON as STRING_TEST_JSON } from "./gen/testdata/simple/string.js";
+import { JSON as STRINGS_EXT_TEST } from "./gen/testdata/simple/string_ext.js";
 import { JSON as TIMESTAMPS_TEST_JSON } from "./gen/testdata/simple/timestamps.js";
 import { JSON as UNKNOWNS_TEST_JSON } from "./gen/testdata/simple/unknowns.js";
 import { createRegistry } from "@bufbuild/protobuf";
@@ -47,6 +48,7 @@ void suite("Conformance Tests", () => {
     SimpleTestFile.fromJson(PROTO2_TEST_JSON, { typeRegistry }),
     SimpleTestFile.fromJson(PROTO3_TEST_JSON, { typeRegistry }),
     SimpleTestFile.fromJson(STRING_TEST_JSON, { typeRegistry }),
+    SimpleTestFile.fromJson(STRINGS_EXT_TEST, { typeRegistry }),
     SimpleTestFile.fromJson(TIMESTAMPS_TEST_JSON, { typeRegistry }),
     SimpleTestFile.fromJson(UNKNOWNS_TEST_JSON, { typeRegistry }),
   ];
