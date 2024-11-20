@@ -8,7 +8,7 @@ import {
   Expr_Ident,
   Expr_Select,
   SourceInfo,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb.js";
+} from "./pb/dev/cel/expr/syntax_pb.js";
 
 export class ExprBuilder {
   private prevId = 0n;

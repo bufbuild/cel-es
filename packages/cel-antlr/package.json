@@ -9,12 +9,13 @@
     "directory": "packages/cel-es"
   },
   "scripts": {
+    "generate": "buf generate buf.build/alfus/cel:40a4ec79694c457392ee1943ab0be641",
     "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esm": "tsc --project tsconfig.json --outDir ./dist/esm",
-    "format": "prettier --write --ignore-unknown '.' '!dist' '!src/gen' '!src/grammar.ts'",
+    "format": "prettier --write --ignore-unknown '.' '!dist' '!src/gen' '!src/pb'",
     "lint": "eslint .",
     "attw": "attw --pack"
   },
@@ -29,12 +30,12 @@
     }
   },
   "dependencies": {
-    "@buf/alfus_cel.bufbuild_es": "^1.2.1-20230626203212-40a4ec79694c.1",
     "@bufbuild/protobuf": "^1.2.1",
     "antlr4ts": "^0.5.0-alpha.4",
     "date-fns-tz": "^2.0.0"
   },
   "devDependencies": {
+    "@bufbuild/protoc-gen-es": "^1.2.1",
     "peggy": "^4.0.2"
   },
   "files": [

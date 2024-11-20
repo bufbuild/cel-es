@@ -1,10 +1,7 @@
 import { createRegistry, type IMessageTypeRegistry } from "@bufbuild/protobuf";
 
-import {
-  Expr,
-  ParsedExpr,
-} from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/syntax_pb.js";
-import { CheckedExpr } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/checked_pb.js";
+import { Expr, ParsedExpr } from "./pb/dev/cel/expr/syntax_pb.js";
+import { CheckedExpr } from "./pb/dev/cel/expr/checked_pb.js";
 import { ObjectActivation } from "./activation.js";
 import { CEL_ADAPTER } from "./adapter/cel.js";
 import { NATIVE_ADAPTER } from "./adapter/native.js";

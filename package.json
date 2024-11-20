@@ -11,15 +11,15 @@
   ],
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.16.4",
-    "@bufbuild/buf": "^1.21.0-1",
+    "@bufbuild/buf": "^1.47.2",
     "@bufbuild/protoc-gen-es": "^1.2.1",
     "@eslint/js": "^9.14.0",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^20.17.6",
     "eslint": "^9.14.0",
+    "prettier": "^3.3.3",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.13.0",
-    "prettier": "^3.3.3"
+    "typescript-eslint": "^8.13.0"
   }
 }

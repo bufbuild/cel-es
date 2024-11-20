@@ -21,9 +21,9 @@ import { JSON as STRINGS_EXT_TEST } from "./gen/testdata/simple/string_ext.js";
 import { JSON as TIMESTAMPS_TEST_JSON } from "./gen/testdata/simple/timestamps.js";
 import { JSON as UNKNOWNS_TEST_JSON } from "./gen/testdata/simple/unknowns.js";
 import { createRegistry } from "@bufbuild/protobuf";
-import * as test_all_types_pb2 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto2/test_all_types_pb.js";
-import * as test_all_types_pb3 from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/proto3/test_all_types_pb.js";
-import { SimpleTestFile } from "@buf/alfus_cel.bufbuild_es/dev/cel/expr/conformance/simple_pb.js";
+import * as test_all_types_pb2 from "./pb/dev/cel/expr/conformance/proto2/test_all_types_pb.js";
+import * as test_all_types_pb3 from "./pb/dev/cel/expr/conformance/proto3/test_all_types_pb.js";
+import { SimpleTestFile } from "./pb/dev/cel/expr/conformance/simple_pb.js";
 
 void suite("Conformance Tests", () => {
   const typeRegistry = createRegistry(
