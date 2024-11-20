@@ -6,7 +6,7 @@ import {
   Expr_CreateList,
   Expr_CreateStruct,
   Expr_Select,
-} from "./pb/dev/cel/expr/syntax_pb.js";
+} from "./pb/cel/expr/syntax_pb.js";
 import {
   Any,
   BoolValue,

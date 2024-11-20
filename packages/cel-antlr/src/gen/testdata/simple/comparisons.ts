@@ -311,13 +311,13 @@ export const JSON: JsonValue = {
         {
           name: "not_eq_dyn_proto2_msg_null",
           expr: "dyn(TestAllTypes{}) == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "not_eq_dyn_proto3_msg_null",
           expr: "dyn(TestAllTypes{}) == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: false },
         },
         {
@@ -425,13 +425,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_bool_proto2_null",
           expr: "TestAllTypes{}.single_bool_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_bool_proto3_null",
           expr: "TestAllTypes{}.single_bool_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -452,13 +452,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_bytes_proto2_null",
           expr: "TestAllTypes{}.single_bytes_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_bytes_proto3_null",
           expr: "TestAllTypes{}.single_bytes_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -479,13 +479,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_double_proto2_null",
           expr: "TestAllTypes{}.single_double_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_double_proto3_null",
           expr: "TestAllTypes{}.single_double_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -506,13 +506,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_float_proto2_null",
           expr: "TestAllTypes{}.single_float_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_float_proto3_null",
           expr: "TestAllTypes{}.single_float_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -533,13 +533,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_int32_proto2_null",
           expr: "TestAllTypes{}.single_int32_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_int32_proto3_null",
           expr: "TestAllTypes{}.single_int32_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -560,13 +560,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_int64_proto2_null",
           expr: "TestAllTypes{}.single_int64_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_int64_proto3_null",
           expr: "TestAllTypes{}.single_int64_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -587,13 +587,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_string_proto2_null",
           expr: "TestAllTypes{}.single_string_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_string_proto3_null",
           expr: "TestAllTypes{}.single_string_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -614,13 +614,13 @@ export const JSON: JsonValue = {
         {
           name: "eq_uint32_proto2_null",
           expr: "TestAllTypes{}.single_uint32_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_uint32_proto3_null",
           expr: "TestAllTypes{}.single_uint32_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -641,37 +641,37 @@ export const JSON: JsonValue = {
         {
           name: "eq_uint64_proto2_null",
           expr: "TestAllTypes{}.single_uint64_wrapper == null",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_uint64_proto3_null",
           expr: "TestAllTypes{}.single_uint64_wrapper == null",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
           name: "eq_proto2",
           expr: "TestAllTypes{single_int64: 1234, single_string: '1234'} == TestAllTypes{single_int64: 1234, single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_proto3",
           expr: "TestAllTypes{single_int64: 1234, single_string: '1234'} == TestAllTypes{single_int64: 1234, single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
           name: "eq_proto2_missing_fields_neq",
           expr: "TestAllTypes{single_int64: 1234} == TestAllTypes{single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "eq_proto3_missing_fields_neq",
           expr: "TestAllTypes{single_int64: 1234} == TestAllTypes{single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: false },
         },
         {
@@ -679,7 +679,7 @@ export const JSON: JsonValue = {
           description:
             "For proto equality, fields with NaN value are treated as not equal.",
           expr: "TestAllTypes{single_double: double('NaN')} == TestAllTypes{single_double: double('NaN')}",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
@@ -687,67 +687,67 @@ export const JSON: JsonValue = {
           description:
             "At runtime, differently typed messages are treated as not equal.",
           expr: "dyn(TestAllTypes{}) == dyn(NestedTestAllTypes{})",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "eq_proto2_any_unpack_equal",
           description: "Any values should be unpacked and compared.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto2",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_proto2_any_unpack_not_equal",
           description: "Any values should be unpacked and compared.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'a\\000\\000\\000\\000\\000H\\223\\300r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto2",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'a\\000\\000\\000\\000\\000H\\223\\300r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "eq_proto2_any_unpack_bytewise_fallback_not_equal",
           description:
             "If an any field is missing its type_url, the comparison should fallback to a bytewise comparison of the serialized proto.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto2",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "eq_proto2_any_unpack_bytewise_fallback_equal",
           description:
             "If an any field is missing its type_url, the comparison should fallback to a bytewise comparison of the serialized proto.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}}",
-          container: "dev.cel.expr.conformance.proto2",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}}",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "eq_proto3_any_unpack_equal",
           description: "Any values should be unpacked and compared.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto3",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
           name: "eq_proto3_any_unpack_not_equal",
           description: "Any values should be unpacked and compared.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'a\\000\\000\\000\\000\\000H\\223\\300r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto3",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'a\\000\\000\\000\\000\\000H\\223\\300r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: false },
         },
         {
           name: "eq_proto3_any_unpack_bytewise_fallback_not_equal",
           description:
             "If an any field is missing its type_url, the comparison should fallback to a bytewise comparison of the serialized proto.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto3",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: false },
         },
         {
           name: "eq_proto3_any_unpack_bytewise_fallback_equal",
           description:
             "If an any field is missing its type_url, the comparison should fallback to a bytewise comparison of the serialized proto.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}}",
-          container: "dev.cel.expr.conformance.proto3",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} == TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}}",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
       ],
@@ -936,25 +936,25 @@ export const JSON: JsonValue = {
         {
           name: "ne_proto2",
           expr: "TestAllTypes{single_int64: 1234, single_string: '1234'} != TestAllTypes{single_int64: 1234, single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "ne_proto3",
           expr: "TestAllTypes{single_int64: 1234, single_string: '1234'} != TestAllTypes{single_int64: 1234, single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: false },
         },
         {
           name: "ne_proto2_missing_fields_neq",
           expr: "TestAllTypes{single_int64: 1234} != TestAllTypes{single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "ne_proto3_missing_fields_neq",
           expr: "TestAllTypes{single_int64: 1234} != TestAllTypes{single_string: '1234'}",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
@@ -962,7 +962,7 @@ export const JSON: JsonValue = {
           description:
             "For proto equality, NaN field values are not considered equal.",
           expr: "TestAllTypes{single_double: double('NaN')} != TestAllTypes{single_double: double('NaN')}",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
@@ -970,37 +970,37 @@ export const JSON: JsonValue = {
           description:
             "At runtime, comparing differently typed messages is false.",
           expr: "dyn(TestAllTypes{}) != dyn(NestedTestAllTypes{})",
-          container: "dev.cel.expr.conformance.proto2",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: true },
         },
         {
           name: "ne_proto2_any_unpack",
           description: "Any values should be unpacked and compared.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto2",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "ne_proto2_any_unpack_bytewise_fallback",
           description:
             "If an any field is missing its type_url, the comparison should fallback to a bytewise comparison of the serialized proto.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto3",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
         {
           name: "ne_proto3_any_unpack",
           description: "Any values should be unpacked and compared.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto2",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto2",
           value: { boolValue: false },
         },
         {
           name: "ne_proto3_any_unpack_bytewise_fallback",
           description:
             "If an any field is missing its type_url, the comparison should fallback to a bytewise comparison of the serialized proto.",
-          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/dev.cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
-          container: "dev.cel.expr.conformance.proto3",
+          expr: "TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001r\\0041234'}} != TestAllTypes{single_any: google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\242\\006\\023\\022\\021r\\0041234\\020\\256\\366\\377\\377\\377\\377\\377\\377\\377\\001'}}",
+          container: "cel.expr.conformance.proto3",
           value: { boolValue: true },
         },
       ],

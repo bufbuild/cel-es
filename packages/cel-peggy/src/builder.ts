@@ -9,7 +9,7 @@ import {
   Expr_Ident,
   Expr_Select,
   SourceInfo,
-} from "./pb/dev/cel/expr/syntax_pb.js";
+} from "./pb/cel/expr/syntax_pb.js";
 
 const encoder = new TextEncoder();
 

@@ -12,7 +12,7 @@ import {
 import {
   SimpleTest,
   type SimpleTestFile,
-} from "./pb/dev/cel/expr/conformance/simple_pb.js";
+} from "./pb/cel/expr/conformance/simple_pb.js";
 import { type IMessageTypeRegistry } from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
 import { test } from "node:test";

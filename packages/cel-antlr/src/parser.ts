@@ -7,7 +7,7 @@ import {
   Expr_CreateStruct_Entry,
   ParsedExpr,
   SourceInfo,
-} from "./pb/dev/cel/expr/syntax_pb.js";
+} from "./pb/cel/expr/syntax_pb.js";
 import { CELLexer } from "./gen/CELLexer.js";
 import {
   BoolFalseContext,

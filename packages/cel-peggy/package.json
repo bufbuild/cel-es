@@ -10,7 +10,7 @@
   },
   "scripts": {
     "generate": "npm run generate:proto && npm run generate:peggy",
-    "generate:proto": "buf generate buf.build/alfus/cel:40a4ec79694c457392ee1943ab0be641",
+    "generate:proto": "buf generate buf.build/alfus/cel:85a8766c403344b78b1f3fd16e4d1f39",
     "generate:peggy": "peggy -o src/grammar.js src/grammar.peggy",
     "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
     "postgenerate": "node scripts/peggy2ts.js src/grammar.js",

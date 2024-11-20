@@ -9,7 +9,7 @@
     "directory": "packages/cel-es"
   },
   "scripts": {
-    "generate": "buf generate buf.build/alfus/cel:40a4ec79694c457392ee1943ab0be641",
+    "generate": "buf generate buf.build/alfus/cel:85a8766c403344b78b1f3fd16e4d1f39",
     "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",

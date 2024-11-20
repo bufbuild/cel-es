@@ -31,7 +31,7 @@ export const JSON: JsonValue = {
           description:
             "Member = Member '{' [FieldInits] '}'. Nested messages supported up to 12 levels deep.",
           expr: "NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{child: NestedTestAllTypes{payload: TestAllTypes{single_int64: 137}}}}}}}}}}}}.payload.single_int64",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { int64Value: "0" },
         },
         {
@@ -120,7 +120,7 @@ export const JSON: JsonValue = {
           description:
             "Member = Member '.' IDENT ['(' [ExprList] ')']. Selection is supported up to 12 times consecutively.",
           expr: "NestedTestAllTypes{}.child.child.child.child.child.child.child.child.child.child.payload.single_int32",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { int64Value: "0" },
         },
         {
@@ -149,7 +149,7 @@ export const JSON: JsonValue = {
           description:
             "Member = Member '{' [FieldInits] '}'. Message literals with up to 32 fields.",
           expr: "TestAllTypes{single_int32: 5, single_int64: 10, single_uint32: 15u, single_uint64: 20u, single_sint32: 25, single_sint64: 30, single_fixed32: 35u, single_fixed64: 40u, single_float: 45.0, single_double: 50.0, single_bool: true, single_string: 'sixty', single_bytes: b'sixty-five', single_value: 70.0, single_int64_wrapper: 75, single_int32_wrapper: 80, single_double_wrapper: 85.0, single_float_wrapper: 90.0, single_uint64_wrapper: 95u, single_uint32_wrapper: 100u, single_string_wrapper: 'one hundred five', single_bool_wrapper: true, repeated_int32: [115], repeated_int64: [120], repeated_uint32: [125u], repeated_uint64: [130u], repeated_sint32: [135], repeated_sint64: [140], repeated_fixed32: [145u], repeated_fixed64: [150u], repeated_sfixed32: [155], repeated_float: [160.0]}.single_sint64",
-          container: "dev.cel.expr.conformance.proto3",
+          container: "cel.expr.conformance.proto3",
           value: { int64Value: "30" },
         },
       ],
