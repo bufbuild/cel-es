@@ -1,5 +1,5 @@
 {
-  "name": "@bufbuild/cel-es",
+  "name": "@bufbuild/cel-peggy",
   "version": "0.0.1",
   "description": "A CEL evaluator for ES modules",
   "license": "Apache-2.0",

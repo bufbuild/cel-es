@@ -6,7 +6,8 @@
     "format": "prettier --write --ignore-unknown '.' '!packages'"
   },
   "workspaces": [
-    "packages/cel-es"
+    "packages/cel-peggy",
+    "packages/cel-antlr"
   ],
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.16.4",
