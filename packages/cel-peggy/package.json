@@ -33,11 +33,11 @@
     }
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^1.2.1",
+    "@bufbuild/protobuf": "^1.10.0",
     "date-fns-tz": "^2.0.0"
   },
   "devDependencies": {
-    "@bufbuild/protoc-gen-es": "^1.2.1",
+    "@bufbuild/protoc-gen-es": "^1.10.0",
     "peggy": "^4.0.2"
   },
   "files": [
