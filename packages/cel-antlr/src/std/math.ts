@@ -1,4 +1,4 @@
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
 
 import {
   Func,
@@ -192,11 +192,11 @@ function sumTimeOp(id: number, times: CelVal[]) {
   let nanos = 0;
   for (let i = 0; i < times.length; i++) {
     const time = times[i];
-    if (time instanceof Timestamp) {
+    if (isMessage(time, Timestamp)) {
       tsCount++;
       seconds += time.seconds;
       nanos += time.nanos;
-    } else if (time instanceof Duration) {
+    } else if (isMessage(time, Duration)) {
       seconds += time.seconds;
       nanos += time.nanos;
     } else {
@@ -294,15 +294,15 @@ const subDoubleFunc = Func.binary(
   subDoubleOp,
 );
 const subTimeOp: StrictBinaryOp = (id, lhs, rhs) => {
-  if (lhs instanceof Timestamp) {
-    if (rhs instanceof Timestamp) {
+  if (isMessage(lhs, Timestamp)) {
+    if (isMessage(rhs, Timestamp)) {
       return newDuration(id, lhs.seconds - rhs.seconds, lhs.nanos - rhs.nanos);
-    } else if (rhs instanceof Duration) {
+    } else if (isMessage(rhs, Duration)) {
       return newTimestamp(id, lhs.seconds - rhs.seconds, lhs.nanos - rhs.nanos);
     } else {
       return undefined;
     }
-  } else if (lhs instanceof Duration && rhs instanceof Duration) {
+  } else if (isMessage(lhs, Duration) && isMessage(rhs, Duration)) {
     return newDuration(id, lhs.seconds - rhs.seconds, lhs.nanos - rhs.nanos);
   }
   return undefined;

@@ -1,4 +1,4 @@
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
 import { argsMatch, Func, FuncRegistry } from "../func.js";
@@ -512,9 +512,9 @@ export class Formatter {
           return val.name;
         } else if (val instanceof CelUint) {
           return val.value.toString();
-        } else if (val instanceof Timestamp) {
+        } else if (isMessage(val, Timestamp)) {
           return 'timestamp("' + (val.toJson() as string) + '")';
-        } else if (val instanceof Duration) {
+        } else if (isMessage(val, Duration)) {
           return 'duration("' + (val.toJson() as string) + '")';
         } else if (val instanceof Uint8Array) {
           // escape non-printable characters
@@ -550,9 +550,9 @@ export class Formatter {
           return val.name;
         } else if (val instanceof CelUint) {
           return val.value.toString();
-        } else if (val instanceof Timestamp) {
+        } else if (isMessage(val, Timestamp)) {
           return val.toJson() as string;
-        } else if (val instanceof Duration) {
+        } else if (isMessage(val, Duration)) {
           return val.toJson() as string;
         } else if (val instanceof Uint8Array) {
           return new TextDecoder().decode(val);

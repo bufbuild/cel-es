@@ -1,4 +1,4 @@
-import { Any, Duration, Message, Timestamp } from "@bufbuild/protobuf";
+import { Any, Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
 
 import { unwrapResults } from "../value/adapter.js";
 import {
@@ -100,7 +100,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
         return lhs.equals(rhs);
       } else if (lhs instanceof Uint8Array && rhs instanceof Uint8Array) {
         return compareBytes(lhs, rhs) === 0;
-      } else if (lhs instanceof Message && rhs instanceof Message) {
+      } else if (isMessage(lhs) && isMessage(rhs)) {
         // TODO(afuller): Figure out why this is needed.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-argument
         return lhs.getType() === rhs.getType() && lhs.equals(rhs as any);
@@ -151,13 +151,13 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       return compareBytes(lhs, rhs);
     } else if (typeof lhs === "string" && typeof rhs === "string") {
       return lhs < rhs ? -1 : lhs > rhs ? 1 : 0;
-    } else if (lhs instanceof Duration && rhs instanceof Duration) {
+    } else if (isMessage(lhs, Duration) && isMessage(rhs, Duration)) {
       const cmp = lhs.seconds - rhs.seconds;
       if (cmp == 0n) {
         return lhs.nanos - rhs.nanos;
       }
       return cmp < 0n ? -1 : 1;
-    } else if (lhs instanceof Timestamp && rhs instanceof Timestamp) {
+    } else if (isMessage(lhs, Timestamp) && isMessage(rhs, Timestamp)) {
       const cmp = lhs.seconds - rhs.seconds;
       if (cmp == 0n) {
         return lhs.nanos - rhs.nanos;
@@ -172,7 +172,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
   }
 
   accessByName(id: number, obj: CelVal, name: string): CelResult | undefined {
-    if (obj instanceof Any) {
+    if (isMessage(obj, Any)) {
       throw new Error("not implemented");
     }
 

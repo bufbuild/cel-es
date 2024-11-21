@@ -1,7 +1,7 @@
 import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 
-import { Duration } from "@bufbuild/protobuf";
+import { Duration, isMessage } from "@bufbuild/protobuf";
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
@@ -26,17 +26,17 @@ void suite("scalar", () => {
 
   void test("duration", () => {
     let actual = newDuration(0, 0n, -1);
-    assert.ok(actual instanceof Duration);
+    assert.ok(isMessage(actual, Duration));
     assert.equal(actual.seconds, -1n);
     assert.equal(actual.nanos, 999999999);
 
     actual = newDuration(0, 0n, -999999999);
-    assert.ok(actual instanceof Duration);
+    assert.ok(isMessage(actual, Duration));
     assert.equal(actual.seconds, -1n);
     assert.equal(actual.nanos, 1);
 
     actual = newDuration(0, 0n, -1000000000);
-    assert.ok(actual instanceof Duration);
+    assert.ok(isMessage(actual, Duration));
     assert.equal(actual.seconds, -1n);
     assert.equal(actual.nanos, 0);
   });

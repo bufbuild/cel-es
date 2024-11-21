@@ -5,6 +5,7 @@ import {
   DoubleValue,
   Duration,
   Int64Value,
+  isMessage,
   Message,
   type MessageType,
   StringValue,
@@ -125,9 +126,9 @@ export function isCelPrim(val: unknown): val is CelPrim {
 export type CelWrapNum = Int64Value | UInt64Value | DoubleValue;
 export function isCelWrapNum(val: unknown): val is CelWrapNum {
   return (
-    val instanceof Int64Value ||
-    val instanceof UInt64Value ||
-    val instanceof DoubleValue
+    isMessage(val, Int64Value) ||
+    isMessage(val, UInt64Value) ||
+    isMessage(val, DoubleValue)
   );
 }
 
@@ -135,10 +136,10 @@ export function isCelWrapNum(val: unknown): val is CelWrapNum {
 export type CelWrap = BoolValue | CelWrapNum | StringValue | BytesValue;
 export function isCelWrap(val: unknown): val is CelWrap {
   return (
-    val instanceof BoolValue ||
+    isMessage(val, BoolValue) ||
     isCelWrapNum(val) ||
-    val instanceof StringValue ||
-    val instanceof BytesValue
+    isMessage(val, StringValue) ||
+    isMessage(val, BytesValue)
   );
 }
 
@@ -147,9 +148,9 @@ export type CelMsg = CelWrap | Timestamp | Duration | Any;
 export function isCelMsg(val: unknown): val is CelMsg {
   return (
     isCelWrap(val) ||
-    val instanceof Timestamp ||
-    val instanceof Duration ||
-    val instanceof Any
+    isMessage(val, Timestamp) ||
+    isMessage(val, Duration) ||
+    isMessage(val, Any)
   );
 }
 

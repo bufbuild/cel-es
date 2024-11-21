@@ -1,4 +1,4 @@
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
 import { utcToZonedTime } from "date-fns-tz";
 
 import {
@@ -14,7 +14,7 @@ type TimeFunc = (val: Date) => number;
 
 function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
   return (id, args) => {
-    if (!(args[0] instanceof Timestamp)) {
+    if (!isMessage(args[0], Timestamp)) {
       return undefined;
     }
     let val = args[0].toDate();
@@ -109,7 +109,7 @@ const timestampToSecondsFunc = Func.newStrict(
   timestampToSecondsOp,
 );
 const durationToSecondsOp: StrictUnaryOp = (_id, val) => {
-  if (val instanceof Duration) {
+  if (isMessage(val, Duration)) {
     return val.seconds;
   }
   return undefined;
@@ -123,9 +123,9 @@ const timeGetSecondsFunc = Func.newStrict(
   olc.TIME_GET_SECONDS,
   [],
   (id, args) => {
-    if (args[0] instanceof Timestamp) {
+    if (isMessage(args[0], Timestamp)) {
       return timestampToSecondsOp(id, args);
-    } else if (args[0] instanceof Duration) {
+    } else if (isMessage(args[0], Duration)) {
       return durationToSecondsOp(id, args[0]);
     }
     return undefined;
@@ -142,7 +142,7 @@ const timestampToHoursFunc = Func.newStrict(
   timestampToHoursOp,
 );
 const durationToHoursOp: StrictUnaryOp = (_id, val) => {
-  if (val instanceof Duration) {
+  if (isMessage(val, Duration)) {
     return val.seconds / 3600n;
   }
   return undefined;
@@ -153,9 +153,9 @@ const DurationToHoursFunc = Func.unary(
   durationToHoursOp,
 );
 const timeGetHoursFunc = Func.newStrict(olc.TIME_GET_HOURS, [], (id, args) => {
-  if (args[0] instanceof Timestamp) {
+  if (isMessage(args[0], Timestamp)) {
     return timestampToHoursOp(id, args);
-  } else if (args[0] instanceof Duration) {
+  } else if (isMessage(args[0], Duration)) {
     return durationToHoursOp(id, args[0]);
   }
   return undefined;
@@ -172,7 +172,7 @@ const timestampToMinutesFunc = Func.newStrict(
   timestampToMinutesOp,
 );
 const durationToMinutesOp: StrictUnaryOp = (_id, val) => {
-  if (val instanceof Duration) {
+  if (isMessage(val, Duration)) {
     return val.seconds / 60n;
   }
   return undefined;
@@ -186,9 +186,9 @@ const timeGetMinutesFunc = Func.newStrict(
   olc.TIME_GET_MINUTES,
   [],
   (id, args) => {
-    if (args[0] instanceof Timestamp) {
+    if (isMessage(args[0], Timestamp)) {
       return timestampToMinutesOp(id, args);
-    } else if (args[0] instanceof Duration) {
+    } else if (isMessage(args[0], Duration)) {
       return durationToMinutesOp(id, args[0]);
     }
     return undefined;
@@ -206,7 +206,7 @@ const timestampToMillisecondsFunc = Func.newStrict(
   timestampToMillisecondsOp,
 );
 const durationToMillisecondsOp: StrictUnaryOp = (_id, val) => {
-  if (val instanceof Duration) {
+  if (isMessage(val, Duration)) {
     return BigInt(val.nanos) / 1000000n;
   }
   return undefined;
@@ -221,9 +221,9 @@ const timeGetMillisecondsFunc = Func.newStrict(
   olc.TIME_GET_MILLISECONDS,
   [],
   (id, args) => {
-    if (args[0] instanceof Timestamp) {
+    if (isMessage(args[0], Timestamp)) {
       return timestampToMillisecondsOp(id, args);
-    } else if (args[0] instanceof Duration) {
+    } else if (isMessage(args[0], Duration)) {
       return durationToMillisecondsOp(id, args[0]);
     }
     return undefined;

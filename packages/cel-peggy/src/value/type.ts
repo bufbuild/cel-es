@@ -5,7 +5,7 @@ import {
   DoubleValue,
   Duration,
   Int64Value,
-  Message,
+  isMessage,
   StringValue,
   Timestamp,
   UInt64Value,
@@ -99,24 +99,24 @@ export function getCelType(val: CelVal): CelType {
         return getCelType(val.defaultValue);
       } else if (val instanceof Uint8Array) {
         return BYTES;
-      } else if (val instanceof Message) {
-        if (val instanceof Duration) {
+      } else if (isMessage(val)) {
+        if (isMessage(val, Duration)) {
           return DURATION;
-        } else if (val instanceof Timestamp) {
+        } else if (isMessage(val, Timestamp)) {
           return TIMESTAMP;
-        } else if (val instanceof Any) {
+        } else if (isMessage(val, Any)) {
           return DYN;
-        } else if (val instanceof BoolValue) {
+        } else if (isMessage(val, BoolValue)) {
           return WRAP_BOOL;
-        } else if (val instanceof UInt64Value) {
+        } else if (isMessage(val, UInt64Value)) {
           return WRAP_UINT;
-        } else if (val instanceof Int64Value) {
+        } else if (isMessage(val, Int64Value)) {
           return WRAP_INT;
-        } else if (val instanceof DoubleValue) {
+        } else if (isMessage(val, DoubleValue)) {
           return WRAP_DOUBLE;
-        } else if (val instanceof StringValue) {
+        } else if (isMessage(val, StringValue)) {
           return WRAP_STRING;
-        } else if (val instanceof BytesValue) {
+        } else if (isMessage(val, BytesValue)) {
           return WRAP_BYTES;
         }
       } else if (val instanceof CelList) {

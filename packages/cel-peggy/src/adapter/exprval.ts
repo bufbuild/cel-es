@@ -1,4 +1,4 @@
-import { Any, Duration, Timestamp } from "@bufbuild/protobuf";
+import { Any, Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
 
 import { ExprValue } from "../pb/cel/expr/eval_pb.js";
 import {
@@ -41,17 +41,17 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   ): ExprResult | undefined {
     if (isCelVal(obj)) {
       return CEL_ADAPTER.accessByIndex(id, obj, index);
-    } else if (obj instanceof ExprValue) {
+    } else if (isMessage(obj, ExprValue)) {
       switch (obj.kind.case) {
         case "value":
           return this.accessValueByIndex(id, obj.kind.value, index);
       }
       throw new Error("Method not implemented.");
-    } else if (obj instanceof Value) {
+    } else if (isMessage(obj, Value)) {
       return this.accessValueByIndex(id, obj, index);
-    } else if (obj instanceof ListValue) {
+    } else if (isMessage(obj, ListValue)) {
       return this.accessListByIndex(id, obj, index);
-    } else if (obj instanceof MapValue) {
+    } else if (isMessage(obj, MapValue)) {
       return this.accessMapByIndex(id, obj, index);
     }
     throw new Error("Method not implemented.");
@@ -98,7 +98,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   ): ExprResult | undefined {
     if (isCelVal(obj)) {
       return CEL_ADAPTER.accessByName(id, obj, name);
-    } else if (obj instanceof ExprValue) {
+    } else if (isMessage(obj, ExprValue)) {
       switch (obj.kind.case) {
         case "value":
           return this.accessValueByName(id, obj.kind.value, name);
@@ -156,13 +156,13 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
   toCel(native: ExprType): CelResult {
     if (isCelResult(native)) {
       return native;
-    } else if (native instanceof ExprValue) {
+    } else if (isMessage(native, ExprValue)) {
       return this.exprResultToCel(native);
-    } else if (native instanceof Value) {
+    } else if (isMessage(native, Value)) {
       return this.valToCel(native);
-    } else if (native instanceof ListValue) {
+    } else if (isMessage(native, ListValue)) {
       return new CelList(native.values, this, type.LIST);
-    } else if (native instanceof MapValue) {
+    } else if (isMessage(native, MapValue)) {
       const map = new Map<Value, Value>();
       native.entries.forEach((entry) => {
         if (entry.key === undefined || entry.value === undefined) {

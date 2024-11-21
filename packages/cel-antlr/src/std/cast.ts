@@ -1,4 +1,4 @@
-import { Duration, Timestamp } from "@bufbuild/protobuf";
+import { Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
 
 import { Func, FuncRegistry, identityOp, type StrictUnaryOp } from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
@@ -63,7 +63,7 @@ const strToIntOp: StrictUnaryOp = (id, x) => {
 };
 const strToIntFunc = Func.unary(INT, [olc.STRING_TO_INT], strToIntOp);
 const timestampToIntOp: StrictUnaryOp = (id, x) => {
-  if (x instanceof Timestamp) {
+  if (isMessage(x, Timestamp)) {
     const val = x.seconds;
     if (isOverflowInt(val)) {
       return CelErrors.overflow(id, INT, type.INT);
@@ -78,7 +78,7 @@ const timestampToIntFunc = Func.unary(
   timestampToIntOp,
 );
 const durationToIntOp: StrictUnaryOp = (id, x) => {
-  if (x instanceof Duration) {
+  if (isMessage(x, Duration)) {
     const val = x.seconds;
     if (isOverflowInt(val)) {
       return CelErrors.overflow(id, INT, type.INT);
@@ -307,7 +307,7 @@ const bytesToStringFunc = Func.unary(
   bytesToStringOp,
 );
 const timestampToStringOp: StrictUnaryOp = (_id, x) => {
-  if (x instanceof Timestamp) {
+  if (isMessage(x, Timestamp)) {
     return x.toJson() as string;
   }
   return undefined;
@@ -318,7 +318,7 @@ const timestampToStringFunc = Func.unary(
   timestampToStringOp,
 );
 const durationToStringOp: StrictUnaryOp = (id, x) => {
-  if (x instanceof Duration) {
+  if (isMessage(x, Duration)) {
     return x.toJson() as string;
   }
   return CelErrors.overloadNotFound(id, STRING, [type.getCelType(x)]);

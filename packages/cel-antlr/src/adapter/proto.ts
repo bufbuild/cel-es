@@ -17,6 +17,7 @@ import {
   UInt64Value,
   Value,
   type IMessageTypeRegistry,
+  isMessage,
 } from "@bufbuild/protobuf";
 
 import { EMPTY_PROVIDER } from "../value/empty.js";
@@ -51,7 +52,7 @@ type ProtoValue = CelVal | Message;
 type ProtoResult = CelResult<ProtoValue>;
 
 export function isProtoMsg(val: unknown): val is Message {
-  return val instanceof Message && !isCelMsg(val);
+  return isMessage(val) && !isCelMsg(val);
 }
 
 /** Extends the Cel type system to include arbitrary protobuf messages. */
@@ -61,7 +62,7 @@ export class ProtoValAdapter implements CelValAdapter {
   constructor(public readonly registry: IMessageTypeRegistry) {}
 
   unwrap(val: ProtoValue): ProtoValue {
-    if (val instanceof Any) {
+    if (isMessage(val, Any)) {
       const real = val.unpack(this.registry);
       if (real !== undefined) {
         val = real;
@@ -84,7 +85,7 @@ export class ProtoValAdapter implements CelValAdapter {
 
   equals(lhs: ProtoValue, rhs: ProtoValue): CelResult<boolean> {
     if (isProtoMsg(lhs)) {
-      if (!(rhs instanceof Message)) {
+      if (!isMessage(rhs)) {
         return false;
       }
       if (lhs.getType() !== rhs.getType()) {
@@ -106,10 +107,10 @@ export class ProtoValAdapter implements CelValAdapter {
     }
     const celA = this.toCel(a);
     const celB = this.toCel(b);
-    if (celA instanceof Any) {
+    if (isMessage(celA, Any)) {
       throw new Error("unimplemented");
     }
-    if (celB instanceof Any) {
+    if (isMessage(celB, Any)) {
       throw new Error("unimplemented");
     }
 
@@ -233,7 +234,7 @@ export class ProtoValAdapter implements CelValAdapter {
       case "message":
         if (value === undefined) {
           return this.getMetadata(field.T).NULL;
-        } else if (value instanceof Message) {
+        } else if (isMessage(value)) {
           return value;
         } else if (value instanceof CelObject) {
           return value;

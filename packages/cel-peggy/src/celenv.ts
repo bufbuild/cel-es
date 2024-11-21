@@ -1,4 +1,8 @@
-import { createRegistry, type IMessageTypeRegistry } from "@bufbuild/protobuf";
+import {
+  createRegistry,
+  type IMessageTypeRegistry,
+  isMessage,
+} from "@bufbuild/protobuf";
 
 import { Expr, ParsedExpr } from "./pb/cel/expr/syntax_pb.js";
 import { CheckedExpr } from "./pb/cel/expr/checked_pb.js";
@@ -58,9 +62,9 @@ export class CelPlanner {
     expr: Expr | ParsedExpr | CheckedExpr | undefined,
   ): Interpretable {
     let maybeExpr: Expr | undefined = undefined;
-    if (expr instanceof CheckedExpr) {
+    if (isMessage(expr, CheckedExpr)) {
       maybeExpr = expr.expr;
-    } else if (expr instanceof ParsedExpr) {
+    } else if (isMessage(expr, ParsedExpr)) {
       maybeExpr = expr.expr;
     } else {
       maybeExpr = expr;
