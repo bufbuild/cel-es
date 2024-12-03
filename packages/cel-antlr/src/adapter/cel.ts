@@ -101,10 +101,11 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       } else if (lhs instanceof Uint8Array && rhs instanceof Uint8Array) {
         return compareBytes(lhs, rhs) === 0;
       } else if (isMessage(lhs) && isMessage(rhs)) {
-        // TODO(tstamm) will need registry to check equality for protobuf messages efficiently
+        // TODO(tstamm) need registry for equals with protobuf-es v2
+        // https://github.com/bufbuild/protobuf-es/pull/1029
+        // https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffers
         // - class CelAdapter is only used through singleton CEL_ADAPTER
         // - const CEL_ADAPTER is widely used
-
         // TODO(afuller): Figure out why this is needed.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-argument
         return lhs.getType() === rhs.getType() && lhs.equals(rhs as any);
