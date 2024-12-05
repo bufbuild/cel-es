@@ -613,25 +613,6 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
   findIdent(id: number, ident: string): CelResult | undefined {
     return EMPTY_PROVIDER.findIdent(id, ident);
   }
-
-  unpackAny(_id: number, any: Any): CelResult {
-    const message = any.unpack(this.adapter.registry);
-    if (message === undefined) {
-      return any;
-    }
-    const messageSchema = this.adapter.registry.findMessage(
-      message.getType().typeName,
-    );
-    if (!messageSchema) {
-      // should never enter
-      return any;
-    }
-    return new CelObject(
-      message,
-      this.adapter,
-      this.adapter.getMetadata(messageSchema.typeName).TYPE,
-    );
-  }
 }
 
 function getScalarType(K: ScalarType): CelType {
