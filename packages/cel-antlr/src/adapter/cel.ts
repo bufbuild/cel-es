@@ -32,6 +32,9 @@ function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
 
 /** How CelVal are converted (noop), compared, and accessed. */
 export class CelAdapter implements CelValAdapter<CelVal> {
+  // TODO(tstamm) need registry for equals with protobuf-es v2
+  // constructor(private readonly registry: IMessageTypeRegistry) {}
+
   toCel(native: CelResult) {
     return native;
   }

@@ -6,42 +6,67 @@ import {
   CelType,
   CelError,
   CelUnknown,
-  type Unwrapper,
+  type CelValAdapter,
 } from "./value/value.js";
 
-export type ZeroOp = (id: number) => CelResult | undefined;
-export type UnaryOp = (id: number, arg: CelResult) => CelResult | undefined;
-export type UnaryOpT<T> = (id: number, arg: T) => CelResult | undefined;
-export type StrictUnaryOp = (id: number, arg: CelVal) => CelResult | undefined;
-export type BinaryOp = (
+export type ZeroOp = (
   id: number,
+  adapter: CelValAdapter,
+) => CelResult | undefined;
+export type UnaryOp = (
+  arg: CelResult,
+  id: number,
+  adapter: CelValAdapter,
+) => CelResult | undefined;
+export type UnaryOpT<T> = (
+  arg: T,
+  id: number,
+  adapter: CelValAdapter,
+) => CelResult | undefined;
+export type StrictUnaryOp = (
+  arg: CelVal,
+  id: number,
+  adapter: CelValAdapter,
+) => CelResult | undefined;
+export type BinaryOp = (
   lhs: CelResult,
   rhs: CelResult,
+  id: number,
+  adapter: CelValAdapter,
 ) => CelResult | undefined;
 export type StrictBinaryOp = (
-  id: number,
   lhs: CelVal,
   rhs: CelVal,
-) => CelResult | undefined;
-export type StrictOp = (id: number, args: CelVal[]) => CelResult | undefined;
-export type ResultOp = (
   id: number,
+  adapter: CelValAdapter,
+) => CelResult | undefined;
+export type StrictOp = (
+  args: CelVal[],
+  id: number,
+  adapter: CelValAdapter,
+) => CelResult | undefined;
+export type ResultOp = (
   args: CelResult[],
-  unwrap: Unwrapper,
+  id: number,
+  adapter: CelValAdapter,
 ) => CelResult | undefined;
 
-export enum DispatchType {
+enum DispatchType {
   Result = 0, // Args can be CelResults
   Strict = 1, // All args must be unwrapped CelVals
 }
 
-export const identityOp: UnaryOp = (_id: number, arg: CelResult) => arg;
+export const identityOp: UnaryOp = (
+  arg: CelResult,
+  _id: number,
+  _adapter: CelValAdapter,
+) => arg;
 
 export interface CallDispatch {
   dispatch(
     id: number,
     args: CelResult[],
-    unwrap: Unwrapper,
+    adapter: CelValAdapter,
   ): CelResult | undefined;
 }
 
@@ -61,31 +86,39 @@ export class Func implements CallDispatch {
   public dispatch(
     id: number,
     args: CelResult[],
-    unwrap: Unwrapper,
+    adapter: CelValAdapter,
   ): CelResult | undefined {
     if (this.call.type === DispatchType.Result) {
-      return this.call.op(id, args, unwrap);
+      return this.call.op(args, id, adapter);
     }
 
-    const vals = unwrapResults(args, unwrap);
+    const vals = unwrapResults(args, adapter);
     if (vals instanceof CelError || vals instanceof CelUnknown) {
       return vals;
     }
-    return this.call.op(id, vals);
+    return this.call.op(vals, id, adapter);
   }
 
   public static zero(func: string, overload: string, op: ZeroOp) {
-    return new Func(func, [overload], { type: DispatchType.Result, op: op });
+    return new Func(func, [overload], {
+      type: DispatchType.Result,
+      op: (args: CelResult[], id: number, adapter: CelValAdapter) => {
+        if (args.length !== 0) {
+          return undefined;
+        }
+        return op(id, adapter);
+      },
+    });
   }
 
   public static unary(func: string, overloads: string[], op: StrictUnaryOp) {
     return new Func(func, overloads, {
       type: DispatchType.Strict,
-      op: (id: number, args: CelVal[]) => {
+      op: (args: CelVal[], id: number, adapter: CelValAdapter) => {
         if (args.length !== 1) {
           return undefined;
         }
-        return op(id, args[0]);
+        return op(args[0], id, adapter);
       },
     });
   }
@@ -93,11 +126,11 @@ export class Func implements CallDispatch {
   public static binary(func: string, overloads: string[], op: StrictBinaryOp) {
     return new Func(func, overloads, {
       type: DispatchType.Strict,
-      op: (id: number, args: CelVal[]) => {
+      op: (args: CelVal[], id: number, adapter: CelValAdapter) => {
         if (args.length !== 2) {
           return undefined;
         }
-        return op(id, args[0], args[1]);
+        return op(args[0], args[1], id, adapter);
       },
     });
   }

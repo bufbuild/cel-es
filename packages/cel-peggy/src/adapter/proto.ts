@@ -138,6 +138,9 @@ export class ProtoValAdapter implements CelValAdapter {
         this.getMetadata(a.getType().typeName).FIELD_NAMES,
       );
     }
+    // TODO(tstamm) need registry for equals with protobuf-es v2
+    // https://github.com/bufbuild/protobuf-es/pull/1029
+    // https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffers
     return messageSchema.equals(a, b);
   }
 
