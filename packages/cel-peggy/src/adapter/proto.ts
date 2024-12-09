@@ -62,12 +62,6 @@ export class ProtoValAdapter implements CelValAdapter {
   constructor(public readonly registry: IMessageTypeRegistry) {}
 
   unwrap(val: ProtoValue): ProtoValue {
-    if (isMessage(val, Any)) {
-      const real = val.unpack(this.registry);
-      if (real !== undefined) {
-        val = real;
-      }
-    }
     if (isCelWrap(val)) {
       return CEL_ADAPTER.unwrap(val);
     }
