@@ -1,6 +1,11 @@
 import { Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
 
-import { Func, FuncRegistry, identityOp, type StrictUnaryOp } from "../func.js";
+import {
+  Func,
+  FuncRegistry,
+  identityStrictOp,
+  type StrictUnaryOp,
+} from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import * as type from "../value/type.js";
 import {
@@ -11,7 +16,6 @@ import {
   parseDuration,
   CelErrors,
   type CelVal,
-  type CelValAdapter,
   type CelResult,
 } from "../value/value.js";
 import {
@@ -32,12 +36,8 @@ export const DURATION = "duration";
 export const TYPE = "type";
 export const DYN = "dyn";
 
-const intToIntFunc = Func.unary(INT, [olc.INT_TO_INT], identityOp);
-const uintToIntOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const intToIntFunc = Func.unary(INT, [olc.INT_TO_INT], identityStrictOp);
+const uintToIntOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (x instanceof CelUint) {
     const val = x.value.valueOf();
     if (isOverflowInt(val)) {
@@ -48,11 +48,7 @@ const uintToIntOp: StrictUnaryOp = (
   return undefined;
 };
 const uintToIntFunc = Func.unary(INT, [olc.UINT_TO_INT], uintToIntOp);
-const dblToIntOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const dblToIntOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (typeof x === "number") {
     if (isOverflowIntNum(x)) {
       return CelErrors.overflow(id, INT, type.INT);
@@ -62,11 +58,7 @@ const dblToIntOp: StrictUnaryOp = (
   return undefined;
 };
 const dblToIntFunc = Func.unary(INT, [olc.DOUBLE_TO_INT], dblToIntOp);
-const strToIntOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const strToIntOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (typeof x === "string") {
     const val = BigInt(x);
     if (isOverflowInt(val)) {
@@ -77,11 +69,7 @@ const strToIntOp: StrictUnaryOp = (
   return undefined;
 };
 const strToIntFunc = Func.unary(INT, [olc.STRING_TO_INT], strToIntOp);
-const timestampToIntOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const timestampToIntOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (isMessage(x, Timestamp)) {
     const val = x.seconds;
     if (isOverflowInt(val)) {
@@ -96,11 +84,7 @@ const timestampToIntFunc = Func.unary(
   [olc.TIMESTAMP_TO_INT],
   timestampToIntOp,
 );
-const durationToIntOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const durationToIntOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (isMessage(x, Duration)) {
     const val = x.seconds;
     if (isOverflowInt(val)) {
@@ -116,35 +100,27 @@ const durationToIntFunc = Func.unary(
   durationToIntOp,
 );
 
-const toIntFunc = Func.unary(
-  INT,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.INT:
-        return x;
-      case type.UINT:
-        return uintToIntOp(x, id, adapter);
-      case type.DOUBLE:
-        return dblToIntOp(x, id, adapter);
-      case type.STRING:
-        return strToIntOp(x, id, adapter);
-      case type.TIMESTAMP:
-        return timestampToIntOp(x, id, adapter);
-      case type.DURATION:
-        return durationToIntOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toIntFunc = Func.unary(INT, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.INT:
+      return x;
+    case type.UINT:
+      return uintToIntOp(x, id);
+    case type.DOUBLE:
+      return dblToIntOp(x, id);
+    case type.STRING:
+      return strToIntOp(x, id);
+    case type.TIMESTAMP:
+      return timestampToIntOp(x, id);
+    case type.DURATION:
+      return durationToIntOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
-const uintToUint = Func.unary(UINT, [olc.UINT_TO_UINT], identityOp);
-const intToUintOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const uintToUint = Func.unary(UINT, [olc.UINT_TO_UINT], identityStrictOp);
+const intToUintOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (typeof x === "bigint") {
     if (isOverflowUint(x)) {
       return CelErrors.overflow(id, UINT, type.UINT);
@@ -155,11 +131,7 @@ const intToUintOp: StrictUnaryOp = (
 };
 
 const intToUintFunc = Func.unary(UINT, [olc.INT_TO_UINT], intToUintOp);
-const dblToUintOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const dblToUintOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (typeof x === "number") {
     if (isOverflowUintNum(x)) {
       return CelErrors.overflow(id, UINT, type.UINT);
@@ -170,11 +142,7 @@ const dblToUintOp: StrictUnaryOp = (
   return undefined;
 };
 const dblToUintFunc = Func.unary(UINT, [olc.DOUBLE_TO_UINT], dblToUintOp);
-const strToUintOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const strToUintOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (typeof x === "string") {
     const val = BigInt(x);
     if (isOverflowUint(val)) {
@@ -185,42 +153,34 @@ const strToUintOp: StrictUnaryOp = (
   return undefined;
 };
 const strToUintFunc = Func.unary(UINT, [olc.STRING_TO_UINT], strToUintOp);
-const toUintFunc = Func.unary(
-  UINT,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.UINT:
-        return x;
-      case type.INT:
-        return intToUintOp(x, id, adapter);
-      case type.DOUBLE:
-        return dblToUintOp(x, id, adapter);
-      case type.STRING:
-        return strToUintOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toUintFunc = Func.unary(UINT, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.UINT:
+      return x;
+    case type.INT:
+      return intToUintOp(x, id);
+    case type.DOUBLE:
+      return dblToUintOp(x, id);
+    case type.STRING:
+      return strToUintOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
-const doubleToDouble = Func.unary(DOUBLE, [olc.DOUBLE_TO_DOUBLE], identityOp);
-const intToDoubleOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const doubleToDouble = Func.unary(
+  DOUBLE,
+  [olc.DOUBLE_TO_DOUBLE],
+  identityStrictOp,
+);
+const intToDoubleOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "bigint") {
     return Number(x);
   }
   return undefined;
 };
 const intToDoubleFunc = Func.unary(DOUBLE, [olc.INT_TO_DOUBLE], intToDoubleOp);
-const uintToDoubleOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const uintToDoubleOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (x instanceof CelUint) {
     return Number(x.value);
   }
@@ -231,11 +191,7 @@ const uintToDoubleFunc = Func.unary(
   [olc.UINT_TO_DOUBLE],
   uintToDoubleOp,
 );
-const stringToDoubleOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const stringToDoubleOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "string") {
     return Number(x);
   }
@@ -246,58 +202,42 @@ const stringToDoubleFunc = Func.unary(
   [olc.STRING_TO_DOUBLE],
   stringToDoubleOp,
 );
-const toDoubleFunc = Func.unary(
-  DOUBLE,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.DOUBLE:
-        return x;
-      case type.INT:
-        return intToDoubleOp(x, id, adapter);
-      case type.UINT:
-        return uintToDoubleOp(x, id, adapter);
-      case type.STRING:
-        return stringToDoubleOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toDoubleFunc = Func.unary(DOUBLE, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.DOUBLE:
+      return x;
+    case type.INT:
+      return intToDoubleOp(x, id);
+    case type.UINT:
+      return uintToDoubleOp(x, id);
+    case type.STRING:
+      return stringToDoubleOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
-const boolToBool = Func.unary(BOOL, [olc.BOOL_TO_BOOL], identityOp);
-const stringToBoolOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const boolToBool = Func.unary(BOOL, [olc.BOOL_TO_BOOL], identityStrictOp);
+const stringToBoolOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "string") {
     return x === "true";
   }
   return undefined;
 };
 const stringToBoolFunc = Func.unary(BOOL, [olc.STRING_TO_BOOL], stringToBoolOp);
-const toBoolFunc = Func.unary(
-  BOOL,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.BOOL:
-        return x;
-      case type.STRING:
-        return stringToBoolOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toBoolFunc = Func.unary(BOOL, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.BOOL:
+      return x;
+    case type.STRING:
+      return stringToBoolOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
-const bytesToBytes = Func.unary(BYTES, [olc.BYTES_TO_BYTES], identityOp);
-const stringToByesOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const bytesToBytes = Func.unary(BYTES, [olc.BYTES_TO_BYTES], identityStrictOp);
+const stringToByesOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "string") {
     return Buffer.from(x);
   }
@@ -308,27 +248,23 @@ const stringToBytesFunc = Func.unary(
   [olc.STRING_TO_BYTES],
   stringToByesOp,
 );
-const toBytesFunc = Func.unary(
-  BYTES,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.BYTES:
-        return x;
-      case type.STRING:
-        return stringToByesOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toBytesFunc = Func.unary(BYTES, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.BYTES:
+      return x;
+    case type.STRING:
+      return stringToByesOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
-const stringToString = Func.unary(STRING, [olc.STRING_TO_STRING], identityOp);
-const boolToStringOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const stringToString = Func.unary(
+  STRING,
+  [olc.STRING_TO_STRING],
+  identityStrictOp,
+);
+const boolToStringOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "boolean") {
     return x ? "true" : "false";
   }
@@ -339,22 +275,14 @@ const boolToStringFunc = Func.unary(
   [olc.BOOL_TO_STRING],
   boolToStringOp,
 );
-const intToStringOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const intToStringOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "bigint") {
     return x.toString();
   }
   return undefined;
 };
 const intToStringFunc = Func.unary(STRING, [olc.INT_TO_STRING], intToStringOp);
-const uintToStringOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const uintToStringOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (x instanceof CelUint) {
     return x.value.toString();
   }
@@ -365,11 +293,7 @@ const uintToStringFunc = Func.unary(
   [olc.UINT_TO_STRING],
   uintToStringOp,
 );
-const doubleToStringOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const doubleToStringOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "number") {
     return x.toString();
   }
@@ -380,11 +304,7 @@ const doubleToStringFunc = Func.unary(
   [olc.DOUBLE_TO_STRING],
   doubleToStringOp,
 );
-const bytesToStringOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const bytesToStringOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (x instanceof Uint8Array) {
     const coder = new TextDecoder(undefined, { fatal: true });
     try {
@@ -401,11 +321,7 @@ const bytesToStringFunc = Func.unary(
   [olc.BYTES_TO_STRING],
   bytesToStringOp,
 );
-const timestampToStringOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const timestampToStringOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (isMessage(x, Timestamp)) {
     return x.toJson() as string;
   }
@@ -416,11 +332,7 @@ const timestampToStringFunc = Func.unary(
   [olc.TIMESTAMP_TO_STRING],
   timestampToStringOp,
 );
-const durationToStringOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const durationToStringOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (isMessage(x, Duration)) {
     return x.toJson() as string;
   }
@@ -431,43 +343,35 @@ const durationToStringFunc = Func.unary(
   [olc.DURATION_TO_STRING],
   durationToStringOp,
 );
-const toStrFunc = Func.unary(
-  STRING,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.STRING:
-        return x;
-      case type.BOOL:
-        return boolToStringOp(x, id, adapter);
-      case type.INT:
-        return intToStringOp(x, id, adapter);
-      case type.UINT:
-        return uintToStringOp(x, id, adapter);
-      case type.DOUBLE:
-        return doubleToStringOp(x, id, adapter);
-      case type.BYTES:
-        return bytesToStringOp(x, id, adapter);
-      case type.TIMESTAMP:
-        return timestampToStringOp(x, id, adapter);
-      case type.DURATION:
-        return durationToStringOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toStrFunc = Func.unary(STRING, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.STRING:
+      return x;
+    case type.BOOL:
+      return boolToStringOp(x, id);
+    case type.INT:
+      return intToStringOp(x, id);
+    case type.UINT:
+      return uintToStringOp(x, id);
+    case type.DOUBLE:
+      return doubleToStringOp(x, id);
+    case type.BYTES:
+      return bytesToStringOp(x, id);
+    case type.TIMESTAMP:
+      return timestampToStringOp(x, id);
+    case type.DURATION:
+      return durationToStringOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
 const timestampToTimestamp = Func.unary(
   TIMESTAMP,
   [olc.TIMESTAMP_TO_TIMESTAMP],
-  identityOp,
+  identityStrictOp,
 );
-const stringToTimestampOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const stringToTimestampOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (typeof x === "string") {
     try {
       return Timestamp.fromJson(x);
@@ -482,11 +386,7 @@ const stringToTimestampFunc = Func.unary(
   [olc.STRING_TO_TIMESTAMP],
   stringToTimestampOp,
 );
-const intToTimestampOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const intToTimestampOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "bigint") {
     return Timestamp.fromDate(new Date(Number(x)));
   }
@@ -497,34 +397,26 @@ const intToTimestampFunc = Func.unary(
   [olc.INT_TO_TIMESTAMP],
   intToTimestampOp,
 );
-const toTimestampFunc = Func.unary(
-  TIMESTAMP,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.TIMESTAMP:
-        return x;
-      case type.STRING:
-        return stringToTimestampOp(x, id, adapter);
-      case type.INT:
-        return intToTimestampOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toTimestampFunc = Func.unary(TIMESTAMP, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.TIMESTAMP:
+      return x;
+    case type.STRING:
+      return stringToTimestampOp(x, id);
+    case type.INT:
+      return intToTimestampOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
 const durationToDuration = Func.unary(
   DURATION,
   [olc.DURATION_TO_DURATION],
-  identityOp,
+  identityStrictOp,
 );
 
-const stringToDurationOp: StrictUnaryOp = (
-  x: CelVal,
-  id: number,
-  _adapter: CelValAdapter,
-) => {
+const stringToDurationOp: StrictUnaryOp = (x: CelVal, id: number) => {
   if (typeof x === "string") {
     return parseDuration(id, x);
   }
@@ -535,11 +427,7 @@ const stringToDurationFunc = Func.unary(
   [olc.STRING_TO_DURATION],
   stringToDurationOp,
 );
-const intToDurationOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const intToDurationOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   if (typeof x === "bigint") {
     return new Duration({ seconds: x });
   }
@@ -550,27 +438,23 @@ const intToDurationFunc = Func.unary(
   [olc.INT_TO_DURATION],
   intToDurationOp,
 );
-const toDurationFunc = Func.unary(
-  DURATION,
-  [],
-  (x: CelVal, id: number, adapter: CelValAdapter) => {
-    switch (type.getCelType(x)) {
-      case type.DURATION:
-        return x;
-      case type.STRING:
-        return stringToDurationOp(x, id, adapter);
-      case type.INT:
-        return intToDurationOp(x, id, adapter);
-      default:
-        return undefined;
-    }
-  },
-);
+const toDurationFunc = Func.unary(DURATION, [], (x: CelVal, id: number) => {
+  switch (type.getCelType(x)) {
+    case type.DURATION:
+      return x;
+    case type.STRING:
+      return stringToDurationOp(x, id);
+    case type.INT:
+      return intToDurationOp(x, id);
+    default:
+      return undefined;
+  }
+});
 
 const typeFunc = Func.newVarArg(
   "type",
   [],
-  (args: CelResult[], _id: number, _adapter: CelValAdapter) => {
+  (args: CelResult[], _id: number) => {
     const values = coerceToValues(args);
     if (values instanceof CelError || values instanceof CelUnknown) {
       return values;
@@ -582,11 +466,7 @@ const typeFunc = Func.newVarArg(
   },
 );
 
-const toDynOp: StrictUnaryOp = (
-  x: CelVal,
-  _id: number,
-  _adapter: CelValAdapter,
-) => {
+const toDynOp: StrictUnaryOp = (x: CelVal, _id: number) => {
   return x;
 };
 const toDynFunc = Func.unary("dyn", [olc.TO_DYN], toDynOp);
