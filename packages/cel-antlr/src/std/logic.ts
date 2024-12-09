@@ -17,13 +17,19 @@ import {
   type CelValAdapter,
 } from "../value/value.js";
 import { getCelType } from "../value/type.js";
+import { CEL_ADAPTER } from "../adapter/cel.js";
 
 const notStrictlyFalse = Func.newVarArg(
   opc.NOT_STRICTLY_FALSE,
   [olc.NOT_STRICTLY_FALSE],
-  (args, _id, adapter) => {
-    const x = adapter.unwrap(args[0]);
-    if (x === false) {
+  (args, _id, _adapter) => {
+    const raw = args[0];
+    if (raw instanceof CelUnknown || raw instanceof CelError) {
+      // TODO(tstamm) this doesn't look right, investigate
+      return true;
+    }
+    const val = CEL_ADAPTER.unwrap(raw);
+    if (val === false) {
       return false;
     }
     return true;
@@ -108,16 +114,16 @@ const orFunc = Func.newVarArg(
 const eqFunc = Func.binary(
   opc.EQUALS,
   [olc.EQUALS],
-  (lhs: CelVal, rhs: CelVal, _id: number, adapter: CelValAdapter) => {
-    return adapter.equals(lhs, rhs);
+  (lhs: CelVal, rhs: CelVal, _id: number, _adapter: CelValAdapter) => {
+    return CEL_ADAPTER.equals(lhs, rhs);
   },
 );
 
 const neFunc = Func.binary(
   opc.NOT_EQUALS,
   [olc.NOT_EQUALS],
-  (lhs: CelVal, rhs: CelVal, _id: number, adapter: CelValAdapter) => {
-    const eq = adapter.equals(lhs, rhs);
+  (lhs: CelVal, rhs: CelVal, _id: number, _adapter: CelValAdapter) => {
+    const eq = CEL_ADAPTER.equals(lhs, rhs);
     if (eq instanceof CelError || eq instanceof CelUnknown) {
       return eq;
     }
@@ -143,8 +149,8 @@ const ltFunc = Func.binary(
     olc.LESS_UINT64_DOUBLE,
     olc.LESS_UINT64_INT64,
   ],
-  (lhs: CelVal, rhs: CelVal, _id: number, adapter: CelValAdapter) => {
-    const cmp = adapter.compare(lhs, rhs);
+  (lhs: CelVal, rhs: CelVal, _id: number, _adapter: CelValAdapter) => {
+    const cmp = CEL_ADAPTER.compare(lhs, rhs);
     if (
       cmp instanceof CelError ||
       cmp instanceof CelUnknown ||
@@ -205,8 +211,8 @@ const gtFunc = Func.binary(
     olc.GREATER_UINT64_DOUBLE,
     olc.GREATER_UINT64_INT64,
   ],
-  (lhs: CelVal, rhs: CelVal, _id: number, adapter: CelValAdapter) => {
-    const cmp = adapter.compare(lhs, rhs);
+  (lhs: CelVal, rhs: CelVal, _id: number, _adapter: CelValAdapter) => {
+    const cmp = CEL_ADAPTER.compare(lhs, rhs);
     if (
       cmp instanceof CelError ||
       cmp instanceof CelUnknown ||
@@ -236,8 +242,8 @@ const geFunc = Func.binary(
     olc.GREATER_EQUALS_UINT64_DOUBLE,
     olc.GREATER_EQUALS_UINT64_INT64,
   ],
-  (lhs: CelVal, rhs: CelVal, _id: number, adapter: CelValAdapter) => {
-    const cmp = adapter.compare(lhs, rhs);
+  (lhs: CelVal, rhs: CelVal, _id: number, _adapter: CelValAdapter) => {
+    const cmp = CEL_ADAPTER.compare(lhs, rhs);
     if (
       cmp instanceof CelError ||
       cmp instanceof CelUnknown ||

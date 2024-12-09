@@ -16,6 +16,7 @@ import {
   CelObject,
   CelUint,
   ProtoNull,
+  isCelMsg,
 } from "../value/value.js";
 
 function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
@@ -32,9 +33,6 @@ function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
 
 /** How CelVal are converted (noop), compared, and accessed. */
 export class CelAdapter implements CelValAdapter<CelVal> {
-  // TODO(tstamm) need registry for equals with protobuf-es v2
-  // constructor(private readonly registry: IMessageTypeRegistry) {}
-
   toCel(native: CelResult) {
     return native;
   }
@@ -103,15 +101,41 @@ export class CelAdapter implements CelValAdapter<CelVal> {
         return lhs.equals(rhs);
       } else if (lhs instanceof Uint8Array && rhs instanceof Uint8Array) {
         return compareBytes(lhs, rhs) === 0;
-      } else if (isMessage(lhs) && isMessage(rhs)) {
-        // TODO(tstamm) need registry for equals with protobuf-es v2
-        // https://github.com/bufbuild/protobuf-es/pull/1029
-        // https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffers
-        // - class CelAdapter is only used through singleton CEL_ADAPTER
-        // - const CEL_ADAPTER is widely used
-        // TODO(afuller): Figure out why this is needed.
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/no-unsafe-argument
-        return lhs.getType() === rhs.getType() && lhs.equals(rhs as any);
+      } else if (isCelMsg(lhs) && isCelMsg(rhs)) {
+        if (lhs.getType().typeName !== rhs.getType().typeName) {
+          return false;
+        }
+        switch (lhs.getType().typeName) {
+          case "google.protobuf.StringValue":
+          case "google.protobuf.BoolValue":
+          case "google.protobuf.UInt64Value":
+          case "google.protobuf.Int64Value":
+          case "google.protobuf.DoubleValue":
+            return (
+              (lhs as { value: unknown }).value ===
+              (rhs as { value: unknown }).value
+            );
+          case "google.protobuf.BytesValue":
+            return (
+              compareBytes(
+                (lhs as { value: Uint8Array }).value,
+                (rhs as { value: Uint8Array }).value,
+              ) === 0
+            );
+          case "google.protobuf.Timestamp":
+          case "google.protobuf.Duration":
+            return (
+              (lhs as { seconds: unknown }).seconds ==
+                (rhs as { seconds: unknown }).seconds &&
+              (lhs as { nanos: unknown }).nanos ==
+                (rhs as { nanos: unknown }).nanos
+            );
+          case "google.protobuf.Any":
+            // Any is automatically unpacked to a CelObject by ProtoValAdapter.
+            // CelObject equality is implemented below, and we should never hit
+            // this case.
+            throw new Error("Equals for CEL value Any not implemented");
+        }
       }
     }
     return false;
@@ -120,6 +144,10 @@ export class CelAdapter implements CelValAdapter<CelVal> {
   private equalsObject(id: number, lhs: CelObject, rhs: CelObject) {
     if (!lhs.type_.equals(rhs.type_)) {
       return false;
+    }
+    if (lhs.adapter !== this && lhs.adapter === rhs.adapter) {
+      // Same adapter - delegate.
+      return lhs.adapter.equals(lhs.value, rhs.value);
     }
     return equalsStruct(id, lhs.adapter, lhs, rhs, lhs.getFields());
   }
@@ -274,7 +302,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
 
 export const CEL_ADAPTER = new CelAdapter();
 
-export function equalsStruct<K = unknown>(
+function equalsStruct<K = unknown>(
   id: number,
   adapter: CelValAdapter,
   a: FieldAccess<K>,
