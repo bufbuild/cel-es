@@ -1,4 +1,5 @@
-import { Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
+import { isMessage } from "@bufbuild/protobuf";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { utcToZonedTime } from "date-fns-tz";
 
 import {
@@ -14,7 +15,7 @@ type TimeFunc = (val: Date) => number;
 
 function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
   return (id: number, args: CelVal[]) => {
-    if (!isMessage(args[0], Timestamp)) {
+    if (!isMessage(args[0], TimestampSchema)) {
       return undefined;
     }
     let val = args[0].toDate();
@@ -109,7 +110,7 @@ const timestampToSecondsFunc = Func.newStrict(
   timestampToSecondsOp,
 );
 const durationToSecondsOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, Duration)) {
+  if (isMessage(val, DurationSchema)) {
     return val.seconds;
   }
   return undefined;
@@ -123,9 +124,9 @@ const timeGetSecondsFunc = Func.newStrict(
   olc.TIME_GET_SECONDS,
   [],
   (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], Timestamp)) {
+    if (isMessage(args[0], TimestampSchema)) {
       return timestampToSecondsOp(id, args);
-    } else if (isMessage(args[0], Duration)) {
+    } else if (isMessage(args[0], DurationSchema)) {
       return durationToSecondsOp(id, args[0]);
     }
     return undefined;
@@ -142,7 +143,7 @@ const timestampToHoursFunc = Func.newStrict(
   timestampToHoursOp,
 );
 const durationToHoursOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, Duration)) {
+  if (isMessage(val, DurationSchema)) {
     return val.seconds / 3600n;
   }
   return undefined;
@@ -156,9 +157,9 @@ const timeGetHoursFunc = Func.newStrict(
   olc.TIME_GET_HOURS,
   [],
   (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], Timestamp)) {
+    if (isMessage(args[0], TimestampSchema)) {
       return timestampToHoursOp(id, args);
-    } else if (isMessage(args[0], Duration)) {
+    } else if (isMessage(args[0], DurationSchema)) {
       return durationToHoursOp(id, args[0]);
     }
     return undefined;
@@ -176,7 +177,7 @@ const timestampToMinutesFunc = Func.newStrict(
   timestampToMinutesOp,
 );
 const durationToMinutesOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, Duration)) {
+  if (isMessage(val, DurationSchema)) {
     return val.seconds / 60n;
   }
   return undefined;
@@ -190,9 +191,9 @@ const timeGetMinutesFunc = Func.newStrict(
   olc.TIME_GET_MINUTES,
   [],
   (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], Timestamp)) {
+    if (isMessage(args[0], TimestampSchema)) {
       return timestampToMinutesOp(id, args);
-    } else if (isMessage(args[0], Duration)) {
+    } else if (isMessage(args[0], DurationSchema)) {
       return durationToMinutesOp(id, args[0]);
     }
     return undefined;
@@ -210,7 +211,7 @@ const timestampToMillisecondsFunc = Func.newStrict(
   timestampToMillisecondsOp,
 );
 const durationToMillisecondsOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, Duration)) {
+  if (isMessage(val, DurationSchema)) {
     return BigInt(val.nanos) / 1000000n;
   }
   return undefined;
@@ -225,9 +226,9 @@ const timeGetMillisecondsFunc = Func.newStrict(
   olc.TIME_GET_MILLISECONDS,
   [],
   (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], Timestamp)) {
+    if (isMessage(args[0], TimestampSchema)) {
       return timestampToMillisecondsOp(id, args);
-    } else if (isMessage(args[0], Duration)) {
+    } else if (isMessage(args[0], DurationSchema)) {
       return durationToMillisecondsOp(id, args[0]);
     }
     return undefined;

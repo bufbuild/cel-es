@@ -1,4 +1,5 @@
-import { Any, Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
+import { isMessage } from "@bufbuild/protobuf";
+import { AnySchema, DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { unwrapResults } from "../value/adapter.js";
 import {
@@ -187,13 +188,13 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       return compareBytes(lhs, rhs);
     } else if (typeof lhs === "string" && typeof rhs === "string") {
       return lhs < rhs ? -1 : lhs > rhs ? 1 : 0;
-    } else if (isMessage(lhs, Duration) && isMessage(rhs, Duration)) {
+    } else if (isMessage(lhs, DurationSchema) && isMessage(rhs, DurationSchema)) {
       const cmp = lhs.seconds - rhs.seconds;
       if (cmp == 0n) {
         return lhs.nanos - rhs.nanos;
       }
       return cmp < 0n ? -1 : 1;
-    } else if (isMessage(lhs, Timestamp) && isMessage(rhs, Timestamp)) {
+    } else if (isMessage(lhs, TimestampSchema) && isMessage(rhs, TimestampSchema)) {
       const cmp = lhs.seconds - rhs.seconds;
       if (cmp == 0n) {
         return lhs.nanos - rhs.nanos;
@@ -208,7 +209,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
   }
 
   accessByName(id: number, obj: CelVal, name: string): CelResult | undefined {
-    if (isMessage(obj, Any)) {
+    if (isMessage(obj, AnySchema)) {
       throw new Error("not implemented");
     }
 

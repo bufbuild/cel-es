@@ -1,11 +1,9 @@
-import {
-  createRegistry,
-  type IMessageTypeRegistry,
-  isMessage,
-} from "@bufbuild/protobuf";
-
-import { Expr, ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
-import { CheckedExpr } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
+import { createRegistry, type IMessageTypeRegistry, isMessage, create } from "@bufbuild/protobuf";
+import { ExprSchema, ParsedExprSchema } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import type { ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import type { Expr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import { CheckedExprSchema } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
+import type { CheckedExpr } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import { ObjectActivation } from "./activation.js";
 import { CEL_ADAPTER } from "./adapter/cel.js";
 import { NATIVE_ADAPTER } from "./adapter/native.js";
@@ -62,14 +60,14 @@ export class CelPlanner {
     expr: Expr | ParsedExpr | CheckedExpr | undefined,
   ): Interpretable {
     let maybeExpr: Expr | undefined = undefined;
-    if (isMessage(expr, CheckedExpr)) {
+    if (isMessage(expr, CheckedExprSchema)) {
       maybeExpr = expr.expr;
-    } else if (isMessage(expr, ParsedExpr)) {
+    } else if (isMessage(expr, ParsedExprSchema)) {
       maybeExpr = expr.expr;
     } else {
       maybeExpr = expr;
     }
-    return this.planner.plan(maybeExpr ?? new Expr());
+    return this.planner.plan(maybeExpr ?? create(ExprSchema));
   }
 
   public addFuncs(funcs: Dispatcher): void {

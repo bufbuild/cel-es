@@ -1,24 +1,40 @@
 import {
-  Any,
   type AnyMessage,
-  BoolValue,
-  BytesValue,
-  DoubleValue,
   type EnumType,
   type FieldInfo,
-  FloatValue,
-  Int32Value,
-  Int64Value,
   Message,
   type MessageType,
   ScalarType,
-  StringValue,
-  UInt32Value,
-  UInt64Value,
-  Value,
   type IMessageTypeRegistry,
   isMessage,
+  create,
 } from "@bufbuild/protobuf";
+
+import {
+  AnySchema,
+  BoolValueSchema,
+  BytesValueSchema,
+  DoubleValueSchema,
+  FloatValueSchema,
+  Int32ValueSchema,
+  Int64ValueSchema,
+  StringValueSchema,
+  UInt32ValueSchema,
+  UInt64ValueSchema,
+  ValueSchema,
+} from "@bufbuild/protobuf/wkt";
+
+import type { Any } from "@bufbuild/protobuf/wkt";
+import type { Value } from "@bufbuild/protobuf/wkt";
+import type { BytesValue } from "@bufbuild/protobuf/wkt";
+import type { StringValue } from "@bufbuild/protobuf/wkt";
+import type { FloatValue } from "@bufbuild/protobuf/wkt";
+import type { Int32Value } from "@bufbuild/protobuf/wkt";
+import type { UInt32Value } from "@bufbuild/protobuf/wkt";
+import type { BoolValue } from "@bufbuild/protobuf/wkt";
+import type { DoubleValue } from "@bufbuild/protobuf/wkt";
+import type { Int64Value } from "@bufbuild/protobuf/wkt";
+import type { UInt64Value } from "@bufbuild/protobuf/wkt";
 
 import { EMPTY_PROVIDER } from "../value/empty.js";
 import { type CelValProvider } from "../value/provider.js";
@@ -110,7 +126,7 @@ export class ProtoValAdapter implements CelValAdapter {
   }
 
   toCel(native: ProtoValue): CelResult {
-    if (isMessage(native, Any)) {
+    if (isMessage(native, AnySchema)) {
       if (native.typeUrl === "") {
         // TODO(tstamm) defer unpacking so we can provide an id
         return new CelError(-1, `Unpack Any failed: invalid empty type_url`);
@@ -127,18 +143,18 @@ export class ProtoValAdapter implements CelValAdapter {
     }
 
     if (isProtoMsg(native) && !isCelMsg(native)) {
-      if (isMessage(native, UInt32Value)) {
-        return new UInt64Value({
+      if (isMessage(native, UInt32ValueSchema)) {
+        return create(UInt64ValueSchema, {
           value: BigInt(native.value),
         });
       }
-      if (isMessage(native, Int32Value)) {
-        return new Int64Value({
+      if (isMessage(native, Int32ValueSchema)) {
+        return create(Int64ValueSchema, {
           value: BigInt(native.value),
         });
       }
-      if (isMessage(native, FloatValue)) {
-        return new DoubleValue({
+      if (isMessage(native, FloatValueSchema)) {
+        return create(DoubleValueSchema, {
           value: native.value,
         });
       }
@@ -316,63 +332,63 @@ export class ProtoValAdapter implements CelValAdapter {
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new BoolValue({ value: cval });
+        return create(BoolValueSchema, { value: cval });
       }
       case UInt32Value.typeName: {
         const cval = coerceToNumber(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new UInt32Value({ value: cval });
+        return create(UInt32ValueSchema, { value: cval });
       }
       case UInt64Value.typeName: {
         const cval = coerceToBigInt(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new UInt64Value({ value: cval.valueOf() });
+        return create(UInt64ValueSchema, { value: cval.valueOf() });
       }
       case Int32Value.typeName: {
         const cval = coerceToNumber(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new Int32Value({ value: cval });
+        return create(Int32ValueSchema, { value: cval });
       }
       case Int64Value.typeName: {
         const cval = coerceToBigInt(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new Int64Value({ value: cval.valueOf() });
+        return create(Int64ValueSchema, { value: cval.valueOf() });
       }
       case FloatValue.typeName: {
         const cval = coerceToNumber(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new FloatValue({ value: cval });
+        return create(FloatValueSchema, { value: cval });
       }
       case DoubleValue.typeName: {
         const cval = coerceToNumber(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new DoubleValue({ value: cval });
+        return create(DoubleValueSchema, { value: cval });
       }
       case StringValue.typeName: {
         const cval = coerceToString(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new StringValue({ value: cval });
+        return create(StringValueSchema, { value: cval });
       }
       case BytesValue.typeName: {
         const cval = coerceToBytes(id, val);
         if (cval instanceof CelError || cval instanceof CelUnknown) {
           return cval;
         }
-        return new BytesValue({ value: cval });
+        return create(BytesValueSchema, { value: cval });
       }
       default:
         break;
@@ -388,7 +404,7 @@ export class ProtoValAdapter implements CelValAdapter {
 
   // @ts-expect-error unused
   private valueFromCel(_id: number, celVal: CelVal): CelResult<CelObject> {
-    const val = new Value();
+    const val = create(ValueSchema);
     switch (typeof celVal) {
       case "boolean":
         val.kind = { case: "boolValue", value: celVal };
@@ -528,13 +544,13 @@ class ProtoMetadata {
       this.TYPE = wk_type;
       switch (messageType.typeName) {
         case FloatValue.typeName:
-          this.DEFAULT_CEL = new DoubleValue();
+          this.DEFAULT_CEL = create(DoubleValueSchema);
           break;
         case UInt32Value.typeName:
-          this.DEFAULT_CEL = new UInt64Value();
+          this.DEFAULT_CEL = create(UInt64ValueSchema);
           break;
         case Int32Value.typeName:
-          this.DEFAULT_CEL = new Int64Value();
+          this.DEFAULT_CEL = create(Int64ValueSchema);
           break;
         default:
           this.DEFAULT_CEL = this.DEFAULT_PROTO as CelVal;

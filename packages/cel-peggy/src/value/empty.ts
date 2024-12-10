@@ -1,15 +1,23 @@
 import {
-  BoolValue,
-  BytesValue,
-  DoubleValue,
+  BoolValueSchema,
+  BytesValueSchema,
+  DoubleValueSchema,
   FloatValue,
   Int32Value,
-  Int64Value,
-  StringValue,
+  Int64ValueSchema,
+  StringValueSchema,
   UInt32Value,
-  UInt64Value,
+  UInt64ValueSchema,
   Value,
-} from "@bufbuild/protobuf";
+} from "@bufbuild/protobuf/wkt";
+
+import { create } from "@bufbuild/protobuf";
+import type { BytesValue } from "@bufbuild/protobuf/wkt";
+import type { StringValue } from "@bufbuild/protobuf/wkt";
+import type { DoubleValue } from "@bufbuild/protobuf/wkt";
+import type { Int64Value } from "@bufbuild/protobuf/wkt";
+import type { UInt64Value } from "@bufbuild/protobuf/wkt";
+import type { BoolValue } from "@bufbuild/protobuf/wkt";
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
 import { type CelValProvider } from "./provider.js";
@@ -47,7 +55,7 @@ class EmptyProvider implements CelValProvider {
         if (val instanceof CelError || val instanceof CelUnknown) {
           return val;
         }
-        return new BoolValue({ value: val });
+        return create(BoolValueSchema, { value: val });
       }
       case UInt32Value.typeName:
       case UInt64Value.typeName: {
@@ -55,7 +63,7 @@ class EmptyProvider implements CelValProvider {
         if (val instanceof CelError || val instanceof CelUnknown) {
           return val;
         }
-        return new UInt64Value({ value: val.valueOf() });
+        return create(UInt64ValueSchema, { value: val.valueOf() });
       }
       case Int32Value.typeName:
       case Int64Value.typeName: {
@@ -63,7 +71,7 @@ class EmptyProvider implements CelValProvider {
         if (val instanceof CelError || val instanceof CelUnknown) {
           return val;
         }
-        return new Int64Value({ value: val.valueOf() });
+        return create(Int64ValueSchema, { value: val.valueOf() });
       }
       case FloatValue.typeName:
       case DoubleValue.typeName: {
@@ -71,21 +79,21 @@ class EmptyProvider implements CelValProvider {
         if (val instanceof CelError || val instanceof CelUnknown) {
           return val;
         }
-        return new DoubleValue({ value: val });
+        return create(DoubleValueSchema, { value: val });
       }
       case StringValue.typeName: {
         const val = coerceToString(id, obj.accessByName(id, "value"));
         if (val instanceof CelError || val instanceof CelUnknown) {
           return val;
         }
-        return new StringValue({ value: val });
+        return create(StringValueSchema, { value: val });
       }
       case BytesValue.typeName: {
         const val = coerceToBytes(id, obj.accessByName(id, "value"));
         if (val instanceof CelError || val instanceof CelUnknown) {
           return val;
         }
-        return new BytesValue({ value: val });
+        return create(BytesValueSchema, { value: val });
       }
       case Value.typeName:
         if (obj instanceof CelObject) {

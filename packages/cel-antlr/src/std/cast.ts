@@ -1,4 +1,6 @@
-import { Duration, isMessage, Timestamp } from "@bufbuild/protobuf";
+import { isMessage, create, fromJson } from "@bufbuild/protobuf";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import type { Timestamp } from "@bufbuild/protobuf/wkt";
 
 import {
   Func,
@@ -70,7 +72,7 @@ const strToIntOp: StrictUnaryOp = (id: number, x: CelVal) => {
 };
 const strToIntFunc = Func.unary(INT, [olc.STRING_TO_INT], strToIntOp);
 const timestampToIntOp: StrictUnaryOp = (id: number, x: CelVal) => {
-  if (isMessage(x, Timestamp)) {
+  if (isMessage(x, TimestampSchema)) {
     const val = x.seconds;
     if (isOverflowInt(val)) {
       return CelErrors.overflow(id, INT, type.INT);
@@ -85,7 +87,7 @@ const timestampToIntFunc = Func.unary(
   timestampToIntOp,
 );
 const durationToIntOp: StrictUnaryOp = (id: number, x: CelVal) => {
-  if (isMessage(x, Duration)) {
+  if (isMessage(x, DurationSchema)) {
     const val = x.seconds;
     if (isOverflowInt(val)) {
       return CelErrors.overflow(id, INT, type.INT);
@@ -322,7 +324,7 @@ const bytesToStringFunc = Func.unary(
   bytesToStringOp,
 );
 const timestampToStringOp: StrictUnaryOp = (_id: number, x: CelVal) => {
-  if (isMessage(x, Timestamp)) {
+  if (isMessage(x, TimestampSchema)) {
     return x.toJson() as string;
   }
   return undefined;
@@ -333,7 +335,7 @@ const timestampToStringFunc = Func.unary(
   timestampToStringOp,
 );
 const durationToStringOp: StrictUnaryOp = (id: number, x: CelVal) => {
-  if (isMessage(x, Duration)) {
+  if (isMessage(x, DurationSchema)) {
     return x.toJson() as string;
   }
   return CelErrors.overloadNotFound(id, STRING, [type.getCelType(x)]);
@@ -374,7 +376,7 @@ const timestampToTimestamp = Func.unary(
 const stringToTimestampOp: StrictUnaryOp = (id: number, x: CelVal) => {
   if (typeof x === "string") {
     try {
-      return Timestamp.fromJson(x);
+      return fromJson(TimestampSchema, x);
     } catch (e) {
       return CelErrors.badTimeStr(id, String(e));
     }
@@ -429,7 +431,7 @@ const stringToDurationFunc = Func.unary(
 );
 const intToDurationOp: StrictUnaryOp = (_id: number, x: CelVal) => {
   if (typeof x === "bigint") {
-    return new Duration({ seconds: x });
+    return create(DurationSchema, { seconds: x });
   }
   return undefined;
 };
