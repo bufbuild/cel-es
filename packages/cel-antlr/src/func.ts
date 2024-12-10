@@ -11,7 +11,6 @@ import {
 
 export type ZeroOp = (id: number) => CelResult | undefined;
 export type UnaryOp = (arg: CelResult, id: number) => CelResult | undefined;
-export type UnaryOpT<T> = (arg: T, id: number) => CelResult | undefined;
 export type StrictUnaryOp = (arg: CelVal, id: number) => CelResult | undefined;
 export type BinaryOp = (
   lhs: CelResult,
