@@ -62,7 +62,7 @@ export function addMath(funcs: FuncRegistry) {
   funcs.add(negFunc, [negIntFunc, negDoubleFunc]);
 }
 
-const addIntOp: StrictOp = (args: CelVal[], id: number) => {
+const addIntOp: StrictOp = (id: number, args: CelVal[]) => {
   let sum = 0n;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -78,7 +78,7 @@ const addIntOp: StrictOp = (args: CelVal[], id: number) => {
 };
 const addIntFunc = Func.newStrict(opc.ADD, [olc.ADD_INT64], addIntOp);
 
-const addUintOp: StrictOp = (args: CelVal[], id: number) => {
+const addUintOp: StrictOp = (id: number, args: CelVal[]) => {
   let sum = 0n;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -94,7 +94,7 @@ const addUintOp: StrictOp = (args: CelVal[], id: number) => {
 };
 const addUintFunc = Func.newStrict(opc.ADD, [olc.ADD_UINT64], addUintOp);
 
-const addDoubleOp: StrictOp = (args: CelVal[], _id: number) => {
+const addDoubleOp: StrictOp = (_id: number, args: CelVal[]) => {
   let sum = 0;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -107,7 +107,7 @@ const addDoubleOp: StrictOp = (args: CelVal[], _id: number) => {
 };
 const addDoubleFunc = Func.newStrict(opc.ADD, [olc.ADD_DOUBLE], addDoubleOp);
 
-const addStringOp: StrictOp = (args: CelVal[], _id: number) => {
+const addStringOp: StrictOp = (_id: number, args: CelVal[]) => {
   let sum = "";
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -120,7 +120,7 @@ const addStringOp: StrictOp = (args: CelVal[], _id: number) => {
 };
 const addStringFunc = Func.newStrict(opc.ADD, [olc.ADD_STRING], addStringOp);
 
-const addBytesOp: StrictOp = (args: CelVal[], _id: number) => {
+const addBytesOp: StrictOp = (_id: number, args: CelVal[]) => {
   let length = 0;
   const data: Uint8Array[] = [];
   for (let i = 0; i < args.length; i++) {
@@ -143,7 +143,7 @@ const addBytesOp: StrictOp = (args: CelVal[], _id: number) => {
 };
 const addBytesFunc = Func.newStrict(opc.ADD, [olc.ADD_BYTES], addBytesOp);
 
-const addListOp: StrictOp = (args: CelVal[], _id: number) => {
+const addListOp: StrictOp = (_id: number, args: CelVal[]) => {
   const first = args[0];
   if (!(first instanceof CelList)) {
     return undefined;
@@ -186,7 +186,7 @@ const addListOp: StrictOp = (args: CelVal[], _id: number) => {
 };
 const addListFunc = Func.newStrict(opc.ADD, [olc.ADD_LIST], addListOp);
 
-function sumTimeOp(times: CelVal[], id: number) {
+function sumTimeOp(id: number, times: CelVal[]) {
   let tsCount = 0;
   let seconds = BigInt(0);
   let nanos = 0;
@@ -234,32 +234,32 @@ const addTimeFunc = Func.newStrict(
   sumTimeOp,
 );
 
-const addFunc = Func.newStrict(opc.ADD, [], (args: CelVal[], id: number) => {
+const addFunc = Func.newStrict(opc.ADD, [], (id: number, args: CelVal[]) => {
   switch (type.getCelType(args[0])) {
     case type.INT:
-      return addIntOp(args, id);
+      return addIntOp(id, args);
     case type.UINT:
-      return addUintOp(args, id);
+      return addUintOp(id, args);
     case type.DOUBLE:
-      return addDoubleOp(args, id);
+      return addDoubleOp(id, args);
     case type.STRING:
-      return addStringOp(args, id);
+      return addStringOp(id, args);
     case type.BYTES:
-      return addBytesOp(args, id);
+      return addBytesOp(id, args);
     case type.DURATION:
-      return sumTimeOp(args, id);
+      return sumTimeOp(id, args);
     case type.TIMESTAMP:
-      return sumTimeOp(args, id);
+      return sumTimeOp(id, args);
     default:
       break;
   }
   if (args[0] instanceof CelList) {
-    return addListOp(args, id);
+    return addListOp(id, args);
   }
   return undefined;
 });
 
-const subIntOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
+const subIntOp: StrictBinaryOp = (id: number, lhs: CelVal, rhs: CelVal) => {
   if (typeof lhs === "bigint" && typeof rhs === "bigint") {
     const val = lhs - rhs;
     if (isOverflowInt(val)) {
@@ -271,7 +271,7 @@ const subIntOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
 };
 const subIntFunc = Func.binary(opc.SUBTRACT, [olc.SUBTRACT_INT64], subIntOp);
 
-const subUintOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
+const subUintOp: StrictBinaryOp = (id: number, lhs: CelVal, rhs: CelVal) => {
   if (lhs instanceof CelUint && rhs instanceof CelUint) {
     const val = lhs.value.valueOf() - rhs.value.valueOf();
     if (isOverflowUint(val)) {
@@ -282,7 +282,7 @@ const subUintOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
   return undefined;
 };
 const subUintFunc = Func.binary(opc.SUBTRACT, [olc.SUBTRACT_UINT64], subUintOp);
-const subDoubleOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, _id: number) => {
+const subDoubleOp: StrictBinaryOp = (_id: number, lhs: CelVal, rhs: CelVal) => {
   if (typeof lhs === "number" && typeof rhs === "number") {
     return lhs - rhs;
   }
@@ -293,7 +293,7 @@ const subDoubleFunc = Func.binary(
   [olc.SUBTRACT_DOUBLE],
   subDoubleOp,
 );
-const subTimeOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
+const subTimeOp: StrictBinaryOp = (id: number, lhs: CelVal, rhs: CelVal) => {
   if (isMessage(lhs, Timestamp)) {
     if (isMessage(rhs, Timestamp)) {
       return newDuration(id, lhs.seconds - rhs.seconds, lhs.nanos - rhs.nanos);
@@ -320,25 +320,25 @@ const subTimeFunc = Func.binary(
 const subFunc = Func.binary(
   opc.SUBTRACT,
   [],
-  (lhs: CelVal, rhs: CelVal, id: number) => {
+  (id: number, lhs: CelVal, rhs: CelVal) => {
     switch (type.getCelType(lhs)) {
       case type.INT:
-        return subIntOp(lhs, rhs, id);
+        return subIntOp(id, lhs, rhs);
       case type.UINT:
-        return subUintOp(lhs, rhs, id);
+        return subUintOp(id, lhs, rhs);
       case type.DOUBLE:
-        return subDoubleOp(lhs, rhs, id);
+        return subDoubleOp(id, lhs, rhs);
       case type.DURATION:
-        return subTimeOp(lhs, rhs, id);
+        return subTimeOp(id, lhs, rhs);
       case type.TIMESTAMP:
-        return subTimeOp(lhs, rhs, id);
+        return subTimeOp(id, lhs, rhs);
       default:
         return undefined;
     }
   },
 );
 
-const mulIntOp: StrictOp = (args: CelVal[], id: number) => {
+const mulIntOp: StrictOp = (id: number, args: CelVal[]) => {
   let product = 1n;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -354,7 +354,7 @@ const mulIntOp: StrictOp = (args: CelVal[], id: number) => {
 };
 const mulIntFunc = Func.newStrict(opc.MULTIPLY, [olc.MULTIPLY_INT64], mulIntOp);
 
-const mulUintOp: StrictOp = (args: CelVal[], id: number) => {
+const mulUintOp: StrictOp = (id: number, args: CelVal[]) => {
   let product = 1n;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -374,7 +374,7 @@ const mulUintFunc = Func.newStrict(
   mulUintOp,
 );
 
-const mulDoubleOp: StrictOp = (args: CelVal[], _id: number) => {
+const mulDoubleOp: StrictOp = (_id: number, args: CelVal[]) => {
   let product = 1;
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -394,21 +394,21 @@ const mulDoubleFunc = Func.newStrict(
 const mulFunc = Func.newStrict(
   opc.MULTIPLY,
   [],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     switch (type.getCelType(args[0])) {
       case type.INT:
-        return mulIntOp(args, id);
+        return mulIntOp(id, args);
       case type.UINT:
-        return mulUintOp(args, id);
+        return mulUintOp(id, args);
       case type.DOUBLE:
-        return mulDoubleOp(args, id);
+        return mulDoubleOp(id, args);
       default:
         return undefined;
     }
   },
 );
 
-const divIntOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
+const divIntOp: StrictBinaryOp = (id: number, lhs: CelVal, rhs: CelVal) => {
   if (typeof lhs === "bigint" && typeof rhs === "bigint") {
     if (rhs === 0n) {
       return CelErrors.divisionByZero(id, type.INT);
@@ -420,7 +420,7 @@ const divIntOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
   return undefined;
 };
 const divIntFunc = Func.binary(opc.DIVIDE, [olc.DIVIDE_INT64], divIntOp);
-const divUintOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
+const divUintOp: StrictBinaryOp = (id: number, lhs: CelVal, rhs: CelVal) => {
   if (lhs instanceof CelUint && rhs instanceof CelUint) {
     if (rhs.value.valueOf() === 0n) {
       return CelErrors.divisionByZero(id, type.UINT);
@@ -430,7 +430,7 @@ const divUintOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
   return undefined;
 };
 const divUintFunc = Func.binary(opc.DIVIDE, [olc.DIVIDE_UINT64], divUintOp);
-const divDoubleOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, _id: number) => {
+const divDoubleOp: StrictBinaryOp = (_id: number, lhs: CelVal, rhs: CelVal) => {
   if (typeof lhs === "number" && typeof rhs === "number") {
     return lhs / rhs;
   }
@@ -440,21 +440,21 @@ const divDoubleFunc = Func.binary(opc.DIVIDE, [olc.DIVIDE_DOUBLE], divDoubleOp);
 const divFunc = Func.binary(
   opc.DIVIDE,
   [],
-  (lhs: CelVal, rhs: CelVal, id: number) => {
+  (id: number, lhs: CelVal, rhs: CelVal) => {
     switch (type.getCelType(lhs)) {
       case type.INT:
-        return divIntOp(lhs, rhs, id);
+        return divIntOp(id, lhs, rhs);
       case type.UINT:
-        return divUintOp(lhs, rhs, id);
+        return divUintOp(id, lhs, rhs);
       case type.DOUBLE:
-        return divDoubleOp(lhs, rhs, id);
+        return divDoubleOp(id, lhs, rhs);
       default:
         return undefined;
     }
   },
 );
 
-const modIntOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
+const modIntOp: StrictBinaryOp = (id: number, lhs: CelVal, rhs: CelVal) => {
   if (typeof lhs === "bigint" && typeof rhs === "bigint") {
     if (rhs === 0n) {
       return CelErrors.moduloByZero(id, type.INT);
@@ -464,7 +464,7 @@ const modIntOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
   return undefined;
 };
 const modIntFunc = Func.binary(opc.MODULO, [olc.MODULO_INT64], modIntOp);
-const modUintOp: StrictBinaryOp = (lhs: CelVal, rhs: CelVal, id: number) => {
+const modUintOp: StrictBinaryOp = (id: number, lhs: CelVal, rhs: CelVal) => {
   if (lhs instanceof CelUint && rhs instanceof CelUint) {
     if (rhs.value.valueOf() === 0n) {
       return CelErrors.moduloByZero(id, type.UINT);
@@ -477,19 +477,19 @@ const modUintFunc = Func.binary(opc.MODULO, [olc.MODULO_UINT64], modUintOp);
 const modFunc = Func.binary(
   opc.MODULO,
   [],
-  (lhs: CelVal, rhs: CelVal, id: number) => {
+  (id: number, lhs: CelVal, rhs: CelVal) => {
     switch (type.getCelType(lhs)) {
       case type.INT:
-        return modIntOp(lhs, rhs, id);
+        return modIntOp(id, lhs, rhs);
       case type.UINT:
-        return modUintOp(lhs, rhs, id);
+        return modUintOp(id, lhs, rhs);
       default:
         return undefined;
     }
   },
 );
 
-const negIntOp: StrictUnaryOp = (arg: CelVal, id: number) => {
+const negIntOp: StrictUnaryOp = (id: number, arg: CelVal) => {
   if (typeof arg === "bigint") {
     const val = -arg;
     if (isOverflowInt(val)) {
@@ -500,19 +500,19 @@ const negIntOp: StrictUnaryOp = (arg: CelVal, id: number) => {
   return undefined;
 };
 const negIntFunc = Func.unary(opc.NEGATE, [olc.NEGATE_INT64], negIntOp);
-const negDoubleOp: StrictUnaryOp = (arg: CelVal, _id: number) => {
+const negDoubleOp: StrictUnaryOp = (_id: number, arg: CelVal) => {
   if (typeof arg === "number") {
     return -arg;
   }
   return undefined;
 };
 const negDoubleFunc = Func.unary(opc.NEGATE, [olc.NEGATE_DOUBLE], negDoubleOp);
-const negFunc = Func.unary(opc.NEGATE, [], (arg: CelVal, id: number) => {
+const negFunc = Func.unary(opc.NEGATE, [], (id: number, arg: CelVal) => {
   switch (type.getCelType(arg)) {
     case type.INT:
-      return negIntOp(arg, id);
+      return negIntOp(id, arg);
     case type.DOUBLE:
-      return negDoubleOp(arg, id);
+      return negDoubleOp(id, arg);
     default:
       return undefined;
   }

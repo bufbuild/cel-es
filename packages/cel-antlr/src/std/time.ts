@@ -13,7 +13,7 @@ import { CelErrors, type CelVal } from "../value/value.js";
 type TimeFunc = (val: Date) => number;
 
 function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
-  return (args, id) => {
+  return (id: number, args: CelVal[]) => {
     if (!isMessage(args[0], Timestamp)) {
       return undefined;
     }
@@ -108,7 +108,7 @@ const timestampToSecondsFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_SECONDS, olc.TIMESTAMP_TO_SECONDS_WITH_TZ],
   timestampToSecondsOp,
 );
-const durationToSecondsOp: StrictUnaryOp = (val: CelVal, _id: number) => {
+const durationToSecondsOp: StrictUnaryOp = (_id: number, val: CelVal) => {
   if (isMessage(val, Duration)) {
     return val.seconds;
   }
@@ -122,11 +122,11 @@ const durationToSecondsFunc = Func.unary(
 const timeGetSecondsFunc = Func.newStrict(
   olc.TIME_GET_SECONDS,
   [],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (isMessage(args[0], Timestamp)) {
-      return timestampToSecondsOp(args, id);
+      return timestampToSecondsOp(id, args);
     } else if (isMessage(args[0], Duration)) {
-      return durationToSecondsOp(args[0], id);
+      return durationToSecondsOp(id, args[0]);
     }
     return undefined;
   },
@@ -141,7 +141,7 @@ const timestampToHoursFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_HOURS, olc.TIMESTAMP_TO_HOURS_WITH_TZ],
   timestampToHoursOp,
 );
-const durationToHoursOp: StrictUnaryOp = (val: CelVal, _id: number) => {
+const durationToHoursOp: StrictUnaryOp = (_id: number, val: CelVal) => {
   if (isMessage(val, Duration)) {
     return val.seconds / 3600n;
   }
@@ -155,11 +155,11 @@ const DurationToHoursFunc = Func.unary(
 const timeGetHoursFunc = Func.newStrict(
   olc.TIME_GET_HOURS,
   [],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (isMessage(args[0], Timestamp)) {
-      return timestampToHoursOp(args, id);
+      return timestampToHoursOp(id, args);
     } else if (isMessage(args[0], Duration)) {
-      return durationToHoursOp(args[0], id);
+      return durationToHoursOp(id, args[0]);
     }
     return undefined;
   },
@@ -175,7 +175,7 @@ const timestampToMinutesFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_MINUTES, olc.TIMESTAMP_TO_MINUTES_WITH_TZ],
   timestampToMinutesOp,
 );
-const durationToMinutesOp: StrictUnaryOp = (val: CelVal, _id: number) => {
+const durationToMinutesOp: StrictUnaryOp = (_id: number, val: CelVal) => {
   if (isMessage(val, Duration)) {
     return val.seconds / 60n;
   }
@@ -189,11 +189,11 @@ const durationToMinutesFunc = Func.unary(
 const timeGetMinutesFunc = Func.newStrict(
   olc.TIME_GET_MINUTES,
   [],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (isMessage(args[0], Timestamp)) {
-      return timestampToMinutesOp(args, id);
+      return timestampToMinutesOp(id, args);
     } else if (isMessage(args[0], Duration)) {
-      return durationToMinutesOp(args[0], id);
+      return durationToMinutesOp(id, args[0]);
     }
     return undefined;
   },
@@ -209,7 +209,7 @@ const timestampToMillisecondsFunc = Func.newStrict(
   [olc.TIMESTAMP_TO_MILLISECONDS, olc.TIMESTAMP_TO_MILLISECONDS_WITH_TZ],
   timestampToMillisecondsOp,
 );
-const durationToMillisecondsOp: StrictUnaryOp = (val: CelVal, _id: number) => {
+const durationToMillisecondsOp: StrictUnaryOp = (_id: number, val: CelVal) => {
   if (isMessage(val, Duration)) {
     return BigInt(val.nanos) / 1000000n;
   }
@@ -224,11 +224,11 @@ const durationToMillisecondsFunc = Func.unary(
 const timeGetMillisecondsFunc = Func.newStrict(
   olc.TIME_GET_MILLISECONDS,
   [],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (isMessage(args[0], Timestamp)) {
-      return timestampToMillisecondsOp(args, id);
+      return timestampToMillisecondsOp(id, args);
     } else if (isMessage(args[0], Duration)) {
-      return durationToMillisecondsOp(args[0], id);
+      return durationToMillisecondsOp(id, args[0]);
     }
     return undefined;
   },

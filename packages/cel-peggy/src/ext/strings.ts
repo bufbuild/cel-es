@@ -34,7 +34,7 @@ function argsMatchInt(args: CelVal[], ...celTypes: CelType[]): boolean {
 const charAtFunc = Func.binary(
   "charAt",
   ["string_char_at_int"],
-  (str: CelVal, index: CelVal, id: number) => {
+  (id: number, str: CelVal, index: CelVal) => {
     if (
       typeof str !== "string" ||
       (typeof index !== "number" && typeof index !== "bigint")
@@ -52,7 +52,7 @@ const charAtFunc = Func.binary(
 const indexOfFunc = Func.newStrict(
   "indexOf",
   ["string_index_of_string", "string_index_of_string_int"],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (!argsMatchInt(args, type.STRING, type.STRING)) {
       return undefined;
     }
@@ -69,7 +69,7 @@ const indexOfFunc = Func.newStrict(
 const lastIndexOfFunc = Func.newStrict(
   "lastIndexOf",
   ["string_last_index_of_string", "string_last_index_of_string_int"],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (!argsMatchInt(args, type.STRING, type.STRING)) {
       return undefined;
     }
@@ -86,7 +86,7 @@ const lastIndexOfFunc = Func.newStrict(
 const lowerAsciiFunc = Func.unary(
   "lowerAscii",
   ["string_lower_ascii"],
-  (str: CelVal, _id: number) => {
+  (_id: number, str: CelVal) => {
     if (typeof str !== "string") {
       return undefined;
     }
@@ -107,7 +107,7 @@ const lowerAsciiFunc = Func.unary(
 const upperAsciiFunc = Func.unary(
   "upperAscii",
   ["string_upper_ascii"],
-  (str: CelVal, _id: number) => {
+  (_id: number, str: CelVal) => {
     if (typeof str !== "string") {
       return undefined;
     }
@@ -127,7 +127,7 @@ const upperAsciiFunc = Func.unary(
 const replaceFunc = Func.newStrict(
   "replace",
   ["string_replace_string_string", "string_replace_string_string_int"],
-  (args: CelVal[], _id: number) => {
+  (_id: number, args: CelVal[]) => {
     if (!argsMatchInt(args, type.STRING, type.STRING, type.STRING)) {
       return undefined;
     }
@@ -155,7 +155,7 @@ const replaceFunc = Func.newStrict(
 const splitFunc = Func.newStrict(
   "split",
   ["string_split_string", "string_split_string_int"],
-  (args: CelVal[], _id: number) => {
+  (_id: number, args: CelVal[]) => {
     if (!argsMatchInt(args, type.STRING, type.STRING)) {
       return undefined;
     }
@@ -172,7 +172,7 @@ const splitFunc = Func.newStrict(
 const substringFunc = Func.newStrict(
   "substring",
   ["string_substring_int", "string_substring_int_int"],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (!argsMatchInt(args, type.STRING, type.INT)) {
       return undefined;
     }
@@ -211,7 +211,7 @@ const WHITE_SPACE = new Set([
 const trimFunc = Func.unary(
   "trim",
   ["string_trim"],
-  (str: CelVal, _id: number) => {
+  (_id: number, str: CelVal) => {
     if (typeof str !== "string") {
       return undefined;
     }
@@ -231,7 +231,7 @@ const trimFunc = Func.unary(
 const joinFunc = Func.newStrict(
   "join",
   ["list_join", "list_join_string"],
-  (args: CelVal[], id: number) => {
+  (id: number, args: CelVal[]) => {
     if (!argsMatch(args, 1, type.LIST, type.STRING)) {
       return undefined;
     }
@@ -281,7 +281,7 @@ function quoteString(_id: number, str: string): string {
 const quoteFunc = Func.unary(
   "strings.quote",
   ["strings_quote"],
-  (str: CelVal, id: number) => {
+  (id: number, str: CelVal) => {
     if (typeof str !== "string") {
       return undefined;
     }
@@ -679,7 +679,7 @@ export function makeStringFormatFunc(formatter: Formatter): Func {
   return Func.binary(
     "format",
     ["string_format_list"],
-    (format: CelVal, args: CelVal, id: number) => {
+    (id: number, format: CelVal, args: CelVal) => {
       if (typeof format !== "string" || !(args instanceof CelList)) {
         return undefined;
       }

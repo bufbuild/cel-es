@@ -10,27 +10,27 @@ import {
 } from "./value/value.js";
 
 export type ZeroOp = (id: number) => CelResult | undefined;
-export type UnaryOp = (arg: CelResult, id: number) => CelResult | undefined;
-export type StrictUnaryOp = (arg: CelVal, id: number) => CelResult | undefined;
+export type UnaryOp = (id: number, arg: CelResult) => CelResult | undefined;
+export type StrictUnaryOp = (id: number, arg: CelVal) => CelResult | undefined;
 export type BinaryOp = (
+  id: number,
   lhs: CelResult,
   rhs: CelResult,
-  id: number,
 ) => CelResult | undefined;
 export type StrictBinaryOp = (
+  id: number,
   lhs: CelVal,
   rhs: CelVal,
-  id: number,
 ) => CelResult | undefined;
-export type StrictOp = (args: CelVal[], id: number) => CelResult | undefined;
-export type ResultOp = (args: CelResult[], id: number) => CelResult | undefined;
+export type StrictOp = (id: number, args: CelVal[]) => CelResult | undefined;
+export type ResultOp = (id: number, args: CelResult[]) => CelResult | undefined;
 
 enum DispatchType {
   Result = 0, // Args can be CelResults
   Strict = 1, // All args must be unwrapped CelVals
 }
 
-export const identityStrictOp: StrictUnaryOp = (arg: CelResult, _id: number) =>
+export const identityStrictOp: StrictUnaryOp = (_id: number, arg: CelResult) =>
   arg;
 
 export interface CallDispatch {
@@ -60,20 +60,20 @@ export class Func implements CallDispatch {
     unwrap: Unwrapper,
   ): CelResult | undefined {
     if (this.call.type === DispatchType.Result) {
-      return this.call.op(args, id);
+      return this.call.op(id, args);
     }
 
     const vals = unwrapResults(args, unwrap);
     if (vals instanceof CelError || vals instanceof CelUnknown) {
       return vals;
     }
-    return this.call.op(vals, id);
+    return this.call.op(id, vals);
   }
 
   public static zero(func: string, overload: string, op: ZeroOp) {
     return new Func(func, [overload], {
       type: DispatchType.Result,
-      op: (args: CelResult[], id: number) => {
+      op: (id: number, args: CelResult[]) => {
         if (args.length !== 0) {
           return undefined;
         }
@@ -85,11 +85,11 @@ export class Func implements CallDispatch {
   public static unary(func: string, overloads: string[], op: StrictUnaryOp) {
     return new Func(func, overloads, {
       type: DispatchType.Strict,
-      op: (args: CelVal[], id: number) => {
+      op: (id: number, args: CelVal[]) => {
         if (args.length !== 1) {
           return undefined;
         }
-        return op(args[0], id);
+        return op(id, args[0]);
       },
     });
   }
@@ -97,11 +97,11 @@ export class Func implements CallDispatch {
   public static binary(func: string, overloads: string[], op: StrictBinaryOp) {
     return new Func(func, overloads, {
       type: DispatchType.Strict,
-      op: (args: CelVal[], id: number) => {
+      op: (id: number, args: CelVal[]) => {
         if (args.length !== 2) {
           return undefined;
         }
-        return op(args[0], args[1], id);
+        return op(id, args[0], args[1]);
       },
     });
   }
