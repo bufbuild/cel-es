@@ -6,9 +6,9 @@ import { TerminalNode } from "antlr4ts/tree/TerminalNode.js";
 import {
   ExprSchema,
   Expr_CreateStructSchema,
-  Expr_CreateStruct_Entry,
+  type Expr_CreateStruct_Entry,
   ParsedExprSchema,
-  SourceInfo,
+  type SourceInfo,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 
 import type { ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";

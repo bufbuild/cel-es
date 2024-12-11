@@ -1,9 +1,9 @@
 import { testSimpleTestFile } from "./testing.js";
-import { createRegistry } from "@bufbuild/protobuf";
-import * as _dev_cel_expr_test_v1_simple_pb from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
+import { createRegistry, fromJson } from "@bufbuild/protobuf";
+import { SimpleTestFileSchema } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
 
 // TODO was generated. see if this has a source
-const REGRESSION_TEST = _dev_cel_expr_test_v1_simple_pb.SimpleTestFile.fromJson(
+const REGRESSION_TEST = fromJson(SimpleTestFileSchema,
   {
     name: "",
     description: "Regression tests",

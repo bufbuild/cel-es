@@ -1,4 +1,4 @@
-import { isMessage, Message, create } from "@bufbuild/protobuf";
+import { isMessage, type Message, create } from "@bufbuild/protobuf";
 
 import {
   AnySchema,
@@ -225,6 +225,7 @@ export class ProtoNull {
   ) {}
 }
 
+// TODO(tstamm) Object.prototype.valueOf()
 export class CelUint {
   public static EMPTY: CelUint = new CelUint(BigInt(0));
   public static ONE: CelUint = new CelUint(BigInt(1));

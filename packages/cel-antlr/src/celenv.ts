@@ -1,4 +1,4 @@
-import { createRegistry, type IMessageTypeRegistry, isMessage, create } from "@bufbuild/protobuf";
+import { createRegistry, type Registry, isMessage, create } from "@bufbuild/protobuf";
 import { ExprSchema, ParsedExprSchema } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import type { ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import type { Expr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
@@ -45,7 +45,7 @@ export class CelPlanner {
 
   public constructor(
     namespace: string | undefined = undefined,
-    registry: IMessageTypeRegistry = createRegistry(),
+    registry: Registry = createRegistry(),
   ) {
     this.protoProvider = new ProtoValProvider(new ProtoValAdapter(registry));
     this.dispatcher = new OrderedDispatcher([STD_FUNCS]);
@@ -74,7 +74,7 @@ export class CelPlanner {
     this.dispatcher.add(funcs);
   }
 
-  public setProtoRegistry(registry: IMessageTypeRegistry): void {
+  public setProtoRegistry(registry: Registry): void {
     this.protoProvider.adapter = new ProtoValAdapter(registry);
   }
 
@@ -99,7 +99,7 @@ export class CelEnv {
 
   public constructor(
     namespace: string | undefined = undefined,
-    registry: IMessageTypeRegistry = createRegistry(),
+    registry: Registry = createRegistry(),
   ) {
     this.planner = new CelPlanner(namespace, registry);
   }
@@ -148,7 +148,7 @@ export class CelEnv {
     this.planner = planner;
   }
 
-  public setProtoRegistry(registry: IMessageTypeRegistry): void {
+  public setProtoRegistry(registry: Registry): void {
     this.planner.setProtoRegistry(registry);
   }
 

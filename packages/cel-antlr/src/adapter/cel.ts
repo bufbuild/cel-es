@@ -103,32 +103,32 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       } else if (lhs instanceof Uint8Array && rhs instanceof Uint8Array) {
         return compareBytes(lhs, rhs) === 0;
       } else if (isCelMsg(lhs) && isCelMsg(rhs)) {
-        if (lhs.getType().typeName !== rhs.getType().typeName) {
+        if (lhs.$typeName !== rhs.$typeName) {
           return false;
         }
-        switch (lhs.getType().typeName) {
+        switch (lhs.$typeName) {
           case "google.protobuf.StringValue":
           case "google.protobuf.BoolValue":
           case "google.protobuf.UInt64Value":
           case "google.protobuf.Int64Value":
           case "google.protobuf.DoubleValue":
             return (
-              (lhs as { value: unknown }).value ===
+              lhs.value ===
               (rhs as { value: unknown }).value
             );
           case "google.protobuf.BytesValue":
             return (
               compareBytes(
-                (lhs as { value: Uint8Array }).value,
+                lhs.value,
                 (rhs as { value: Uint8Array }).value,
               ) === 0
             );
           case "google.protobuf.Timestamp":
           case "google.protobuf.Duration":
             return (
-              (lhs as { seconds: unknown }).seconds ==
+              lhs.seconds ==
                 (rhs as { seconds: unknown }).seconds &&
-              (lhs as { nanos: unknown }).nanos ==
+              lhs.nanos ==
                 (rhs as { nanos: unknown }).nanos
             );
           case "google.protobuf.Any":

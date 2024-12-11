@@ -340,6 +340,7 @@ class StringAccess implements Access {
     presenceOnly: boolean,
   ): RawResult | undefined {
     const val = obj.adapter.accessByName(this.id, obj.value, this.name);
+    // TODO(tstamm) obj.adapter.toCel(val) ?
     if (val === undefined && !this.optional && !presenceOnly) {
       return CelErrors.fieldNotFound(this.id, this.name);
     }

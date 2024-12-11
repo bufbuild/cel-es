@@ -1,6 +1,5 @@
-import { isMessage, create, fromJson } from "@bufbuild/protobuf";
-import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
-import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { isMessage, create, fromJson, toJson } from "@bufbuild/protobuf";
+import { DurationSchema, timestampFromMs, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import {
   Func,
@@ -325,7 +324,7 @@ const bytesToStringFunc = Func.unary(
 );
 const timestampToStringOp: StrictUnaryOp = (_id: number, x: CelVal) => {
   if (isMessage(x, TimestampSchema)) {
-    return x.toJson() as string;
+    return toJson(TimestampSchema, x);
   }
   return undefined;
 };
@@ -336,7 +335,7 @@ const timestampToStringFunc = Func.unary(
 );
 const durationToStringOp: StrictUnaryOp = (id: number, x: CelVal) => {
   if (isMessage(x, DurationSchema)) {
-    return x.toJson() as string;
+    return toJson(DurationSchema, x);
   }
   return CelErrors.overloadNotFound(id, STRING, [type.getCelType(x)]);
 };
@@ -390,7 +389,7 @@ const stringToTimestampFunc = Func.unary(
 );
 const intToTimestampOp: StrictUnaryOp = (_id: number, x: CelVal) => {
   if (typeof x === "bigint") {
-    return Timestamp.fromDate(new Date(Number(x)));
+    return timestampFromMs(Number(x));
   }
   return undefined;
 };

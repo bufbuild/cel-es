@@ -1,4 +1,4 @@
-import {
+import type {
   Constant,
   Expr,
   Expr_Call,
@@ -126,7 +126,6 @@ export class Planner {
     }
     const operand = this.plan(expr.operand);
     const attr = this.relativeAttr(id, operand, false);
-
     const acc = this.factory.newAccess(id, expr.field, false);
     if (acc instanceof CelError) {
       throw new Error(`invalid select: ${acc.message}`);
@@ -387,6 +386,7 @@ export class EvalHas implements Interpretable {
     } else if (raw instanceof CelError || raw instanceof CelUnknown) {
       return raw;
     }
+    // TODO(tstamm) need to support proto field presence
     const out = this.access.accessIfPresent(ctx, raw, true);
     if (out === undefined) {
       return false;
