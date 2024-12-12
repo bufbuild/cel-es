@@ -208,6 +208,27 @@ export class CelAdapter implements CelValAdapter<CelVal> {
     return Object.keys(obj);
   }
 
+  isSetByName(
+    id: number,
+    obj: CelVal,
+    name: string,
+  ): boolean | CelError | CelUnknown {
+    if (obj === null) {
+      return false;
+    }
+    if (obj instanceof CelMap || obj instanceof CelObject) {
+      return obj.isSetByName(id, name);
+    }
+    if (obj instanceof ProtoNull) {
+      return false;
+    }
+    if (obj.constructor.name === "Object") {
+      // TODO(tstamm) fix access to properties from object prototype
+      return obj[name as keyof typeof obj] !== undefined;
+    }
+    return false;
+  }
+
   accessByName(id: number, obj: CelVal, name: string): CelResult | undefined {
     if (isMessage(obj, AnySchema)) {
       throw new Error("not implemented");
@@ -216,9 +237,16 @@ export class CelAdapter implements CelValAdapter<CelVal> {
     if (typeof obj === "object" && obj !== null) {
       if (obj instanceof CelMap || obj instanceof CelObject) {
         return obj.accessByName(id, name);
-      } else if (obj instanceof ProtoNull) {
+      }
+      if (obj instanceof ProtoNull) {
         return this.accessByName(id, obj.defaultValue, name);
-      } else if (obj.constructor.name === "Object") {
+      }
+      if (isMessage(obj)) {
+        // Don't allow to select fields on CEL types that are Protobuf messages
+        return undefined;
+      }
+      if (obj.constructor.name === "Object") {
+        // TODO(tstamm) fix access to properties from object prototype
         return obj[name as keyof typeof obj];
       }
     }

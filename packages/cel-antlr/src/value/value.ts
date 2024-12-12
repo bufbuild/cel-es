@@ -190,6 +190,7 @@ export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   compare(lhs: V, rhs: V): CelResult<number> | undefined;
 
   accessByName(id: number, obj: V, name: string): CelResult<V> | undefined;
+  isSetByName(id: number, obj: V, name: string): CelResult<boolean>;
   accessByIndex(
     id: number,
     obj: V,
@@ -315,6 +316,10 @@ export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
     return this.adapter.toCel(result);
   }
 
+  isSetByName(_id: number, name: unknown): CelResult<boolean> {
+    return this.nativeKeyMap.has(name);
+  }
+
   accessByName(_id: number, name: unknown): CelResult | undefined {
     return this.adapter.toCel(this.nativeKeyMap.get(name));
   }
@@ -345,6 +350,10 @@ export class CelObject implements StructAccess<unknown> {
 
   getFields(): string[] {
     return this.adapter.getFields(this.value);
+  }
+
+  isSetByName(id: number, name: string): CelResult<boolean> {
+    return this.adapter.isSetByName(id, this.value, name);
   }
 
   accessByName(id: number, name: string): CelResult | undefined {

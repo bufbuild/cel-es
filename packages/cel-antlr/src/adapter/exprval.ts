@@ -19,6 +19,8 @@ import {
   type CelResult,
   type CelVal,
   type CelValAdapter,
+  CelError,
+  CelUnknown,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 
@@ -88,6 +90,14 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
         return this.accessMapByIndex(id, value.kind.value, index);
     }
     return CelErrors.badIndexAccess(id, this.valueToType(value));
+  }
+
+  isSetByName(
+    id: number,
+    obj: ExprType,
+    name: string,
+  ): boolean | CelError | CelUnknown {
+    return this.accessByName(id, obj, name) !== undefined;
   }
 
   accessByName(

@@ -6,26 +6,6 @@ import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
 const files = getSimpleTestFiles();
 
 const shouldSkip = createSimpleTestFileSkip(files, [
-
-  // TODO(tstamm) fix field presence, see class EvalHas
-  // see https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffer-data-conversion
-  ["proto2", "has", "optional_enum_unset"],
-
-  // TODO(tstamm) fix this regression
-  // > field selection of an unset message field of wrapper type will evaluate
-  // > to null, instead of the default message. This is an exception to the
-  // > usual evaluation of unset message fields.
-  ["dynamic", "int32", "literal_no_field_access"],
-  ["dynamic", "int64", "literal_no_field_access"],
-  ["dynamic", "uint32", "literal_no_field_access"],
-  ["dynamic", "uint64", "literal_no_field_access"],
-  ["dynamic", "float", "literal_no_field_access"],
-  ["dynamic", "double", "literal_no_field_access"],
-  ["dynamic", "bool", "literal_no_field_access"],
-  ["dynamic", "string", "literal_no_field_access"],
-  ["dynamic", "bytes", "literal_no_field_access"],
-
-
   ["bindings_ext"],
   ["block_ext"],
   ["conversions", "bool", "string_1"],

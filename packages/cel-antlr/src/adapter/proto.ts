@@ -4,6 +4,7 @@ import {
   type DescField,
   type DescMessage,
   equals,
+  isFieldSet,
   isMessage,
   type Message,
   type Registry,
@@ -181,6 +182,22 @@ export class ProtoValAdapter implements CelValAdapter {
 
   fromCel(cel: CelVal): ProtoResult {
     return cel;
+  }
+
+  isSetByName(
+    id: number,
+    obj: Message | CelVal,
+    name: string,
+  ): boolean | CelError | CelUnknown {
+    if (isProtoMsg(obj)) {
+      const schema = this.getSchema(obj.$typeName);
+      const field = schema.fields.find(f => f.name === name);
+      if (!field) {
+        return CelErrors.fieldNotFound(id, name, schema.fields.map(f => f.name));
+      }
+      return isFieldSet(obj, field);
+    }
+    return CEL_ADAPTER.isSetByName(id, obj, name);
   }
 
   accessByName(

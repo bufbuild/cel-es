@@ -386,14 +386,7 @@ export class EvalHas implements Interpretable {
     } else if (raw instanceof CelError || raw instanceof CelUnknown) {
       return raw;
     }
-    // TODO(tstamm) need to support proto field presence
-    const out = this.access.accessIfPresent(ctx, raw, true);
-    if (out === undefined) {
-      return false;
-    } else if (out instanceof CelError || out instanceof CelUnknown) {
-      return out;
-    }
-    return true;
+    return this.access.isPresent(ctx, raw);
   }
 }
 
@@ -428,6 +421,13 @@ export class EvalAttr implements Attribute, Interpretable {
   }
   access(vars: Activation, obj: RawVal): RawResult | undefined {
     return this.attr.access(vars, obj);
+  }
+
+  isPresent(
+    vars: Activation,
+    obj: RawVal,
+  ): CelResult<boolean> {
+    return this.attr.isPresent(vars, obj);
   }
 
   accessIfPresent(
