@@ -8,12 +8,6 @@ const files = getSimpleTestFiles();
 const shouldSkip = createSimpleTestFileSkip(files, [
   ["bindings_ext"],
   ["block_ext"],
-  ["conversions", "bool", "string_1"],
-  ["conversions", "bool", "string_t"],
-  ["conversions", "bool", "string_true_uppercase"],
-  ["conversions", "bool", "string_true_pascalcase"],
-  ["conversions", "bool", "string_true_badcase"],
-  ["conversions", "bool", "string_false_badcase"],
   ["dynamic", "int32", "literal"],
   ["dynamic", "int32", "literal_zero"],
   ["dynamic", "int32", "var"],

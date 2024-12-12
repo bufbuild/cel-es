@@ -221,7 +221,20 @@ const toDoubleFunc = Func.unary(DOUBLE, [], (id: number, x: CelVal) => {
 const boolToBool = Func.unary(BOOL, [olc.BOOL_TO_BOOL], identityStrictOp);
 const stringToBoolOp: StrictUnaryOp = (_id: number, x: CelVal) => {
   if (typeof x === "string") {
-    return x === "true";
+    switch (x) {
+      case "true":
+      case "True":
+      case "TRUE":
+      case "t":
+      case "1":
+        return true;
+      case "false":
+      case "False":
+      case "FALSE":
+      case "f":
+      case "0":
+        return false;
+    }
   }
   return undefined;
 };
