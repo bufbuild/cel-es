@@ -134,24 +134,33 @@ export function isCelPrim(val: unknown): val is CelPrim {
 /** Protobuf wrappers for number types, which can be 'null'  */
 export type CelWrapNum = Int64Value | UInt64Value | DoubleValue;
 export function isCelWrapNum(val: unknown): val is CelWrapNum {
-  return (isMessage(val, Int64ValueSchema) ||
-  isMessage(val, UInt64ValueSchema) || isMessage(val, DoubleValueSchema));
+  return (
+    isMessage(val, Int64ValueSchema) ||
+    isMessage(val, UInt64ValueSchema) ||
+    isMessage(val, DoubleValueSchema)
+  );
 }
 
 /** Protobuf wrappers for all primitive types, which can be 'null'  */
 export type CelWrap = BoolValue | CelWrapNum | StringValue | BytesValue;
 export function isCelWrap(val: unknown): val is CelWrap {
-  return (isMessage(val, BoolValueSchema) ||
-  isCelWrapNum(val) ||
-  isMessage(val, StringValueSchema) || isMessage(val, BytesValueSchema));
+  return (
+    isMessage(val, BoolValueSchema) ||
+    isCelWrapNum(val) ||
+    isMessage(val, StringValueSchema) ||
+    isMessage(val, BytesValueSchema)
+  );
 }
 
 /** All cel types that are also protobuf messages */
 export type CelMsg = CelWrap | Timestamp | Duration | Any;
 export function isCelMsg(val: unknown): val is CelMsg {
-  return (isCelWrap(val) ||
-  isMessage(val, TimestampSchema) ||
-  isMessage(val, DurationSchema) || isMessage(val, AnySchema));
+  return (
+    isCelWrap(val) ||
+    isMessage(val, TimestampSchema) ||
+    isMessage(val, DurationSchema) ||
+    isMessage(val, AnySchema)
+  );
 }
 
 /** All types Cel understands natively */

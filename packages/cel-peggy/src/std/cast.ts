@@ -1,5 +1,9 @@
 import { isMessage, create, fromJson, toJson } from "@bufbuild/protobuf";
-import { DurationSchema, timestampFromMs, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import {
+  DurationSchema,
+  timestampFromMs,
+  TimestampSchema,
+} from "@bufbuild/protobuf/wkt";
 
 import {
   Func,

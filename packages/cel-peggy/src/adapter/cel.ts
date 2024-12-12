@@ -1,5 +1,9 @@
 import { isMessage } from "@bufbuild/protobuf";
-import { AnySchema, DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import {
+  AnySchema,
+  DurationSchema,
+  TimestampSchema,
+} from "@bufbuild/protobuf/wkt";
 
 import { unwrapResults } from "../value/adapter.js";
 import {
@@ -112,24 +116,17 @@ export class CelAdapter implements CelValAdapter<CelVal> {
           case "google.protobuf.UInt64Value":
           case "google.protobuf.Int64Value":
           case "google.protobuf.DoubleValue":
-            return (
-              lhs.value ===
-              (rhs as { value: unknown }).value
-            );
+            return lhs.value === (rhs as { value: unknown }).value;
           case "google.protobuf.BytesValue":
             return (
-              compareBytes(
-                lhs.value,
-                (rhs as { value: Uint8Array }).value,
-              ) === 0
+              compareBytes(lhs.value, (rhs as { value: Uint8Array }).value) ===
+              0
             );
           case "google.protobuf.Timestamp":
           case "google.protobuf.Duration":
             return (
-              lhs.seconds ==
-                (rhs as { seconds: unknown }).seconds &&
-              lhs.nanos ==
-                (rhs as { nanos: unknown }).nanos
+              lhs.seconds == (rhs as { seconds: unknown }).seconds &&
+              lhs.nanos == (rhs as { nanos: unknown }).nanos
             );
           case "google.protobuf.Any":
             // Any is automatically unpacked to a CelObject by ProtoValAdapter.
@@ -188,13 +185,19 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       return compareBytes(lhs, rhs);
     } else if (typeof lhs === "string" && typeof rhs === "string") {
       return lhs < rhs ? -1 : lhs > rhs ? 1 : 0;
-    } else if (isMessage(lhs, DurationSchema) && isMessage(rhs, DurationSchema)) {
+    } else if (
+      isMessage(lhs, DurationSchema) &&
+      isMessage(rhs, DurationSchema)
+    ) {
       const cmp = lhs.seconds - rhs.seconds;
       if (cmp == 0n) {
         return lhs.nanos - rhs.nanos;
       }
       return cmp < 0n ? -1 : 1;
-    } else if (isMessage(lhs, TimestampSchema) && isMessage(rhs, TimestampSchema)) {
+    } else if (
+      isMessage(lhs, TimestampSchema) &&
+      isMessage(rhs, TimestampSchema)
+    ) {
       const cmp = lhs.seconds - rhs.seconds;
       if (cmp == 0n) {
         return lhs.nanos - rhs.nanos;

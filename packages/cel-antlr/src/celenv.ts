@@ -1,5 +1,13 @@
-import { createRegistry, type Registry, isMessage, create } from "@bufbuild/protobuf";
-import { ExprSchema, ParsedExprSchema } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import {
+  createRegistry,
+  type Registry,
+  isMessage,
+  create,
+} from "@bufbuild/protobuf";
+import {
+  ExprSchema,
+  ParsedExprSchema,
+} from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import type { ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import type { Expr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { CheckedExprSchema } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";

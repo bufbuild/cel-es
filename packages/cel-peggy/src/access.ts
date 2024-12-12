@@ -540,7 +540,7 @@ class EvalAccess implements Access {
       return key;
     }
     const access = this.factory.newAccess(this.id, key, this.optional);
-    return access.isPresent(vars, obj)
+    return access.isPresent(vars, obj);
   }
 
   accessIfPresent(

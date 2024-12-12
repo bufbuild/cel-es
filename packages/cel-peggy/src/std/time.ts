@@ -1,5 +1,9 @@
 import { isMessage, toJson } from "@bufbuild/protobuf";
-import { DurationSchema, timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import {
+  DurationSchema,
+  timestampDate,
+  TimestampSchema,
+} from "@bufbuild/protobuf/wkt";
 import { utcToZonedTime } from "date-fns-tz";
 
 import {

@@ -423,10 +423,7 @@ export class EvalAttr implements Attribute, Interpretable {
     return this.attr.access(vars, obj);
   }
 
-  isPresent(
-    vars: Activation,
-    obj: RawVal,
-  ): CelResult<boolean> {
+  isPresent(vars: Activation, obj: RawVal): CelResult<boolean> {
     return this.attr.isPresent(vars, obj);
   }
 

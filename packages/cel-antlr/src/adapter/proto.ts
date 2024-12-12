@@ -35,11 +35,11 @@ import {
   reflectMap,
   type ReflectMap,
   type ReflectMessage,
-  type ScalarValue
+  type ScalarValue,
 } from "@bufbuild/protobuf/reflect";
 
-import {EMPTY_PROVIDER} from "../value/empty.js";
-import {type CelValProvider} from "../value/provider.js";
+import { EMPTY_PROVIDER } from "../value/empty.js";
+import { type CelValProvider } from "../value/provider.js";
 import * as type from "../value/type.js";
 import {
   CelError,
@@ -63,7 +63,7 @@ import {
   ProtoNull,
   type StructAccess,
 } from "../value/value.js";
-import {CEL_ADAPTER} from "./cel.js";
+import { CEL_ADAPTER } from "./cel.js";
 
 type ProtoValue = CelVal | Message;
 type ProtoResult = CelResult<ProtoValue>;
@@ -133,7 +133,6 @@ export class ProtoValAdapter implements CelValAdapter {
   }
 
   toCel(native: ProtoValue | ReflectMessage): CelResult {
-
     // TODO(tstamm) consider storing ReflectMessage in CelObject
     if (isReflectMessage(native)) {
       native = native.message;
@@ -191,9 +190,13 @@ export class ProtoValAdapter implements CelValAdapter {
   ): boolean | CelError | CelUnknown {
     if (isProtoMsg(obj)) {
       const schema = this.getSchema(obj.$typeName);
-      const field = schema.fields.find(f => f.name === name);
+      const field = schema.fields.find((f) => f.name === name);
       if (!field) {
-        return CelErrors.fieldNotFound(id, name, schema.fields.map(f => f.name));
+        return CelErrors.fieldNotFound(
+          id,
+          name,
+          schema.fields.map((f) => f.name),
+        );
       }
       return isFieldSet(obj, field);
     }
@@ -207,9 +210,13 @@ export class ProtoValAdapter implements CelValAdapter {
   ): undefined | ScalarValue | ReflectMessage | CelVal | CelError | CelUnknown {
     if (isProtoMsg(obj)) {
       const schema = this.getSchema(obj.$typeName);
-      const field = schema.fields.find(f => f.name === name);
+      const field = schema.fields.find((f) => f.name === name);
       if (!field) {
-        return CelErrors.fieldNotFound(id, name, schema.fields.map(f => f.name));
+        return CelErrors.fieldNotFound(
+          id,
+          name,
+          schema.fields.map((f) => f.name),
+        );
       }
       const r = reflect(schema, obj);
       switch (field.fieldKind) {
@@ -269,7 +276,9 @@ export class ProtoValAdapter implements CelValAdapter {
           case ScalarType.FIXED32:
           case ScalarType.FIXED64:
             return new CelList(
-              (listValues as (number | bigint)[]).map((v) => new CelUint(BigInt(v))),
+              (listValues as (number | bigint)[]).map(
+                (v) => new CelUint(BigInt(v)),
+              ),
               this,
               type.LIST_UINT,
             );
@@ -277,7 +286,7 @@ export class ProtoValAdapter implements CelValAdapter {
           case ScalarType.SINT32:
           case ScalarType.SFIXED32:
             return new CelList(
-              (listValues as number[]).map(v => BigInt(v)),
+              (listValues as number[]).map((v) => BigInt(v)),
               this,
               type.LIST_INT,
             );
@@ -302,7 +311,7 @@ export class ProtoValAdapter implements CelValAdapter {
         );
       case "message":
         return new CelList(
-          (listValues as ReflectMessage[]).map(rm => rm.message),
+          (listValues as ReflectMessage[]).map((rm) => rm.message),
           this,
           new type.ListType(new CelType(field.message.typeName)),
         );
@@ -361,12 +370,20 @@ export class ProtoValAdapter implements CelValAdapter {
     return CEL_ADAPTER.accessByIndex(id, obj, index);
   }
 
-  reflectMessageFromCel(id: number, messageSchema: DescMessage, val: CelResult): ProtoNull | ReflectMessage | CelError | CelUnknown {
+  reflectMessageFromCel(
+    id: number,
+    messageSchema: DescMessage,
+    val: CelResult,
+  ): ProtoNull | ReflectMessage | CelError | CelUnknown {
     const result = this.messageFromCel(id, messageSchema, val);
     return isMessage(result) ? reflect(messageSchema, result) : result;
   }
 
-  messageFromCel(id: number, messageSchema: DescMessage, val: CelResult): ProtoNull | Message | ReflectMessage | CelError | CelUnknown {
+  messageFromCel(
+    id: number,
+    messageSchema: DescMessage,
+    val: CelResult,
+  ): ProtoNull | Message | ReflectMessage | CelError | CelUnknown {
     if (val instanceof CelError || val instanceof CelUnknown) {
       return val;
     }
@@ -461,20 +478,20 @@ export class ProtoValAdapter implements CelValAdapter {
     let kind: Value["kind"] | undefined;
     switch (typeof celVal) {
       case "boolean":
-        kind = {case: "boolValue", value: celVal};
+        kind = { case: "boolValue", value: celVal };
         break;
       case "string":
-        kind = {case: "stringValue", value: celVal};
+        kind = { case: "stringValue", value: celVal };
         break;
       case "number":
-        kind = {case: "numberValue", value: celVal};
+        kind = { case: "numberValue", value: celVal };
         break;
       case "bigint":
-        kind = {case: "numberValue", value: Number(celVal)};
+        kind = { case: "numberValue", value: Number(celVal) };
         break;
       case "object":
         if (celVal === null) {
-          kind = {case: "nullValue", value: NullValue.NULL_VALUE};
+          kind = { case: "nullValue", value: NullValue.NULL_VALUE };
         }
         break;
     }
@@ -537,7 +554,14 @@ export class ProtoValAdapter implements CelValAdapter {
       if (val instanceof CelError || val instanceof CelUnknown) {
         return val;
       }
-      let protoVal: ScalarValue | ReflectMessage | ReflectList | ReflectMap | ProtoNull | CelError | CelUnknown;
+      let protoVal:
+        | ScalarValue
+        | ReflectMessage
+        | ReflectList
+        | ReflectMap
+        | ProtoNull
+        | CelError
+        | CelUnknown;
       switch (field.fieldKind) {
         case "enum":
           protoVal = this.enumFromCel(id, field.enum, val);
@@ -566,13 +590,21 @@ export class ProtoValAdapter implements CelValAdapter {
     return message;
   }
 
-  private enumFromCel(id: number, _descEnum: DescEnum, val: CelVal): number | CelError | CelUnknown {
+  private enumFromCel(
+    id: number,
+    _descEnum: DescEnum,
+    val: CelVal,
+  ): number | CelError | CelUnknown {
     // TODO(tstamm) should this coerce?
     // TODO(tstamm) check enum values?
     return coerceToNumber(id, val);
   }
 
-  private scalarFromCel(id: number, scalar: ScalarType, val: CelVal): ScalarValue | CelError | CelUnknown {
+  private scalarFromCel(
+    id: number,
+    scalar: ScalarType,
+    val: CelVal,
+  ): ScalarValue | CelError | CelUnknown {
     let result: ScalarValue | CelError | CelUnknown;
     switch (scalar) {
       case ScalarType.BOOL:
@@ -622,7 +654,11 @@ export class ProtoValAdapter implements CelValAdapter {
     return result;
   }
 
-  private listFromCel(id: number, field: DescField & {fieldKind: "list"}, val: CelVal): ReflectList | CelError | CelUnknown {
+  private listFromCel(
+    id: number,
+    field: DescField & { fieldKind: "list" },
+    val: CelVal,
+  ): ReflectList | CelError | CelUnknown {
     if (val instanceof CelList) {
       const result = reflectList(field);
       for (const listItem of val.value) {
@@ -630,7 +666,12 @@ export class ProtoValAdapter implements CelValAdapter {
         if (celItem instanceof CelError || celItem instanceof CelUnknown) {
           return celItem;
         }
-        let protoItem: ScalarValue | ReflectMessage | ProtoNull | CelError | CelUnknown;
+        let protoItem:
+          | ScalarValue
+          | ReflectMessage
+          | ProtoNull
+          | CelError
+          | CelUnknown;
         switch (field.listKind) {
           case "scalar":
             protoItem = this.scalarFromCel(id, field.scalar, celItem);
@@ -652,7 +693,11 @@ export class ProtoValAdapter implements CelValAdapter {
     throw new Error("Method not implemented.");
   }
 
-  private mapFromCel(id: number, field: DescField & {fieldKind: "map"}, val: CelVal): ReflectMap | CelError | CelUnknown {
+  private mapFromCel(
+    id: number,
+    field: DescField & { fieldKind: "map" },
+    val: CelVal,
+  ): ReflectMap | CelError | CelUnknown {
     if (val instanceof CelMap || val instanceof CelObject) {
       const result = reflectMap(field);
       const keys = val.getFields();
@@ -737,7 +782,10 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
       return undefined;
     }
     const protoMessage = this.adapter.messageFromCel(id, messageSchema, obj);
-    if (protoMessage instanceof CelError || protoMessage instanceof CelUnknown) {
+    if (
+      protoMessage instanceof CelError ||
+      protoMessage instanceof CelUnknown
+    ) {
       return protoMessage;
     }
     return this.adapter.toCel(protoMessage);

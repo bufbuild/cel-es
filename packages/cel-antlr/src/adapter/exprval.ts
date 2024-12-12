@@ -1,8 +1,18 @@
 import { isMessage, create } from "@bufbuild/protobuf";
-import { type Any, anyUnpack, DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import {
+  type Any,
+  anyUnpack,
+  DurationSchema,
+  TimestampSchema,
+} from "@bufbuild/protobuf/wkt";
 import { ExprValueSchema } from "@bufbuild/cel-spec/cel/expr/eval_pb.js";
 import type { ExprValue } from "@bufbuild/cel-spec/cel/expr/eval_pb.js";
-import { ListValueSchema, MapValueSchema, MapValue_EntrySchema, ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
+import {
+  ListValueSchema,
+  MapValueSchema,
+  MapValue_EntrySchema,
+  ValueSchema,
+} from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import type { MapValue } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import type { ListValue } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import type { Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
