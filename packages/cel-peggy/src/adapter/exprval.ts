@@ -1,5 +1,5 @@
 import { isMessage, create } from "@bufbuild/protobuf";
-import { Any, DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import { type Any, anyUnpack, DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { ExprValueSchema } from "@bufbuild/cel-spec/cel/expr/eval_pb.js";
 import type { ExprValue } from "@bufbuild/cel-spec/cel/expr/eval_pb.js";
 import { ListValueSchema, MapValueSchema, MapValue_EntrySchema, ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
@@ -19,6 +19,8 @@ import {
   type CelResult,
   type CelVal,
   type CelValAdapter,
+  CelError,
+  CelUnknown,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 
@@ -88,6 +90,14 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
         return this.accessMapByIndex(id, value.kind.value, index);
     }
     return CelErrors.badIndexAccess(id, this.valueToType(value));
+  }
+
+  isSetByName(
+    id: number,
+    obj: ExprType,
+    name: string,
+  ): boolean | CelError | CelUnknown {
+    return this.accessByName(id, obj, name) !== undefined;
   }
 
   accessByName(
@@ -299,17 +309,13 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
     throw new Error("unimplemented: " + val.kind.case);
   }
   private objectToCel(value: Any): CelVal {
-    switch (value.typeUrl) {
-      case "type.googleapis.com/google.protobuf.Duration": {
-        const val = create(DurationSchema);
-        value.unpackTo(val);
-        return val;
-      }
-      case "type.googleapis.com/google.protobuf.Timestamp": {
-        const ts = create(TimestampSchema);
-        value.unpackTo(ts);
-        return ts;
-      }
+    const duration = anyUnpack(value, DurationSchema);
+    if (duration !== undefined) {
+      return duration;
+    }
+    const ts = anyUnpack(value, TimestampSchema);
+    if (ts !== undefined) {
+      return ts;
     }
     throw new Error("unimplemented: " + value.typeUrl);
   }

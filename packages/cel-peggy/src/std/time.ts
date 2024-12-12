@@ -1,5 +1,5 @@
-import { isMessage } from "@bufbuild/protobuf";
-import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import { isMessage, toJson } from "@bufbuild/protobuf";
+import { DurationSchema, timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { utcToZonedTime } from "date-fns-tz";
 
 import {
@@ -18,7 +18,7 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
     if (!isMessage(args[0], TimestampSchema)) {
       return undefined;
     }
-    let val = args[0].toDate();
+    let val = timestampDate(args[0]);
     if (args.length >= 2) {
       if (typeof args[1] !== "string") {
         return undefined;
@@ -27,7 +27,7 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
       // check if InvalidDate was returned
       if (isNaN(val.getTime())) {
         // Try with a leading '+' as a workaround for date-fns-tz bug.
-        val = utcToZonedTime(args[0].toDate(), "+" + args[1]);
+        val = utcToZonedTime(timestampDate(args[0]), "+" + args[1]);
         if (isNaN(val.getTime())) {
           return CelErrors.invalidTz(id, args[1]);
         }
@@ -40,9 +40,7 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
       return BigInt(result);
     } catch (_e) {
       throw new Error(
-        `Error converting ${result} of ${String(val)} of ${String(
-          args[0].toJson(),
-        )} to BigInt`,
+        `Error converting ${result} of ${String(val)} of ${toJson(TimestampSchema, args[0])} to BigInt`,
       );
     }
   };

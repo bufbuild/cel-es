@@ -1,4 +1,4 @@
-import {
+import type {
   Constant,
   Expr,
   Expr_Call,
@@ -126,7 +126,6 @@ export class Planner {
     }
     const operand = this.plan(expr.operand);
     const attr = this.relativeAttr(id, operand, false);
-
     const acc = this.factory.newAccess(id, expr.field, false);
     if (acc instanceof CelError) {
       throw new Error(`invalid select: ${acc.message}`);
@@ -387,13 +386,7 @@ export class EvalHas implements Interpretable {
     } else if (raw instanceof CelError || raw instanceof CelUnknown) {
       return raw;
     }
-    const out = this.access.accessIfPresent(ctx, raw, true);
-    if (out === undefined) {
-      return false;
-    } else if (out instanceof CelError || out instanceof CelUnknown) {
-      return out;
-    }
-    return true;
+    return this.access.isPresent(ctx, raw);
   }
 }
 
@@ -428,6 +421,13 @@ export class EvalAttr implements Attribute, Interpretable {
   }
   access(vars: Activation, obj: RawVal): RawResult | undefined {
     return this.attr.access(vars, obj);
+  }
+
+  isPresent(
+    vars: Activation,
+    obj: RawVal,
+  ): CelResult<boolean> {
+    return this.attr.isPresent(vars, obj);
   }
 
   accessIfPresent(

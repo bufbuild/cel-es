@@ -1,4 +1,4 @@
-import { isMessage } from "@bufbuild/protobuf";
+import { isMessage, toJson } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
@@ -514,9 +514,9 @@ export class Formatter {
         } else if (val instanceof CelUint) {
           return val.value.toString();
         } else if (isMessage(val, TimestampSchema)) {
-          return 'timestamp("' + (val.toJson() as string) + '")';
+          return 'timestamp("' + toJson(TimestampSchema, val) + '")';
         } else if (isMessage(val, DurationSchema)) {
-          return 'duration("' + (val.toJson() as string) + '")';
+          return 'duration("' + toJson(DurationSchema, val) + '")';
         } else if (val instanceof Uint8Array) {
           // escape non-printable characters
           return 'b"' + new TextDecoder().decode(val) + '"';
@@ -552,9 +552,9 @@ export class Formatter {
         } else if (val instanceof CelUint) {
           return val.value.toString();
         } else if (isMessage(val, TimestampSchema)) {
-          return val.toJson() as string;
+          return toJson(TimestampSchema, val);
         } else if (isMessage(val, DurationSchema)) {
-          return val.toJson() as string;
+          return toJson(DurationSchema, val);
         } else if (val instanceof Uint8Array) {
           return new TextDecoder().decode(val);
         } else if (val instanceof CelList) {
