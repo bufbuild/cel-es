@@ -65,7 +65,7 @@ import {
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 
-type ProtoValue = CelVal | Message;
+type ProtoValue = CelVal | ScalarValue | ReflectMessage | Message;
 type ProtoResult = CelResult<ProtoValue>;
 
 export function isProtoMsg(val: unknown): val is Message {
@@ -99,6 +99,9 @@ export class ProtoValAdapter implements CelValAdapter {
   }
 
   equals(lhs: ProtoValue, rhs: ProtoValue): CelResult<boolean> {
+    if (isReflectMessage(lhs) || isReflectMessage(rhs)) {
+      throw new Error("not implemented");
+    }
     if (isProtoMsg(lhs)) {
       if (!isMessage(rhs)) {
         return false;
@@ -127,6 +130,9 @@ export class ProtoValAdapter implements CelValAdapter {
 
   compare(lhs: ProtoValue, rhs: ProtoValue): CelResult<number> | undefined {
     if (isProtoMsg(lhs) || isProtoMsg(rhs)) {
+      return undefined;
+    }
+    if (isReflectMessage(lhs) || isReflectMessage(rhs)) {
       return undefined;
     }
     return CEL_ADAPTER.compare(lhs, rhs);
@@ -365,6 +371,9 @@ export class ProtoValAdapter implements CelValAdapter {
     index: number | bigint,
   ): ProtoResult | undefined {
     if (isProtoMsg(obj)) {
+      return undefined;
+    }
+    if (isReflectMessage(obj)) {
       return undefined;
     }
     return CEL_ADAPTER.accessByIndex(id, obj, index);
@@ -772,7 +781,7 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
     id: number,
     typeName: string,
     obj: CelObject | CelMap,
-  ): CelResult | undefined {
+  ): CelResult<ProtoValue> | undefined {
     const result = EMPTY_PROVIDER.newValue(id, typeName, obj);
     if (result !== undefined) {
       return result;
