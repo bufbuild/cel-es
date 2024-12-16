@@ -8,6 +8,7 @@
   "workspaces": [
     "packages/cel-spec",
     "packages/cel-peggy",
+    "packages/cel-peggy2",
     "packages/cel-antlr"
   ],
   "type": "module",
