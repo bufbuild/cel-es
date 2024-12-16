@@ -14,7 +14,7 @@ import { EmptyActivation } from "../activation.js";
 import * as assert from "node:assert/strict";
 import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { parseDuration } from "../value/value.js";
-import {parse} from "../parser.js";
+import { parse } from "../parser.js";
 
 type StringFormatTestCase = {
   name: string;

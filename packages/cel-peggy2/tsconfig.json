@@ -5,8 +5,6 @@
   "compilerOptions": {
     // peggy generated code uses ES2021 features
     "target": "es2021",
-    "lib": [
-      "ES2021",
-    ]
+    "lib": ["ES2021"]
   }
 }
