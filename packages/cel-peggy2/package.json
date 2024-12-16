@@ -10,7 +10,7 @@
   },
   "scripts": {
     "generate": "peggy cel.peggy --format bare --extra-options '{\"typescript\":true}' --plugin peggy-ts -o ./src/parser.ts",
-    "postgenerate": "prettier src/parser.ts --write",
+    "postgenerate": "prettier src/parser.ts --write && git apply parser.patch",
     "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
