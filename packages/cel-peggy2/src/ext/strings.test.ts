@@ -635,8 +635,7 @@ const STRINGS_FORMAT_TEST_CASES: StringFormatTestCase[] = [
 
 void suite("string.format", () => {
   for (const tc of STRINGS_FORMAT_TEST_CASES) {
-    // TODO
-    void test(tc.name, { skip: "broken" }, () => {
+    void test(tc.name, () => {
       const extFuncs = new FuncRegistry(STD_FUNCS);
       addStringsExt(
         extFuncs,
