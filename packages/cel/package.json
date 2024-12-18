@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@bufbuild/cel-spec": "0.0.1",
-    "date-fns-tz": "^2.0.0"
+    "date-fns-tz": "^3.2.0"
   },
   "devDependencies": {
     "peggy": "^4.0.3",
