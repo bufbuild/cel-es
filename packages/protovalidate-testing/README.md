@@ -9,3 +9,5 @@ Scripts:
 - `test`: Runs the conformance tests with [src/executor.ts](src/executor.ts).
 
 The upstream protovalidate version is specified in the script `generate`.
+
+[expected-failures.yaml](expected-failures.yaml) contains known failures.
