@@ -4,8 +4,8 @@ This package runs the [protovalidate conformance tests](https://github.com/bufbu
 
 Scripts:
 
-- `install-protovalidate-conformance`: Installs the command `protovalidate-conformance`. Requires Go.
+- `install-protovalidate-conformance`: Installs the conformance runner. Requires Go.
 - `generate`: Generates [buf.build/bufbuild/protovalidate-testing](https://buf.build/bufbuild/protovalidate-testing) - Protobuf messages required for the conformance tests.
-- `test`: Runs the conformance tests with [src/executor.ts].
+- `test`: Runs the conformance tests with [src/executor.ts](src/executor.ts).
 
 The upstream protovalidate version is specified in the script `generate`.
