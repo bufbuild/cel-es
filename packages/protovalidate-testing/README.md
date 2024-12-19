@@ -1,6 +1,6 @@
 # Protovalidate conformance tests
 
-This package runs the [protovalidate conformance tests](https://github.com/bufbuild/protovalidate/blob/v0.9.0/docs/conformance.md).
+This private package runs the [protovalidate conformance tests](https://github.com/bufbuild/protovalidate/blob/v0.9.0/docs/conformance.md).
 
 Scripts:
 
