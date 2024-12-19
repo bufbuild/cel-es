@@ -10,4 +10,4 @@ Scripts:
 
 The upstream protovalidate version is specified in the script `generate`.
 
-[expected-failures.yaml](expected-failures.yaml) contains known failures.
+Known failures are listed in [expected-failures.yaml](expected-failures.yaml).
