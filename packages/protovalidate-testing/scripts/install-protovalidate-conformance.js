@@ -1,9 +1,8 @@
 import { spawnSync } from "node:child_process";
 import process from "node:process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { URL } from "node:url";
-import { mkdirSync } from "fs";
 
 const packageDir = new URL("../", import.meta.url).pathname;
 const version = readUpstreamVersionFromPackageJsonScript(

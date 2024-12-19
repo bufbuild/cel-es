@@ -2,7 +2,7 @@
   "name": "@bufbuild/protovalidate-testing",
   "private": true,
   "bin": {
-    "protovalidate-conformance": "./protovalidate-conformance"
+    "protovalidate-conformance": "bin/protovalidate-conformance.cjs"
   },
   "scripts": {
     "install-protovalidate-conformance": "node scripts/install-protovalidate-conformance.js",
