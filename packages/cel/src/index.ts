@@ -1,3 +1,19 @@
+import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
+import {
+  type ParsedExpr,
+  ParsedExprSchema,
+} from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import {
+  CelError,
+  newDuration as _newDuration,
+  newTimestamp as _newTimestamp,
+  parseDuration as _parseDuration,
+} from "./value/value.js";
+import { parse as internalParse } from "./parser.js";
+import { CelEnv } from "./celenv.js";
+import { create, type Registry } from "@bufbuild/protobuf";
+import { STRINGS_EXT_FUNCS } from "./ext/strings.js";
+
 export { type CelParser, CelPlanner, CelEnv } from "./celenv.js";
 export {
   type CelResult,
@@ -20,13 +36,19 @@ export { EXPR_VAL_ADAPTER } from "./adapter/exprval.js";
 export { ObjectActivation } from "./activation.js";
 export { makeStringExtFuncRegistry } from "./ext/strings.js";
 
-import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
-import {
-  CelError,
-  newDuration as _newDuration,
-  newTimestamp as _newTimestamp,
-  parseDuration as _parseDuration,
-} from "./value/value.js";
+export function createEnv(namespace: string, registry: Registry): CelEnv {
+  const env = new CelEnv(namespace, registry);
+  env.addFuncs(STRINGS_EXT_FUNCS);
+  env.setParser({
+    parse(text: string): ParsedExpr {
+      const expr = internalParse(text);
+      return create(ParsedExprSchema, {
+        expr,
+      });
+    },
+  });
+  return env;
+}
 
 function throwIfError<T>(result: CelError | T): T {
   if (result instanceof CelError) {
