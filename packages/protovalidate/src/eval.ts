@@ -2,24 +2,30 @@ import type {
   ReflectList,
   ReflectMap,
   ReflectMessage,
-  ReflectMessageGet,
+  ReflectMessageGet, ScalarValue,
 } from "@bufbuild/protobuf/reflect";
-import type {
-  DescEnum,
-  DescField,
-  DescMessage,
-  DescOneof,
-  Registry,
+import {
+  createRegistry,
+  type DescEnum,
+  type DescField,
+  type DescMessage,
+  type DescOneof, getOption, hasOption, isFieldSet, type MessageShape,
+  type Registry,
 } from "@bufbuild/protobuf";
 import { type Any, anyIs } from "@bufbuild/protobuf/wkt";
 import { CelEnv, createEnv } from "@bufbuild/cel";
-import type { AnyRules, Constraint } from "./gen/buf/validate/validate_pb.js";
+import {
+  type AnyRules,
+  type Constraint, type EnumRules, EnumRulesSchema,
+  predefined,
+} from "./gen/buf/validate/validate_pb.js";
 import { Cursor } from "./cursor.js";
 import {
   celConstraintEval,
   celConstraintPlan,
   createCelRegistry,
 } from "./cel.js";
+import type {Path} from "./path.js";
 
 /**
  * A no-op evaluator.
@@ -134,8 +140,8 @@ export class EvalMessageCel implements Eval<ReflectMessage> {
     return createEnv(namespace, createCelRegistry(userRegistry, descMessage));
   }
 
-  private env: CelEnv;
-  private planned: ReturnType<CelEnv["plan"]>;
+  private readonly env: CelEnv;
+  private readonly planned: ReturnType<CelEnv["plan"]>;
 
   constructor(
     private constraint: Constraint,
@@ -163,8 +169,8 @@ export class EvalFieldCel implements Eval<ReflectMessageGet> {
     return createEnv(namespace, createCelRegistry(userRegistry, field));
   }
 
-  private env: CelEnv;
-  private planned: ReturnType<CelEnv["plan"]>;
+  private readonly env: CelEnv;
+  private readonly planned: ReturnType<CelEnv["plan"]>;
 
   constructor(
     // @ts-expect-error TS6138: Property _field is declared but its value is never read.
@@ -184,6 +190,106 @@ export class EvalFieldCel implements Eval<ReflectMessageGet> {
     }
   }
 }
+
+export class EvalScalarRules<Desc extends DescMessage> implements Eval<ScalarValue> {
+  private readonly rules: MessageShape<Desc>;
+  private readonly env: CelEnv;
+  private readonly plannedRules: {rule: Path; constraint: Constraint, planned: ReturnType<CelEnv["plan"]>}[] = [];
+  constructor(
+    schema: Desc,
+    rules: MessageShape<Desc>,
+    userRegistry: Registry,
+  ) {
+    this.rules = rules;
+    this.env = createEnv("", createRegistry(userRegistry, schema));
+    for (const field of schema.fields) {
+      if (!isFieldSet(rules, field)) {
+        continue;
+      }
+      if (!hasOption(field, predefined)) {
+        continue;
+      }
+      const predefinedConstraints = getOption(field, predefined);
+      const rule: Path = [field];
+      if (predefinedConstraints.cel.length) {
+        for (const constraint of predefinedConstraints.cel) {
+          this.plannedRules.push({
+            rule,
+            constraint,
+            planned: celConstraintPlan(this.env, constraint),
+          });
+        }
+      }
+    }
+  }
+  eval(val: ScalarValue, cursor: Cursor): void {
+    this.env.set("this", val);
+    this.env.set("rules", this.rules);
+    for (const {rule, constraint, planned} of this.plannedRules) {
+      const vio = celConstraintEval(this.env, constraint, planned);
+      if (vio) {
+        cursor.violate(vio.message, vio.constraintId, rule);
+      }
+    }
+  }
+}
+
+
+/**
+ * buf.validate.EnumRules.defined_only does not use CEL expressions. This implements custom logic for this field.
+ */
+export class EvalEnumEnumRules implements Eval<number> {
+  private readonly definedOnly: ReadonlySet<number> | undefined;
+  private readonly rules: EnumRules;
+  private readonly env: CelEnv;
+  private readonly plannedRules: {rule: Path; constraint: Constraint, planned: ReturnType<CelEnv["plan"]>}[] = [];
+  constructor(
+    descEnum: DescEnum,
+    rules: EnumRules,
+  ) {
+    this.definedOnly = rules.definedOnly ? new Set<number>(descEnum.values.map((v) => v.number)) : undefined;
+    this.rules = rules;
+    this.env = createEnv("", createRegistry());
+    for (const field of EnumRulesSchema.fields) {
+      if (!isFieldSet(rules, field)) {
+        continue;
+      }
+      if (!hasOption(field, predefined)) {
+        continue;
+      }
+      const predefinedConstraints = getOption(field, predefined);
+      const rule: Path = [field];
+      if (predefinedConstraints.cel.length) {
+        for (const constraint of predefinedConstraints.cel) {
+          this.plannedRules.push({
+            rule,
+            constraint,
+            planned: celConstraintPlan(this.env, constraint),
+          });
+        }
+      }
+    }
+  }
+  eval(val: number, cursor: Cursor): void {
+    this.env.set("this", val);
+    this.env.set("rules", this.rules);
+    if (this.definedOnly !== undefined && !this.definedOnly.has(val)) {
+      // value must be one of the defined enum values [enum.defined_only]
+      cursor.violate(
+        "value must be one of the defined enum values",
+        "enum.defined_only",
+        [],
+      );
+    }
+    for (const {rule, constraint, planned} of this.plannedRules) {
+      const vio = celConstraintEval(this.env, constraint, planned);
+      if (vio) {
+        cursor.violate(vio.message, vio.constraintId, rule);
+      }
+    }
+  }
+}
+
 
 /**
  * buf.validate.AnyRules.in and not_in do not use CEL expressions. This implements custom logic for these fields.
@@ -212,27 +318,6 @@ export class EvalAnyRules implements Eval<ReflectMessage> {
       cursor.violate(
         "type URL must not be in the block list",
         "any.not_in",
-        [],
-      );
-    }
-  }
-}
-
-/**
- * buf.validate.EnumRules.defined_only does not use CEL expressions. This implements custom logic for this field.
- */
-export class EvalEnumDefinedOnly implements Eval<number> {
-  private readonly defined: ReadonlySet<number>;
-  constructor(descEnum: DescEnum) {
-    this.defined = new Set<number>(descEnum.values.map((v) => v.number));
-  }
-
-  eval(val: number, cursor: Cursor): void {
-    if (!this.defined.has(val)) {
-      // value must be one of the defined enum values [enum.defined_only]
-      cursor.violate(
-        "value must be one of the defined enum values",
-        "enum.defined_only",
         [],
       );
     }

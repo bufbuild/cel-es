@@ -13,9 +13,17 @@ import {
   TimestampSchema,
 } from "@bufbuild/protobuf/wkt";
 import {
+  BoolRulesSchema, BytesRulesSchema,
   type Constraint,
+  DoubleRulesSchema,
   field as ext_field,
-  type FieldConstraints,
+  type FieldConstraints, Fixed32RulesSchema, Fixed64RulesSchema,
+  FloatRulesSchema,
+  Int32RulesSchema,
+  Int64RulesSchema, SFixed32RulesSchema, SFixed64RulesSchema, SInt32RulesSchema, SInt64RulesSchema,
+  StringRulesSchema,
+  UInt32RulesSchema,
+  UInt64RulesSchema,
 } from "./gen/buf/validate/validate_pb.js";
 import type {
   ReflectList,
@@ -28,7 +36,7 @@ import {
   concat,
   type Eval,
   EvalAnyRules,
-  EvalEnumDefinedOnly,
+  EvalEnumEnumRules,
   EvalField,
   EvalFieldCel,
   EvalFieldIfSet,
@@ -36,7 +44,7 @@ import {
   EvalListItems,
   EvalMapEntries,
   EvalMessageCel,
-  EvalOneofRequired,
+  EvalOneofRequired, EvalScalarRules,
   noopEval,
 } from "./eval.js";
 import type { ConstraintResolver } from "./resolve.js";
@@ -118,13 +126,13 @@ function planFields(
       }
       case "list": {
         evals.push(
-          new EvalField(field, concat(...fieldCelEvals, planList(field))),
+          new EvalField(field, concat(...fieldCelEvals, planList(field, userRegistry))),
         );
         break;
       }
       case "map":
         evals.push(
-          new EvalField(field, concat(...fieldCelEvals, planMap(field))),
+          new EvalField(field, concat(...fieldCelEvals, planMap(field, userRegistry))),
         );
         break;
       case "enum": {
@@ -144,7 +152,7 @@ function planFields(
             field,
             concat(
               ...fieldCelEvals,
-              ...planScalarRules(field.scalar, constraints),
+              ...planScalarRules(field.scalar, constraints, userRegistry),
             ),
           ),
         );
@@ -154,7 +162,7 @@ function planFields(
   return evals;
 }
 
-function planList(field: DescField & { fieldKind: "list" }): Eval<ReflectList> {
+function planList(field: DescField & { fieldKind: "list" }, userRegistry: Registry): Eval<ReflectList> {
   const constraints = getOption(field, ext_field);
   const repeatedRules =
     constraints.type.case == "repeated" ? constraints.type.value : undefined;
@@ -166,7 +174,7 @@ function planList(field: DescField & { fieldKind: "list" }): Eval<ReflectList> {
     }
     case "scalar": {
       return new EvalListItems<ScalarValue>(
-        concat(...planScalarRules(field.scalar, repeatedRules?.items)),
+        concat(...planScalarRules(field.scalar, repeatedRules?.items, userRegistry)),
       );
     }
     case "message": {
@@ -180,11 +188,11 @@ function planList(field: DescField & { fieldKind: "list" }): Eval<ReflectList> {
   }
 }
 
-function planMap(field: DescField & { fieldKind: "map" }): Eval<ReflectMap> {
+function planMap(field: DescField & { fieldKind: "map" }, userRegistry: Registry): Eval<ReflectMap> {
   const constraints = getOption(field, ext_field);
   const mapRules =
     constraints.type.case == "map" ? constraints.type.value : undefined;
-  const evalKey = concat(...planScalarRules(field.mapKey, mapRules?.keys));
+  const evalKey = concat(...planScalarRules(field.mapKey, mapRules?.keys, userRegistry));
 
   switch (field.mapKind) {
     case "message":
@@ -201,7 +209,7 @@ function planMap(field: DescField & { fieldKind: "map" }): Eval<ReflectMap> {
     case "scalar":
       return new EvalMapEntries<ScalarValue>(
         evalKey,
-        concat(...planScalarRules(field.scalar, mapRules?.values)),
+        concat(...planScalarRules(field.scalar, mapRules?.values, userRegistry)),
       );
   }
 }
@@ -212,9 +220,9 @@ function planEnumRules(
 ): Eval<number>[] {
   const evals: Eval<number>[] = [];
   if (constraints?.type.case == "enum") {
-    if (constraints.type.value.definedOnly) {
-      evals.push(new EvalEnumDefinedOnly(descEnum));
-    }
+    evals.push(
+      new EvalEnumEnumRules(descEnum, constraints.type.value)
+    );
   }
   return evals;
 }
@@ -222,13 +230,85 @@ function planEnumRules(
 function planScalarRules(
   scalar: ScalarType,
   constraints: FieldConstraints | undefined,
+  userRegistry: Registry,
 ): Eval<ScalarValue>[] {
   const evals: Eval<ScalarValue>[] = [];
   switch (scalar) {
+    case ScalarType.FLOAT:
+      if (constraints?.type.case == "float") {
+        evals.push(new EvalScalarRules(FloatRulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.DOUBLE:
+      if (constraints?.type.case == "double") {
+        evals.push(new EvalScalarRules(DoubleRulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.INT32:
+      if (constraints?.type.case == "int32") {
+        evals.push(new EvalScalarRules(Int32RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.INT64:
+      if (constraints?.type.case == "int64") {
+        evals.push(new EvalScalarRules(Int64RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.UINT32:
+      if (constraints?.type.case == "uint32") {
+        evals.push(new EvalScalarRules(UInt32RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.UINT64:
+      if (constraints?.type.case == "uint64") {
+        evals.push(new EvalScalarRules(UInt64RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.SINT32:
+      if (constraints?.type.case == "sint32") {
+        evals.push(new EvalScalarRules(SInt32RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.SINT64:
+      if (constraints?.type.case == "sint64") {
+        evals.push(new EvalScalarRules(SInt64RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.FIXED32:
+      if (constraints?.type.case == "fixed32") {
+        evals.push(new EvalScalarRules(Fixed32RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.FIXED64:
+      if (constraints?.type.case == "fixed64") {
+        evals.push(new EvalScalarRules(Fixed64RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.SFIXED32:
+      if (constraints?.type.case == "sfixed32") {
+        evals.push(new EvalScalarRules(SFixed32RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.SFIXED64:
+      if (constraints?.type.case == "sfixed64") {
+        evals.push(new EvalScalarRules(SFixed64RulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
+    case ScalarType.BOOL:
+      if (constraints?.type.case == "bool") {
+        evals.push(new EvalScalarRules(BoolRulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
     case ScalarType.STRING:
       if (constraints?.type.case == "string") {
-        // TODO
+        evals.push(new EvalScalarRules(StringRulesSchema, constraints.type.value, userRegistry))
       }
+      break;
+    case ScalarType.BYTES:
+      if (constraints?.type.case == "bytes") {
+        evals.push(new EvalScalarRules(BytesRulesSchema, constraints.type.value, userRegistry))
+      }
+      break;
   }
   return evals;
 }
