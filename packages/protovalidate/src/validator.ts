@@ -6,7 +6,6 @@ import {
 } from "@bufbuild/protobuf";
 import { Cursor } from "./cursor.js";
 import { createPlanner } from "./planner.js";
-import { createConstraintResolver } from "./resolve.js";
 import { reflect } from "@bufbuild/protobuf/reflect";
 
 /**
@@ -48,10 +47,7 @@ export type BoundValidationFn<T> = (message: T) => void;
 export function createValidator(opt?: ValidatorOptions): Validator {
   const userRegistry = opt?.registry ?? createRegistry();
   const failFast = opt?.failFast ?? false;
-  const planner = createPlanner(
-    createConstraintResolver(userRegistry),
-    userRegistry,
-  );
+  const planner = createPlanner(userRegistry);
   return {
     validate(schema, message) {
       this.for(schema)(message);

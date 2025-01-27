@@ -7,6 +7,9 @@ import type {
 import { ValidationError, Violation } from "./error.js";
 import { buildPath, type PathBuilder, type Path } from "./path.js";
 
+/**
+ * Cursor maintains a field path and tracks violations.
+ */
 export class Cursor {
   static create(root: DescMessage, failFast: boolean) {
     return new Cursor(root, failFast, [], buildPath(root));

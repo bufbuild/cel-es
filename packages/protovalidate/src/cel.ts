@@ -2,11 +2,21 @@ import {
   createRegistry,
   type DescField,
   type DescMessage,
+  getOption,
+  hasOption,
+  isFieldSet,
+  type Message,
   type Registry,
 } from "@bufbuild/protobuf";
-import { type Constraint } from "./gen/buf/validate/validate_pb.js";
-import { CelEnv, CelError, type CelResult } from "@bufbuild/cel";
+import {
+  type Constraint,
+  type FieldConstraints,
+  file_buf_validate_validate,
+  predefined,
+} from "./gen/buf/validate/validate_pb.js";
+import { CelEnv, CelError, type CelResult, createEnv } from "@bufbuild/cel";
 import { CompilationError, RuntimeError } from "./error.js";
+import type { Path } from "./path.js";
 
 /**
  * Parse and compile a buf.validate.Constraint, a Protovalidate CEL expression.
@@ -84,4 +94,71 @@ export function createCelRegistry(
   }
   // TODO add nested types to registry?
   return createRegistry(userRegistry, descMessage);
+}
+
+export type RuleCelPlan = {
+  rules: Message;
+  rulePath: Path;
+  constraint: Constraint;
+  planned: ReturnType<CelEnv["plan"]>;
+  env: CelEnv;
+};
+
+export class RuleCelCache {
+  private readonly rulesRegistry: Registry;
+  private readonly env: CelEnv;
+  private planCache = new Map<DescField, RuleCelPlan[]>();
+
+  constructor(userRegistry: Registry) {
+    this.rulesRegistry = createRegistry(
+      userRegistry,
+      ...file_buf_validate_validate.messages,
+    );
+    this.env = createEnv("", this.rulesRegistry);
+  }
+
+  getPlans(
+    rules: Exclude<FieldConstraints["type"]["value"], undefined>,
+  ): RuleCelPlan[] {
+    const plans: RuleCelPlan[] = [];
+    for (const field of this.rulesMessageDesc(rules).fields) {
+      if (isFieldSet(rules, field)) {
+        plans.push(...this.getFieldPlans(rules, field));
+      }
+    }
+    return plans;
+  }
+
+  private getFieldPlans(rules: Message, field: DescField): RuleCelPlan[] {
+    let plans = this.planCache.get(field);
+    if (plans === undefined) {
+      plans = [];
+      if (hasOption(field, predefined)) {
+        const predefinedConstraints = getOption(field, predefined);
+        if (predefinedConstraints.cel.length) {
+          for (const constraint of predefinedConstraints.cel) {
+            plans.push({
+              rules,
+              rulePath: [field],
+              constraint,
+              planned: celConstraintPlan(this.env, constraint),
+              env: this.env,
+            });
+          }
+        }
+      }
+      this.planCache.set(field, plans);
+    }
+    return plans;
+  }
+
+  private rulesMessageDesc(
+    rules: Exclude<FieldConstraints["type"]["value"], undefined>,
+  ): DescMessage {
+    const desc = this.rulesRegistry.getMessage(rules.$typeName);
+    if (!desc) {
+      throw new Error(`unable to find descriptor for ${rules.$typeName}`);
+    }
+    return desc;
+  }
 }

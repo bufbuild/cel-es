@@ -1,5 +1,4 @@
 {
-  // TODO remove src/*.ts
-  "include": ["src/index.ts", "src/**/*.test.ts", "src/*.ts"],
+  "include": ["src/index.ts", "src/**/*.test.ts"],
   "extends": "../../tsconfig.base.json"
 }
