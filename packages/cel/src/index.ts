@@ -35,6 +35,7 @@ export { CEL_ADAPTER } from "./adapter/cel.js";
 export { EXPR_VAL_ADAPTER } from "./adapter/exprval.js";
 export { ObjectActivation } from "./activation.js";
 export { makeStringExtFuncRegistry } from "./ext/strings.js";
+export { Func, FuncRegistry } from "./func.js";
 
 export function createEnv(namespace: string, registry: Registry): CelEnv {
   const env = new CelEnv(namespace, registry);

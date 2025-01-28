@@ -19,7 +19,7 @@ import {
   ScalarType,
 } from "@bufbuild/protobuf";
 import { type Any, FeatureSet_FieldPresence } from "@bufbuild/protobuf/wkt";
-import { CelEnv, createEnv } from "@bufbuild/cel";
+import { CelEnv } from "@bufbuild/cel";
 import {
   type AnyRules,
   type Constraint,
@@ -30,6 +30,7 @@ import { Cursor } from "./cursor.js";
 import {
   celConstraintEval,
   celConstraintPlan,
+  createCelEnv,
   createCelRegistry,
   type RuleCelPlan,
 } from "./cel.js";
@@ -326,7 +327,7 @@ export class EvalMessageCel implements Eval<ReflectMessage> {
       0,
       descMessage.typeName.lastIndexOf("."),
     );
-    this.env = createEnv(
+    this.env = createCelEnv(
       namespace,
       createCelRegistry(userRegistry, descMessage),
     );
@@ -365,7 +366,7 @@ export class EvalFieldCel implements Eval<ReflectMessageGet> {
       0,
       field.parent.typeName.lastIndexOf("."),
     );
-    this.env = createEnv(namespace, createCelRegistry(userRegistry, field));
+    this.env = createCelEnv(namespace, createCelRegistry(userRegistry, field));
     this.plannedConstraints = constraints.map((constraint) => ({
       constraint,
       planned: celConstraintPlan(this.env, constraint),

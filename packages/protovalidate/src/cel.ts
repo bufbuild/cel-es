@@ -14,9 +14,146 @@ import {
   file_buf_validate_validate,
   predefined,
 } from "./gen/buf/validate/validate_pb.js";
-import { CelEnv, CelError, type CelResult, createEnv } from "@bufbuild/cel";
+import {
+  CelEnv,
+  CelError,
+  type CelResult,
+  type CelVal,
+  createEnv,
+  Func,
+  FuncRegistry,
+} from "@bufbuild/cel";
 import { CompilationError, RuntimeError } from "./error.js";
 import type { Path } from "./path.js";
+import { isAddrSpec, isHostname, isInf, isIp, isUri } from "./lib.js";
+
+export function createCelEnv(namespace: string, registry: Registry): CelEnv {
+  const env = createEnv(namespace, registry);
+  env.addFuncs(createCustomFuncs());
+  return env;
+}
+
+// Done: isHostname, isEmail, isIp, isInf, isNaN, isUri, isUriRef
+
+// TODO now
+// TODO isHostAndPort
+// TODO isIpPrefix
+// TODO unique
+// TODO contains, endsWith, startsWith for bytes
+
+function createCustomFuncs(): FuncRegistry {
+  const reg = new FuncRegistry();
+  reg.add(
+    Func.unary(
+      "isNan",
+      ["double_is_nan_bool"],
+      (_id: number, arg: CelVal): CelResult | undefined => {
+        return typeof arg == "number" && isNaN(arg);
+      },
+    ),
+  );
+  reg.add(
+    Func.newStrict(
+      "isInf",
+      ["double_is_inf_bool", "double_int_is_inf_bool"],
+      (_id: number, args: CelVal[]): CelResult | undefined => {
+        if (args.length == 1) {
+          return typeof args[0] == "number" && isInf(args[0]);
+        }
+        if (args.length == 2) {
+          return (
+            typeof args[0] == "number" &&
+            (typeof args[1] == "number" || typeof args[1] == "bigint") &&
+            isInf(args[0], args[1])
+          );
+        }
+        return false;
+      },
+    ),
+  );
+  reg.add(
+    Func.unary(
+      "isHostname",
+      ["string_is_hostname_bool"],
+      (_id: number, arg: CelVal): CelResult | undefined => {
+        if (typeof arg != "string") {
+          return false;
+        }
+        return isHostname(arg);
+      },
+    ),
+  );
+  reg.add(
+    Func.unary(
+      "isEmail",
+      ["string_is_email_bool"],
+      (_id: number, arg: CelVal): CelResult | undefined => {
+        if (typeof arg != "string") {
+          return false;
+        }
+        return isAddrSpec(arg);
+      },
+    ),
+  );
+  reg.add(
+    Func.newStrict(
+      "isIp",
+      ["string_is_ip_bool", "string_int_is_ip_bool"],
+      (_id: number, args: CelVal[]): CelResult | undefined => {
+        if (args.length == 1) {
+          return typeof args[0] == "string" && isIp(args[0]);
+        }
+        if (args.length == 2) {
+          return (
+            typeof args[0] == "string" &&
+            (typeof args[1] == "number" || typeof args[1] == "bigint") &&
+            isIp(args[0], args[1])
+          );
+        }
+        return false;
+      },
+    ),
+  );
+  reg.add(
+    Func.unary(
+      "isUri",
+      ["string_is_uri_bool"],
+      (_id: number, arg: CelVal): CelResult | undefined => {
+        return typeof arg == "string" && isUri(arg);
+      },
+    ),
+  );
+  reg.add(
+    Func.unary(
+      "isUriRef",
+      ["string_is_uri_ref_bool"],
+      (_id: number, arg: CelVal): CelResult | undefined => {
+        return typeof arg == "string" && isUri(arg, true);
+      },
+    ),
+  );
+  return reg;
+}
+
+/**
+ * Create a registry for CEL evaluation.
+ */
+export function createCelRegistry(
+  userRegistry: Registry,
+  desc: DescField | DescMessage,
+): Registry {
+  let descMessage: DescMessage | undefined;
+  if (desc.kind == "field" && desc.message) {
+    descMessage = desc.message;
+  } else if (desc.kind == "message") {
+    descMessage = desc;
+  }
+  if (!descMessage) {
+    return userRegistry;
+  }
+  // TODO add nested types to registry?
+  return createRegistry(userRegistry, descMessage);
+}
 
 /**
  * Parse and compile a buf.validate.Constraint, a Protovalidate CEL expression.
@@ -76,26 +213,6 @@ function isExpectedResult(result: CelResult): result is "string" | "boolean" {
   return typeof result == "string" || typeof result == "boolean";
 }
 
-/**
- * Create a registry for CEL evaluation.
- */
-export function createCelRegistry(
-  userRegistry: Registry,
-  desc: DescField | DescMessage,
-): Registry {
-  let descMessage: DescMessage | undefined;
-  if (desc.kind == "field" && desc.message) {
-    descMessage = desc.message;
-  } else if (desc.kind == "message") {
-    descMessage = desc;
-  }
-  if (!descMessage) {
-    return userRegistry;
-  }
-  // TODO add nested types to registry?
-  return createRegistry(userRegistry, descMessage);
-}
-
 export type RuleCelPlan = {
   rules: Message;
   rulePath: Path;
@@ -114,7 +231,7 @@ export class RuleCelCache {
       userRegistry,
       ...file_buf_validate_validate.messages,
     );
-    this.env = createEnv("", this.rulesRegistry);
+    this.env = createCelEnv("", this.rulesRegistry);
   }
 
   getPlans(
