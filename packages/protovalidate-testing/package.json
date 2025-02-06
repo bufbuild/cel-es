@@ -11,7 +11,7 @@
     "test": "protovalidate-conformance --expected_failures=expected-failures.yaml -- tsx src/executor.ts",
     "format": "prettier --write --ignore-unknown '.' '!dist' '!src/gen'",
     "lint": "eslint .",
-    "license-header": "license-header --ignore 'src/gen/**'"
+    "license-header": "license-header"
   },
   "type": "module",
   "sideEffects": false,

@@ -10,7 +10,9 @@
   },
   "scripts": {
     "fetch-proto": "buf export buf.build/bufbuild/protovalidate:v0.9.0 --output proto",
+    "postfetch-proto": "license-header proto",
     "generate": "buf generate",
+    "postgenerate": "license-header src/gen",
     "test": "npx tsx --test ./src/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
