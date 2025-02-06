@@ -166,7 +166,6 @@ export function violationToProto(violation: Violation) {
   return create(ViolationSchema, {
     field: pathToProto(violation.field),
     rule: pathToProto(violation.rule),
-    fieldPath: pathToString(violation.field),
     constraintId: violation.constraintId,
     message: violation.message,
     forKey: violation.forKey,
