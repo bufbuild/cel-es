@@ -27,8 +27,9 @@ export function isInf(val: number, sign?: number | bigint): boolean {
 /**
  * Returns true if the string is an IPv4 or IPv6 address, optionally limited to
  * a specific version.
- * Version 0 means either 4 or 6.
- * Passing a version other than 0, 4, or 6 always returns false.
+ *
+ * Version 0 means either 4 or 6. Passing a version other than 0, 4, or 6 always
+ * returns false.
  */
 export function isIp(str: string, version?: number | bigint): boolean {
   if (version == 6) {
@@ -294,101 +295,21 @@ export function isHostAndPort(str: string, portRequired: boolean): boolean {
   }
 }
 
-// TODO switch to WHATWG's definition: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
-
 /**
- * Returns true if the string satisfies the `addr-spec` grammar defined in RFC
- * 5322, section 3.4.1
+ * Returns true if the string is an email address, for example "foo@example.com".
  *
- * Ported from Go's net/mail package.
+ * Conforms to the definition for a valid email address from the HTML standard.
+ *
+ * Note that this standard willfully deviates from RFC 5322, which allows many
+ * unexpected forms of email addresses and will easily match a typographical
+ * error. This standard will still match email addresses that may be unexpected,
+ * for example, it does not require a top-level domain. That is, "foo@example"
+ * is a valid email address.
  */
-export function isAddrSpec(str: string) {
-  let i = 0;
-  const l = str.length;
-  return (
-    i < l &&
-    (str[i] == '"' ? quotedString() : dotAtomText()) &&
-    take("@") &&
-    skip(isWsp) &&
-    i < l &&
-    (str[i] == "[" ? domainLiteral() : dotAtomText()) &&
-    i == l
+export function isEmail(str: string): boolean {
+  return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
+    str,
   );
-
-  function quotedString(): boolean {
-    if (!take('"')) {
-      return false;
-    }
-    for (; i < l; i++) {
-      if (str[i] == '"') {
-        break;
-      }
-      if (str[i] == "\\") {
-        i++;
-        if (!isVchar() && !isWsp()) {
-          return false;
-        }
-      } else if (!isQtext() && !isWsp()) {
-        return false;
-      }
-    }
-    return take('"');
-  }
-
-  function dotAtomText(): boolean {
-    const start = i;
-    skip(isAtext);
-    const atom = str.substring(start, i);
-    return (
-      atom.length > 0 &&
-      !atom.startsWith(".") &&
-      !atom.endsWith(".") &&
-      !atom.includes("..")
-    );
-  }
-
-  function domainLiteral(): boolean {
-    const start = i;
-    if (!take("[") || !skip(isDtext) || !take("]")) {
-      return false;
-    }
-    return isIp(str.substring(start + 1, i - 1));
-  }
-
-  function take(char: string): boolean {
-    if (str[i] != char) {
-      return false;
-    }
-    i++;
-    return true;
-  }
-
-  function skip(is: () => boolean): true {
-    while (i < l && is()) {
-      i++;
-    }
-    return true;
-  }
-
-  function isQtext(): boolean {
-    return str[i] != '"' && str[i] != "\\" && isVchar();
-  }
-
-  function isDtext(): boolean {
-    return str[i] != "[" && str[i] != "]" && str[i] != "\\" && isVchar();
-  }
-
-  function isAtext(): boolean {
-    return str[i] >= "!" && str[i] <= "~" && !'"(),:;<>@[\\]'.includes(str[i]);
-  }
-
-  function isVchar(): boolean {
-    return str[i] >= "!" && str[i] <= "~";
-  }
-
-  function isWsp(): boolean {
-    return str[i] == " " || str[i] == "\t";
-  }
 }
 
 // TODO restrict pct-encoded to UTF-8?

@@ -15,7 +15,7 @@
 import * as assert from "node:assert/strict";
 import { suite, test } from "node:test";
 import {
-  isAddrSpec,
+  isEmail,
   isHostAndPort,
   isHostname,
   isInf,
@@ -321,31 +321,72 @@ void suite("isIp4", () => {
   }
 });
 
-void suite("isAddrSpec", () => {
-  t(true, "foo@bar.com");
-  t(true, `"John Doe"@example.com`);
-  t(true, `john.q.public@example.com`);
-  t(true, `one@y.test`);
-  t(true, `foo@ bar.com`);
-  t(true, `jdoe@[192.168.0.1]`, "domain-literal");
+void suite("isEmail", () => {
+  t(true, "foo@example.com");
+  t(true, "foo+x@example.com");
+  t(true, "foo@example");
+  t(false, "example.com", "missing @");
+  t(false, `µ@example.com`);
 
-  // TODO ?
-  // t(true, `µ@example.com`);
+  // before "@"
+  t(false, "@example.com", "require left side");
+  t(true, "foo.bar@example.com", "multiple atext");
+  t(true, ".@example.com", "multiple atext");
+  t(true, "...@example.com", "multiple atext");
+  t(
+    true,
+    "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!#$%&'*+-/=?^_`{|}~@example.com",
+    "exhaust atext",
+  );
+  t(false, "foo @example.com", "whitespace is not permitted");
 
-  t(false, `"John Doe@example.com`, "bad quoted-string");
-  t(false, `joe`, "missing @");
-  t(false, `jdoe#machine.example`, "missing @");
-  t(false, `john.doe`, "missing @");
-  t(false, `john.doe@`, "ends early");
-  t(false, `John Doe@foo.bar`);
-  t(false, `jdoe@[[192.168.0.1]`);
-  t(false, `jdoe@[192.168.0.1`);
-  t(false, " foo@bar.com");
-  t(false, "foo@bar.com ");
-  t(false, `jdoe@[256.0.0.1]`, "domain-literal ipv4 octet too big");
+  // after "@"
+  t(false, "foo@", "require right side");
+  t(false, "foo@example.com.", "trailing dot is invalid");
+  t(false, "foo@.a", "label must not be empty");
+  t(false, "foo@a..b", "label must not be empty");
+  t(false, "foo@-a", "label must not start with hyphen");
+  t(false, "foo@a-", "label must not end with hyphen");
+  t(true, "foo@a-b.a--b", "label can have an interior hyphen");
+  t(
+    true,
+    "foo@abc012345678901234567890123456789012345678901234567890123456789.com",
+    "label can be 63 characters at most",
+  );
+  t(
+    false,
+    "foo@abcd012345678901234567890123456789012345678901234567890123456789.com",
+    "label cannot be more than 63 characters",
+  );
+  t(
+    true,
+    "foo@0.1.2.3.4.5.6.7.8.9",
+    "last label can be all digits, unlike isHostname()",
+  );
+  t(
+    true,
+    "foo@a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.A.B.C.D.E.F.G.H.I.J.K.L.M.N.O.P.Q.R.S.T.U.V.W.X.Y.Z",
+    "labels can start and end with letters",
+  );
+  t(
+    true,
+    "foo@abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "label can use a-z, A-Z, 0-9, hyphen",
+  );
+  t(false, "foo@你好.com", "IDN is not supported");
+
+  // valid in RFC 5322, but not in WHATWG (far from exhaustive)
+  t(false, `"foo bar"@example.com`, "quoted-string is not valid");
+  t(false, `foobar@ example.com`, "quoted-string is not valid");
+  t(false, `"foo..bar"@example.com`, "quoted-string is not valid");
+  t(false, `"foo@bar"@example.com`, "quoted-string is not valid");
+  t(false, "foo@example.com (comment)", "comments are not valid");
+  t(false, "John Doe <john@example.com>", "mailbox is not valid");
+  t(false, "postmaster@[123.123.123.123]", "ip literal is not valid");
+
   function t(expect: boolean, str: string, comment = "") {
     void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
-      assert.strictEqual(isAddrSpec(str), expect);
+      assert.strictEqual(isEmail(str), expect);
     });
   }
 });

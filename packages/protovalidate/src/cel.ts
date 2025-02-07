@@ -40,7 +40,7 @@ import {
 import { CompilationError, RuntimeError } from "./error.js";
 import type { Path } from "./path.js";
 import {
-  isAddrSpec,
+  isEmail,
   isHostAndPort,
   isHostname,
   isInf,
@@ -124,7 +124,7 @@ function createCustomFuncs(): FuncRegistry {
         if (typeof arg != "string") {
           return false;
         }
-        return isAddrSpec(arg);
+        return isEmail(arg);
       },
     ),
   );
