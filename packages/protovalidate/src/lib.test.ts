@@ -25,10 +25,42 @@ import {
 } from "./lib.js";
 
 void suite("isHostname", () => {
-  t(true, "bar.com");
-  t(false, `"John Doe"@example.com`);
-  function t(expect: boolean, str: string) {
-    void test(`\`${str}\` ${expect}`, () => {
+  t(true, "A.ISI.EDU");
+  t(true, "XX.LCS.MIT.EDU");
+  t(true, "SRI-NIC.ARPA");
+  t(true, "example.com");
+  t(true, "foo-bar.com");
+  t(false, "", "empty is invalid");
+  t(false, "foo_bar.com");
+  t(false, "你好.com", "IDN is not supported");
+  t(true, "abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "label can use a-z, A-Z, 0-9, hyphen");
+  const name253chars = "123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.abc";
+  const name254chars = name253chars + "d";
+  t(true, name253chars, "host name without trailing dot can be 253 characters at most");
+  t(false, name254chars, "host name without trailing dot cannot be more than 253 characters");
+  t(false, ".", "single dot is invalid");
+  t(true, "a.", "label must not be empty, but trailing dot is allowed");
+  t(false, ".a", "label must not be empty");
+  t(false, "..", "label must not be empty");
+  t(false, "a..b", "label must not be empty");
+  t(true, "a-b.a--b", "label can have an interior hyphen");
+  t(false, "-a", "label must not start with hyphen");
+  t(false, "a-", "label must not end with hyphen");
+  t(true, "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.A.B.C.D.E.F.G.H.I.J.K.L.M.N.O.P.Q.R.S.T.U.V.W.X.Y.Z", "labels can start and end with letters");
+  t(true, "0.1.2.3.4.5.6.7.8.9.com", "labels can start and end with digits, but the last label must not be all digits");
+  t(true, "com1", "last label must not be all digits");
+  t(false, "a.1", "last label must not be all digits");
+  t(true, "a.a0.a1.a2.a3.a4.a5.a6.a7.a8.a9", "label must end with a letter or digit");
+  t(true, "0.1.2.3.4.5.6.7.8.9.0a.1a.2a.3a.4a.5a.6a.7a.8a.9a", "label must start with a letter or digit (RFC 1123)");
+  t(true, "abc012345678901234567890123456789012345678901234567890123456789.com", "label can be 63 characters at most");
+  t(true, "foo.abc012345678901234567890123456789012345678901234567890123456789", "label can be 63 characters at most");
+  t(true, "foo.abc012345678901234567890123456789012345678901234567890123456789.com", "label can be 63 characters at most");
+  t(false, "abcd012345678901234567890123456789012345678901234567890123456789.com", "label cannot be more than 63 characters");
+  t(false, "foo.abcd012345678901234567890123456789012345678901234567890123456789", "label cannot be more than 63 characters");
+  t(false, "foo.abcd012345678901234567890123456789012345678901234567890123456789.com", "label cannot be more than 63 characters");
+
+  function t(expect: boolean, str: string, comment = "") {
+    void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
       assert.strictEqual(isHostname(str), expect);
     });
   }
