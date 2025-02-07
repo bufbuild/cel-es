@@ -16,6 +16,7 @@ import * as assert from "node:assert/strict";
 import { suite, test } from "node:test";
 import {
   isAddrSpec,
+  isHostAndPort,
   isHostname,
   isInf,
   isIp,
@@ -33,11 +34,24 @@ void suite("isHostname", () => {
   t(false, "", "empty is invalid");
   t(false, "foo_bar.com");
   t(false, "你好.com", "IDN is not supported");
-  t(true, "abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", "label can use a-z, A-Z, 0-9, hyphen");
-  const name253chars = "123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.abc";
+  t(
+    true,
+    "abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "label can use a-z, A-Z, 0-9, hyphen",
+  );
+  const name253chars =
+    "123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.123456789.abc";
   const name254chars = name253chars + "d";
-  t(true, name253chars, "host name without trailing dot can be 253 characters at most");
-  t(false, name254chars, "host name without trailing dot cannot be more than 253 characters");
+  t(
+    true,
+    name253chars,
+    "host name without trailing dot can be 253 characters at most",
+  );
+  t(
+    false,
+    name254chars,
+    "host name without trailing dot cannot be more than 253 characters",
+  );
   t(false, ".", "single dot is invalid");
   t(true, "a.", "label must not be empty, but trailing dot is allowed");
   t(false, ".a", "label must not be empty");
@@ -46,22 +60,157 @@ void suite("isHostname", () => {
   t(true, "a-b.a--b", "label can have an interior hyphen");
   t(false, "-a", "label must not start with hyphen");
   t(false, "a-", "label must not end with hyphen");
-  t(true, "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.A.B.C.D.E.F.G.H.I.J.K.L.M.N.O.P.Q.R.S.T.U.V.W.X.Y.Z", "labels can start and end with letters");
-  t(true, "0.1.2.3.4.5.6.7.8.9.com", "labels can start and end with digits, but the last label must not be all digits");
+  t(
+    true,
+    "a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.A.B.C.D.E.F.G.H.I.J.K.L.M.N.O.P.Q.R.S.T.U.V.W.X.Y.Z",
+    "labels can start and end with letters",
+  );
+  t(
+    true,
+    "0.1.2.3.4.5.6.7.8.9.com",
+    "labels can start and end with digits, but the last label must not be all digits",
+  );
   t(true, "com1", "last label must not be all digits");
   t(false, "a.1", "last label must not be all digits");
-  t(true, "a.a0.a1.a2.a3.a4.a5.a6.a7.a8.a9", "label must end with a letter or digit");
-  t(true, "0.1.2.3.4.5.6.7.8.9.0a.1a.2a.3a.4a.5a.6a.7a.8a.9a", "label must start with a letter or digit (RFC 1123)");
-  t(true, "abc012345678901234567890123456789012345678901234567890123456789.com", "label can be 63 characters at most");
-  t(true, "foo.abc012345678901234567890123456789012345678901234567890123456789", "label can be 63 characters at most");
-  t(true, "foo.abc012345678901234567890123456789012345678901234567890123456789.com", "label can be 63 characters at most");
-  t(false, "abcd012345678901234567890123456789012345678901234567890123456789.com", "label cannot be more than 63 characters");
-  t(false, "foo.abcd012345678901234567890123456789012345678901234567890123456789", "label cannot be more than 63 characters");
-  t(false, "foo.abcd012345678901234567890123456789012345678901234567890123456789.com", "label cannot be more than 63 characters");
+  t(
+    true,
+    "a.a0.a1.a2.a3.a4.a5.a6.a7.a8.a9",
+    "label must end with a letter or digit",
+  );
+  t(
+    true,
+    "0.1.2.3.4.5.6.7.8.9.0a.1a.2a.3a.4a.5a.6a.7a.8a.9a",
+    "label must start with a letter or digit (RFC 1123)",
+  );
+  t(
+    true,
+    "abc012345678901234567890123456789012345678901234567890123456789.com",
+    "label can be 63 characters at most",
+  );
+  t(
+    true,
+    "foo.abc012345678901234567890123456789012345678901234567890123456789",
+    "label can be 63 characters at most",
+  );
+  t(
+    true,
+    "foo.abc012345678901234567890123456789012345678901234567890123456789.com",
+    "label can be 63 characters at most",
+  );
+  t(
+    false,
+    "abcd012345678901234567890123456789012345678901234567890123456789.com",
+    "label cannot be more than 63 characters",
+  );
+  t(
+    false,
+    "foo.abcd012345678901234567890123456789012345678901234567890123456789",
+    "label cannot be more than 63 characters",
+  );
+  t(
+    false,
+    "foo.abcd012345678901234567890123456789012345678901234567890123456789.com",
+    "label cannot be more than 63 characters",
+  );
 
   function t(expect: boolean, str: string, comment = "") {
     void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
       assert.strictEqual(isHostname(str), expect);
+    });
+  }
+});
+
+void suite("isHostAndPort", () => {
+  // hostname
+  testIsHostAndOptionalPort(true, "example.com");
+  testIsHostAndOptionalPort(true, "a.");
+  testIsHostAndOptionalPort(false, "你好.com", "IDN is not supported");
+  testIsHostAndOptionalPort(false, "", "empty is invalid");
+  testIsHostAndRequiredPort(false, "", "empty is invalid");
+
+  // port
+  testIsHostAndRequiredPort(false, "example.com", "missing port");
+  testIsHostAndRequiredPort(false, "example.com:", "missing port");
+  testIsHostAndRequiredPort(true, "example.com:0", "port number can be zero");
+  testIsHostAndRequiredPort(
+    false,
+    "example.com:+1",
+    "port number cannot have sign",
+  );
+  testIsHostAndRequiredPort(
+    false,
+    "example.com:0xFA",
+    "port number must be decimal",
+  );
+  testIsHostAndRequiredPort(
+    true,
+    "example.com:65535",
+    "port number can be 65535",
+  );
+  testIsHostAndRequiredPort(
+    false,
+    "example.com:65536",
+    "port number must be 65535 or smaller",
+  );
+
+  // ipv4
+  testIsHostAndOptionalPort(true, "192.168.0.1");
+  testIsHostAndOptionalPort(true, "0.0.0.0");
+  testIsHostAndOptionalPort(true, "255.255.255.255");
+  testIsHostAndOptionalPort(false, "256.0.0.0", "octet too big");
+  testIsHostAndOptionalPort(false, "127.0.1", "not enough octets");
+  testIsHostAndOptionalPort(false, "127..0.1", "empty octet");
+
+  // ipv4 + port
+  testIsHostAndRequiredPort(true, "192.168.0.1:0");
+  testIsHostAndRequiredPort(true, "192.168.0.1:8080");
+  testIsHostAndRequiredPort(false, "192.168.0.1", "missing port");
+
+  // ipv6
+  testIsHostAndOptionalPort(true, "[::1]");
+  testIsHostAndOptionalPort(true, "[::1%foo]", "zone id");
+  testIsHostAndOptionalPort(true, "[0:0:0:0:0:0:0:0]");
+  testIsHostAndOptionalPort(true, "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]");
+  testIsHostAndOptionalPort(
+    true,
+    "[0:0:0:0:0:ffff:192.1.56.10]",
+    "IPv4 address embedded in IPv6 address",
+  );
+  testIsHostAndOptionalPort(false, "[::1%]", "zone id too short");
+  testIsHostAndOptionalPort(
+    true,
+    "[::1%% :x\x1F]",
+    "zone id allows any non-null string",
+  );
+  testIsHostAndOptionalPort(false, "[127.0.0.1]", "not an IPv6");
+  testIsHostAndOptionalPort(false, "[example.com]", "not an IPv6");
+
+  // ipv6 + port
+  testIsHostAndRequiredPort(true, "[::1]:0");
+  testIsHostAndRequiredPort(true, "[::1]:8080");
+  testIsHostAndRequiredPort(false, "[::1]", "missing port");
+
+  function testIsHostAndOptionalPort(
+    expect: boolean,
+    str: string,
+    comment = "",
+  ) {
+    void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+      assert.strictEqual(isHostAndPort(str, false), expect);
+    });
+  }
+
+  function testIsHostAndRequiredPort(
+    expect: boolean,
+    str: string,
+    comment = "",
+  ) {
+    void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+      assert.strictEqual(isHostAndPort(str, true), expect);
+      if (expect) {
+        // A valid host with required port must be a valid host with optional port
+        assert.strictEqual(isHostAndPort(str, false), expect);
+      }
     });
   }
 });

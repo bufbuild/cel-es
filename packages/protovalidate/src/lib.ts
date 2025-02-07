@@ -207,12 +207,12 @@ export function isIp6(str: string): boolean {
  * Does not support internationalized domain names.
  * Ported from protovalidate-go / library.go.
  */
-export function isHostname(host: string): boolean {
-  if (host.length > 253) {
+export function isHostname(str: string): boolean {
+  if (str.length > 253) {
     return false;
   }
   const s = (
-    host.endsWith(".") ? host.substring(0, host.length - 1) : host
+    str.endsWith(".") ? str.substring(0, str.length - 1) : str
   ).toLowerCase();
   let allDigits = false;
   // split hostname on '.' and validate each part
@@ -234,6 +234,64 @@ export function isHostname(host: string): boolean {
   }
   // the last part cannot be all numbers
   return !allDigits;
+}
+
+/**
+ * Returns true if the string is a valid host/port pair, for example "example.com:8080".
+ *
+ * If the argument `portRequired` is true, the port is required. If the argument
+ * is false, the port is optional.
+ *
+ * The host can be one of:
+ * - An IPv4 address in dotted decimal format, for example "192.168.0.1", or any
+ *   other IPv4 address conforming to isIp().
+ * - An IPv6 address enclosed in square brackets, for example "[::1]", or any
+ *   other IPv6 address conforming to isIp().
+ * - A hostname that conforms to isHostname(), for example "example.com".
+ *
+ * The port is separated by a colon. It must be non-empty, with a decimal number
+ * in the range of 0-65535, inclusive.
+ */
+export function isHostAndPort(str: string, portRequired: boolean): boolean {
+  if (str.length == 0) {
+    return false;
+  }
+  const splitIdx = str.lastIndexOf(":");
+  if (str[0] == "[") {
+    const end = str.indexOf("]");
+    switch (end + 1) {
+      case str.length: // no port
+        return !portRequired && isIp6(str.substring(1, end));
+      case splitIdx: // port
+        return (
+          isIp6(str.substring(1, end)) && isPort(str.substring(splitIdx + 1))
+        );
+      default: // malformed
+        return false;
+    }
+  }
+
+  if (splitIdx < 0) {
+    return !portRequired && (isHostname(str) || isIp4(str));
+  }
+
+  const host = str.substring(0, splitIdx);
+  const port = str.substring(splitIdx + 1);
+  return (isHostname(host) || isIp4(host)) && isPort(port);
+
+  function isPort(str: string): boolean {
+    if (str.length == 0) {
+      return false;
+    }
+    for (let i = 0; i < str.length; i++) {
+      const c = str[i];
+      if ("0" <= c && c <= "9") {
+        continue;
+      }
+      return false;
+    }
+    return parseInt(str) <= 65535;
+  }
 }
 
 // TODO switch to WHATWG's definition: https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address

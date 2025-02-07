@@ -39,7 +39,14 @@ import {
 } from "@bufbuild/cel";
 import { CompilationError, RuntimeError } from "./error.js";
 import type { Path } from "./path.js";
-import { isAddrSpec, isHostname, isInf, isIp, isUri } from "./lib.js";
+import {
+  isAddrSpec,
+  isHostAndPort,
+  isHostname,
+  isInf,
+  isIp,
+  isUri,
+} from "./lib.js";
 
 export function createCelEnv(namespace: string, registry: Registry): CelEnv {
   const env = createEnv(namespace, registry);
@@ -94,6 +101,18 @@ function createCustomFuncs(): FuncRegistry {
           return false;
         }
         return isHostname(arg);
+      },
+    ),
+  );
+  reg.add(
+    Func.binary(
+      "isHostAndPort",
+      ["string_bool_is_host_and_port_bool"],
+      (_id: number, lhs: CelVal, rhs: CelVal): CelResult | undefined => {
+        if (typeof lhs != "string" || typeof rhs != "boolean") {
+          return false;
+        }
+        return isHostAndPort(lhs, rhs);
       },
     ),
   );
