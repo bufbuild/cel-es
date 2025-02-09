@@ -20,9 +20,8 @@ import {
   isHostname,
   isInf,
   isIp,
-  isIp4,
-  isIp6,
   isUri,
+  isUriRef,
 } from "./lib.js";
 
 void suite("isHostname", () => {
@@ -216,109 +215,109 @@ void suite("isHostAndPort", () => {
 });
 
 void suite("isIp", () => {
-  t(true, `::1`); // "either 4 or 6"
-  t(true, `127.0.0.1`); // "either 4 or 6"
-  t(true, `::1`, 0, "version 0 means either 4 or 6");
-  t(true, `127.0.0.1`, 0, "version 0 means either 4 or 6");
-  t(true, `::1`, 6, "version 6 only");
-  t(true, `127.0.0.1`, 4, "is v4");
-  t(false, `127.0.0.1`, 6, "is v6");
-  t(false, `::1`, 4, "is not v4");
-  t(false, `::1`, 1, "bad version");
-  t(false, `::1`, 5, "bad version");
-  t(false, `::1`, 7, "bad version");
+  void suite("version argument", () => {
+    t(true, `::1`); // "either 4 or 6"
+    t(true, `127.0.0.1`); // "either 4 or 6"
+    t(true, `::1`, 0, "version 0 means either 4 or 6");
+    t(true, `127.0.0.1`, 0, "version 0 means either 4 or 6");
+    t(true, `::1`, 6, "version 6 only");
+    t(true, `127.0.0.1`, 4, "is v4");
+    t(false, `127.0.0.1`, 6, "is v6");
+    t(false, `::1`, 4, "is not v4");
+    t(false, `::1`, 1, "bad version");
+    t(false, `::1`, 5, "bad version");
+    t(false, `::1`, 7, "bad version");
 
-  function t(
-    expect: boolean,
-    str: string,
-    version?: number | bigint,
-    comment = "",
-  ) {
-    void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
-      assert.strictEqual(isIp(str, version), expect);
-      switch (version) {
-        case 4:
-          assert.strictEqual(isIp4(str), expect);
-          break;
-        case 6:
-          assert.strictEqual(isIp6(str), expect);
-          break;
-      }
-    });
-  }
-});
+    function t(
+      expect: boolean,
+      str: string,
+      version?: number | bigint,
+      comment = "",
+    ) {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        assert.strictEqual(isIp(str, version), expect);
+        if (typeof version == "number") {
+          assert.strictEqual(isIp(str, BigInt(version)), expect);
+        }
+      });
+    }
+  });
 
-void suite("isIp6", () => {
-  t(true, `::1`);
-  t(true, `::`);
-  t(true, `0:0:0:0:0:0:0:0`);
-  t(true, `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff`);
-  t(true, `fd7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
-  t(true, `d7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
-  t(true, `7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
-  t(true, `a:115c:a1e0:ab12:4843:cd96:626b:430b`);
-  t(true, `1:2:3:4:5:6:7:8`);
-  t(
-    true,
-    `0:0:0:0:0:ffff:192.1.56.10`,
-    "IPv4 address embedded in IPv6 address",
-  );
-  t(
-    false,
-    `0:0:0:0:0:ffff:256.1.56.10`,
-    "invalid IPv4 address embedded in IPv6 address",
-  );
-  t(true, `::1%foo`, "IPv6 with zone id");
-  t(false, `::1%`, "zone id too short");
-  t(true, `::1%% :x\x1F`, "zone id allows any non-null string");
-  t(false, ``);
-  t(false, ` ::`);
-  t(false, `:: `);
-  t(false, `:::`);
-  t(false, `:2:3:4:5:6:7:8`);
-  t(false, `12345:2:3:4:5:6:7:8`, "octet too long");
-  t(false, `g:2:3:4:5:6:7:8`, "bad octet");
-  t(false, `1::3:4::6:7:8`, "more than 1 double colon");
-  t(false, `127.0.0.1`, "not an IPv6");
-  t(false, `0.0.0.1`, "not an IPv6");
+  void suite("IPv6", () => {
+    t(true, `::1`);
+    t(true, `::`);
+    t(true, `0:0:0:0:0:0:0:0`);
+    t(true, `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff`);
+    t(true, `fd7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
+    t(true, `d7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
+    t(true, `7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
+    t(true, `a:115c:a1e0:ab12:4843:cd96:626b:430b`);
+    t(true, `1:2:3:4:5:6:7:8`);
+    t(
+      true,
+      `0:0:0:0:0:ffff:192.1.56.10`,
+      "IPv4 address embedded in IPv6 address",
+    );
+    t(
+      false,
+      `0:0:0:0:0:ffff:256.1.56.10`,
+      "invalid IPv4 address embedded in IPv6 address",
+    );
+    t(true, `::1%foo`, "IPv6 with zone id");
+    t(false, `::1%`, "zone id too short");
+    t(true, `::1%% :x\x1F`, "zone id allows any non-null string");
+    t(false, ``);
+    t(false, ` ::`);
+    t(false, `:: `);
+    t(false, `:::`);
+    t(false, `:2:3:4:5:6:7:8`);
+    t(false, `12345:2:3:4:5:6:7:8`, "octet too long");
+    t(false, `g:2:3:4:5:6:7:8`, "bad octet");
+    t(false, `1::3:4::6:7:8`, "more than 1 double colon");
+    t(false, `127.0.0.1`, "not an IPv6");
+    t(false, `0.0.0.1`, "not an IPv6");
 
-  function t(expect: boolean, str: string, comment = "") {
-    void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
-      assert.strictEqual(isIp6(str), expect);
-      if (expect) {
-        // A valid IPv6 is never a valid IPv4
-        assert.strictEqual(isIp4(str), false);
-      }
-    });
-  }
-});
+    function t(expect: boolean, str: string, comment = "") {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        assert.strictEqual(isIp(str, 6), expect);
+        if (expect) {
+          // A valid IPv6 must be a valid IPv4 / IPv6
+          assert.strictEqual(isIp(str), expect);
+          // A valid IPv6 is never a valid IPv4
+          assert.strictEqual(isIp(str, 4), false);
+        }
+      });
+    }
+  });
 
-void suite("isIp4", () => {
-  t(true, `127.0.0.1`);
-  t(true, `255.255.255.255`);
-  t(true, `0.0.0.0`);
-  t(false, ``);
-  t(false, ` 127.0.0.1`);
-  t(false, `127.0.0.1 `);
-  t(false, `127.0.1`, "not enough octets");
-  t(false, `127.0.1.`, "empty octet");
-  t(false, `127..0.1`, "empty octet");
-  t(false, `127.0.0.0.1`, "too many octets");
-  t(false, `256.0.0.0`, "octet too big");
-  t(false, `0x0.0.0.0`);
-  t(false, `::`);
-  t(false, `::1`);
-  t(false, `fd7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
-  function t(expect: boolean, str: string, comment = "") {
-    void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
-      assert.strictEqual(isIp4(str), expect);
-      assert.strictEqual(isIp(str, 4), expect);
-      if (expect) {
-        assert.strictEqual(isIp(str), expect);
-        assert.strictEqual(isIp6(str), false);
-      }
-    });
-  }
+  void suite("IPv4", () => {
+    t(true, `127.0.0.1`);
+    t(true, `255.255.255.255`);
+    t(true, `0.0.0.0`);
+    t(false, ``);
+    t(false, ` 127.0.0.1`);
+    t(false, `127.0.0.1 `);
+    t(false, `127.0.1`, "not enough octets");
+    t(false, `127.0.1.`, "empty octet");
+    t(false, `127..0.1`, "empty octet");
+    t(false, `127.0.0.0.1`, "too many octets");
+    t(false, `256.0.0.0`, "octet too big");
+    t(false, `0x0.0.0.0`);
+    t(false, `::`);
+    t(false, `::1`);
+    t(false, `fd7a:115c:a1e0:ab12:4843:cd96:626b:430b`);
+    function t(expect: boolean, str: string, comment = "") {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        assert.strictEqual(isIp(str, 4), expect);
+        if (expect) {
+          // A valid IPv4 must be a valid IPv4 / IPv6
+          assert.strictEqual(isIp(str), expect);
+          // A valid IPv4 is never a valid IPv6
+          assert.strictEqual(isIp(str, 6), false);
+        }
+      });
+    }
+  });
 });
 
 void suite("isEmail", () => {
@@ -692,7 +691,7 @@ void suite("isUri", () => {
       assert.strictEqual(isUri(str), expect);
       if (expect) {
         // All URIs must also be URI References
-        assert.strictEqual(isUri(str, true), expect);
+        assert.strictEqual(isUriRef(str), expect);
       }
     });
   }
@@ -895,7 +894,7 @@ void suite("isUriRef", () => {
 
   function t(expect: boolean, str: string, comment = "") {
     void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
-      assert.strictEqual(isUri(str, true), expect);
+      assert.strictEqual(isUriRef(str), expect);
     });
   }
 });

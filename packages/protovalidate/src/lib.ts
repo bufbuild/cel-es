@@ -30,6 +30,14 @@ export function isInf(val: number, sign?: number | bigint): boolean {
  *
  * Version 0 means either 4 or 6. Passing a version other than 0, 4, or 6 always
  * returns false.
+ *
+ * IPv4 addresses are expected in a dotted decimal format, for example "127.0.0.1".
+ *
+e * IPv6 addresses are expected in their text representation, for example "::1",
+ * or "d7a:115c:a1e0:ab12:4843:cd96:626b:430b".
+ *
+ * Both formats are well-defined in the internet standard RFC 3986. Zone
+ * identifiers for IPv6 addresses (for example "fe80::a%en1") are supported.
  */
 export function isIp(str: string, version?: number | bigint): boolean {
   if (version == 6) {
@@ -44,29 +52,27 @@ export function isIp(str: string, version?: number | bigint): boolean {
   return false;
 }
 
-/**
- * Returns true if the string is an IPv4 address in dotted decimal format, for
- * example "192.168.0.1".
- *
- * Conforms to the definition of `IPv4address` from RFC 3986.
- */
-export function isIp4(str: string): boolean {
+export function isIpPrefix(/*str: string*/): boolean {
+  throw new Error("TODO");
+}
+
+function isIp4(str: string): boolean {
   let i = 0;
   const l = str.length;
   return (
-    octet() &&
+    decOctet() &&
     dot() &&
-    octet() &&
+    decOctet() &&
     dot() &&
-    octet() &&
+    decOctet() &&
     dot() &&
-    octet() &&
+    decOctet() &&
     i == l
   );
 
-  function octet(): boolean {
+  function decOctet(): boolean {
     const start = i;
-    while (i < l && str[i] >= "0" && str[i] <= `9`) {
+    while (i < l && str[i] >= "0" && str[i] <= "9") {
       i++;
     }
     const len = i - start;
@@ -89,7 +95,7 @@ export function isIp4(str: string): boolean {
  * Note that there is no definition for the character set allowed in the zone
  * identifier.
  */
-export function isIp6(str: string): boolean {
+function isIp6(str: string): boolean {
   let i = 0;
   const l = str.length;
   let octets = 0;
@@ -100,7 +106,7 @@ export function isIp6(str: string): boolean {
     if ((doubleColonSeen || octets == 6) && dotted()) {
       return (doubleColonSeen || octets == 6) && isIp4(dottedFound);
     }
-    if (octet()) {
+    if (h16()) {
       octets++;
       continue;
     }
@@ -159,8 +165,8 @@ export function isIp6(str: string): boolean {
     return false;
   }
 
-  // 1*4HEXDIG
-  function octet(): boolean {
+  // h16 = 1*4HEXDIG
+  function h16(): boolean {
     const start = i;
     while (hexdig()) {
       // continue
@@ -262,20 +268,18 @@ export function isHostAndPort(str: string, portRequired: boolean): boolean {
     const end = str.indexOf("]");
     switch (end + 1) {
       case str.length: // no port
-        return !portRequired && isIp6(str.substring(1, end));
+        return !portRequired && isIp(str.substring(1, end), 6);
       case splitIdx: // port
         return (
-          isIp6(str.substring(1, end)) && isPort(str.substring(splitIdx + 1))
+          isIp(str.substring(1, end), 6) && isPort(str.substring(splitIdx + 1))
         );
       default: // malformed
         return false;
     }
   }
-
   if (splitIdx < 0) {
-    return !portRequired && (isHostname(str) || isIp4(str));
+    return !portRequired && (isHostname(str) || isIp(str, 4));
   }
-
   const host = str.substring(0, splitIdx);
   const port = str.substring(splitIdx + 1);
   return (isHostname(host) || isIp4(host)) && isPort(port);
@@ -303,8 +307,8 @@ export function isHostAndPort(str: string, portRequired: boolean): boolean {
  * Note that this standard willfully deviates from RFC 5322, which allows many
  * unexpected forms of email addresses and will easily match a typographical
  * error. This standard will still match email addresses that may be unexpected,
- * for example, it does not require a top-level domain. That is, "foo@example"
- * is a valid email address.
+ * for example, it does not require a top-level domain ("foo@example" is a valid
+ * email address).
  */
 export function isEmail(str: string): boolean {
   return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
@@ -316,15 +320,17 @@ export function isEmail(str: string): boolean {
 // RFC 3986:
 // > URI producing applications must not use percent-encoding in host
 // > unless it is used to represent a UTF-8 character sequence.
+
 /**
  * Returns true if the string is a URI, for example "https://example.com/foo/bar?baz=quux#frag".
+ *
+ * URI is defined in the internet standard RFC 3986.
+ * Zone Identifiers in IPv6 address literals are supported (RFC 6874).
+ *
  *
  * If the argument permitUriReference is true, returns true if the string is a
  * URI Reference - either a URI such as "https://example.com", or a Relative
  * Reference such as "./foo/bar?query".
- *
- * URI and URI Reference are defined in RFC 3986. IPv6 Zone Identifiers are
- * supported (RFC 6874).
  */
 export function isUri(str: string, permitUriReference = false): boolean {
   let i = 0;
@@ -841,4 +847,16 @@ export function isUri(str: string, permitUriReference = false): boolean {
     }
     return false;
   }
+}
+
+/**
+ * Returns true if the string is a URI Reference - a URI such as "https://example.com/foo/bar?baz=quux#frag",
+ * or a Relative Reference such as "./foo/bar?query".
+ *
+ * URI, URI Reference, and Relative Reference are defined in the internet
+ * standard RFC 3986. Zone Identifiers in IPv6 address literals are supported
+ * (RFC 6874).
+ */
+export function isUriRef(str: string): boolean {
+  return isUri(str, true);
 }

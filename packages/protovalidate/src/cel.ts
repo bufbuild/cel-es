@@ -54,13 +54,19 @@ export function createCelEnv(namespace: string, registry: Registry): CelEnv {
   return env;
 }
 
-// Done: isHostname, isEmail, isIp, isInf, isNaN, isUri, isUriRef
+// Done: isIp, isInf, isNaN, isUri, isUriRef, isHostAndPort, isEmail
 
-// TODO now
-// TODO isHostAndPort
 // TODO isIpPrefix
+
+// TODO isHostname - check if there's a grammar
+// `hostname` specifies that the field value must be a valid
+// hostname as defined by [RFC 1034](https://tools.ietf.org/html/rfc1034#section-3.5).
+// This constraint doesn't support internationalized domain names (IDNs). If the
+// field value isn't a valid hostname, an error message will be generated.
+
 // TODO unique
 // TODO contains, endsWith, startsWith for bytes
+// TODO now
 
 function createCustomFuncs(): FuncRegistry {
   const reg = new FuncRegistry();
