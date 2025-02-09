@@ -33,7 +33,7 @@ export function isInf(val: number, sign?: number | bigint): boolean {
  *
  * IPv4 addresses are expected in a dotted decimal format, for example "127.0.0.1".
  *
-e * IPv6 addresses are expected in their text representation, for example "::1",
+ * IPv6 addresses are expected in their text representation, for example "::1",
  * or "d7a:115c:a1e0:ab12:4843:cd96:626b:430b".
  *
  * Both formats are well-defined in the internet standard RFC 3986. Zone
@@ -41,13 +41,13 @@ e * IPv6 addresses are expected in their text representation, for example "::1",
  */
 export function isIp(str: string, version?: number | bigint): boolean {
   if (version == 6) {
-    return isIp6(str);
+    return new Ipv6(str).address();
   }
   if (version == 4) {
-    return isIp4(str);
+    return new Ipv4(str).address();
   }
   if (version === undefined || version == 0) {
-    return isIp4(str) || isIp6(str);
+    return new Ipv4(str).address() || new Ipv6(str).address();
   }
   return false;
 }
@@ -56,153 +56,170 @@ export function isIpPrefix(/*str: string*/): boolean {
   throw new Error("TODO");
 }
 
-function isIp4(str: string): boolean {
-  let i = 0;
-  const l = str.length;
-  return (
-    decOctet() &&
-    dot() &&
-    decOctet() &&
-    dot() &&
-    decOctet() &&
-    dot() &&
-    decOctet() &&
-    i == l
-  );
+class Ipv4 {
+  readonly str: string;
+  i: number = 0;
+  readonly l: number;
 
-  function decOctet(): boolean {
-    const start = i;
-    while (i < l && str[i] >= "0" && str[i] <= "9") {
-      i++;
-    }
-    const len = i - start;
-    if (len > 1 && str[i] == "0") {
-      return false;
-    }
-    return len > 0 && parseInt(str.substring(i, start), 10) < 256;
+  constructor(str: string) {
+    this.str = str;
+    this.l = str.length;
   }
 
-  function dot(): boolean {
-    return str[i++] == ".";
+  address(): boolean {
+    return (
+      this.decOctet() &&
+      this.dot() &&
+      this.decOctet() &&
+      this.dot() &&
+      this.decOctet() &&
+      this.dot() &&
+      this.decOctet() &&
+      this.i == this.l
+    );
+  }
+
+  decOctet(): boolean {
+    const start = this.i;
+    while (
+      this.i < this.l &&
+      this.str[this.i] >= "0" &&
+      this.str[this.i] <= "9"
+    ) {
+      this.i++;
+    }
+    const len = this.i - start;
+    if (len > 1 && this.str[this.i] == "0") {
+      return false;
+    }
+    return len > 0 && parseInt(this.str.substring(this.i, start), 10) < 256;
+  }
+
+  dot(): boolean {
+    return this.str[this.i++] == ".";
   }
 }
 
-/**
- * Returns true if the string is an IPv6 address, for example "2001:0db8:85a3::8a2e:0370:7334".
- * Conforms to the definition of `IPv6address` from RFC 3986.
- *
- * Supports zone identifiers following RFC 4007, for example "fe80::a%en1".
- * Note that there is no definition for the character set allowed in the zone
- * identifier.
- */
-function isIp6(str: string): boolean {
-  let i = 0;
-  const l = str.length;
-  let octets = 0;
-  let doubleColonSeen = false;
-  let dottedFound = "";
-  for (; i < l; ) {
-    // dotted notation for right-most 32 bits, e.g. 0:0:0:0:0:ffff:192.1.56.10
-    if ((doubleColonSeen || octets == 6) && dotted()) {
-      return (doubleColonSeen || octets == 6) && isIp4(dottedFound);
-    }
-    if (h16()) {
-      octets++;
-      continue;
-    }
-    if (take(":")) {
-      if (take(":")) {
-        if (doubleColonSeen) {
-          return false;
-        }
-        doubleColonSeen = true;
-        if (take(":")) {
-          return false;
-        }
-      }
-      continue;
-    }
-    if (str[i] == "%" && !zoneId()) {
-      return false;
-    }
-    break;
+class Ipv6 {
+  readonly str: string;
+  i: number = 0;
+  readonly l: number;
+  octets = 0;
+  doubleColonSeen = false;
+  dottedFound = "";
+
+  constructor(str: string) {
+    this.str = str;
+    this.l = str.length;
   }
-  return (doubleColonSeen || octets == 8) && i == l;
+
+  address() {
+    for (; this.i < this.l; ) {
+      // dotted notation for right-most 32 bits, e.g. 0:0:0:0:0:ffff:192.1.56.10
+      if ((this.doubleColonSeen || this.octets == 6) && this.dotted()) {
+        return (
+          (this.doubleColonSeen || this.octets == 6) &&
+          new Ipv4(this.dottedFound).address()
+        );
+      }
+      if (this.h16()) {
+        this.octets++;
+        continue;
+      }
+      if (this.take(":")) {
+        if (this.take(":")) {
+          if (this.doubleColonSeen) {
+            return false;
+          }
+          this.doubleColonSeen = true;
+          if (this.take(":")) {
+            return false;
+          }
+        }
+        continue;
+      }
+      if (this.str[this.i] == "%" && !this.zoneId()) {
+        return false;
+      }
+      break;
+    }
+    return (this.doubleColonSeen || this.octets == 8) && this.i == this.l;
+  }
 
   // There is no definition for the character set allowed in the zone
   // identifier. RFC 4007 permits basically any non-null string.
   //
   // RFC 6874: ZoneID = 1*( unreserved / pct-encoded )
-  function zoneId() {
-    const start = i;
-    if (take("%")) {
-      if (l - i > 0) {
+  zoneId() {
+    const start = this.i;
+    if (this.take("%")) {
+      if (this.l - this.i > 0) {
         // permit any non-null string
-        i = l;
+        this.i = this.l;
         return true;
       }
     }
-    i = start;
+    this.i = start;
     return false;
   }
 
   // 1*3DIGIT "." 1*3DIGIT "." 1*3DIGIT "." 1*3DIGIT
   // Stores match in `dottedFound`.
-  function dotted(): boolean {
-    const start = i;
-    dottedFound = "";
+  dotted(): boolean {
+    const start = this.i;
+    this.dottedFound = "";
     for (;;) {
-      if (digit() || take(".")) {
+      if (this.digit() || this.take(".")) {
         continue;
       }
       break;
     }
-    if (i - start >= 7) {
-      dottedFound = str.substring(start, i);
+    if (this.i - start >= 7) {
+      this.dottedFound = this.str.substring(start, this.i);
       return true;
     }
-    i = start;
+    this.i = start;
     return false;
   }
 
   // h16 = 1*4HEXDIG
-  function h16(): boolean {
-    const start = i;
-    while (hexdig()) {
+  h16(): boolean {
+    const start = this.i;
+    while (this.hexdig()) {
       // continue
     }
-    const len = i - start;
+    const len = this.i - start;
     return len > 0 && len <= 4; // min length 1, max len 4
   }
 
   // HEXDIG =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
-  function hexdig(): boolean {
-    const c = str[i];
+  hexdig(): boolean {
+    const c = this.str[this.i];
     if (
       ("0" <= c && c <= "9") ||
       ("a" <= c && c <= "f") ||
       ("A" <= c && c <= "F") ||
       ("0" <= c && c <= "9")
     ) {
-      i++;
+      this.i++;
       return true;
     }
     return false;
   }
 
   // DIGIT = %x30-39  ; 0-9
-  function digit(): boolean {
-    const c = str[i];
+  digit(): boolean {
+    const c = this.str[this.i];
     if ("0" <= c && c <= "9") {
-      i++;
+      this.i++;
       return true;
     }
     return false;
   }
 
-  function take(char: string): boolean {
-    if (str[i] == char) {
-      i++;
+  take(char: string): boolean {
+    if (this.str[this.i] == char) {
+      this.i++;
       return true;
     }
     return false;
@@ -282,21 +299,21 @@ export function isHostAndPort(str: string, portRequired: boolean): boolean {
   }
   const host = str.substring(0, splitIdx);
   const port = str.substring(splitIdx + 1);
-  return (isHostname(host) || isIp4(host)) && isPort(port);
+  return (isHostname(host) || isIp(host, 4)) && isPort(port);
+}
 
-  function isPort(str: string): boolean {
-    if (str.length == 0) {
-      return false;
-    }
-    for (let i = 0; i < str.length; i++) {
-      const c = str[i];
-      if ("0" <= c && c <= "9") {
-        continue;
-      }
-      return false;
-    }
-    return parseInt(str) <= 65535;
+function isPort(str: string): boolean {
+  if (str.length == 0) {
+    return false;
   }
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if ("0" <= c && c <= "9") {
+      continue;
+    }
+    return false;
+  }
+  return parseInt(str) <= 65535;
 }
 
 /**
@@ -316,537 +333,14 @@ export function isEmail(str: string): boolean {
   );
 }
 
-// TODO restrict pct-encoded to UTF-8?
-// RFC 3986:
-// > URI producing applications must not use percent-encoding in host
-// > unless it is used to represent a UTF-8 character sequence.
-
 /**
  * Returns true if the string is a URI, for example "https://example.com/foo/bar?baz=quux#frag".
  *
  * URI is defined in the internet standard RFC 3986.
  * Zone Identifiers in IPv6 address literals are supported (RFC 6874).
- *
- *
- * If the argument permitUriReference is true, returns true if the string is a
- * URI Reference - either a URI such as "https://example.com", or a Relative
- * Reference such as "./foo/bar?query".
  */
-export function isUri(str: string, permitUriReference = false): boolean {
-  let i = 0;
-  const l = str.length;
-  return permitUriReference ? uriReference() : uri();
-
-  function take(char: string): boolean {
-    if (str[i] == char) {
-      i++;
-      return true;
-    }
-    return false;
-  }
-
-  // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
-  function uri(): boolean {
-    const start = i;
-    if (!(scheme() && take(":") && hierPart())) {
-      i = start;
-      return false;
-    }
-    if (take("?") && !query()) {
-      return false;
-    }
-    if (take("#") && !fragment()) {
-      return false;
-    }
-    if (i != l) {
-      i = start;
-      return false;
-    }
-    return true;
-  }
-
-  // hier-part = "//" authority path-abempty
-  //           / path-absolute
-  //           / path-rootless
-  //           / path-empty
-  function hierPart(): boolean {
-    const start = i;
-    if (take("/") && take("/") && authority() && pathAbempty()) {
-      return true;
-    }
-    i = start;
-    return pathAbsolute() || pathRootless() || pathEmpty();
-  }
-
-  // URI-reference = URI / relative-ref
-  function uriReference(): boolean {
-    return uri() || relativeRef();
-  }
-
-  // absolute-URI = scheme ":" hier-part [ "?" query ]
-  // function absoluteUri(): boolean {
-  //   const start = i;
-  //   if (scheme() && take(":") && hierPart() && ((take("?") && query()) || i == l)) {
-  //     return true;
-  //   }
-  //   i = start;
-  //   return false;
-  // }
-
-  // relative-ref = relative-part [ "?" query ] [ "#" fragment ]
-  function relativeRef(): boolean {
-    const start = i;
-    if (!relativePart()) {
-      return false;
-    }
-    if (take("?") && !query()) {
-      i = start;
-      return false;
-    }
-    if (take("#") && !fragment()) {
-      i = start;
-      return false;
-    }
-    if (i != l) {
-      i = start;
-      return false;
-    }
-    return true;
-  }
-
-  // relative-part = "//" authority path-abempty
-  //               / path-absolute
-  //               / path-noscheme
-  //               / path-empty
-  function relativePart(): boolean {
-    const start = i;
-    if (take("/") && take("/") && authority() && pathAbempty()) {
-      return true;
-    }
-    i = start;
-    return pathAbsolute() || pathNoscheme() || pathEmpty();
-  }
-
-  // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
-  // Terminated by ":".
-  function scheme(): boolean {
-    const start = i;
-    if (alpha()) {
-      while (alpha() || digit() || take("+") || take("-") || take(".")) {
-        // continue
-      }
-      if (str[i] == ":") {
-        return true;
-      }
-    }
-    i = start;
-    return false;
-  }
-
-  // authority = [ userinfo "@" ] host [ ":" port ]
-  // Lead by double slash ("").
-  // Terminated by "/", "?", "#", or end of URI.
-  function authority(): boolean {
-    const start = i;
-    if (userinfo()) {
-      if (!take("@")) {
-        i = start;
-        return false;
-      }
-    }
-    if (!host()) {
-      i = start;
-      return false;
-    }
-    if (take(":")) {
-      if (!port()) {
-        i = start;
-        return false;
-      }
-    }
-    if (!isAuthorityEnd()) {
-      i = start;
-      return false;
-    }
-    return true;
-  }
-
-  // > The authority component [...] is terminated by the next slash ("/"),
-  // > question mark ("?"), or number > sign ("#") character, or by the
-  // > end of the URI.
-  function isAuthorityEnd(): boolean {
-    return str[i] == "?" || str[i] == "#" || str[i] == "/" || i >= l;
-  }
-
-  // userinfo = *( unreserved / pct-encoded / sub-delims / ":" )
-  // Terminated by "@" in authority.
-  function userinfo(): boolean {
-    const start = i;
-    for (;;) {
-      if (unreserved() || pctEncoded() || subDelims() || take(":")) {
-        continue;
-      }
-      if (str[i] == "@") {
-        return true;
-      }
-      i = start;
-      return false;
-    }
-  }
-
-  // host = IP-literal / IPv4address / reg-name
-  function host(): boolean {
-    // Note: IPv4address is a subset of reg-name
-    return (str[i] == "[" && ipLiteral()) || regName();
-  }
-
-  // port = *DIGIT
-  // Terminated by end of authority.
-  function port(): boolean {
-    const start = i;
-    for (;;) {
-      if (digit()) {
-        continue;
-      }
-      if (isAuthorityEnd()) {
-        return true;
-      }
-      i = start;
-      return false;
-    }
-  }
-
-  // RFC 6874:
-  // IP-literal = "[" ( IPv6address / IPv6addrz / IPvFuture  ) "]"
-  function ipLiteral(): boolean {
-    const start = i;
-    if (take("[")) {
-      const j = i;
-      if (ipv6Address() && take("]")) {
-        return true;
-      }
-      i = j;
-      if (ipv6addrz() && take("]")) {
-        return true;
-      }
-      i = j;
-      if (ipvFuture() && take("]")) {
-        return true;
-      }
-    }
-    i = start;
-    return false;
-  }
-
-  // IPv6address
-  // Relies on the implementation of isIp6() to match the RFC 3986 grammar.
-  function ipv6Address(): boolean {
-    const start = i;
-    while (hexdig() || take(":")) {
-      // continue
-    }
-    if (isIp6(str.substring(start, i))) {
-      return true;
-    }
-    i = start;
-    return false;
-  }
-
-  // RFC 6874:
-  // IPv6addrz = IPv6address "%25" ZoneID
-  function ipv6addrz(): boolean {
-    const start = i;
-    if (ipv6Address() && take("%") && take("2") && take("5") && zoneId()) {
-      return true;
-    }
-    i = start;
-    return false;
-  }
-
-  // RFC 6874:
-  // ZoneID = 1*( unreserved / pct-encoded )
-  function zoneId(): boolean {
-    const start = i;
-    while (unreserved() || pctEncoded()) {
-      // continue
-    }
-    if (i - start > 0) {
-      return true;
-    }
-    i = start;
-    return false;
-  }
-
-  // IPvFuture  = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
-  function ipvFuture(): boolean {
-    const start = i;
-    if (take("v") && hexdig()) {
-      while (hexdig()) {
-        // continue
-      }
-      if (take(".")) {
-        let j = 0;
-        while (unreserved() || subDelims() || take(":")) {
-          j++;
-        }
-        if (j >= 1) {
-          return true;
-        }
-      }
-    }
-    i = start;
-    return false;
-  }
-
-  // reg-name = *( unreserved / pct-encoded / sub-delims )
-  // Terminates on start of port (":") or end of authority.
-  function regName(): boolean {
-    const start = i;
-    for (;;) {
-      if (unreserved() || pctEncoded() || subDelims()) {
-        continue;
-      }
-      if (str[i] == ":") {
-        return true;
-      }
-      if (isAuthorityEnd()) {
-        // End of authority
-        return true;
-      }
-      i = start;
-      return false;
-    }
-  }
-
-  // path = path-abempty    ; begins with "/" or is empty
-  //      / path-absolute   ; begins with "/" but not "//"
-  //      / path-noscheme   ; begins with a non-colon segment
-  //      / path-rootless   ; begins with a segment
-  //      / path-empty      ; zero characters
-  // Terminated by end of path: "?", "#", or end of URI.
-  // function path(): boolean {
-  //   return pathAbempty() || pathAbsolute() || pathNoscheme() || pathRootless() || pathEmpty();
-  // }
-
-  // > The path is terminated by the first question mark ("?") or
-  // > number sign ("#") character, or by the end of the URI.
-  function isPathEnd(): boolean {
-    return str[i] == "?" || str[i] == "#" || i >= l;
-  }
-
-  // path-abempty = *( "/" segment )
-  // Terminated by end of path: "?", "#", or end of URI.
-  function pathAbempty(): boolean {
-    const start = i;
-    while (take("/") && segment()) {
-      // continue
-    }
-    if (isPathEnd()) {
-      return true;
-    }
-    i = start;
-    return false;
-  }
-
-  // path-absolute = "/" [ segment-nz *( "/" segment ) ]
-  // Terminated by end of path: "?", "#", or end of URI.
-  function pathAbsolute(): boolean {
-    const start = i;
-    if (take("/")) {
-      if (segmentNz()) {
-        while (take("/") && segment()) {
-          // continue
-        }
-      }
-      if (isPathEnd()) {
-        return true;
-      }
-    }
-    i = start;
-    return false;
-  }
-
-  // path-noscheme = segment-nz-nc *( "/" segment )
-  // Terminated by end of path: "?", "#", or end of URI.
-  function pathNoscheme(): boolean {
-    const start = i;
-    if (segmentNzNc()) {
-      while (take("/") && segment()) {
-        // continue
-      }
-      if (isPathEnd()) {
-        return true;
-      }
-    }
-    i = start;
-    return false;
-  }
-
-  // path-rootless = segment-nz *( "/" segment )
-  // Terminated by end of path: "?", "#", or end of URI.
-  function pathRootless(): boolean {
-    const start = i;
-    if (segmentNz()) {
-      while (take("/") && segment()) {
-        // continue
-      }
-      if (isPathEnd()) {
-        return true;
-      }
-    }
-    i = start;
-    return false;
-  }
-
-  // path-empty = 0<pchar>
-  // Terminated by end of path: "?", "#", or end of URI.
-  function pathEmpty(): boolean {
-    return isPathEnd();
-  }
-
-  // segment = *pchar
-  function segment(): boolean {
-    while (pchar()) {
-      // continue
-    }
-    return true;
-  }
-
-  // segment-nz = 1*pchar
-  function segmentNz(): boolean {
-    const start = i;
-    if (pchar()) {
-      while (pchar()) {
-        // continue
-      }
-      return true;
-    }
-    i = start;
-    return false;
-  }
-
-  // segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
-  //               ; non-zero-length segment without any colon ":"
-  function segmentNzNc(): boolean {
-    const start = i;
-    while (unreserved() || pctEncoded() || subDelims() || take("@")) {
-      // continue
-    }
-    if (i - start > 0) {
-      return true;
-    }
-    i = start;
-    return false;
-  }
-
-  // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
-  function pchar(): boolean {
-    return (
-      unreserved() || pctEncoded() || subDelims() || take(":") || take("@")
-    );
-  }
-
-  // query = *( pchar / "/" / "?" )
-  // Terminated by "#" or end of URI.
-  function query(): boolean {
-    const start = i;
-    for (;;) {
-      if (pchar() || take("/") || take("?")) {
-        continue;
-      }
-      if (str[i] == "#" || i == l) {
-        return true;
-      }
-      i = start;
-      return false;
-    }
-  }
-
-  // fragment = *( pchar / "/" / "?" )
-  // Terminated by end of URI.
-  function fragment(): boolean {
-    const start = i;
-    for (;;) {
-      if (pchar() || take("/") || take("?")) {
-        continue;
-      }
-      if (i == l) {
-        return true;
-      }
-      i = start;
-      return false;
-    }
-  }
-
-  // pct-encoded = "%" HEXDIG HEXDIG
-  function pctEncoded(): boolean {
-    const start = i;
-    if (take("%") && hexdig() && hexdig()) {
-      return true;
-    }
-    i = start;
-    return false;
-  }
-
-  // unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
-  function unreserved(): boolean {
-    return (
-      alpha() || digit() || take("-") || take("_") || take(".") || take("~")
-    );
-  }
-
-  // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
-  //   / "*" / "+" / "," / ";" / "="
-  function subDelims(): boolean {
-    return (
-      take("!") ||
-      take("$") ||
-      take("&") ||
-      take("'") ||
-      take("(") ||
-      take(")") ||
-      take("*") ||
-      take("+") ||
-      take(",") ||
-      take(";") ||
-      take("=")
-    );
-  }
-
-  // ALPHA =  %x41-5A / %x61-7A ; A-Z / a-z
-  function alpha(): boolean {
-    const c = str[i];
-    if (("A" <= c && c <= "Z") || ("a" <= c && c <= "z")) {
-      i++;
-      return true;
-    }
-    return false;
-  }
-
-  // DIGIT = %x30-39  ; 0-9
-  function digit(): boolean {
-    const c = str[i];
-    if ("0" <= c && c <= "9") {
-      i++;
-      return true;
-    }
-    return false;
-  }
-
-  // HEXDIG =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
-  function hexdig(): boolean {
-    const c = str[i];
-    if (
-      ("0" <= c && c <= "9") ||
-      ("a" <= c && c <= "f") ||
-      ("A" <= c && c <= "F") ||
-      ("0" <= c && c <= "9")
-    ) {
-      i++;
-      return true;
-    }
-    return false;
-  }
+export function isUri(str: string): boolean {
+  return new Uri(str).uri();
 }
 
 /**
@@ -858,5 +352,579 @@ export function isUri(str: string, permitUriReference = false): boolean {
  * (RFC 6874).
  */
 export function isUriRef(str: string): boolean {
-  return isUri(str, true);
+  return new Uri(str).uriReference();
+}
+
+// TODO restrict pct-encoded to UTF-8, at least in `host`?
+// RFC 3986:
+// > URI producing applications must not use percent-encoding in host
+// > unless it is used to represent a UTF-8 character sequence.
+class Uri {
+  readonly str: string;
+  i: number = 0;
+  readonly l: number;
+
+  constructor(str: string) {
+    this.str = str;
+    this.l = str.length;
+  }
+
+  // URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+  uri(): boolean {
+    const start = this.i;
+    if (!(this.scheme() && this.take(":") && this.hierPart())) {
+      this.i = start;
+      return false;
+    }
+    if (this.take("?") && !this.query()) {
+      return false;
+    }
+    if (this.take("#") && !this.fragment()) {
+      return false;
+    }
+    if (this.i != this.l) {
+      this.i = start;
+      return false;
+    }
+    return true;
+  }
+
+  // hier-part = "//" authority path-abempty
+  //           / path-absolute
+  //           / path-rootless
+  //           / path-empty
+  hierPart(): boolean {
+    const start = this.i;
+    if (
+      this.take("/") &&
+      this.take("/") &&
+      this.authority() &&
+      this.pathAbempty()
+    ) {
+      return true;
+    }
+    this.i = start;
+    return this.pathAbsolute() || this.pathRootless() || this.pathEmpty();
+  }
+
+  // URI-reference = URI / relative-ref
+  uriReference(): boolean {
+    return this.uri() || this.relativeRef();
+  }
+
+  // absolute-URI = scheme ":" hier-part [ "?" query ]
+  // absoluteUri(): boolean {
+  //   const start = i;
+  //   if (scheme() && this.take(":") && hierPart() && ((this.take("?") && query()) || i == l)) {
+  //     return true;
+  //   }
+  //   i = start;
+  //   return false;
+  // }
+
+  // relative-ref = relative-part [ "?" query ] [ "#" fragment ]
+  relativeRef(): boolean {
+    const start = this.i;
+    if (!this.relativePart()) {
+      return false;
+    }
+    if (this.take("?") && !this.query()) {
+      this.i = start;
+      return false;
+    }
+    if (this.take("#") && !this.fragment()) {
+      this.i = start;
+      return false;
+    }
+    if (this.i != this.l) {
+      this.i = start;
+      return false;
+    }
+    return true;
+  }
+
+  // relative-part = "//" authority path-abempty
+  //               / path-absolute
+  //               / path-noscheme
+  //               / path-empty
+  relativePart(): boolean {
+    const start = this.i;
+    if (
+      this.take("/") &&
+      this.take("/") &&
+      this.authority() &&
+      this.pathAbempty()
+    ) {
+      return true;
+    }
+    this.i = start;
+    return this.pathAbsolute() || this.pathNoscheme() || this.pathEmpty();
+  }
+
+  // scheme = ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )
+  // Terminated by ":".
+  scheme(): boolean {
+    const start = this.i;
+    if (this.alpha()) {
+      while (
+        this.alpha() ||
+        this.digit() ||
+        this.take("+") ||
+        this.take("-") ||
+        this.take(".")
+      ) {
+        // continue
+      }
+      if (this.str[this.i] == ":") {
+        return true;
+      }
+    }
+    this.i = start;
+    return false;
+  }
+
+  // authority = [ userinfo "@" ] host [ ":" port ]
+  // Lead by double slash ("").
+  // Terminated by "/", "?", "#", or end of URI.
+  authority(): boolean {
+    const start = this.i;
+    if (this.userinfo()) {
+      if (!this.take("@")) {
+        this.i = start;
+        return false;
+      }
+    }
+    if (!this.host()) {
+      this.i = start;
+      return false;
+    }
+    if (this.take(":")) {
+      if (!this.port()) {
+        this.i = start;
+        return false;
+      }
+    }
+    if (!this.isAuthorityEnd()) {
+      this.i = start;
+      return false;
+    }
+    return true;
+  }
+
+  // > The authority component [...] is terminated by the next slash ("/"),
+  // > question mark ("?"), or number > sign ("#") character, or by the
+  // > end of the URI.
+  isAuthorityEnd(): boolean {
+    return (
+      this.str[this.i] == "?" ||
+      this.str[this.i] == "#" ||
+      this.str[this.i] == "/" ||
+      this.i >= this.l
+    );
+  }
+
+  // userinfo = *( unreserved / pct-encoded / sub-delims / ":" )
+  // Terminated by "@" in authority.
+  userinfo(): boolean {
+    const start = this.i;
+    for (;;) {
+      if (
+        this.unreserved() ||
+        this.pctEncoded() ||
+        this.subDelims() ||
+        this.take(":")
+      ) {
+        continue;
+      }
+      if (this.str[this.i] == "@") {
+        return true;
+      }
+      this.i = start;
+      return false;
+    }
+  }
+
+  // host = IP-literal / IPv4address / reg-name
+  host(): boolean {
+    // Note: IPv4address is a subset of reg-name
+    return (this.str[this.i] == "[" && this.ipLiteral()) || this.regName();
+  }
+
+  // port = *DIGIT
+  // Terminated by end of authority.
+  port(): boolean {
+    const start = this.i;
+    for (;;) {
+      if (this.digit()) {
+        continue;
+      }
+      if (this.isAuthorityEnd()) {
+        return true;
+      }
+      this.i = start;
+      return false;
+    }
+  }
+
+  // RFC 6874:
+  // IP-literal = "[" ( IPv6address / IPv6addrz / IPvFuture  ) "]"
+  ipLiteral(): boolean {
+    const start = this.i;
+    if (this.take("[")) {
+      const j = this.i;
+      if (this.ipv6Address() && this.take("]")) {
+        return true;
+      }
+      this.i = j;
+      if (this.ipv6addrz() && this.take("]")) {
+        return true;
+      }
+      this.i = j;
+      if (this.ipvFuture() && this.take("]")) {
+        return true;
+      }
+    }
+    this.i = start;
+    return false;
+  }
+
+  // IPv6address
+  // Relies on the implementation of isIp6() to match the RFC 3986 grammar.
+  ipv6Address(): boolean {
+    const start = this.i;
+    while (this.hexdig() || this.take(":")) {
+      // continue
+    }
+    if (isIp(this.str.substring(start, this.i), 6)) {
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  // RFC 6874:
+  // IPv6addrz = IPv6address "%25" ZoneID
+  ipv6addrz(): boolean {
+    const start = this.i;
+    if (
+      this.ipv6Address() &&
+      this.take("%") &&
+      this.take("2") &&
+      this.take("5") &&
+      this.zoneId()
+    ) {
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  // RFC 6874:
+  // ZoneID = 1*( unreserved / pct-encoded )
+  zoneId(): boolean {
+    const start = this.i;
+    while (this.unreserved() || this.pctEncoded()) {
+      // continue
+    }
+    if (this.i - start > 0) {
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  // IPvFuture  = "v" 1*HEXDIG "." 1*( unreserved / sub-delims / ":" )
+  ipvFuture(): boolean {
+    const start = this.i;
+    if (this.take("v") && this.hexdig()) {
+      while (this.hexdig()) {
+        // continue
+      }
+      if (this.take(".")) {
+        let j = 0;
+        while (this.unreserved() || this.subDelims() || this.take(":")) {
+          j++;
+        }
+        if (j >= 1) {
+          return true;
+        }
+      }
+    }
+    this.i = start;
+    return false;
+  }
+
+  // reg-name = *( unreserved / pct-encoded / sub-delims )
+  // Terminates on start of port (":") or end of authority.
+  regName(): boolean {
+    const start = this.i;
+    for (;;) {
+      if (this.unreserved() || this.pctEncoded() || this.subDelims()) {
+        continue;
+      }
+      if (this.str[this.i] == ":") {
+        return true;
+      }
+      if (this.isAuthorityEnd()) {
+        // End of authority
+        return true;
+      }
+      this.i = start;
+      return false;
+    }
+  }
+
+  // path = path-abempty    ; begins with "/" or is empty
+  //      / path-absolute   ; begins with "/" but not "//"
+  //      / path-noscheme   ; begins with a non-colon segment
+  //      / path-rootless   ; begins with a segment
+  //      / path-empty      ; zero characters
+  // Terminated by end of path: "?", "#", or end of URI.
+  // path(): boolean {
+  //   return pathAbempty() || pathAbsolute() || pathNoscheme() || pathRootless() || pathEmpty();
+  // }
+
+  // > The path is terminated by the first question mark ("?") or
+  // > number sign ("#") character, or by the end of the URI.
+  isPathEnd(): boolean {
+    return (
+      this.str[this.i] == "?" || this.str[this.i] == "#" || this.i >= this.l
+    );
+  }
+
+  // path-abempty = *( "/" segment )
+  // Terminated by end of path: "?", "#", or end of URI.
+  pathAbempty(): boolean {
+    const start = this.i;
+    while (this.take("/") && this.segment()) {
+      // continue
+    }
+    if (this.isPathEnd()) {
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  // path-absolute = "/" [ segment-nz *( "/" segment ) ]
+  // Terminated by end of path: "?", "#", or end of URI.
+  pathAbsolute(): boolean {
+    const start = this.i;
+    if (this.take("/")) {
+      if (this.segmentNz()) {
+        while (this.take("/") && this.segment()) {
+          // continue
+        }
+      }
+      if (this.isPathEnd()) {
+        return true;
+      }
+    }
+    this.i = start;
+    return false;
+  }
+
+  // path-noscheme = segment-nz-nc *( "/" segment )
+  // Terminated by end of path: "?", "#", or end of URI.
+  pathNoscheme(): boolean {
+    const start = this.i;
+    if (this.segmentNzNc()) {
+      while (this.take("/") && this.segment()) {
+        // continue
+      }
+      if (this.isPathEnd()) {
+        return true;
+      }
+    }
+    this.i = start;
+    return false;
+  }
+
+  // path-rootless = segment-nz *( "/" segment )
+  // Terminated by end of path: "?", "#", or end of URI.
+  pathRootless(): boolean {
+    const start = this.i;
+    if (this.segmentNz()) {
+      while (this.take("/") && this.segment()) {
+        // continue
+      }
+      if (this.isPathEnd()) {
+        return true;
+      }
+    }
+    this.i = start;
+    return false;
+  }
+
+  // path-empty = 0<pchar>
+  // Terminated by end of path: "?", "#", or end of URI.
+  pathEmpty(): boolean {
+    return this.isPathEnd();
+  }
+
+  // segment = *pchar
+  segment(): boolean {
+    while (this.pchar()) {
+      // continue
+    }
+    return true;
+  }
+
+  // segment-nz = 1*pchar
+  segmentNz(): boolean {
+    const start = this.i;
+    if (this.pchar()) {
+      while (this.pchar()) {
+        // continue
+      }
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  // segment-nz-nc = 1*( unreserved / pct-encoded / sub-delims / "@" )
+  //               ; non-zero-length segment without any colon ":"
+  segmentNzNc(): boolean {
+    const start = this.i;
+    while (
+      this.unreserved() ||
+      this.pctEncoded() ||
+      this.subDelims() ||
+      this.take("@")
+    ) {
+      // continue
+    }
+    if (this.i - start > 0) {
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  // pchar = unreserved / pct-encoded / sub-delims / ":" / "@"
+  pchar(): boolean {
+    return (
+      this.unreserved() ||
+      this.pctEncoded() ||
+      this.subDelims() ||
+      this.take(":") ||
+      this.take("@")
+    );
+  }
+
+  // query = *( pchar / "/" / "?" )
+  // Terminated by "#" or end of URI.
+  query(): boolean {
+    const start = this.i;
+    for (;;) {
+      if (this.pchar() || this.take("/") || this.take("?")) {
+        continue;
+      }
+      if (this.str[this.i] == "#" || this.i == this.l) {
+        return true;
+      }
+      this.i = start;
+      return false;
+    }
+  }
+
+  // fragment = *( pchar / "/" / "?" )
+  // Terminated by end of URI.
+  fragment(): boolean {
+    const start = this.i;
+    for (;;) {
+      if (this.pchar() || this.take("/") || this.take("?")) {
+        continue;
+      }
+      if (this.i == this.l) {
+        return true;
+      }
+      this.i = start;
+      return false;
+    }
+  }
+
+  // pct-encoded = "%" HEXDIG HEXDIG
+  pctEncoded(): boolean {
+    const start = this.i;
+    if (this.take("%") && this.hexdig() && this.hexdig()) {
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  // unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+  unreserved(): boolean {
+    return (
+      this.alpha() ||
+      this.digit() ||
+      this.take("-") ||
+      this.take("_") ||
+      this.take(".") ||
+      this.take("~")
+    );
+  }
+
+  // sub-delims  = "!" / "$" / "&" / "'" / "(" / ")"
+  //   / "*" / "+" / "," / ";" / "="
+  subDelims(): boolean {
+    return (
+      this.take("!") ||
+      this.take("$") ||
+      this.take("&") ||
+      this.take("'") ||
+      this.take("(") ||
+      this.take(")") ||
+      this.take("*") ||
+      this.take("+") ||
+      this.take(",") ||
+      this.take(";") ||
+      this.take("=")
+    );
+  }
+
+  // ALPHA =  %x41-5A / %x61-7A ; A-Z / a-z
+  alpha(): boolean {
+    const c = this.str[this.i];
+    if (("A" <= c && c <= "Z") || ("a" <= c && c <= "z")) {
+      this.i++;
+      return true;
+    }
+    return false;
+  }
+
+  // DIGIT = %x30-39  ; 0-9
+  digit(): boolean {
+    const c = this.str[this.i];
+    if ("0" <= c && c <= "9") {
+      this.i++;
+      return true;
+    }
+    return false;
+  }
+
+  // HEXDIG =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
+  hexdig(): boolean {
+    const c = this.str[this.i];
+    if (
+      ("0" <= c && c <= "9") ||
+      ("a" <= c && c <= "f") ||
+      ("A" <= c && c <= "F") ||
+      ("0" <= c && c <= "9")
+    ) {
+      this.i++;
+      return true;
+    }
+    return false;
+  }
+
+  take(char: string): boolean {
+    if (this.str[this.i] == char) {
+      this.i++;
+      return true;
+    }
+    return false;
+  }
 }

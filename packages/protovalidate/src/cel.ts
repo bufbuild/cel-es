@@ -46,6 +46,7 @@ import {
   isInf,
   isIp,
   isUri,
+  isUriRef,
 } from "./lib.js";
 
 export function createCelEnv(namespace: string, registry: Registry): CelEnv {
@@ -167,7 +168,7 @@ function createCustomFuncs(): FuncRegistry {
       "isUriRef",
       ["string_is_uri_ref_bool"],
       (_id: number, arg: CelVal): CelResult | undefined => {
-        return typeof arg == "string" && isUri(arg, true);
+        return typeof arg == "string" && isUriRef(arg);
       },
     ),
   );
