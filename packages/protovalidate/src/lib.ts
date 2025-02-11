@@ -227,9 +227,16 @@ class Ipv6 {
 }
 
 /**
- * Validate hostname according to https://tools.ietf.org/html/rfc1034#section-3.5
- * Does not support internationalized domain names.
- * Ported from protovalidate-go / library.go.
+ * Returns true if the string is a valid host name, for example "foo.example.com".
+ *
+ * A valid host name follows the rules below:
+ *
+ * - The name consists of one or more labels, separated by a dot (".").
+ * - Each label can be 1 to 63 alphanumeric characters.
+ * - A label can contain hyphens ("-"), but must not start or end with a hyphen.
+ * - The right-most label must not be digits only.
+ * - The name can have a trailing dot, for example "foo.example.com.".
+ * - The name can be 253 characters at most, excluding the optional trailing dot.
  */
 export function isHostname(str: string): boolean {
   if (str.length > 253) {
