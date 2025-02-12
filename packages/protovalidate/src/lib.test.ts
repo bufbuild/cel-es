@@ -20,6 +20,7 @@ import {
   isHostname,
   isInf,
   isIp,
+  isIpPrefix,
   isUri,
   isUriRef,
 } from "./lib.js";
@@ -214,30 +215,359 @@ void suite("isHostAndPort", () => {
   }
 });
 
-void suite("isIp", () => {
+void suite("isIpPrefix", () => {
   void suite("version argument", () => {
-    t(true, `::1`); // "either 4 or 6"
-    t(true, `127.0.0.1`); // "either 4 or 6"
-    t(true, `::1`, 0, "version 0 means either 4 or 6");
-    t(true, `127.0.0.1`, 0, "version 0 means either 4 or 6");
-    t(true, `::1`, 6, "version 6 only");
-    t(true, `127.0.0.1`, 4, "is v4");
-    t(false, `127.0.0.1`, 6, "is v6");
-    t(false, `::1`, 4, "is not v4");
-    t(false, `::1`, 1, "bad version");
-    t(false, `::1`, 5, "bad version");
-    t(false, `::1`, 7, "bad version");
+    // argument omitted
+    t(true, "::1/64", undefined, "is either v4 or v6");
+    t(true, "127.0.0.1/16", undefined, "is either v4 or v6");
+
+    // version = 0
+    t(true, "::1/64", 0, "version 0 means either 4 or 6");
+    t(true, "127.0.0.1/16", 0, "version 0 means either 4 or 6");
+
+    // specific version
+    t(true, "::1/64", 6, "version 6 only");
+    t(true, "127.0.0.1/16", 4, "is v4");
+    t(false, "127.0.0.1/16", 6, "is v6");
+    t(false, "::1/64", 4, "is not v4");
+
+    // version out of range
+    t(false, "127.0.0.0/16", 1, "bad version");
+    t(false, "::1/64", 1, "bad version");
+    t(false, "::1/64", 5, "bad version");
+    t(false, "::1/64", 7, "bad version");
 
     function t(
       expect: boolean,
       str: string,
-      version?: number | bigint,
+      version: number | bigint | undefined,
       comment = "",
     ) {
       void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
-        assert.strictEqual(isIp(str, version), expect);
         if (typeof version == "number") {
+          assert.strictEqual(isIpPrefix(str, version), expect);
+          // Version given as number or bigint must have same result
+          assert.strictEqual(isIpPrefix(str, BigInt(version)), expect);
+        } else {
+          assert.strictEqual(isIpPrefix(str), expect);
+        }
+      });
+    }
+  });
+
+  void suite("strict argument", () => {
+    // argument omitted
+    t(
+      true,
+      "2001:0DB8:ABCD:0012:0:0:0:0/64",
+      undefined,
+      "IPv6 zero accepted by default",
+    );
+    t(
+      true,
+      "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/64",
+      undefined,
+      "IPv6 non-zero accepted by default",
+    );
+    t(true, "255.255.0.0/16", undefined, "IPv4 zero accepted by default");
+    t(true, "255.255.128.0/16", undefined, "IPv4 non-zero accepted by default");
+
+    // strict = false
+    t(
+      true,
+      "2001:0DB8:ABCD:0012:0:0:0:0/64",
+      false,
+      "IPv6 zero accepted with strict = false",
+    );
+    t(
+      true,
+      "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/64",
+      false,
+      "IPv6 non-zero accepted with strict = false",
+    );
+    t(true, "255.255.0.0/16", false, "IPv4 zero accepted with strict = false");
+    t(
+      true,
+      "255.255.128.0/16",
+      false,
+      "IPv4 non-zero accepted with strict = false",
+    );
+
+    // strict = true
+    t(
+      true,
+      "2001:0DB8:ABCD:0012:0:0:0:0/64",
+      true,
+      "IPv6 zero accepted with strict = true",
+    );
+    t(
+      false,
+      "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/64",
+      true,
+      "IPv6 non-zero not accepted with strict = true",
+    );
+    t(true, "255.255.0.0/16", true, "IPv4 zero accepted with strict = true");
+    t(
+      false,
+      "255.255.128.0/16",
+      true,
+      "IPv4 non-zero not accepted with strict = true",
+    );
+
+    function t(
+      expect: boolean,
+      str: string,
+      strict: boolean | undefined,
+      comment = "",
+    ) {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        if (typeof strict == "boolean") {
+          assert.strictEqual(isIpPrefix(str, undefined, strict), expect);
+        } else {
+          assert.strictEqual(isIpPrefix(str), expect);
+        }
+      });
+    }
+  });
+
+  void suite("v4", () => {
+    // simple examples
+    t(true, "192.168.1.0/24");
+    t(true, "192.168.1.0/0", "min prefix-length");
+    t(true, "192.168.1.0/32", "max prefix-length");
+    t(true, "0.0.0.0/0");
+    t(true, "255.255.255.255/32");
+
+    // bad forms
+    t(false, "192.168.1.0/024", "bad leading zero in decimal prefix-length");
+    t(false, "192.168.1.0/33", "prefix-length out of range");
+    t(false, "192.168.1.0/12345678901234567890", "prefix-length out of range");
+    t(false, "192.168.1.0/", "missing decimal prefix-length");
+
+    function t(expect: boolean, str: string, comment = "") {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        assert.strictEqual(isIpPrefix(str, 4, false), expect);
+        if (expect) {
+          // A valid IPv4 prefix is never a valid IPv6 prefix
+          assert.strictEqual(isIpPrefix(str, 6, false), false);
+        } else {
+          // An invalid prefix is never a valid strict prefix
+          assert.strictEqual(isIpPrefix(str, 6, true), false);
+        }
+      });
+    }
+  });
+
+  void suite("v4 strict", () => {
+    t(true, "0.0.0.0/0");
+    t(false, "1.0.0.0/0");
+    t(false, "128.0.0.0/0");
+    t(true, "128.0.0.0/1");
+    t(true, "0.0.0.0/1");
+    t(false, "127.0.0.0/1");
+    t(false, "129.0.0.0/1");
+    t(false, "1.0.0.0/1");
+    t(true, "192.0.0.0/2");
+    t(true, "64.0.0.0/2");
+    t(true, "0.0.0.0/2");
+    t(false, "193.0.0.0/2");
+    t(false, "224.0.0.0/2");
+    t(true, "254.0.0.0/7");
+    t(true, "0.0.0.0/7");
+    t(false, "255.0.0.0/7");
+    t(true, "255.0.0.0/8");
+    t(true, "128.0.0.0/8");
+    t(true, "0.0.0.0/8");
+    t(false, "255.128.0.0/8");
+    t(true, "255.128.0.0/9");
+    t(true, "255.254.0.0/15");
+    t(true, "255.255.0.0/16");
+    t(true, "0.0.0.0/16");
+    t(false, "255.255.128.0/16");
+    t(false, "255.255.0.128/16");
+    t(true, "255.255.128.0/17");
+    t(true, "255.255.254.0/23");
+    t(true, "0.0.0.0/23");
+    t(false, "255.255.255.0/23");
+    t(false, "255.255.254.128/23");
+    t(true, "255.255.255.0/24");
+    t(true, "0.0.0.0/24");
+    t(false, "255.255.255.128/24");
+    t(true, "255.255.255.128/25");
+    t(true, "0.0.0.0/25");
+    t(false, "255.255.255.129/25");
+    t(true, "255.255.255.254/31");
+    t(true, "0.0.0.0/31");
+    t(false, "255.255.255.255/31");
+    t(true, "255.255.255.255/32");
+    t(true, "0.0.0.0/32");
+
+    function t(expect: boolean, str: string, comment = "") {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        assert.strictEqual(isIpPrefix(str, 4, true), expect);
+        if (expect) {
+          // A valid strict prefix must be a valid non-strict prefix
+          assert.strictEqual(isIpPrefix(str, 4, false), true);
+          // A valid IPv4 prefix is never a valid IPv6 prefix
+          assert.strictEqual(isIpPrefix(str, 6, false), false);
+        }
+      });
+    }
+  });
+
+  void suite("v6", () => {
+    // simple examples
+    t(true, "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/64");
+    t(true, "::1/64", "compressed");
+    t(true, "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/0", "min prefix-length");
+    t(true, "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/128", "max prefix-length");
+
+    // bad forms
+    t(
+      false,
+      "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/064",
+      "bad leading zero in decimal prefix-length",
+    );
+    t(
+      false,
+      "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/129",
+      "prefix-length out of range",
+    );
+    t(
+      false,
+      "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/12345678901234567890",
+      "prefix-length out of range",
+    );
+    t(
+      false,
+      "2001:0DB8:ABCD:0012:FFFF:FFFF:FFFF:FFFF/",
+      "missing decimal prefix-length",
+    );
+    t(false, "::1%en1/64", "zone id not permitted");
+    t(false, "::1/64%en1", "zone id not permitted");
+
+    function t(expect: boolean, str: string, comment = "") {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        assert.strictEqual(isIpPrefix(str, 6, false), expect);
+        if (expect) {
+          // A valid IPv6 prefix is never a valid IPv4 prefix
+          assert.strictEqual(isIpPrefix(str, 4, false), false);
+        } else {
+          // An invalid prefix is never a valid strict prefix
+          assert.strictEqual(isIpPrefix(str, 4, true), false);
+        }
+      });
+    }
+  });
+
+  void suite("v6 strict", () => {
+    // 0 bit prefix
+    t(true, "0:0:0:0:0:0:0:0/0");
+    t(false, "1:0:0:0:0:0:0:0/0");
+
+    // 1 bit prefix
+    t(true, "0:0:0:0:0:0:0:0/1");
+    t(true, "8000:0:0:0:0:0:0:0/1");
+    t(false, "c000:0:0:0:0:0:0:0/1");
+
+    // 8 bit prefix
+    t(true, "0:0:0:0:0:0:0:0/8");
+    t(true, "ff00:0:0:0:0:0:0:0/8");
+    t(false, "ff80:0:0:0:0:0:0:0/8");
+
+    // 64 bit prefix
+    t(true, "1:2:3:4:0:0:0:0/64");
+    t(true, "ffff:ffff:ffff:ffff:0:0:0:0/64");
+    t(false, "ffff:ffff:ffff:ffff:8000:0:0:0/64");
+
+    // 112 bit prefix
+    t(true, "1:2:3:4:5:6:7:0/112");
+    t(true, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:0/112");
+    t(false, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:8000/112");
+
+    // 127 bit prefix
+    t(true, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:0/127");
+    t(true, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe/127");
+    t(false, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/127");
+
+    // 128 bit prefix
+    t(true, "1:2:3:4:5:6:7:8/128");
+    t(true, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128");
+    t(true, "0:0:0:0:0:0:0:0/128");
+
+    // double colon
+    t(true, "::2:3:4:5:6:7:8/128", "double colon at start");
+    t(true, "::8/128", "double colon at start compresses many");
+    t(true, "1:2:3:4::6:7:8/128", "double colon in the middle");
+    t(true, "1::8/128", "double colon in the middle compresses many");
+    t(true, "1:2:3:4:5:6:7::/128", "double colon at end");
+    t(true, "1::/128", "double colon at end compresses many");
+    t(true, "::/128", "double colon");
+
+    // dotted decimal for right-most 32 bits
+    t(
+      true,
+      "0:0:0:0:0:ffff:192.1.56.10/128",
+      "fully masked with dotted decimal notation",
+    );
+    t(true, "0:0:0:0:0:ffff:192.1.0.0/112", "last 16-bit piece zero");
+    t(false, "0:0:0:0:0:ffff:192.1.0.128/112", "last 16-bit piece not zero");
+    t(true, "0:0:0:0:0:ffff:0.0.0.0/96", "last two 16-bit pieces zero");
+    t(false, "0:0:0:0:0:ffff:0.0.128.0/96", "last two 16-bit pieces not zero");
+
+    // dotted decimal and double colon
+    t(true, "::ffff:192.1.0.0/112", "last 16-bit piece zero");
+    t(false, "::ffff:192.1.128.0/112", "last 16-bit piece not zero");
+
+    function t(expect: boolean, str: string, comment = "") {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        assert.strictEqual(isIpPrefix(str, 6, true), expect);
+        if (expect) {
+          // A valid strict prefix must be a valid non-strict prefix
+          assert.strictEqual(isIpPrefix(str, 6, false), true);
+          // A valid IPv6 prefix is never a valid IPv4 prefix
+          assert.strictEqual(isIpPrefix(str, 4, false), false);
+        }
+      });
+    }
+  });
+});
+
+void suite("isIp", () => {
+  void suite("version argument", () => {
+    // argument omitted
+    t(true, "::1", undefined); // "either 4 or 6"
+    t(true, "127.0.0.1", undefined); // "either 4 or 6"
+
+    // version = 0
+    t(true, "::1", 0, "version 0 means either 4 or 6");
+    t(true, "127.0.0.1", 0, "version 0 means either 4 or 6");
+
+    // specific version
+    t(true, "::1", 6, "version 6 only");
+    t(true, "127.0.0.1", 4, "is v4");
+    t(false, "127.0.0.1", 6, "is v6");
+    t(false, "::1", 4, "is not v4");
+
+    // version out of range
+    t(false, "127.0.0.1", 1, "bad version");
+    t(false, "::1", 1, "bad version");
+    t(false, "::1", 5, "bad version");
+    t(false, "::1", 7, "bad version");
+
+    function t(
+      expect: boolean,
+      str: string,
+      version: number | bigint | undefined,
+      comment = "",
+    ) {
+      void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+        if (typeof version == "number") {
+          assert.strictEqual(isIp(str, version), expect);
+          // Version given as number or bigint must have same result
           assert.strictEqual(isIp(str, BigInt(version)), expect);
+        } else {
+          assert.strictEqual(isIp(str), expect);
         }
       });
     }

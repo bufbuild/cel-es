@@ -45,6 +45,7 @@ import {
   isHostname,
   isInf,
   isIp,
+  isIpPrefix,
   isUri,
   isUriRef,
 } from "./lib.js";
@@ -55,15 +56,7 @@ export function createCelEnv(namespace: string, registry: Registry): CelEnv {
   return env;
 }
 
-// Done: isIp, isInf, isNaN, isUri, isUriRef, isHostAndPort, isEmail
-
-// TODO isIpPrefix
-
-// TODO isHostname - check if there's a grammar
-// `hostname` specifies that the field value must be a valid
-// hostname as defined by [RFC 1034](https://tools.ietf.org/html/rfc1034#section-3.5).
-// This constraint doesn't support internationalized domain names (IDNs). If the
-// field value isn't a valid hostname, an error message will be generated.
+// Done: isIp, isInf, isNaN, isUri, isUriRef, isHostAndPort, isEmail, isIpPrefix, isHostname
 
 // TODO unique
 // TODO contains, endsWith, startsWith for bytes
@@ -151,6 +144,38 @@ function createCustomFuncs(): FuncRegistry {
           );
         }
         return false;
+      },
+    ),
+  );
+  reg.add(
+    Func.newStrict(
+      "isIpPrefix",
+      [
+        "string_is_ip_prefix_bool",
+        "string_int_is_ip_prefix_bool",
+        "string_bool_is_ip_prefix_bool",
+        "string_int_bool_is_ip_prefix_bool",
+      ],
+      (_id: number, args: CelVal[]): CelResult | undefined => {
+        switch (args.length) {
+          case 1:
+            return typeof args[0] == "string" && isIpPrefix(args[0]);
+          case 2:
+            return (
+              typeof args[0] == "string" &&
+              (typeof args[1] == "number" || typeof args[1] == "bigint") &&
+              isIpPrefix(args[0], args[1])
+            );
+          case 3:
+            return (
+              typeof args[0] == "string" &&
+              (typeof args[1] == "number" || typeof args[1] == "bigint") &&
+              typeof args[2] == "boolean" &&
+              isIpPrefix(args[0], args[1], args[2])
+            );
+          default:
+            return false;
+        }
       },
     ),
   );

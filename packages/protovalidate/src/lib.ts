@@ -52,78 +52,308 @@ export function isIp(str: string, version?: number | bigint): boolean {
   return false;
 }
 
-export function isIpPrefix(/*str: string*/): boolean {
-  throw new Error("TODO");
+/**
+ * Returns true if the string is a valid IP with prefix length, optionally
+ * limited to a specific version (v4 or v6), and optionally requiring the host
+ * portion to be all zeros.
+ *
+ * An address prefix divides an IP address into a network portion, and a host
+ * portion. The prefix length specifies how many bits the network portion has.
+ * For example, the IPv6 prefix "2001:db8:abcd:0012::0/64" designates the first
+ * 64 bits as the network prefix. The range of the network is 2**64 addresses,
+ * from 2001:db8:abcd:0012::0 to 2001:db8:abcd:0012:ffff:ffff:ffff:ffff.
+ *
+ * An address prefix may include a specific host address, for example
+ * "2001:db8:abcd:0012::1f/64". With strict = true, this is not permitted. The
+ * host portion must be all zeros, as in "2001:db8:abcd:0012::0/64".
+ *
+ * The same principle applies to IPv4 addresses. "192.168.1.0/24" designates
+ * the first 24 bits of the 32-bit IPv4 as the network prefix.
+ */
+export function isIpPrefix(
+  str: string,
+  version?: number | bigint,
+  strict = false,
+): boolean {
+  if (version == 6) {
+    const ip = new Ipv6(str);
+    return ip.addressPrefix() && (!strict || ip.isPrefixOnly());
+  }
+  if (version == 4) {
+    const ip = new Ipv4(str);
+    return ip.addressPrefix() && (!strict || ip.isPrefixOnly());
+  }
+  if (version === undefined || version == 0) {
+    return isIpPrefix(str, 6, strict) || isIpPrefix(str, 4, strict);
+  }
+  return false;
 }
 
-class Ipv4 {
+export class Ipv4 {
   readonly str: string;
   i: number = 0;
   readonly l: number;
+  readonly octets: number[] = [];
+  prefixLen = 0;
 
   constructor(str: string) {
     this.str = str;
     this.l = str.length;
   }
 
-  address(): boolean {
+  // Return the 32-bit value of an address parsed through address() or addressPrefix().
+  // Return -1 if no address was parsed successfully.
+  getBits(): number {
+    if (this.octets.length != 4) {
+      return -1;
+    }
     return (
-      this.decOctet() &&
-      this.dot() &&
-      this.decOctet() &&
-      this.dot() &&
-      this.decOctet() &&
-      this.dot() &&
-      this.decOctet() &&
+      ((this.octets[0] << 24) |
+        (this.octets[1] << 16) |
+        (this.octets[2] << 8) |
+        this.octets[3]) >>>
+      0
+    );
+  }
+
+  // Return true if all bits to the right of the prefix-length are all zeros.
+  // Behavior is undefined if addressPrefix() has not been called before, or has
+  // returned false.
+  isPrefixOnly(): boolean {
+    const bits = this.getBits();
+    const mask =
+      this.prefixLen == 32
+        ? 0xffffffff
+        : ~(0xffffffff >>> this.prefixLen) >>> 0;
+    const masked = (bits & mask) >>> 0;
+    return bits == masked;
+  }
+
+  // Parse IPv4 Address in dotted decimal notation.
+  address(): boolean {
+    return this.addressPart() && this.i == this.l;
+  }
+
+  // Parse IPv4 Address prefix.
+  addressPrefix(): boolean {
+    return (
+      this.addressPart() &&
+      this.take("/") &&
+      this.prefixLength() &&
       this.i == this.l
     );
   }
 
-  decOctet(): boolean {
+  // Stores value in `prefixLen`
+  prefixLength(): boolean {
     const start = this.i;
-    while (
-      this.i < this.l &&
-      this.str[this.i] >= "0" &&
-      this.str[this.i] <= "9"
-    ) {
-      this.i++;
+    while (this.digit()) {
+      if (this.i - start > 2) {
+        // max prefix-length is 32 bits, so anything more than 2 digits is invalid
+        return false;
+      }
     }
-    const len = this.i - start;
-    if (len > 1 && this.str[this.i] == "0") {
+    const str = this.str.substring(start, this.i);
+    if (str.length == 0) {
+      // too short
       return false;
     }
-    return len > 0 && parseInt(this.str.substring(this.i, start), 10) < 256;
+    if (str.length > 1 && str[0] == "0") {
+      // bad leading 0
+      return false;
+    }
+    const value = parseInt(str);
+    if (value > 32) {
+      // max 32 bits
+      return false;
+    }
+    this.prefixLen = value;
+    return true;
   }
 
-  dot(): boolean {
-    return this.str[this.i++] == ".";
+  addressPart(): boolean {
+    const start = this.i;
+    if (
+      this.decOctet() &&
+      this.take(".") &&
+      this.decOctet() &&
+      this.take(".") &&
+      this.decOctet() &&
+      this.take(".") &&
+      this.decOctet()
+    ) {
+      return true;
+    }
+    this.i = start;
+    return false;
+  }
+
+  decOctet(): boolean {
+    const start = this.i;
+    while (this.digit()) {
+      if (this.i - start > 3) {
+        // decimal octet can be three characters at most
+        return false;
+      }
+    }
+    const str = this.str.substring(start, this.i);
+    if (str.length == 0) {
+      // too short
+      return false;
+    }
+    if (str.length > 1 && str[0] == "0") {
+      // bad leading 0
+      return false;
+    }
+    const value = parseInt(str, 10);
+    if (value > 255) {
+      return false;
+    }
+    this.octets.push(value);
+    return true;
+  }
+
+  // DIGIT = %x30-39  ; 0-9
+  digit(): boolean {
+    const c = this.str[this.i];
+    if ("0" <= c && c <= "9") {
+      this.i++;
+      return true;
+    }
+    return false;
+  }
+
+  take(char: string): boolean {
+    if (this.str[this.i] == char) {
+      this.i++;
+      return true;
+    }
+    return false;
   }
 }
 
-class Ipv6 {
+export class Ipv6 {
   readonly str: string;
   i: number = 0;
   readonly l: number;
-  octets = 0;
+  readonly pieces: number[] = []; // 16-bit pieces found
+  doubleColonAt: number = -1; // number of 16-bit pieces found when double colon was found
   doubleColonSeen = false;
-  dottedFound = "";
+  dottedRaw = ""; // dotted notation for right-most 32 bits
+  dottedAddr: Ipv4 | undefined; // dotted notation successfully parsed as IPv4
+  zoneIdFound = false;
+  prefixLen = 0; // 0 - 128
 
   constructor(str: string) {
     this.str = str;
     this.l = str.length;
   }
 
+  // Return the 128-bit value of an address parsed through address() or addressPrefix(),
+  // as a 4-tuple of 32-bit values.
+  // Return [0,0,0,0] if no address was parsed successfully.
+  getBits(): [number, number, number, number] {
+    const p16 = this.pieces;
+    // handle dotted decimal, add to p16
+    if (this.dottedAddr !== undefined) {
+      const dotted32 = this.dottedAddr.getBits(); // right-most 32 bits
+      p16.push(dotted32 >>> 16); // high 16 bits
+      p16.push(dotted32 & (0xffff >>> 0)); // low 16 bits
+    }
+    // handle double colon, fill pieces with 0
+    if (this.doubleColonSeen) {
+      while (p16.length < 8) {
+        // delete 0 entries at pos, insert a 0
+        p16.splice(this.doubleColonAt, 0, 0x00000000);
+      }
+    }
+    if (p16.length != 8) {
+      return [0, 0, 0, 0];
+    }
+    return [
+      ((p16[0] << 16) | p16[1]) >>> 0,
+      ((p16[2] << 16) | p16[3]) >>> 0,
+      ((p16[4] << 16) | p16[5]) >>> 0,
+      ((p16[6] << 16) | p16[7]) >>> 0,
+    ];
+  }
+
+  // Return true if all bits to the right of the prefix-length are all zeros.
+  // Behavior is undefined if addressPrefix() has not been called before, or has
+  // returned false.
+  isPrefixOnly(): boolean {
+    // For each 32-bit piece of the address, require that values to the right of the prefix are zero
+    for (const [i, p32] of this.getBits().entries()) {
+      const len = this.prefixLen - 32 * i;
+      const mask =
+        len >= 32
+          ? 0xffffffff
+          : len < 0
+            ? 0x00000000
+            : ~(0xffffffff >>> len) >>> 0;
+      const masked = (p32 & mask) >>> 0;
+      if (p32 !== masked) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // Parse IPv6 Address following RFC 4291, with optional zone id following RFC 4007.
   address() {
+    return this.addressPart() && this.i == this.l;
+  }
+
+  // Parse IPv6 Address Prefix following RFC 4291. Zone id is not permitted.
+  addressPrefix(): boolean {
+    return (
+      this.addressPart() &&
+      !this.zoneIdFound &&
+      this.take("/") &&
+      this.prefixLength() &&
+      this.i == this.l
+    );
+  }
+
+  // Stores value in `prefixLen`
+  prefixLength(): boolean {
+    const start = this.i;
+    while (this.digit()) {
+      if (this.i - start > 3) {
+        return false;
+      }
+    }
+    const str = this.str.substring(start, this.i);
+    if (str.length == 0) {
+      // too short
+      return false;
+    }
+    if (str.length > 1 && str[0] == "0") {
+      // bad leading 0
+      return false;
+    }
+    const value = parseInt(str, 10);
+    if (value > 128) {
+      // max 128 bits
+      return false;
+    }
+    this.prefixLen = value;
+    return true;
+  }
+
+  // Stores dotted notation for right-most 32 bits in `dottedRaw` / `dottedAddr` if found.
+  addressPart(): boolean {
     for (; this.i < this.l; ) {
       // dotted notation for right-most 32 bits, e.g. 0:0:0:0:0:ffff:192.1.56.10
-      if ((this.doubleColonSeen || this.octets == 6) && this.dotted()) {
-        return (
-          (this.doubleColonSeen || this.octets == 6) &&
-          new Ipv4(this.dottedFound).address()
-        );
+      if ((this.doubleColonSeen || this.pieces.length == 6) && this.dotted()) {
+        const dotted = new Ipv4(this.dottedRaw);
+        if (dotted.address()) {
+          this.dottedAddr = dotted;
+          return true;
+        }
+        return false;
       }
       if (this.h16()) {
-        this.octets++;
         continue;
       }
       if (this.take(":")) {
@@ -132,6 +362,7 @@ class Ipv6 {
             return false;
           }
           this.doubleColonSeen = true;
+          this.doubleColonAt = this.pieces.length;
           if (this.take(":")) {
             return false;
           }
@@ -143,7 +374,7 @@ class Ipv6 {
       }
       break;
     }
-    return (this.doubleColonSeen || this.octets == 8) && this.i == this.l;
+    return this.doubleColonSeen || this.pieces.length == 8;
   }
 
   // There is no definition for the character set allowed in the zone
@@ -156,18 +387,20 @@ class Ipv6 {
       if (this.l - this.i > 0) {
         // permit any non-null string
         this.i = this.l;
+        this.zoneIdFound = true;
         return true;
       }
     }
     this.i = start;
+    this.zoneIdFound = false;
     return false;
   }
 
   // 1*3DIGIT "." 1*3DIGIT "." 1*3DIGIT "." 1*3DIGIT
-  // Stores match in `dottedFound`.
+  // Stores match in `dottedRaw`.
   dotted(): boolean {
     const start = this.i;
-    this.dottedFound = "";
+    this.dottedRaw = "";
     for (;;) {
       if (this.digit() || this.take(".")) {
         continue;
@@ -175,7 +408,7 @@ class Ipv6 {
       break;
     }
     if (this.i - start >= 7) {
-      this.dottedFound = this.str.substring(start, this.i);
+      this.dottedRaw = this.str.substring(start, this.i);
       return true;
     }
     this.i = start;
@@ -183,13 +416,23 @@ class Ipv6 {
   }
 
   // h16 = 1*4HEXDIG
+  // Stores 16-bit value in `pieces`
   h16(): boolean {
     const start = this.i;
     while (this.hexdig()) {
       // continue
     }
-    const len = this.i - start;
-    return len > 0 && len <= 4; // min length 1, max len 4
+    const str = this.str.substring(start, this.i);
+    if (str.length == 0) {
+      // too short
+      return false;
+    }
+    if (str.length > 4) {
+      // too long
+      return false;
+    }
+    this.pieces.push(parseInt(str, 16));
+    return true;
   }
 
   // HEXDIG =  DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
