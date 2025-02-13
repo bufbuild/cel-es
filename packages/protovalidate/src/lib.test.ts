@@ -785,7 +785,8 @@ void suite("isUri", () => {
   t(true, "https://user@example.com", "basic userinfo");
   t(true, "https://user:password@example.com", "basic userinfo");
   t(true, "https://%61%20%23@example.com", `userinfo pct-encoded ASCII`);
-  t(true, "https://%c3%96%c3@example.com", "userinfo pct-encoded UTF-8");
+  t(true, "https://%c3%963@example.com", "userinfo pct-encoded UTF-8");
+  t(true, "https://%c3x%963@example.com", "userinfo pct-encoded invalid UTF-8");
   t(false, "https://%@example.com", "userinfo bad pct-encoded");
   t(false, "https://%2x@example.com", "userinfo bad pct-encoded");
   t(
@@ -823,7 +824,8 @@ void suite("isUri", () => {
   );
   t(true, "https://:8080", `empty reg-name`);
   t(true, "https://foo%61%20%23", `host reg-name pct-encoded ASCII`);
-  t(true, "https://foo%c3%96%c3", "host reg-name pct-encoded UTF-8");
+  t(true, "https://foo%c3%96", "host reg-name pct-encoded UTF-8");
+  t(false, "https://foo%c3x%96", "host reg-name pct-encoded invalid UTF-8");
   t(false, "https://foo%", "host reg-name bad pct-encoded");
   t(false, "https://foo%2x", "host reg-name bad pct-encoded");
   t(true, "https://127.0.0.1", "host IPv4address");
@@ -856,8 +858,13 @@ void suite("isUri", () => {
   );
   t(
     true,
-    "https://[::1%25foo%c3%96%c3]",
+    "https://[::1%25foo%c3%96]",
     "host IPv6address zone pct-encoded UTF-8",
+  );
+  t(
+    false,
+    "https://[::1%25foo%c3x%96]",
+    "host IPv6address zone pct-encoded invalid UTF-8",
   );
   t(false, "https://[::1%25foo%]", "host IPv6address zone bad pct-encoded");
   t(false, "https://[::1%25foo%2x]", "host IPv6address zone bad pct-encoded");
@@ -874,10 +881,6 @@ void suite("isUri", () => {
   t(true, "https://example.com/foo", "simple path");
   t(true, "https://example.com/foo/bar", "nested path");
   t(true, "https://example.com/foo/bar/", "path with trailing slash");
-  t(true, "foo:/%61%20%23", `host reg-name pct-encoded ASCII`);
-  t(true, "foo:/foo%c3%96%c3", "host reg-name pct-encoded UTF-8");
-  t(false, "foo:/foo%", "host reg-name bad pct-encoded");
-  t(false, "foo:/foo%2x", "host reg-name bad pct-encoded");
 
   // path-absolute
   t(true, "foo:/nz", "path-absolute");
@@ -888,7 +891,8 @@ void suite("isUri", () => {
   t(false, "foo:/\x1F", "path-absolute segment-nz bad control character");
   t(false, "foo:/%x", "path-absolute segment-nz bad pct-encoded");
   t(true, "foo:/%61%20%23", "path-absolute segment-nz pct-encoded ASCII");
-  t(true, "foo:/%c3%96%c3", "path-absolute segment-nz pct-encoded UTF-8");
+  t(true, "foo:/%c3%96", "path-absolute segment-nz pct-encoded UTF-8");
+  t(true, "foo:/%c3x%96", "path-absolute segment-nz pct-encoded invalid UTF-8");
   t(
     true,
     "foo:/nz/0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&'()*+,;=:@%20",
@@ -915,7 +919,8 @@ void suite("isUri", () => {
   t(false, "foo:\x1F", "path-rootless segment-nz bad control character");
   t(false, "foo:%x", "path-rootless segment-nz bad pct-encoded");
   t(true, "foo:%61%20%23", "path-rootless segment-nz pct-encoded ASCII");
-  t(true, "foo:%c3%96%c3", "path-rootless segment-nz pct-encoded UTF-8");
+  t(true, "foo:%c3%96", "path-rootless segment-nz pct-encoded UTF-8");
+  t(true, "foo:%c3x%96", "path-rootless segment-nz pct-encoded invalid UTF-8");
   t(
     true,
     "foo:@%20!$&()*+,;=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~:",
@@ -925,7 +930,12 @@ void suite("isUri", () => {
   t(false, "foo:nz/\x1F", "path-rootless segment-nz bad control character");
   t(false, "foo:nz/%x", "path-rootless segment bad pct-encoded");
   t(true, "foo:nz/%61%20%23", "path-rootless segment pct-encoded ASCII");
-  t(true, "foo:nz/%c3%96%c3", "path-rootless segment pct-encoded UTF-8");
+  t(true, "foo:nz/%c3%96", "path-rootless segment pct-encoded UTF-8");
+  t(
+    true,
+    "foo:nz/%c3%96x%c3",
+    "path-rootless segment pct-encoded invalid UTF-8",
+  );
   t(
     true,
     "foo:nz/0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&'()*+,;=:@%20",
@@ -960,6 +970,7 @@ void suite("isUri", () => {
     "foo://example.com/%c3%96%c3",
     "path-abempty segment pct-encoded UTF-8",
   );
+  // TODO check inv utf
   t(
     true,
     "foo://example.com/0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&'()*+,;=:@%20",
@@ -1001,7 +1012,8 @@ void suite("isUri", () => {
   // §3.5 Fragment
   t(true, "https://example.com?#frag", "basic fragment");
   t(true, "https://example.com#%61%20%23", `fragment pct-encoded ASCII`);
-  t(true, "https://example.com#%c3%96%c3", "fragment pct-encoded UTF-8");
+  t(true, "https://example.com#%c3%96", "fragment pct-encoded UTF-8");
+  t(true, "https://example.com#%c3x%96", "fragment pct-encoded invalid UTF-8");
   t(false, "https://example.com#%2x", "fragment bad pct-encoded");
   t(true, "https://example.com#!$&'()*+,;=", "fragment sub-delims");
   t(true, "https://example.com#:@", "fragment pchar extra");
@@ -1064,7 +1076,8 @@ void suite("isUriRef", () => {
   t(false, "//host/\x1F", "path-abempty segment bad control character");
   t(false, "//host/%x", "path-abempty segment bad pct-encoded");
   t(true, "//host/%61%20%23", "path-abempty segment pct-encoded ASCII");
-  t(true, "//host/%c3%96%c3", "path-abempty segment pct-encoded UTF-8");
+  t(true, "//host/%c3%96", "path-abempty segment pct-encoded UTF-8");
+  t(true, "//host/%c3x%96", "path-abempty segment pct-encoded invalid UTF-8");
   t(
     true,
     "//host/0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&()*+,;=:@",
@@ -1111,7 +1124,8 @@ void suite("isUriRef", () => {
   t(false, "/\x1F", "path-absolute segment-nz bad control character");
   t(false, "/%x", "path-absolute segment-nz bad pct-encoded");
   t(true, "/%61%20%23", "path-absolute segment-nz pct-encoded ASCII");
-  t(true, "/%c3%96%c3", "path-absolute segment-nz pct-encoded UTF-8");
+  t(true, "/%c3%96", "path-absolute segment-nz pct-encoded UTF-8");
+  t(true, "/%c3x%96", "path-absolute segment-nz pct-encoded invalid UTF-8");
   t(
     true,
     "/@%20!$&()*+,;=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~:",
@@ -1122,7 +1136,8 @@ void suite("isUriRef", () => {
   t(false, "/nz/\x1F", "path-absolute segment-nz bad control character");
   t(false, "/nz/%x", "path-absolute segment bad pct-encoded");
   t(true, "/nz/%61%20%23", "path-absolute segment pct-encoded ASCII");
-  t(true, "/nz/%c3%96%c3", "path-absolute segment pct-encoded UTF-8");
+  t(true, "/nz/%c3%96", "path-absolute segment pct-encoded UTF-8");
+  t(true, "/nz/%c3x%96", "path-absolute segment pct-encoded invalid UTF-8");
   t(
     true,
     "/nz/0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&()*+,;=:@",
@@ -1159,7 +1174,8 @@ void suite("isUriRef", () => {
   t(false, "\x1F", "path-noscheme segment-nz bad control character");
   t(false, "%x", "path-noscheme segment-nz bad pct-encoded");
   t(true, "%61%20%23", "path-noscheme segment-nz pct-encoded ASCII");
-  t(true, "%c3%96%c3", "path-noscheme segment-nz pct-encoded UTF-8");
+  t(true, "%c3%96", "path-noscheme segment-nz pct-encoded UTF-8");
+  t(true, "%c3x%96", "path-noscheme segment-nz pct-encoded invalid UTF-8");
   t(
     true,
     "@%20!$&()*+,;=0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~",
@@ -1170,7 +1186,8 @@ void suite("isUriRef", () => {
   t(false, "./\x1F", "path-noscheme segment-nz bad control character");
   t(false, "./%x", "path-noscheme segment bad pct-encoded");
   t(true, "./%61%20%23", "path-noscheme segment pct-encoded ASCII");
-  t(true, "./%c3%96%c3", "path-noscheme segment pct-encoded UTF-8");
+  t(true, "./%c3%96", "path-noscheme segment pct-encoded UTF-8");
+  t(true, "./%c3x%96", "path-noscheme segment pct-encoded invalid UTF-8");
   t(
     true,
     "./0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&'()*+,;=:@%20",

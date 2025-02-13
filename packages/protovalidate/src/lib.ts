@@ -605,14 +605,11 @@ export function isUriRef(str: string): boolean {
   return new Uri(str).uriReference();
 }
 
-// TODO restrict pct-encoded to UTF-8, at least in `host`?
-// RFC 3986:
-// > URI producing applications must not use percent-encoding in host
-// > unless it is used to represent a UTF-8 character sequence.
 class Uri {
   readonly str: string;
   i: number = 0;
   readonly l: number;
+  pctEncodedFound = false;
 
   constructor(str: string) {
     this.str = str;
@@ -796,8 +793,35 @@ class Uri {
 
   // host = IP-literal / IPv4address / reg-name
   host(): boolean {
+    const start = this.i;
+    this.pctEncodedFound = false;
     // Note: IPv4address is a subset of reg-name
-    return (this.str[this.i] == "[" && this.ipLiteral()) || this.regName();
+    if ((this.str[this.i] == "[" && this.ipLiteral()) || this.regName()) {
+      if (this.pctEncodedFound) {
+        const rawHost = this.str.substring(start, this.i);
+        // RFC 3986:
+        // > URI producing applications must not use percent-encoding in host
+        // > unless it is used to represent a UTF-8 character sequence.
+        try {
+          // decodeURIComponent() throws an error if a pct-encoded escape
+          // sequence does not encode a valid UTF-8 character.
+          // Other implementations may have to implement this check themselves.
+          // For example:
+          // - Decode pct-encoded rawHost
+          //   - Allocate an octet array
+          //   - For every octet in rawHost
+          //     - For "%", percent-decode the following two hex digits to an
+          //       octet, add it to the octet array
+          //     - For every other octet, add it to the octet array
+          // - Check that the octet array is valid UTF-8
+          decodeURIComponent(rawHost);
+        } catch (_) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   // port = *DIGIT
@@ -1096,9 +1120,11 @@ class Uri {
   }
 
   // pct-encoded = "%" HEXDIG HEXDIG
+  // Sets `pctEncodedFound` to true if a valid triplet was found
   pctEncoded(): boolean {
     const start = this.i;
     if (this.take("%") && this.hexdig() && this.hexdig()) {
+      this.pctEncodedFound = true;
       return true;
     }
     this.i = start;
