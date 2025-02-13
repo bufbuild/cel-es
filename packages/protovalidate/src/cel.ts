@@ -31,6 +31,7 @@ import {
 import {
   CelEnv,
   CelError,
+  CelList,
   type CelResult,
   type CelVal,
   createEnv,
@@ -48,6 +49,7 @@ import {
   isIpPrefix,
   isUri,
   isUriRef,
+  unique,
 } from "./lib.js";
 
 export function createCelEnv(namespace: string, registry: Registry): CelEnv {
@@ -56,9 +58,8 @@ export function createCelEnv(namespace: string, registry: Registry): CelEnv {
   return env;
 }
 
-// Done: isIp, isInf, isNaN, isUri, isUriRef, isHostAndPort, isEmail, isIpPrefix, isHostname
+// Done: isIp, isInf, isNaN, isUri, isUriRef, isHostAndPort, isEmail, isIpPrefix, isHostname, unique
 
-// TODO unique
 // TODO contains, endsWith, startsWith for bytes
 // TODO now
 
@@ -194,6 +195,15 @@ function createCustomFuncs(): FuncRegistry {
       ["string_is_uri_ref_bool"],
       (_id: number, arg: CelVal): CelResult | undefined => {
         return typeof arg == "string" && isUriRef(arg);
+      },
+    ),
+  );
+  reg.add(
+    Func.unary(
+      "unique",
+      ["list_unique_bool"],
+      (_id: number, arg: CelVal): CelResult | undefined => {
+        return arg instanceof CelList && unique(arg);
       },
     ),
   );

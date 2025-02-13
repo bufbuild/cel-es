@@ -36,6 +36,7 @@ export {
   isCelResult,
   isCelVal,
   CelError,
+  CelErrors,
   CelUnknown,
   CelList,
   CelMap,

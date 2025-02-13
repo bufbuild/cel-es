@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { type CelResult, CelUint } from "@bufbuild/cel";
+import { scalarEquals } from "@bufbuild/protobuf/reflect";
+import { ScalarType } from "@bufbuild/protobuf";
+
 /**
  * Returns true if the value is infinite, optionally limit to positive or
  * negative infinity.
@@ -1203,4 +1207,38 @@ class Uri {
     }
     return false;
   }
+}
+
+/**
+ * Returns true if the array only contains values that are distinct from each
+ * other by strict comparison.
+ */
+export function unique(list: { getItems(): CelResult[] }): boolean {
+  return list.getItems().every((a, index, arr) => {
+    if (a instanceof CelUint) {
+      for (let i = 0; i < arr.length; i++) {
+        if (i == index) {
+          continue;
+        }
+        const b = arr[i];
+        if (b instanceof CelUint && b.value === a.value) {
+          return false;
+        }
+      }
+      return true;
+    }
+    if (a instanceof Uint8Array) {
+      for (let i = 0; i < arr.length; i++) {
+        if (i == index) {
+          continue;
+        }
+        const b = arr[i];
+        if (b instanceof Uint8Array && scalarEquals(ScalarType.BYTES, b, a)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return arr.indexOf(a) === index;
+  });
 }

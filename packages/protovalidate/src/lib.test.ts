@@ -23,7 +23,9 @@ import {
   isIpPrefix,
   isUri,
   isUriRef,
+  unique,
 } from "./lib.js";
+import { type CelResult, CelUint } from "@bufbuild/cel";
 
 void suite("isHostname", () => {
   t(true, "A.ISI.EDU");
@@ -720,23 +722,6 @@ void suite("isEmail", () => {
   }
 });
 
-void test("isInf", () => {
-  assert.strictEqual(isInf(Number.POSITIVE_INFINITY), true);
-  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, 0), true);
-  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, 1), true);
-  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, BigInt(77)), true);
-  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY), true);
-  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, 0), true);
-  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, -1), true);
-  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, BigInt(-77)), true);
-  assert.strictEqual(isInf(NaN), false);
-  assert.strictEqual(isInf(1), false);
-  assert.strictEqual(isInf(1, 0), false);
-  assert.strictEqual(isInf(1, -1), false);
-  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, -1), false);
-  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, 1), false);
-});
-
 void suite("isUri", () => {
   // simple examples
   t(true, "https://example.com");
@@ -1243,5 +1228,125 @@ void suite("isUriRef", () => {
     void test(`\`${str}\` ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
       assert.strictEqual(isUriRef(str), expect);
     });
+  }
+});
+
+void test("isInf", () => {
+  assert.strictEqual(isInf(Number.POSITIVE_INFINITY), true);
+  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, 0), true);
+  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, 1), true);
+  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, BigInt(77)), true);
+  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY), true);
+  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, 0), true);
+  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, -1), true);
+  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, BigInt(-77)), true);
+  assert.strictEqual(isInf(NaN), false);
+  assert.strictEqual(isInf(1), false);
+  assert.strictEqual(isInf(1, 0), false);
+  assert.strictEqual(isInf(1, -1), false);
+  assert.strictEqual(isInf(Number.POSITIVE_INFINITY, -1), false);
+  assert.strictEqual(isInf(Number.NEGATIVE_INFINITY, 1), false);
+});
+
+void suite("unique", () => {
+  // Uint8Array
+  t(true, []);
+  t(true, [new Uint8Array(0), new Uint8Array([0])]);
+  t(true, [new Uint8Array([222, 173, 190, 239])]);
+  t(true, [new Uint8Array([222, 173, 190, 239]), new Uint8Array([1])]);
+  t(false, [new Uint8Array(0), new Uint8Array(0)]);
+  t(false, [new Uint8Array([1]), new Uint8Array([1])]);
+  t(false, [
+    new Uint8Array([222, 173, 190, 239]),
+    new Uint8Array([222, 173, 190, 239]),
+  ]);
+
+  // CelUint
+  t(true, []);
+  t(true, [new CelUint(1n)]);
+  t(true, [new CelUint(1n), new CelUint(2n)]);
+  t(false, [new CelUint(1n), new CelUint(1n)]);
+  t(false, [
+    new CelUint(1n),
+    new CelUint(2n),
+    new CelUint(3n),
+    new CelUint(1n),
+  ]);
+
+  // bool
+  t(true, []);
+  t(true, [true]);
+  t(true, [false]);
+  t(true, [true, false]);
+  t(false, [true, true]);
+  t(false, [false, false]);
+
+  // bigint
+  t(true, []);
+  t(true, [1n]);
+  t(true, [1n, 2n]);
+  t(false, [1n, 1n]);
+  t(false, [1n, 2n, 3n, 1n]);
+
+  // number
+  t(true, []);
+  t(true, [1]);
+  t(true, [1, 2]);
+  t(true, [1, 1.1]);
+  t(false, [3.14, 3.14]);
+  t(false, [1, 2, 3, 1]);
+
+  // string
+  t(true, []);
+  t(true, ["a"]);
+  t(true, ["a", "b"]);
+  t(true, ["a", "A"]);
+  t(false, ["a", "a"]);
+  t(false, ["abc", "abc"]);
+  t(false, ["a", "b", "a"]);
+
+  // mixed
+  t(true, [true, 1n, 1, 3.14, "a", "1", false, new Uint8Array(0)]);
+
+  function t(expect: boolean, val: CelResult[], comment = "") {
+    void test(`${arrayLiteral(val)} ${expect}${comment.length ? `, ${comment}` : ""}`, () => {
+      assert.strictEqual(
+        unique({
+          getItems(): CelResult[] {
+            return val;
+          },
+        }),
+        expect,
+      );
+    });
+  }
+
+  function arrayLiteral(arr: unknown[]): string {
+    return (
+      "[" +
+      arr
+        .map((v) => {
+          switch (typeof v) {
+            case "string":
+              return `"${v}"`;
+            case "number":
+              return v.toString();
+            case "bigint":
+              return `${v}n`;
+            case "boolean":
+              return v.toString();
+            default:
+              if (v instanceof CelUint) {
+                return `CelUint(${v.value})`;
+              }
+              if (v instanceof Uint8Array) {
+                return `Uint8Array([${v.toString()}])`;
+              }
+              return String(v);
+          }
+        })
+        .join(", ") +
+      "]"
+    );
   }
 });
