@@ -965,12 +965,12 @@ void suite("isUri", () => {
     "foo://example.com/%61%20%23",
     "path-abempty segment pct-encoded ASCII",
   );
+  t(true, "foo://example.com/%c3%96", "path-abempty segment pct-encoded UTF-8");
   t(
     true,
-    "foo://example.com/%c3%96%c3",
-    "path-abempty segment pct-encoded UTF-8",
+    "foo://example.com/%c3x%96",
+    "path-abempty segment pct-encoded invalid UTF-8",
   );
-  // TODO check inv utf
   t(
     true,
     "foo://example.com/0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&'()*+,;=:@%20",
