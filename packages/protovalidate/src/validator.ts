@@ -18,9 +18,10 @@ import {
   type MessageShape,
   type Registry,
 } from "@bufbuild/protobuf";
+import { reflect } from "@bufbuild/protobuf/reflect";
 import { Cursor } from "./cursor.js";
 import { createPlanner } from "./planner.js";
-import { reflect } from "@bufbuild/protobuf/reflect";
+import { updateCelNow } from "./cel.js";
 
 /**
  * Options for creating a validator.
@@ -71,6 +72,7 @@ export function createValidator(opt?: ValidatorOptions): Validator {
       return function boundValidationFn(message) {
         const msg = reflect(schema, message);
         const cursor = Cursor.create(schema, failFast);
+        updateCelNow();
         plan.eval(msg, cursor);
         cursor.throwIfViolated();
       };

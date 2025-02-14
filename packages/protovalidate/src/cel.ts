@@ -22,6 +22,7 @@ import {
   type Message,
   type Registry,
 } from "@bufbuild/protobuf";
+import { timestampNow } from "@bufbuild/protobuf/wkt";
 import {
   type Constraint,
   type FieldConstraints,
@@ -52,16 +53,32 @@ import {
   unique,
 } from "./lib.js";
 
+// Value of the CEL variable "now".
+const now = timestampNow();
+
+/**
+ * Create a CEL environment with extensions for Protovalidate.
+ *
+ * This includes the variable "now", which must be updated before each evaluation
+ * by calling updateCelNow().
+ */
 export function createCelEnv(namespace: string, registry: Registry): CelEnv {
   const env = createEnv(namespace, registry);
   env.addFuncs(createCustomFuncs());
+  env.set("now", now);
   return env;
 }
 
-// Done: isIp, isInf, isNaN, isUri, isUriRef, isHostAndPort, isEmail, isIpPrefix, isHostname, unique
+/**
+ * Update the CEL variable "now" to the current time.
+ */
+export function updateCelNow(): void {
+  const n2 = timestampNow();
+  now.seconds = n2.seconds;
+  now.nanos = n2.nanos;
+}
 
 // TODO contains, endsWith, startsWith for bytes
-// TODO now
 
 function createCustomFuncs(): FuncRegistry {
   const reg = new FuncRegistry();
