@@ -329,7 +329,7 @@ function planMapValue(
         new EvalMapEntries<ScalarValue>(
           evalKey,
           planScalarValue(
-            getScalarRules(rules?.values, field.mapKey, field),
+            getScalarRules(rules?.values, field.scalar, field),
             ruleCelCache,
           ),
         ),
