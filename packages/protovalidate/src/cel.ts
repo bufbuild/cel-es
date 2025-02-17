@@ -359,7 +359,8 @@ export class RuleCelCache {
           }
         }
       }
-      this.planCache.set(field, plans);
+      // TODO enable caching, but fix bug: can't cache "rules", because they can contain non-static values
+      // this.planCache.set(field, plans);
     }
     return plans;
   }
