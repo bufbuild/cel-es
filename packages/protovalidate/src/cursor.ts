@@ -40,14 +40,19 @@ export class Cursor {
     return this.violations.length > 0;
   }
 
-  violate(message: string, constraintId: string, rulePath: Path): void {
+  violate(
+    message: string,
+    constraintId: string,
+    rulePath: Path,
+    forMapKey = false,
+  ): void {
     this.violations.push(
       new Violation(
         message,
         constraintId,
         this.builder.toPath(),
         rulePath,
-        false, // TODO
+        forMapKey,
       ),
     );
     if (this.failFast) {

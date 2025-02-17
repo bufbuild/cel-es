@@ -413,14 +413,22 @@ export class EvalFieldCel implements Eval<ReflectMessageGet> {
 }
 
 export class EvalScalarRulesCel implements Eval<ScalarValue> {
-  constructor(private readonly plans: RuleCelPlan[]) {}
+  constructor(
+    private readonly plans: RuleCelPlan[],
+    private readonly forMapKey = false,
+  ) {}
   eval(val: ScalarValue, cursor: Cursor): void {
     for (const plan of this.plans) {
       plan.env.set("this", val);
       plan.env.set("rules", plan.rules);
       const vio = celConstraintEval(plan.env, plan.constraint, plan.planned);
       if (vio) {
-        cursor.violate(vio.message, vio.constraintId, plan.rulePath);
+        cursor.violate(
+          vio.message,
+          vio.constraintId,
+          plan.rulePath,
+          this.forMapKey,
+        );
       }
     }
   }

@@ -296,6 +296,7 @@ function planMapValue(
   const evalKey = planScalarValue(
     getScalarRules(rules?.keys, field.mapKey, field),
     ruleCelCache,
+    true,
   );
   switch (field.mapKind) {
     case "message":
@@ -355,11 +356,12 @@ function planEnumValue(
 function planScalarValue(
   rules: ScalarRules | undefined,
   ruleCelCache: RuleCelCache,
+  forMapKey = false,
 ): Eval<ScalarValue> {
   if (!rules) {
     return EvalNoop.get();
   }
-  return new EvalScalarRulesCel(ruleCelCache.getPlans(rules));
+  return new EvalScalarRulesCel(ruleCelCache.getPlans(rules), forMapKey);
 }
 
 function planMessageValue(
