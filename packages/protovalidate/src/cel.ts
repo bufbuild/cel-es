@@ -175,25 +175,28 @@ function createCustomFuncs(): FuncRegistry {
         "string_int_bool_is_ip_prefix_bool",
       ],
       (_id: number, args: CelVal[]): CelResult | undefined => {
-        switch (args.length) {
-          case 1:
-            return typeof args[0] == "string" && isIpPrefix(args[0]);
-          case 2:
-            return (
-              typeof args[0] == "string" &&
-              (typeof args[1] == "number" || typeof args[1] == "bigint") &&
-              isIpPrefix(args[0], args[1])
-            );
-          case 3:
-            return (
-              typeof args[0] == "string" &&
-              (typeof args[1] == "number" || typeof args[1] == "bigint") &&
-              typeof args[2] == "boolean" &&
-              isIpPrefix(args[0], args[1], args[2])
-            );
-          default:
-            return false;
+        if (args.length < 1 || typeof args[0] != "string") {
+          return undefined;
         }
+        if (args.length == 1) {
+          return isIpPrefix(args[0]);
+        }
+        if (args.length == 2) {
+          if (typeof args[1] == "boolean") {
+            return isIpPrefix(args[0], undefined, args[1]);
+          }
+          if (typeof args[1] == "number" || typeof args[1] == "bigint") {
+            return isIpPrefix(args[0], args[1]);
+          }
+        }
+        if (
+          args.length == 3 &&
+          (typeof args[1] == "number" || typeof args[1] == "bigint") &&
+          typeof args[2] == "boolean"
+        ) {
+          return isIpPrefix(args[0], args[1], args[2]);
+        }
+        return undefined;
       },
     ),
   );
