@@ -537,7 +537,7 @@ export class EvalAnyRules implements Eval<ReflectMessage> {
       // type URL must be in the allow list [any.in]
       cursor.violate("type URL must be in the allow list", "any.in", []);
     }
-    if (this.notIn.length > 0 && this.in.includes(any.typeUrl)) {
+    if (this.notIn.length > 0 && this.notIn.includes(any.typeUrl)) {
       // type URL must not be in the block list [any.not_in]
       cursor.violate(
         "type URL must not be in the block list",
