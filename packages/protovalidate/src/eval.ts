@@ -20,9 +20,7 @@ import {
   type ReflectMap,
   type ReflectMessage,
   type ReflectMessageGet,
-  scalarEquals,
   type ScalarValue,
-  scalarZeroValue,
 } from "@bufbuild/protobuf/reflect";
 import {
   type DescEnum,
@@ -30,15 +28,13 @@ import {
   type DescMessage,
   type DescOneof,
   type Registry,
-  ScalarType,
 } from "@bufbuild/protobuf";
-import { type Any, FeatureSet_FieldPresence } from "@bufbuild/protobuf/wkt";
+import { type Any } from "@bufbuild/protobuf/wkt";
 import { CelEnv } from "@bufbuild/cel";
 import {
   type AnyRules,
   type Constraint,
   type EnumRules,
-  Ignore,
 } from "./gen/buf/validate/validate_pb.js";
 import { Cursor } from "./cursor.js";
 import {
@@ -48,6 +44,7 @@ import {
   createCelRegistry,
   type RuleCelPlan,
 } from "./cel.js";
+import type { Condition } from "./condition.js";
 
 /**
  * Evaluate constraints for a value.
@@ -106,14 +103,20 @@ export class EvalMany<T> implements Eval<T> {
 export class EvalListItems<T extends ReflectMessageGet>
   implements Eval<ReflectList>
 {
-  constructor(private _eval: Eval<T>) {}
+  constructor(
+    private readonly condition: Condition<T>,
+    private readonly pass: Eval<T>,
+  ) {}
   eval(val: ReflectList, cursor: Cursor): void {
     for (let i = 0; i < val.size; i++) {
-      this._eval.eval(val.get(i) as T, cursor.list(i));
+      const t = val.get(i) as T;
+      if (this.condition.check(t)) {
+        this.pass.eval(t, cursor.list(i));
+      }
     }
   }
   prune(): boolean {
-    return this._eval.prune();
+    return this.pass.prune() || this.condition.never;
   }
 }
 
@@ -124,32 +127,39 @@ export class EvalMapEntries<V extends ReflectMessageGet>
   implements Eval<ReflectMap>
 {
   constructor(
+    private keyCondition: Condition<ScalarValue>,
     private key: Eval<string | number | bigint | boolean>,
+    private valueCondition: Condition<V>,
     private value: Eval<V>,
   ) {}
   eval(val: ReflectMap, cursor: Cursor): void {
+    if (this.keyCondition.never && this.valueCondition.never) {
+      return;
+    }
     for (const [key, value] of val) {
       const c = cursor.mapKey(key as string | number | bigint | boolean);
-      this.key.eval(key as string | number | bigint | boolean, c);
-      this.value.eval(value as V, c);
+      if (this.keyCondition.check(key as string | number | bigint | boolean)) {
+        this.key.eval(key as string | number | bigint | boolean, c);
+      }
+      if (this.valueCondition.check(value as V)) {
+        this.value.eval(value as V, c);
+      }
     }
   }
   prune(): boolean {
-    const key = this.key.prune();
-    const value = this.value.prune();
+    const key = this.key.prune() || this.keyCondition.never;
+    const value = this.value.prune() || this.valueCondition.never;
     return key && value;
   }
 }
 
 /**
- * Evaluate conditionally.
+ * Evaluate field. If the condition passes, evaluate the field's value.
  */
-export class EvalIgnoreCondition<F extends DescField>
-  implements Eval<ReflectMessage>
-{
+export class EvalField<F extends DescField> implements Eval<ReflectMessage> {
   constructor(
     private readonly field: F,
-    private readonly condition: IgnoreCondition<F>,
+    private readonly condition: Condition<ReflectMessage>,
     private readonly pass: Eval<ReflectMessageGet<F>>,
   ) {}
   eval(val: ReflectMessage, cursor: Cursor): void {
@@ -159,142 +169,7 @@ export class EvalIgnoreCondition<F extends DescField>
     }
   }
   prune(): boolean {
-    return this.condition.isNever();
-  }
-}
-
-abstract class IgnoreCondition<F extends DescField> {
-  constructor(
-    protected readonly field: F,
-    protected readonly ignore: Ignore,
-  ) {}
-  abstract check(val: ReflectMessage): boolean;
-  isNever(): boolean {
-    return this.ignore == Ignore.ALWAYS;
-  }
-}
-
-export class IgnoreConditionMessage extends IgnoreCondition<
-  DescField & { fieldKind: "message" }
-> {
-  override check(val: ReflectMessage): boolean {
-    switch (this.ignore) {
-      case Ignore.ALWAYS:
-        // > The field's rules will always be ignored, including any validation's on value's fields.
-        return false;
-      case Ignore.UNSPECIFIED:
-      case Ignore.IF_UNPOPULATED:
-        // > The custom CEL rule applies only if the field is set, including if
-        // > it's the "zero" value of that message.
-        // > IGNORE_IF_UNPOPULATED is equivalent to IGNORE_UNSPECIFIED in this case [...]
-        return val.isSet(this.field);
-      case Ignore.IF_DEFAULT_VALUE:
-        // > The custom CEL rule only applies if the field is set to a value other
-        // > than an empty message (i.e., fields are unpopulated).
-        return (
-          val.isSet(this.field) && !this.isDefaultValue(val.get(this.field))
-        );
-    }
-  }
-  private isDefaultValue(fieldVal: ReflectMessage): boolean {
-    return !fieldVal.fields.some((f) => fieldVal.isSet(f));
-  }
-}
-
-export class IgnoreConditionScalarOrEnum extends IgnoreCondition<
-  DescField & { fieldKind: "scalar" | "enum" }
-> {
-  private readonly defaultValue: ScalarValue;
-  private readonly scalar: ScalarType;
-  constructor(
-    field: DescField & { fieldKind: "scalar" | "enum" },
-    ignore: Ignore,
-  ) {
-    super(field, ignore);
-    switch (field.fieldKind) {
-      case "scalar":
-        this.scalar = field.scalar;
-        this.defaultValue =
-          field.getDefaultValue() ?? scalarZeroValue(field.scalar, false);
-        break;
-      case "enum":
-        this.scalar = ScalarType.INT32;
-        this.defaultValue =
-          field.getDefaultValue() ?? field.enum.values[0].number;
-        break;
-    }
-  }
-  override check(val: ReflectMessage): boolean {
-    // buf.validate.Ignore.IGNORE_ALWAYS:
-    // The field's rules will always be ignored, including any validation's
-    // on value's fields.
-    if (this.ignore == Ignore.ALWAYS) {
-      return false;
-    }
-    if (this.field.presence == FeatureSet_FieldPresence.IMPLICIT) {
-      switch (this.ignore) {
-        case Ignore.UNSPECIFIED:
-          // The uri rule applies to any value, including the empty string.
-          return true;
-        case Ignore.IF_UNPOPULATED:
-        case Ignore.IF_DEFAULT_VALUE:
-          // the uri rule applies only if the value is not the empty string.
-          return val.isSet(this.field);
-        // case Ignore.ALWAYS:
-        // The field's rules will always be ignored, including any validation's
-        // on value's fields.
-        // break;
-      }
-    } else {
-      // field presence EXPLICIT or LEGACY_REQUIRED
-      switch (this.ignore) {
-        case Ignore.UNSPECIFIED:
-        // The uri rule only applies if the field is set, including if it's set to the empty string.
-        // eslint-disable-next-line no-fallthrough
-        case Ignore.IF_UNPOPULATED:
-          // IGNORE_IF_UNPOPULATED is equivalent to IGNORE_UNSPECIFIED in this case [...]
-          return val.isSet(this.field);
-        case Ignore.IF_DEFAULT_VALUE:
-          // proto3 optional:
-          // The uri rule only applies if the field is set to a value other than
-          // the empty string.
-          // proto2 custom default values:
-          // The rule even applies if the field is set to zero since the default
-          // value differs.
-          return (
-            val.isSet(this.field) && !this.isDefaultValue(val.get(this.field))
-          );
-        // case Ignore.ALWAYS:
-        // The field's rules will always be ignored, including any validation's
-        // on value's fields.
-        // break;
-      }
-    }
-  }
-  private isDefaultValue(fieldVal: ScalarValue): boolean {
-    return scalarEquals(this.scalar, this.defaultValue, fieldVal);
-  }
-}
-
-export class IgnoreConditionListOrMap extends IgnoreCondition<
-  DescField & { fieldKind: "map" | "list" }
-> {
-  override check(val: ReflectMessage): boolean {
-    switch (this.ignore) {
-      case Ignore.ALWAYS:
-        // The field's rules will always be ignored, including any validation's on value's fields.
-        return false;
-      case Ignore.UNSPECIFIED:
-        // The min_items rule always applies, even if the list is empty.
-        return true;
-      case Ignore.IF_UNPOPULATED:
-      case Ignore.IF_DEFAULT_VALUE:
-        // The min_items rule only applies if the list has at least one item.
-        // IGNORE_IF_DEFAULT_VALUE is equivalent to IGNORE_IF_UNPOPULATED in
-        // this case; the min_items rule only applies if the list has at least
-        // one item.
-        return val.isSet(this.field);
-    }
+    return this.condition.never;
   }
 }
 
