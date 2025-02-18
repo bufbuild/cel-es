@@ -663,16 +663,6 @@ class Uri {
     return this.uri() || this.relativeRef();
   }
 
-  // absolute-URI = scheme ":" hier-part [ "?" query ]
-  // absoluteUri(): boolean {
-  //   const start = i;
-  //   if (scheme() && this.take(":") && hierPart() && ((this.take("?") && query()) || i == l)) {
-  //     return true;
-  //   }
-  //   i = start;
-  //   return false;
-  // }
-
   // relative-ref = relative-part [ "?" query ] [ "#" fragment ]
   relativeRef(): boolean {
     const start = this.i;
@@ -951,16 +941,6 @@ class Uri {
       return false;
     }
   }
-
-  // path = path-abempty    ; begins with "/" or is empty
-  //      / path-absolute   ; begins with "/" but not "//"
-  //      / path-noscheme   ; begins with a non-colon segment
-  //      / path-rootless   ; begins with a segment
-  //      / path-empty      ; zero characters
-  // Terminated by end of path: "?", "#", or end of URI.
-  // path(): boolean {
-  //   return pathAbempty() || pathAbsolute() || pathNoscheme() || pathRootless() || pathEmpty();
-  // }
 
   // > The path is terminated by the first question mark ("?") or
   // > number sign ("#") character, or by the end of the URI.
