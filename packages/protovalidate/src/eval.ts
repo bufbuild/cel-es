@@ -35,6 +35,9 @@ import {
   type AnyRules,
   type Constraint,
   type EnumRules,
+  FieldConstraintsSchema,
+  MessageConstraintsSchema,
+  OneofConstraintsSchema,
 } from "./gen/buf/validate/validate_pb.js";
 import { Cursor } from "./cursor.js";
 import {
@@ -177,7 +180,11 @@ export class EvalFieldRequired implements Eval<ReflectMessage> {
   constructor(private readonly field: DescField) {}
   eval(val: ReflectMessage, cursor: Cursor): void {
     if (!val.isSet(this.field)) {
-      cursor.field(this.field).violate("value is required", "required", []);
+      cursor
+        .field(this.field)
+        .violate("value is required", "required", [
+          FieldConstraintsSchema.field.required,
+        ]);
     }
   }
   prune(): boolean {
@@ -194,7 +201,9 @@ export class EvalOneofRequired implements Eval<ReflectMessage> {
     }
     cursor
       .oneof(this.oneof)
-      .violate("exactly one field is required in oneof", "required", []);
+      .violate("exactly one field is required in oneof", "required", [
+        OneofConstraintsSchema.field.required,
+      ]);
   }
   prune(): boolean {
     return false;
@@ -204,6 +213,7 @@ export class EvalOneofRequired implements Eval<ReflectMessage> {
 export class EvalMessageCel implements Eval<ReflectMessage> {
   private readonly env: CelEnv;
   private readonly plannedConstraints: {
+    index: number;
     constraint: Constraint;
     planned: ReturnType<CelEnv["plan"]>;
   }[] = [];
@@ -220,7 +230,8 @@ export class EvalMessageCel implements Eval<ReflectMessage> {
       namespace,
       createCelRegistry(userRegistry, descMessage),
     );
-    this.plannedConstraints = constraints.map((constraint) => ({
+    this.plannedConstraints = constraints.map((constraint, index) => ({
+      index,
       constraint,
       planned: celConstraintPlan(this.env, constraint),
     }));
@@ -228,10 +239,13 @@ export class EvalMessageCel implements Eval<ReflectMessage> {
 
   eval(val: ReflectMessage, cursor: Cursor) {
     this.env.set("this", val.message);
-    for (const { constraint, planned } of this.plannedConstraints) {
+    for (const { index, constraint, planned } of this.plannedConstraints) {
       const vio = celConstraintEval(this.env, constraint, planned);
       if (vio) {
-        cursor.violate(vio.message, vio.constraintId, []);
+        cursor.violate(vio.message, vio.constraintId, [
+          MessageConstraintsSchema.field.cel,
+          { kind: "list_sub", index },
+        ]);
       }
     }
   }
@@ -243,6 +257,7 @@ export class EvalMessageCel implements Eval<ReflectMessage> {
 export class EvalFieldCel implements Eval<ReflectMessageGet> {
   private readonly env: CelEnv;
   private readonly plannedConstraints: {
+    index: number;
     constraint: Constraint;
     planned: ReturnType<CelEnv["plan"]>;
   }[] = [];
@@ -256,7 +271,8 @@ export class EvalFieldCel implements Eval<ReflectMessageGet> {
       field.parent.typeName.lastIndexOf("."),
     );
     this.env = createCelEnv(namespace, createCelRegistry(userRegistry, field));
-    this.plannedConstraints = constraints.map((constraint) => ({
+    this.plannedConstraints = constraints.map((constraint, index) => ({
+      index,
       constraint,
       planned: celConstraintPlan(this.env, constraint),
     }));
@@ -275,10 +291,13 @@ export class EvalFieldCel implements Eval<ReflectMessageGet> {
       valVal = val[Symbol.for("reflect unsafe local")];
     }
     this.env.set("this", valVal);
-    for (const { constraint, planned } of this.plannedConstraints) {
+    for (const { index, constraint, planned } of this.plannedConstraints) {
       const vio = celConstraintEval(this.env, constraint, planned);
       if (vio) {
-        cursor.violate(vio.message, vio.constraintId, []);
+        cursor.violate(vio.message, vio.constraintId, [
+          FieldConstraintsSchema.field.cel,
+          { kind: "list_sub", index },
+        ]);
       }
     }
   }
