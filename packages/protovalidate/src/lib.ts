@@ -477,7 +477,6 @@ export class Ipv6 {
  * Returns true if the string is a valid host name, for example "foo.example.com".
  *
  * A valid host name follows the rules below:
- *
  * - The name consists of one or more labels, separated by a dot (".").
  * - Each label can be 1 to 63 alphanumeric characters.
  * - A label can contain hyphens ("-"), but must not start or end with a hyphen.
@@ -574,7 +573,6 @@ function isPort(str: string): boolean {
  * Returns true if the string is an email address, for example "foo@example.com".
  *
  * Conforms to the definition for a valid email address from the HTML standard.
- *
  * Note that this standard willfully deviates from RFC 5322, which allows many
  * unexpected forms of email addresses and will easily match a typographical
  * error. This standard will still match email addresses that may be unexpected,
