@@ -943,8 +943,8 @@ void suite("isUriRef", () => {
     "//userinfo0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~!$&'()*+,;=::@host!$&'()*+,;=._~0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789/path0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ%20!$&'()*+,;=:@%20//foo/?query0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~%20!$&'()*+,=;:@?#fragment0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~%20!$&'()*+,=;:@?/",
   );
   t("invalid/space", " ");
-  t("invalid/leading_space", " example.com");
-  t("invalid/trailing_space", "example.com ");
+  t("invalid/leading_space", " ./foo");
+  t("invalid/trailing_space", "./foo ");
   t("invalid/bad_relative-part", ":");
   t("invalid/uri_with_bad_scheme", "1foo://example.com");
   t("valid/authority_path-abempty", "//host");
