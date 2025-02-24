@@ -36,7 +36,6 @@ import {
   type Constraint,
   type EnumRules,
   FieldConstraintsSchema,
-  OneofConstraintsSchema,
 } from "./gen/buf/validate/validate_pb.js";
 import { Cursor } from "./cursor.js";
 import {
@@ -200,9 +199,8 @@ export class EvalOneofRequired implements Eval<ReflectMessage> {
     }
     cursor
       .oneof(this.oneof)
-      .violate("exactly one field is required in oneof", "required", [
-        OneofConstraintsSchema.field.required,
-      ]);
+      // TODO protovalidate-go does not populate Violation.rule for OneofConstraints.required
+      .violate("exactly one field is required in oneof", "required", []);
   }
   prune(): boolean {
     return false;
@@ -238,7 +236,7 @@ export class EvalMessageCel implements Eval<ReflectMessage> {
 
   eval(val: ReflectMessage, cursor: Cursor) {
     this.env.set("this", val.message);
-    // TODO protovalidate-go does not populate Violation.rule for MessageConstraints.cel
+    // TODO protovalidate-go does not populate Violation.rule for FieldConstraints.cel
     // for (const { index, constraint, planned } of this.plannedConstraints) {
     for (const { constraint, planned } of this.plannedConstraints) {
       const vio = celConstraintEval(this.env, constraint, planned);
