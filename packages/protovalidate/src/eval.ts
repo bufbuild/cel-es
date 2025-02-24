@@ -36,7 +36,6 @@ import {
   type Constraint,
   type EnumRules,
   FieldConstraintsSchema,
-  MessageConstraintsSchema,
   OneofConstraintsSchema,
 } from "./gen/buf/validate/validate_pb.js";
 import { Cursor } from "./cursor.js";
@@ -239,12 +238,14 @@ export class EvalMessageCel implements Eval<ReflectMessage> {
 
   eval(val: ReflectMessage, cursor: Cursor) {
     this.env.set("this", val.message);
-    for (const { index, constraint, planned } of this.plannedConstraints) {
+    // TODO protovalidate-go does not populate Violation.rule for MessageConstraints.cel
+    // for (const { index, constraint, planned } of this.plannedConstraints) {
+    for (const { constraint, planned } of this.plannedConstraints) {
       const vio = celConstraintEval(this.env, constraint, planned);
       if (vio) {
         cursor.violate(vio.message, vio.constraintId, [
-          MessageConstraintsSchema.field.cel,
-          { kind: "list_sub", index },
+          // MessageConstraintsSchema.field.cel,
+          // { kind: "list_sub", index },
         ]);
       }
     }
