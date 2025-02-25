@@ -35,7 +35,7 @@ export function isInf(val: number, sign?: number | bigint): boolean {
  * Version 0 means either 4 or 6. Passing a version other than 0, 4, or 6 always
  * returns false.
  *
- * IPv4 addresses are expected in a dotted decimal format, for example "127.0.0.1".
+ * IPv4 addresses are expected in the dotted decimal format, for example "127.0.0.1".
  *
  * IPv6 addresses are expected in their text representation, for example "::1",
  * or "d7a:115c:a1e0:ab12:4843:cd96:626b:430b".
