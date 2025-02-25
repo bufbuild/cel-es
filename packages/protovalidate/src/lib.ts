@@ -35,10 +35,9 @@ export function isInf(val: number, sign?: number | bigint): boolean {
  * Version 0 means either 4 or 6. Passing a version other than 0, 4, or 6 always
  * returns false.
  *
- * IPv4 addresses are expected in the dotted decimal format, for example "127.0.0.1".
- *
+ * IPv4 addresses are expected in the dotted decimal format, for example "192.168.5.21".
  * IPv6 addresses are expected in their text representation, for example "::1",
- * or "d7a:115c:a1e0:ab12:4843:cd96:626b:430b".
+ * or "2001:0DB8:ABCD:0012::0".
  *
  * Both formats are well-defined in the internet standard RFC 3986. Zone
  * identifiers for IPv6 addresses (for example "fe80::a%en1") are supported.
@@ -63,9 +62,9 @@ export function isIp(str: string, version?: number | bigint): boolean {
  *
  * An address prefix divides an IP address into a network portion, and a host
  * portion. The prefix length specifies how many bits the network portion has.
- * For example, the IPv6 prefix "2001:db8:abcd:0012::0/64" designates the first
- * 64 bits as the network prefix. The range of the network is 2**64 addresses,
- * from 2001:db8:abcd:0012::0 to 2001:db8:abcd:0012:ffff:ffff:ffff:ffff.
+ * For example, the IPv6 prefix "2001:db8:abcd:0012::0/64" designates the
+ * left-most 64 bits as the network prefix. The range of the network is 2**64
+ * addresses, from 2001:db8:abcd:0012::0 to 2001:db8:abcd:0012:ffff:ffff:ffff:ffff.
  *
  * An address prefix may include a specific host address, for example
  * "2001:db8:abcd:0012::1f/64". With strict = true, this is not permitted. The
@@ -520,11 +519,9 @@ export function isHostname(str: string): boolean {
  * is false, the port is optional.
  *
  * The host can be one of:
- * - An IPv4 address in dotted decimal format, for example "192.168.0.1", or any
- *   other IPv4 address conforming to isIp().
- * - An IPv6 address enclosed in square brackets, for example "[::1]", or any
- *   other IPv6 address conforming to isIp().
- * - A hostname that conforms to isHostname(), for example "example.com".
+ * - An IPv4 address in dotted decimal format, for example "192.168.0.1".
+ * - An IPv6 address enclosed in square brackets, for example "[::1]".
+ * - A hostname, for example "example.com".
  *
  * The port is separated by a colon. It must be non-empty, with a decimal number
  * in the range of 0-65535, inclusive.
