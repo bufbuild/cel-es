@@ -221,10 +221,10 @@ void suite("isIpPrefix", () => {
     });
   }
 
-  t("version/4/strict/false/valid/example", "192.168.5.21/16")
-  t("version/6/strict/false/valid/example", "2001:0DB8:ABCD:0012::F1/64")
-  t("version/4/strict/true/valid/example", "192.168.0.0/16")
-  t("version/6/strict/true/valid/example", "2001:0DB8:ABCD:0012::0/64")
+  t("version/4/strict/false/valid/example", "192.168.5.21/16");
+  t("version/6/strict/false/valid/example", "2001:0DB8:ABCD:0012::F1/64");
+  t("version/4/strict/true/valid/example", "192.168.0.0/16");
+  t("version/6/strict/true/valid/example", "2001:0DB8:ABCD:0012::0/64");
   t("version/omitted/strict/omitted/valid/ipv6_prefix", "::1/64");
   t("version/omitted/strict/omitted/valid/ipv4_prefix", "127.0.0.1/16");
   t("version/0/strict/omitted/valid/ipv6_prefix", "::1/64");
