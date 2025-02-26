@@ -23,7 +23,7 @@
       "env": ["GO*"]
     },
     "update-exports": {
-      "dependsOn": ["generate"],
+      "dependsOn": ["generate", "fetch-parser", "fetch-parser-comprehensions"],
       "inputs": ["src/**"],
       "outputs": ["package.json"]
     },
