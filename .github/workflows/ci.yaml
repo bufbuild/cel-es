@@ -25,10 +25,18 @@ jobs:
           - attw
           - build
           - license-header
+          - fetch-parser
+          - fetch-parser-comprehensions
         include:
           - task: format
             diff-check: true
           - task: license-header
+            diff-check: true
+          - task: build
+            diff-check: true
+          - task: fetch-parser
+            diff-check: true
+          - task: fetch-parser-comprehensions
             diff-check: true
     name: ${{ matrix.task }}
     steps:
@@ -37,6 +45,7 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: "npm"
+      - uses: actions/setup-go@v5
       - uses: actions/cache@v4
         with:
           path: .turbo
@@ -56,7 +65,6 @@ jobs:
     name: "test on Node.js ${{ matrix.node-version }}"
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
