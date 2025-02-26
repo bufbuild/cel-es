@@ -36,9 +36,6 @@ import (
 	"github.com/google/cel-go/parser"
 )
 
-// go run ./main.go -output=parser2.json parser/parser_test.go    && npx prettier --write parser2.json && diff parser.json parser2.json
-// go run ./main.go -output=comprehensions2.json ext/comprehensions_test.go    && npx prettier --write comprehensions2.json && diff comprehensions.json comprehensions2.json
-
 type ParserTest struct {
 	Expression string `json:"expr"`
 	Ast        string `json:"ast,omitempty"`
@@ -47,6 +44,9 @@ type ParserTest struct {
 
 const celGoModule = "github.com/google/cel-go"
 
+// Examples:
+// go run ./main.go -output=parser.json parser/parser_test.go
+// go run ./main.go -output=comprehensions.ts ext/comprehensions_test.go
 func main() {
 	goModPath := flag.String("gomod", "go.mod", "path to the go mod file for resolving from the go module cache")
 	outputPath := flag.String("output", "output.json", "write result to file")
