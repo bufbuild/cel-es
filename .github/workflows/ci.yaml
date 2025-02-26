@@ -13,6 +13,7 @@ permissions:
 env:
   # https://consoledonottrack.com/
   DO_NOT_TRACK: 1
+  GOMODCACHE: /home/runner/go/pkg/mod
 
 jobs:
   tasks:
