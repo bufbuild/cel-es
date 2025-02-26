@@ -198,10 +198,11 @@ func parseCelGoSourceFile(goModPath string, filePath string) (*goast.File, strin
 	ver = ver[:i]
 	goModCache := os.Getenv("GOMODCACHE")
 	if goModCache == "" {
-		goModCache = path.Join(os.Getenv("GOPATH"), "pkg/mod")
-	}
-	if goModCache == "" {
-		return nil, "", fmt.Errorf("cannot resolve go module cache")
+		goPath := os.Getenv("GOPATH")
+		if goPath == "" {
+			return nil, "", fmt.Errorf("cannot resolve go module cache, GOPATH and GOMODCACHE empty")
+		}
+		goModCache = path.Join(goPath, "pkg/mod")
 	}
 	celGoModulePath := path.Join(goModCache, celGoModule+"@"+ver)
 	_, err = os.Stat(celGoModulePath)
