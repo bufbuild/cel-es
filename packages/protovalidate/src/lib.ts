@@ -473,9 +473,9 @@ export class Ipv6 {
 }
 
 /**
- * Returns true if the string is a valid host name, for example "foo.example.com".
+ * Returns true if the string is a valid hostname, for example "foo.example.com".
  *
- * A valid host name follows the rules below:
+ * A valid hostname follows the rules below:
  * - The name consists of one or more labels, separated by a dot (".").
  * - Each label can be 1 to 63 alphanumeric characters.
  * - A label can contain hyphens ("-"), but must not start or end with a hyphen.
