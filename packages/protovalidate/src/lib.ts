@@ -572,9 +572,7 @@ function isPort(str: string): boolean {
  * Conforms to the definition for a valid email address from the HTML standard.
  * Note that this standard willfully deviates from RFC 5322, which allows many
  * unexpected forms of email addresses and will easily match a typographical
- * error. This standard will still match email addresses that may be unexpected,
- * for example, it does not require a top-level domain ("foo@example" is a valid
- * email address).
+ * error.
  */
 export function isEmail(str: string): boolean {
   return /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/.test(
