@@ -18,6 +18,7 @@ import {
   type DescMessage,
   type DescOneof,
   getOption,
+  isMessage,
   type Registry,
 } from "@bufbuild/protobuf";
 import {
@@ -31,6 +32,7 @@ import {
   FieldConstraintsSchema,
   RepeatedRulesSchema,
   MapRulesSchema,
+  AnyRulesSchema,
 } from "./gen/buf/validate/validate_pb.js";
 import type {
   ReflectList,
@@ -442,7 +444,7 @@ function planMessageValue(
   const evals = new EvalMany<ReflectMessage>();
   evals.add(planner.plan(descMessage));
   if (rules) {
-    if (rules.$typeName == "buf.validate.AnyRules") {
+    if (isMessage(rules, AnyRulesSchema)) {
       evals.add(new EvalAnyRules(rulePath, rules));
     }
     evals.add(new EvalMessageRulesCel(ruleCelCache.getPlans(rules), rulePath));
