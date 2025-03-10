@@ -66,9 +66,9 @@ const out = [];
 for (const suite of suites) {
   out.push(`${suite.name}:`);
   for (const kase of suite.cases) {
-    out.push(`- ${kase.name}`);
+    out.push(`  - ${kase.name}`);
     for (const line of kase.lines) {
-      out.push(`#${line}`);
+      out.push(`  #${line}`);
     }
   }
 }

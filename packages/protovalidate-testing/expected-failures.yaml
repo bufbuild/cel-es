@@ -70,9 +70,9 @@ custom_constraints:
   #        want: valid
   #         got: runtime error: not implemented
   - now/equality
-#       input: [type.googleapis.com/buf.validate.conformance.cases.custom_constraints.NowEqualsNow]:{}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.custom_constraints.NowEqualsNow]:{}
+  #        want: valid
+  #         got: runtime error: not implemented
 kitchen_sink:
   - field/embedded/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.KitchenSinkMessage]:{val:{another:{}}}
@@ -191,9 +191,9 @@ kitchen_sink:
   #             value must be greater than or equal to 1970-01-01T00:00:00.001Z
   #         got: runtime error: not implemented
   - unset/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.KitchenSinkMessage]:{}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.KitchenSinkMessage]:{}
+  #        want: valid
+  #         got: runtime error: not implemented
 library/is_email:
   - invalid/comment
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsEmail]:{val:"foo@example.com (comment)"}
@@ -366,9 +366,9 @@ library/is_email:
   #        want: valid
   #         got: runtime error: not implemented
   - valid/multiple_empty_atext
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IsEmail]:{val:"...@example.com"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IsEmail]:{val:"...@example.com"}
+  #        want: valid
+  #         got: runtime error: not implemented
 library/is_host_and_port:
   - port_required/false/invalid/empty_string
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsHostAndPort]:{}
@@ -637,9 +637,9 @@ library/is_host_and_port:
   #        want: valid
   #         got: runtime error: not implemented
   - port_required/true/valid/port_zero
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IsHostAndPort]:{val:"example.com:0" port_required:true}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IsHostAndPort]:{val:"example.com:0" port_required:true}
+  #        want: valid
+  #         got: runtime error: not implemented
 library/is_hostname:
   - invalid/empty_interior_label
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsHostname]:{val:"a..b"}
@@ -802,9 +802,9 @@ library/is_hostname:
   #        want: valid
   #         got: runtime error: not implemented
   - valid/trailing_dot
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IsHostname]:{val:"a."}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IsHostname]:{val:"a."}
+  #        want: valid
+  #         got: runtime error: not implemented
 library/is_ip:
   - version/0/valid/ipv4
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsIp]:{val:"127.0.0.1" version:0}
@@ -1155,9 +1155,9 @@ library/is_ip:
   #        want: valid
   #         got: runtime error: not implemented
   - version/omitted/valid/ipv6_zone-id_any_non_null_character
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IsIp]:{val:"::1%% :x\x1f"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IsIp]:{val:"::1%% :x\x1f"}
+  #        want: valid
+  #         got: runtime error: not implemented
 library/is_ip_prefix:
   - version/0/strict/omitted/valid/ipv4_prefix
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsIpPrefix]:{val:"127.0.0.1/16" version:0}
@@ -1788,9 +1788,9 @@ library/is_ip_prefix:
   #        want: valid
   #         got: runtime error: not implemented
   - version/omitted/strict/true/valid/ipv6_prefix_8/b
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IsIpPrefix]:{val:"ff00:0:0:0:0:0:0:0/8" strict:true}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IsIpPrefix]:{val:"ff00:0:0:0:0:0:0:0/8" strict:true}
+  #        want: valid
+  #         got: runtime error: not implemented
 library/is_uri:
   - invalid/authority_path-abempty_segment_bad_caret
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsUri]:{val:"foo://example.com/^"}
@@ -2545,9 +2545,9 @@ library/is_uri:
   #        want: valid
   #         got: runtime error: not implemented
   - valid/userinfo_unreserved
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IsUri]:{val:"https://0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~@example.com"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IsUri]:{val:"https://0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-._~@example.com"}
+  #        want: valid
+  #         got: runtime error: not implemented
 library/is_uri_ref:
   - invalid/authority_path-abempty_segment_bad_control_character
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsUriRef]:{val:"//host/\x1f"}
@@ -2825,6 +2825,7 @@ library/is_uri_ref:
   #          1. : library.is_uri_ref
   #
   #         got: runtime error: not implemented
+  #FAIL (failed: 2781, skipped: 0, passed: 2, total: 2783)
   - invalid/path-noscheme_segment_bad_pct-encoded
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IsUriRef]:{val:"./%x"}
   #        want: 1 validation error(s)
@@ -3110,9 +3111,9 @@ library/is_uri_ref:
   #        want: valid
   #         got: runtime error: not implemented
   - valid/path-noscheme_with_segment_query_fragment
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IsUriRef]:{val:"./foo/bar?baz=quux#frag"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IsUriRef]:{val:"./foo/bar?baz=quux#frag"}
+  #        want: valid
+  #         got: runtime error: not implemented
 predefined_constraints:
   - proto/2023/bool/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.PredefinedBoolRuleEdition2023]:{val:true}
@@ -4361,9 +4362,9 @@ predefined_constraints:
   #             uint64 value is not even
   #         got: runtime error: not implemented
   - proto3/wrapped/uint64/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.PredefinedWrappedUInt64RuleProto3]:{val:{value:2}}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.PredefinedWrappedUInt64RuleProto3]:{val:{value:2}}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/bool:
   - const/false/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.BoolConstFalse]:{val:true}
@@ -4390,9 +4391,9 @@ standard_constraints/bool:
   #        want: valid
   #         got: runtime error: not implemented
   - none/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.BoolNone]:{val:true}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.BoolNone]:{val:true}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/bytes:
   - IP/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.BytesIP]:{val:"foobar"}
@@ -4633,9 +4634,9 @@ standard_constraints/bytes:
   #        want: valid
   #         got: runtime error: not implemented
   - suffix/valid/only
-#       input: [type.googleapis.com/buf.validate.conformance.cases.BytesSuffix]:{val:"buzz"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.BytesSuffix]:{val:"buzz"}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/double:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.DoubleIncorrectType]:{val:123}
@@ -4934,9 +4935,9 @@ standard_constraints/double:
   #        want: valid
   #         got: runtime error: not implemented
   - not_in/valid_nan
-#       input: [type.googleapis.com/buf.validate.conformance.cases.DoubleNotIn]:{val:nan}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.DoubleNotIn]:{val:nan}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/enum:
   - alias/const/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.EnumAliasConst]:{val:TEST_ENUM_ALIAS_C}
@@ -5045,9 +5046,9 @@ standard_constraints/enum:
   #        want: valid
   #         got: runtime error: not implemented
   - not_in/valid/unspecified
-#       input: [type.googleapis.com/buf.validate.conformance.cases.EnumNotIn]:{val:2147483647}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.EnumNotIn]:{val:2147483647}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/fixed32:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.Fixed32IncorrectType]:{val:123}
@@ -5262,9 +5263,9 @@ standard_constraints/fixed32:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.Fixed32NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.Fixed32NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/fixed64:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.Fixed64IncorrectType]:{val:123}
@@ -5479,9 +5480,9 @@ standard_constraints/fixed64:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.Fixed64NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.Fixed64NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/float:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.FloatIncorrectType]:{val:123}
@@ -5786,9 +5787,9 @@ standard_constraints/float:
   #        want: valid
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.FloatNotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.FloatNotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/ignore:
   - proto/2023/map/ignore_always/invalid/populated
   #       input: [type.googleapis.com/buf.validate.conformance.cases.EditionsMapIgnoreAlways]:{val:{key:1 value:1}}
@@ -8471,9 +8472,9 @@ standard_constraints/ignore:
   #        want: valid
   #         got: runtime error: not implemented
   - proto3/scalar/optional/ignore_unspecified/valid/unpopulated
-#       input: [type.googleapis.com/buf.validate.conformance.cases.Proto3ScalarOptionalIgnoreUnspecified]:{}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.Proto3ScalarOptionalIgnoreUnspecified]:{}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/ignore_empty:
   - proto/2023/map/empty
   #       input: [type.googleapis.com/buf.validate.conformance.cases.IgnoreEmptyEditionsMap]:{}
@@ -8888,9 +8889,9 @@ standard_constraints/ignore_empty:
   #
   #         got: runtime error: not implemented
   - proto3/scalar/zero
-#       input: [type.googleapis.com/buf.validate.conformance.cases.IgnoreEmptyProto3Scalar]:{}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.IgnoreEmptyProto3Scalar]:{}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/int32:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.Int32IncorrectType]:{val:123}
@@ -9105,9 +9106,9 @@ standard_constraints/int32:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.Int32NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.Int32NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/int64:
   - big_constraints/valid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.Int64BigConstraints]:{lt_pos:-5666777888 lt_neg:-5666777888 gt_pos:5666777888 gt_neg:5666777888 lte_pos:-5666777888 lte_neg:-5666777888 gte_pos:5666777888 gte_neg:5666777888 constant_pos:5444333222 constant_neg:-5444333222 in:5444333222 notin:5666777888}
@@ -9326,9 +9327,9 @@ standard_constraints/int64:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.Int64NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.Int64NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/map:
   - exact/above/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.MapExact]:{val:{key:1 value:"a"} val:{key:2 value:"b"} val:{key:3 value:"c"} val:{key:4 value:"d"}}
@@ -9467,9 +9468,9 @@ standard_constraints/map:
   #        want: valid
   #         got: runtime error: not implemented
   - values/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.MapValues]:{val:{key:"a" value:"Alpha"} val:{key:"b" value:"Beta"}}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.MapValues]:{val:{key:"a" value:"Alpha"} val:{key:"b" value:"Beta"}}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/message:
   - cross-package-embed-none/empty/valid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.MessageCrossPackage]:{val:{}}
@@ -9560,9 +9561,9 @@ standard_constraints/message:
   #        want: valid
   #         got: runtime error: not implemented
   - skip/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.MessageSkip]:{val:{}}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.MessageSkip]:{val:{}}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/nested:
   - wkt/uuid/field/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.WktLevelOne]:{two:{three:{uuid:"not-a-valid-uuid"}}}
@@ -9571,9 +9572,9 @@ standard_constraints/nested:
   #
   #         got: runtime error: not implemented
   - wkt/uuid/field/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.WktLevelOne]:{two:{three:{uuid:"f81d16ef-40e2-40c6-bebc-89aaf5292f9a"}}}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.WktLevelOne]:{two:{three:{uuid:"f81d16ef-40e2-40c6-bebc-89aaf5292f9a"}}}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/oneof:
   - field/X/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.Oneof]:{x:"fizzbuzz"}
@@ -9650,9 +9651,9 @@ standard_constraints/oneof:
   #        want: valid
   #         got: runtime error: not implemented
   - required/valid/non-empty
-#       input: [type.googleapis.com/buf.validate.conformance.cases.OneofRequired]:{x:"foo"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.OneofRequired]:{x:"foo"}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/repeated:
   - cross-package/embed-none/empty/valid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.RepeatedEmbedCrossPackageNone]:{}
@@ -9965,9 +9966,9 @@ standard_constraints/repeated:
   #        want: valid
   #         got: runtime error: not implemented
   - unique/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.RepeatedUnique]:{val:"foo" val:"bar" val:"baz"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.RepeatedUnique]:{val:"foo" val:"bar" val:"baz"}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/required:
   - proto/2023/map/empty
   #       input: [type.googleapis.com/buf.validate.conformance.cases.RequiredEditionsMap]:{}
@@ -10280,11 +10281,11 @@ standard_constraints/required:
   #        want: valid
   #         got: runtime error: not implemented
   - proto3/scalar/zero
-#       input: [type.googleapis.com/buf.validate.conformance.cases.RequiredProto3Scalar]:{}
-#        want: 1 validation error(s)
-#          1. val: required (required)
-#
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.RequiredProto3Scalar]:{}
+  #        want: 1 validation error(s)
+  #          1. val: required (required)
+  #
+  #         got: runtime error: not implemented
 standard_constraints/sfixed32:
   - const/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.SFixed32Const]:{val:2}
@@ -10485,9 +10486,9 @@ standard_constraints/sfixed32:
   #             value must not be in list [0]
   #         got: runtime error: not implemented
   - not in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.SFixed32NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.SFixed32NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/sfixed64:
   - const/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.SFixed64Const]:{val:2}
@@ -10688,9 +10689,9 @@ standard_constraints/sfixed64:
   #             value must not be in list [0]
   #         got: runtime error: not implemented
   - not in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.SFixed64NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.SFixed64NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/sint32:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.SInt32IncorrectType]:{val:123}
@@ -10905,9 +10906,9 @@ standard_constraints/sint32:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.SInt32NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.SInt32NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/sint64:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.SInt64IncorrectType]:{val:123}
@@ -11122,9 +11123,9 @@ standard_constraints/sint64:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.SInt64NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.SInt64NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/string:
   - address/invalid/empty
   #       input: [type.googleapis.com/buf.validate.conformance.cases.StringAddress]:{}
@@ -12417,9 +12418,9 @@ standard_constraints/string:
   #        want: valid
   #         got: runtime error: not implemented
   - well_known_regex/header_value/strict/valid/uppercase
-#       input: [type.googleapis.com/buf.validate.conformance.cases.StringHttpHeaderValue]:{val:"/TEST/SOME/PATH"}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.StringHttpHeaderValue]:{val:"/TEST/SOME/PATH"}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/uint32:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.UInt32IncorrectType]:{val:123}
@@ -12634,9 +12635,9 @@ standard_constraints/uint32:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.UInt32NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.UInt32NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/uint64:
   - compilation/wrong_type
   #       input: [type.googleapis.com/buf.validate.conformance.cases.UInt64IncorrectType]:{val:123}
@@ -12851,12 +12852,12 @@ standard_constraints/uint64:
   #
   #         got: runtime error: not implemented
   - not_in/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.UInt64NotIn]:{val:1}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.UInt64NotIn]:{val:1}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/well_known_types/any:
   - any/valid/known
-  #       input: [type.googleapis.com/google.protobuf.Any]:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625368 nanos:599597000}}
+  #       input: [type.googleapis.com/google.protobuf.Any]:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625515 nanos:62754000}}
   #        want: valid
   #         got: runtime error: not implemented
   - any/valid/unknown
@@ -12864,7 +12865,7 @@ standard_constraints/well_known_types/any:
   #        want: valid
   #         got: runtime error: not implemented
   - in/invalid/known
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.AnyIn]:{val:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625368 nanos:599597000}}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.AnyIn]:{val:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625515 nanos:62754000}}}
   #        want: 1 validation error(s)
   #          1. val: any.in (any.in)
   #
@@ -12892,7 +12893,7 @@ standard_constraints/well_known_types/any:
   #        want: valid
   #         got: runtime error: not implemented
   - not_in/invalid/known
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.AnyNotIn]:{val:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625368 nanos:599597000}}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.AnyNotIn]:{val:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625515 nanos:62754000}}}
   #        want: 1 validation error(s)
   #          1. val: any.not_in (any.not_in)
   #
@@ -12916,13 +12917,13 @@ standard_constraints/well_known_types/any:
   #
   #         got: runtime error: not implemented
   - required/valid/known
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.AnyRequired]:{val:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625368 nanos:599597000}}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.AnyRequired]:{val:{[type.googleapis.com/google.protobuf.Timestamp]:{seconds:1741625515 nanos:62754000}}}
   #        want: valid
   #         got: runtime error: not implemented
   - required/valid/unknown
-#       input: [type.googleapis.com/buf.validate.conformance.cases.AnyRequired]:{val:{type_url:"type.googleapis.com/foo.Bar"}}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.AnyRequired]:{val:{type_url:"type.googleapis.com/foo.Bar"}}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/well_known_types/duration:
   - Ex gte_lte/valid/empty
   #       input: [type.googleapis.com/buf.validate.conformance.cases.DurationExGTELTE]:{}
@@ -13179,9 +13180,9 @@ standard_constraints/well_known_types/duration:
   #             value is required
   #         got: runtime error: not implemented
   - required/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.DurationRequired]:{val:{}}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.DurationRequired]:{val:{}}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/well_known_types/timestamp:
   - const/invalid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampConst]:{val:{nanos:3}}
@@ -13320,7 +13321,7 @@ standard_constraints/well_known_types/timestamp:
   #        want: valid
   #         got: runtime error: not implemented
   - gt_now/valid
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampGTNow]:{val:{seconds:1741632568}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampGTNow]:{val:{seconds:1741632715}}
   #        want: valid
   #         got: runtime error: not implemented
   - gt_now/valid/empty
@@ -13336,13 +13337,13 @@ standard_constraints/well_known_types/timestamp:
   #
   #         got: runtime error: not implemented
   - gt_now/within/invalid/within
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampGTNowWithin]:{val:{seconds:1741632568}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampGTNowWithin]:{val:{seconds:1741632715}}
   #        want: 1 validation error(s)
   #          1. val: timestamp.within (timestamp.within)
   #
   #         got: runtime error: not implemented
   - gt_now/within/valid
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampGTNowWithin]:{val:{seconds:1741627168}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampGTNowWithin]:{val:{seconds:1741627315}}
   #        want: valid
   #         got: runtime error: not implemented
   - gt_now/within/valid/empty
@@ -13416,13 +13417,13 @@ standard_constraints/well_known_types/timestamp:
   #        want: valid
   #         got: runtime error: not implemented
   - lt_now/invalid
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampLTNow]:{val:{seconds:1741632568}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampLTNow]:{val:{seconds:1741632715}}
   #        want: 1 validation error(s)
   #          1. val: timestamp.lt_now (timestamp.lt_now)
   #
   #         got: runtime error: not implemented
   - lt_now/invalid/not_checked
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampNotLTNow]:{val:{seconds:1741632568}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampNotLTNow]:{val:{seconds:1741632715}}
   #        want: valid
   #         got: runtime error: not implemented
   - lt_now/valid
@@ -13434,7 +13435,7 @@ standard_constraints/well_known_types/timestamp:
   #        want: valid
   #         got: runtime error: not implemented
   - lt_now/within/invalid/lt
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampLTNowWithin]:{val:{seconds:1741627168}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampLTNowWithin]:{val:{seconds:1741627315}}
   #        want: 1 validation error(s)
   #          1. val: timestamp.lt_now (timestamp.lt_now)
   #
@@ -13446,7 +13447,7 @@ standard_constraints/well_known_types/timestamp:
   #
   #         got: runtime error: not implemented
   - lt_now/within/valid
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampLTNowWithin]:{val:{seconds:1741623568}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampLTNowWithin]:{val:{seconds:1741623715}}
   #        want: valid
   #         got: runtime error: not implemented
   - lt_now/within/valid/empty
@@ -13486,7 +13487,7 @@ standard_constraints/well_known_types/timestamp:
   #        want: valid
   #         got: runtime error: not implemented
   - within/invalid/above
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampWithin]:{val:{seconds:1741632568}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampWithin]:{val:{seconds:1741632715}}
   #        want: 1 validation error(s)
   #          1. val: timestamp.within (timestamp.within)
   #
@@ -13498,13 +13499,13 @@ standard_constraints/well_known_types/timestamp:
   #
   #         got: runtime error: not implemented
   - within/valid
-  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampWithin]:{val:{seconds:1741625368 nanos:599785000}}
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampWithin]:{val:{seconds:1741625515 nanos:63060000}}
   #        want: valid
   #         got: runtime error: not implemented
   - within/valid/empty
-#       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampWithin]:{}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.TimestampWithin]:{}
+  #        want: valid
+  #         got: runtime error: not implemented
 standard_constraints/well_known_types/wrapper:
   - bool/empty/valid
   #       input: [type.googleapis.com/buf.validate.conformance.cases.WrapperBool]:{}
@@ -13699,6 +13700,6 @@ standard_constraints/well_known_types/wrapper:
   #             value must be greater than 0
   #         got: runtime error: not implemented
   - uint64/valid
-#       input: [type.googleapis.com/buf.validate.conformance.cases.WrapperUInt64]:{val:{value:1}}
-#        want: valid
-#         got: runtime error: not implemented
+  #       input: [type.googleapis.com/buf.validate.conformance.cases.WrapperUInt64]:{val:{value:1}}
+  #        want: valid
+  #         got: runtime error: not implemented
