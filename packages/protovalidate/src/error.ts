@@ -281,12 +281,7 @@ function pathToProto(path: Path): FieldPath {
           create(FieldPathElementSchema, {
             fieldName: e.name,
             fieldNumber: e.number,
-            fieldType: e.proto.type,
-            keyType:
-              e.fieldKind == "map"
-                ? (e.mapKey as number as FieldDescriptorProto_Type)
-                : undefined,
-            valueType: mapValueType(e),
+            fieldType: fieldType(e),
           }),
         );
         break;
@@ -319,7 +314,7 @@ function pathToProto(path: Path): FieldPath {
         const prevProto = elements[elements.length - 1];
         if (prevProto) {
           const prevPath = path[i - 1];
-          prevProto.subscript = getMapSub(e.key, prevPath);
+          setMapSub(prevProto, e.key, prevPath);
         }
         break;
       }
@@ -328,19 +323,11 @@ function pathToProto(path: Path): FieldPath {
   return create(FieldPathSchema, { elements });
 }
 
-function mapValueType(field: DescField): FieldDescriptorProto_Type | undefined {
-  if (field.fieldKind == "map") {
-    switch (field.mapKind) {
-      case "scalar":
-        return field.scalar as number as FieldDescriptorProto_Type;
-      case "enum":
-        return FieldDescriptorProto_Type.ENUM;
-      case "message":
-        // map fields are always LENGTH_PREFIXED
-        return FieldDescriptorProto_Type.MESSAGE;
-    }
+function fieldType(field: DescField): FieldDescriptorProto_Type {
+  if (field.fieldKind == "message" && field.delimitedEncoding) {
+    return FieldDescriptorProto_Type.GROUP;
   }
-  return undefined;
+  return field.proto.type;
 }
 
 function getListSub(
@@ -356,54 +343,72 @@ function getListSub(
   return { case: undefined };
 }
 
-function getMapSub(
+function setMapSub(
+  proto: FieldPathElement,
   key: string | number | bigint | boolean,
   prevPath: Path[number] | undefined,
-): FieldPathElement["subscript"] {
-  if (prevPath?.kind == "field" && prevPath.fieldKind == "map") {
-    switch (typeof key) {
-      case "boolean":
-        switch (prevPath.mapKey) {
-          case ScalarType.BOOL:
-            return {
-              case: "boolKey",
-              value: key,
-            };
-        }
-        break;
-      case "string":
-        switch (prevPath.mapKey) {
-          case ScalarType.STRING:
-            return {
-              case: "stringKey",
-              value: key,
-            };
-        }
-        break;
-      case "number":
-      case "bigint":
-        switch (prevPath.mapKey) {
-          case ScalarType.INT32:
-          case ScalarType.SINT32:
-          case ScalarType.SFIXED32:
-          case ScalarType.INT64:
-          case ScalarType.SINT64:
-          case ScalarType.SFIXED64:
-            return {
-              case: "intKey",
-              value: BigInt(key),
-            };
-          case ScalarType.UINT32:
-          case ScalarType.FIXED32:
-          case ScalarType.UINT64:
-          case ScalarType.FIXED64:
-            return {
-              case: "uintKey",
-              value: BigInt(key),
-            };
-        }
-        break;
-    }
+): void {
+  if (prevPath?.kind != "field" || prevPath.fieldKind != "map") {
+    return;
   }
-  return { case: undefined };
+  proto.keyType = prevPath.mapKey as number as FieldDescriptorProto_Type;
+  switch (prevPath.mapKind) {
+    case "scalar":
+      proto.valueType = prevPath.scalar as number as FieldDescriptorProto_Type;
+      break;
+    case "enum":
+      proto.valueType = FieldDescriptorProto_Type.ENUM;
+      break;
+    case "message":
+      // map fields are always LENGTH_PREFIXED
+      proto.valueType = FieldDescriptorProto_Type.MESSAGE;
+      break;
+  }
+  switch (typeof key) {
+    case "boolean":
+      switch (prevPath.mapKey) {
+        case ScalarType.BOOL:
+          proto.subscript = {
+            case: "boolKey",
+            value: key,
+          };
+          break;
+      }
+      break;
+    case "string":
+      switch (prevPath.mapKey) {
+        case ScalarType.STRING:
+          proto.subscript = {
+            case: "stringKey",
+            value: key,
+          };
+          break;
+      }
+      break;
+    case "number":
+    case "bigint":
+      switch (prevPath.mapKey) {
+        case ScalarType.INT32:
+        case ScalarType.SINT32:
+        case ScalarType.SFIXED32:
+        case ScalarType.INT64:
+        case ScalarType.SINT64:
+        case ScalarType.SFIXED64:
+          proto.subscript = {
+            case: "intKey",
+            value: BigInt(key),
+          };
+          break;
+        case ScalarType.UINT32:
+        case ScalarType.FIXED32:
+        case ScalarType.UINT64:
+        case ScalarType.FIXED64:
+          proto.subscript = {
+            case: "uintKey",
+            value: BigInt(key),
+          };
+          break;
+      }
+      break;
+  }
 }
