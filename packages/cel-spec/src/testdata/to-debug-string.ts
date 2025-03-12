@@ -1,7 +1,6 @@
 import type {
   Constant,
   Expr,
-  Expr_Ident,
   Expr_Select,
   Expr_Call,
   Expr_CreateList,
@@ -236,7 +235,7 @@ class EmptyAdorner implements Adorner {
   static readonly singleton = new EmptyAdorner();
   private constructor() {}
 
-  GetMetadata(context: Message): string {
+  GetMetadata(_context: Message): string {
     return "";
   }
 }
@@ -298,7 +297,7 @@ function isPrintable(c: string) {
 }
 
 function quoteBytes(bytes: Uint8Array) {
-  let replacement = String.fromCharCode(0xfffd);
+  const replacement = String.fromCharCode(0xfffd);
   let byteString = "";
   let i = 0;
   while (i < bytes.length) {
@@ -408,7 +407,7 @@ function getExprType(e: Expr): string {
     case "comprehensionExpr":
       return "*expr.Expr_ComprehensionExpr";
     default:
-      throw new Error("unexpected expression type: " + e.exprKind);
+      throw new Error("unexpected expression type: " + e.exprKind.case);
   }
 }
 
