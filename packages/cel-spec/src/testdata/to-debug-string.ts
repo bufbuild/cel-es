@@ -26,6 +26,12 @@ import type { Message } from "@bufbuild/protobuf";
 
 const decoder = new TextDecoder();
 
+/**
+ * Returns adorned debug output for the given expression tree, following cel-go.
+ *
+ * > [!CAUTION]
+ * > This functions requires ES2024 features.
+ */
 export function toDebugString(
   expr: Expr,
   adorner: Adorner = EmptyAdorner.singleton,
