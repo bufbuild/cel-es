@@ -49,6 +49,10 @@
       "import": "./dist/esm/testdata/simple.js",
       "require": "./dist/cjs/testdata/simple.js"
     },
+    "./testdata/to-debug-string.js": {
+      "import": "./dist/esm/testdata/to-debug-string.js",
+      "require": "./dist/cjs/testdata/to-debug-string.js"
+    },
     "./cel/expr/checked_pb.js": {
       "import": "./dist/esm/gen/cel/expr/checked_pb.js",
       "require": "./dist/cjs/gen/cel/expr/checked_pb.js"
@@ -107,6 +111,9 @@
       ],
       "testdata/simple.js": [
         "./dist/cjs/testdata/simple.d.ts"
+      ],
+      "testdata/to-debug-string.js": [
+        "./dist/cjs/testdata/to-debug-string.d.ts"
       ],
       "cel/expr/checked_pb.js": [
         "./dist/cjs/gen/cel/expr/checked_pb.d.ts"
