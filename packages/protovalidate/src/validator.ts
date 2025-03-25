@@ -20,7 +20,7 @@ import {
 } from "@bufbuild/protobuf";
 import { nestedTypes, reflect } from "@bufbuild/protobuf/reflect";
 import { Cursor } from "./cursor.js";
-import { createPlanner } from "./planner.js";
+import { Planner } from "./planner.js";
 import { CelManager } from "./cel.js";
 import { file_buf_validate_validate } from "./gen/buf/validate/validate_pb.js";
 
@@ -66,7 +66,7 @@ export function createValidator(opt?: ValidatorOptions): Validator {
     : createMutableRegistry(file_buf_validate_validate);
   const failFast = opt?.failFast ?? false;
   const celMan = new CelManager(registry);
-  const planner = createPlanner(celMan);
+  const planner = new Planner(celMan);
   return {
     validate(schema, message) {
       this.for(schema)(message);
