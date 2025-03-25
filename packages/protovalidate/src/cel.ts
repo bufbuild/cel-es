@@ -265,7 +265,7 @@ export class CelManager {
   }
 
   clearEnv(key: "this" | "rules" | "rule"): void {
-    // TODO should clear, not set `null`
+    // TODO should clear, not set `null` - support clearing in CEL, or refactor this code
     this.env.set(key, null);
   }
 
@@ -516,11 +516,11 @@ function reflectToCel(val: unknown): unknown {
     return val.message;
   }
   if (isReflectList(val)) {
-    // @ts-expect-error -- TODO
+    // @ts-expect-error -- TODO provide public access in protobuf-es, or support reflection types in CEL
     return val[Symbol.for("reflect unsafe local")];
   }
   if (isReflectMap(val)) {
-    // @ts-expect-error -- TODO
+    // @ts-expect-error -- TODO provide public access in protobuf-es, or support reflection types in CEL
     return val[Symbol.for("reflect unsafe local")];
   }
   return val;
