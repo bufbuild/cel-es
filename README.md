@@ -83,7 +83,7 @@ We genuinely appreciate any help! If you'd like to contribute, check out these r
 
 - [Contributing Guidelines][contributing]: Guidelines to make your contribution process straightforward and meaningful
 - [Conformance testing utilities](https://github.com/bufbuild/protovalidate/tree/main/docs/conformance.md): Utilities providing acceptance testing of `protovalidate` implementations
-- [Protovalidate-ES conformance executor][conformance-executable]: Conformance testing executor for `protovalidate-go`
+- [Protovalidate-ES conformance executor][conformance-executable]: Conformance testing executor
 
 ## Related Sites
 
@@ -109,13 +109,7 @@ Offered under the [Apache 2 license][license].
 
 [protovalidate]: https://buf.build/docs/protovalidate/overview/
 [quickstart]: https://buf.build/docs/protovalidate/quickstart/
-[connect-go]: https://buf.build/docs/protovalidate/how-to/connect-go/
-[grpc-go]: https://buf.build/docs/protovalidate/how-to/grpc-go/
-[grpc-java]: https://buf.build/docs/protovalidate/how-to/grpc-java/
-[grpc-python]: https://buf.build/docs/protovalidate/how-to/grpc-python/
-[migration-guide]: https://buf.build/docs/migration-guides/migrate-from-protoc-gen-validate/
 [conformance-executable]: ./packages/protovalidate-testing/README.md
-[pkg-go]: https://pkg.go.dev/github.com/bufbuild/protovalidate-go
 
 [validate-proto]: https://buf.build/bufbuild/protovalidate/docs/main:buf.validate
 [conformance]: https://github.com/bufbuild/protovalidate/blob/main/docs/conformance.md
