@@ -60,8 +60,6 @@ try {
 - [@bufbuild/cel-spec](https://www.npmjs.com/package/@bufbuild/cel-spec):
   Provides [CEL](https://github.com/google/cel-spec) definitions and test data.
 
-
-
 ## Additional Languages and Repositories
 
 Protovalidate isn't just for ECMAScript! You might be interested in sibling repositories for other languages:
@@ -96,21 +94,16 @@ Offered under the [Apache 2 license][license].
 
 [buf]: https://buf.build
 [cel]: https://cel.dev
-
 [pv-go]: https://github.com/bufbuild/protovalidate-go
 [pv-java]: https://github.com/bufbuild/protovalidate-java
 [pv-python]: https://github.com/bufbuild/protovalidate-python
 [pv-cc]: https://github.com/bufbuild/protovalidate-cc
-
 [license]: LICENSE
 [contributing]: .github/CONTRIBUTING.md
-
 [protoc-gen-validate]: https://github.com/bufbuild/protoc-gen-validate
-
 [protovalidate]: https://buf.build/docs/protovalidate/overview/
 [quickstart]: https://buf.build/docs/protovalidate/quickstart/
 [conformance-executable]: ./packages/protovalidate-testing/README.md
-
 [validate-proto]: https://buf.build/bufbuild/protovalidate/docs/main:buf.validate
 [conformance]: https://github.com/bufbuild/protovalidate/blob/main/docs/conformance.md
 [examples]: https://github.com/bufbuild/protovalidate/tree/main/examples
