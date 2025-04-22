@@ -387,7 +387,10 @@ export class Ipv6 {
       }
       break;
     }
-    return this.doubleColonSeen || this.pieces.length == 8;
+    if (this.doubleColonSeen) {
+      return this.pieces.length < 8;
+    }
+    return this.pieces.length == 8;
   }
 
   // Parses the rule from RFC 6874:
@@ -516,9 +519,7 @@ export function isHostname(str: string): boolean {
   if (str.length > 253) {
     return false;
   }
-  const s = (
-    str.endsWith(".") ? str.substring(0, str.length - 1) : str
-  ).toLowerCase();
+  const s = str.endsWith(".") ? str.substring(0, str.length - 1) : str;
   let allDigits = false;
   // split hostname on '.' and validate each part
   for (const part of s.split(".")) {
@@ -530,8 +531,13 @@ export function isHostname(str: string): boolean {
     }
     // for each character in part
     for (const ch of part.split("")) {
-      // if the character is not a-z, 0-9, or '-', it is invalid
-      if ((ch < "a" || ch > "z") && (ch < "0" || ch > "9") && ch != "-") {
+      // if the character is not a-z, A-Z, 0-9, or '-', it is invalid
+      if (
+        (ch < "a" || ch > "z") &&
+        (ch < "A" || ch > "Z") &&
+        (ch < "0" || ch > "9") &&
+        ch != "-"
+      ) {
         return false;
       }
       allDigits = allDigits && ch >= "0" && ch <= "9";
