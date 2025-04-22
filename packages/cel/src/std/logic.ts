@@ -351,9 +351,21 @@ const startsWithFunc = Func.binary(
   },
 );
 
+const flagPattern = new RegExp(/^\(\?(?<flags>[ims\-]+)\)/);
 const matchesStringOp: StrictBinaryOp = (_id: number, x: CelVal, y: CelVal) => {
   if (typeof x === "string" && typeof y === "string") {
-    const re = new RegExp(y);
+    let flags = "";
+    const flagMatches = y.match(flagPattern);
+    if (flagMatches) {
+      for (let flag of flagMatches?.groups?.["flags"] ?? "") {
+        if (flag == "-") {
+          break;
+        }
+        flags += flag;
+      }
+      y = y.substring(flagMatches[0].length);
+    }
+    const re = new RegExp(y, flags);
     return re.test(x);
   }
   return undefined;
