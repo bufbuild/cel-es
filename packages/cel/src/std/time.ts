@@ -29,22 +29,6 @@ import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { type CelVal } from "../value/value.js";
 
 type TimeFunc = (val: Date) => number;
-
-function newDate(
-  year: number,
-  month: number,
-  day: number,
-  hours: number,
-  minutes: number,
-  seconds: number,
-  milliseconds: number,
-) {
-  const date = new Date(0);
-  date.setFullYear(year, month, day);
-  date.setHours(hours, minutes, seconds, milliseconds);
-  return date;
-}
-
 function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
   return (id: number, args: CelVal[]) => {
     if (!isMessage(args[0], TimestampSchema)) {
@@ -68,7 +52,7 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
         const minutes = parseInt(timeOffset.groups["minutes"]);
         const offset = sign * (hours * 60 * 60 * 1000 + minutes * 60 * 1000);
         val = new Date(val.getTime() - offset);
-        val = newDate(
+        val = new Date(
           val.getUTCFullYear(),
           val.getUTCMonth(),
           val.getUTCDate(),
@@ -116,18 +100,30 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
               break;
           }
         }
-        val = newDate(
-          year!,
-          month!,
-          day!,
-          hour!,
-          minute!,
-          second!,
+        if (
+          year === undefined ||
+          month === undefined ||
+          day === undefined ||
+          hour === undefined ||
+          minute === undefined ||
+          second === undefined
+        ) {
+          throw new Error(
+            `Error converting ${toJson(TimestampSchema, args[0])} to IANA timezone ${args[1]}`,
+          );
+        }
+        val = new Date(
+          year,
+          month,
+          day,
+          hour,
+          minute,
+          second,
           val.getUTCMilliseconds(),
         );
       }
     } else {
-      val = newDate(
+      val = new Date(
         val.getUTCFullYear(),
         val.getUTCMonth(),
         val.getUTCDate(),
