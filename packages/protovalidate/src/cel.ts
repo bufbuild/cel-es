@@ -48,6 +48,9 @@ import type { Path } from "./path.js";
 import { Cursor } from "./cursor.js";
 import { type Timestamp, timestampNow } from "@bufbuild/protobuf/wkt";
 import {
+  bytesContains,
+  bytesEndsWith,
+  bytesStartsWith,
   isEmail,
   isHostAndPort,
   isHostname,
@@ -247,6 +250,72 @@ function createCustomFuncs(): FuncRegistry {
       },
     ),
   );
+  const containsStringOp = (_id: number, x: CelVal, y: CelVal) => {
+    if (typeof x === "string" && typeof y === "string") {
+      return x.includes(y);
+    }
+    return undefined;
+  };
+  const containsStringFunc = Func.binary(
+    "contains",
+    ["contains_string"],
+    containsStringOp,
+  );
+  const containsFunc = Func.binary(
+    "contains",
+    [],
+    (id: number, x: CelVal, y: CelVal) => {
+      if (x instanceof Uint8Array && y instanceof Uint8Array) {
+        return bytesContains(x, y);
+      }
+      return containsStringOp(id, x, y);
+    },
+  );
+  reg.add(containsFunc, [containsStringFunc]);
+  const endsWithStringOp = (_id: number, x: CelVal, y: CelVal) => {
+    if (typeof x === "string" && typeof y === "string") {
+      return x.endsWith(y);
+    }
+    return undefined;
+  };
+  const endsWithStringFunc = Func.binary(
+    "endsWith",
+    ["ends_with_string"],
+    endsWithStringOp,
+  );
+  const endsWithFunc = Func.binary(
+    "endsWith",
+    [],
+    (id: number, x: CelVal, y: CelVal) => {
+      if (x instanceof Uint8Array && y instanceof Uint8Array) {
+        return bytesEndsWith(x, y);
+      }
+      return endsWithStringOp(id, x, y);
+    },
+  );
+  reg.add(endsWithFunc, [endsWithStringFunc]);
+  const startsWithOp = (_id: number, x: CelVal, y: CelVal) => {
+    if (typeof x === "string" && typeof y === "string") {
+      return x.startsWith(y);
+    }
+    return undefined;
+  };
+  const startsWithStringFunc = Func.binary(
+    "startsWith",
+    ["starts_with_string"],
+    startsWithOp,
+  );
+  const startsWithFunc = Func.binary(
+    "startsWith",
+    [],
+    (id: number, x: CelVal, y: CelVal) => {
+      if (x instanceof Uint8Array && y instanceof Uint8Array) {
+        return bytesStartsWith(x, y);
+      }
+      return startsWithOp(id, x, y);
+    },
+  );
+  reg.add(startsWithFunc, [startsWithStringFunc]);
   return reg;
 }
 
