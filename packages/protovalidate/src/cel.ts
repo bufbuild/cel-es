@@ -89,8 +89,6 @@ export type CelCompiledRule =
       rule: Rule;
     };
 
-// TODO contains, endsWith, startsWith for bytes
-
 function createCustomFuncs(): FuncRegistry {
   const reg = new FuncRegistry();
   reg.add(
