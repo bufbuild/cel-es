@@ -76,10 +76,7 @@ void suite("getListRules()", () => {
     assert.strictEqual(pathToString(path.toPath()), "repeated");
   });
   const failureCases: {
-    type: Exclude<
-      MessageInitShape<typeof FieldRulesSchema>["type"],
-      undefined
-    >;
+    type: Exclude<MessageInitShape<typeof FieldRulesSchema>["type"], undefined>;
     error: string;
   }[] = [
     {
@@ -129,10 +126,7 @@ void suite("getMapRules()", () => {
     assert.strictEqual(pathToString(path.toPath()), "map");
   });
   const failureCases: {
-    type: Exclude<
-      MessageInitShape<typeof FieldRulesSchema>["type"],
-      undefined
-    >;
+    type: Exclude<MessageInitShape<typeof FieldRulesSchema>["type"], undefined>;
     error: string;
   }[] = [
     {
@@ -184,10 +178,7 @@ void suite("getEnumRules()", () => {
     assert.strictEqual(pathToString(path.toPath()), "repeated.items.enum");
   });
   const failureCases: {
-    type: Exclude<
-      MessageInitShape<typeof FieldRulesSchema>["type"],
-      undefined
-    >;
+    type: Exclude<MessageInitShape<typeof FieldRulesSchema>["type"], undefined>;
     error: string;
   }[] = [
     {
@@ -219,22 +210,12 @@ void suite("getMessageRules()", () => {
     .field(RepeatedRulesSchema.field.items);
   void test("fieldRules undefined returns rules undefined", () => {
     const fieldRules = undefined;
-    const [rules] = getMessageRules(
-      AnySchema,
-      basePath,
-      fieldRules,
-      fakeField,
-    );
+    const [rules] = getMessageRules(AnySchema, basePath, fieldRules, fakeField);
     assert.strictEqual(rules, undefined);
   });
   void test("fieldRules without rules returns rules undefined", () => {
     const fieldRules = create(FieldRulesSchema);
-    const [rules] = getMessageRules(
-      AnySchema,
-      basePath,
-      fieldRules,
-      fakeField,
-    );
+    const [rules] = getMessageRules(AnySchema, basePath, fieldRules, fakeField);
     assert.strictEqual(rules, undefined);
   });
   void test("adds wanted rule to path", () => {
@@ -259,10 +240,7 @@ void suite("getMessageRules()", () => {
   });
   const successCases: {
     message: DescMessage;
-    type: Exclude<
-      MessageInitShape<typeof FieldRulesSchema>["type"],
-      undefined
-    >;
+    type: Exclude<MessageInitShape<typeof FieldRulesSchema>["type"], undefined>;
     wantPath: string;
     wantRuleType: DescMessage;
   }[] = [
@@ -307,10 +285,7 @@ void suite("getMessageRules()", () => {
   }
   const failureCases: {
     message: DescMessage;
-    type: Exclude<
-      MessageInitShape<typeof FieldRulesSchema>["type"],
-      undefined
-    >;
+    type: Exclude<MessageInitShape<typeof FieldRulesSchema>["type"], undefined>;
     error: string;
   }[] = [
     {
@@ -377,10 +352,7 @@ void suite("getScalarRules()", () => {
   });
 
   const successCases: {
-    type: Exclude<
-      MessageInitShape<typeof FieldRulesSchema>["type"],
-      undefined
-    >;
+    type: Exclude<MessageInitShape<typeof FieldRulesSchema>["type"], undefined>;
     scalar: ScalarType;
     wantPath: string;
     wantRuleType: DescMessage;
@@ -426,10 +398,7 @@ void suite("getScalarRules()", () => {
   }
 
   const failureCases: {
-    type: Exclude<
-      MessageInitShape<typeof FieldRulesSchema>["type"],
-      undefined
-    >;
+    type: Exclude<MessageInitShape<typeof FieldRulesSchema>["type"], undefined>;
     scalar: ScalarType;
     error: string;
   }[] = [

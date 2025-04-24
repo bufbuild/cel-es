@@ -40,13 +40,7 @@ void suite("Violation", () => {
   void test("constructor", () => {
     const field = parsePath(FieldRulesSchema, "cel[1].id");
     const rule = parsePath(FieldRulesSchema, "string.min_len");
-    const v = new Violation(
-      "failure-message",
-      "rule-id",
-      field,
-      rule,
-      false,
-    );
+    const v = new Violation("failure-message", "rule-id", field, rule, false);
     assert.strictEqual(v.message, "failure-message");
     assert.strictEqual(v.ruleId, "rule-id");
     assert.strictEqual(v.field, field);
@@ -56,25 +50,13 @@ void suite("Violation", () => {
   void test("toString", () => {
     const field = parsePath(FieldRulesSchema, "cel[1].id");
     const rule = parsePath(FieldRulesSchema, "string.min_len");
-    const v = new Violation(
-      "failure-message",
-      "rule-id",
-      field,
-      rule,
-      false,
-    );
+    const v = new Violation("failure-message", "rule-id", field, rule, false);
     assert.equal(v.toString(), "cel[1].id: failure-message [rule-id]");
   });
   void test("toString with empty field path", () => {
     const field: Path = [];
     const rule = parsePath(FieldRulesSchema, "string.min_len");
-    const v = new Violation(
-      "failure-message",
-      "rule-id",
-      field,
-      rule,
-      false,
-    );
+    const v = new Violation("failure-message", "rule-id", field, rule, false);
     assert.equal(v.toString(), "failure-message [rule-id]");
   });
 });

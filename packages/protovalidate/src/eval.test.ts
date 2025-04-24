@@ -22,7 +22,11 @@ import {
   MapRulesSchema,
   predefined,
   RepeatedRulesSchema,
-  StringRulesSchema, MessageRulesSchema, OneofRulesSchema, FieldRulesSchema, PredefinedRulesSchema,
+  StringRulesSchema,
+  MessageRulesSchema,
+  OneofRulesSchema,
+  FieldRulesSchema,
+  PredefinedRulesSchema,
 } from "./gen/buf/validate/validate_pb.js";
 import { nestedTypes } from "@bufbuild/protobuf/reflect";
 import { getOption, hasOption } from "@bufbuild/protobuf";

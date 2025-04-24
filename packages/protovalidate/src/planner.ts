@@ -163,13 +163,7 @@ export class Planner {
             new EvalField(
               field,
               ignoreScalarOrEnumField(field, fieldRules.ignore),
-              this.scalar(
-                field.scalar,
-                fieldRules,
-                baseRulePath,
-                false,
-                field,
-              ),
+              this.scalar(field.scalar, fieldRules, baseRulePath, false, field),
             ),
           );
           break;

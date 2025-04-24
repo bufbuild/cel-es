@@ -413,12 +413,7 @@ export class EvalCustomCel implements Eval<ReflectMessageGet> {
     for (const child of this.children) {
       const vio = this.celMan.eval(child.compiled);
       if (vio) {
-        cursor.violate(
-          vio.message,
-          vio.ruleId,
-          child.rulePath,
-          this.forMapKey,
-        );
+        cursor.violate(vio.message, vio.ruleId, child.rulePath, this.forMapKey);
       }
     }
   }
@@ -437,18 +432,11 @@ export class EvalExtendedRulesCel implements Eval<ReflectMessageGet> {
 
   constructor(
     private readonly celMan: CelManager,
-    private readonly rules: Exclude<
-      FieldRules["type"]["value"],
-      undefined
-    >,
+    private readonly rules: Exclude<FieldRules["type"]["value"], undefined>,
     private readonly forMapKey: boolean,
   ) {}
 
-  add(
-    compiled: CelCompiledRule,
-    rulePath: Path,
-    ruleValue: unknown,
-  ): void {
+  add(compiled: CelCompiledRule, rulePath: Path, ruleValue: unknown): void {
     this.children.push({
       compiled,
       rulePath,
@@ -463,12 +451,7 @@ export class EvalExtendedRulesCel implements Eval<ReflectMessageGet> {
       this.celMan.setEnv("rule", child.ruleValue);
       const vio = this.celMan.eval(child.compiled);
       if (vio) {
-        cursor.violate(
-          vio.message,
-          vio.ruleId,
-          child.rulePath,
-          this.forMapKey,
-        );
+        cursor.violate(vio.message, vio.ruleId, child.rulePath, this.forMapKey);
       }
     }
   }
@@ -486,10 +469,7 @@ export class EvalStandardRulesCel implements Eval<ReflectMessageGet> {
 
   constructor(
     private readonly celMan: CelManager,
-    private readonly rules: Exclude<
-      FieldRules["type"]["value"],
-      undefined
-    >,
+    private readonly rules: Exclude<FieldRules["type"]["value"], undefined>,
     private readonly forMapKey: boolean,
   ) {}
 
@@ -504,12 +484,7 @@ export class EvalStandardRulesCel implements Eval<ReflectMessageGet> {
     for (const child of this.children) {
       const vio = this.celMan.eval(child.compiled);
       if (vio) {
-        cursor.violate(
-          vio.message,
-          vio.ruleId,
-          child.rulePath,
-          this.forMapKey,
-        );
+        cursor.violate(vio.message, vio.ruleId, child.rulePath, this.forMapKey);
       }
     }
   }
