@@ -49,6 +49,11 @@ try {
 }
 ```
 
+> [!NOTE]
+> 
+> This version of @bufbuild/protovalidate is compatible with [buf.build/bufbuild/protovalidate](https://buf.build/bufbuild/protovalidate)
+> <!-- upstreamProtovalidateRef -->v0.11.0<!-- upstreamProtovalidateRef -->
+
 [protovalidate]: https://buf.build/docs/protovalidate
 [cel]: https://cel.dev
 [protoc-gen-validate]: https://github.com/bufbuild/protoc-gen-validate
