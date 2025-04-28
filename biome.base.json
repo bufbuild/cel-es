@@ -28,8 +28,7 @@
       },
       "suspicious": {
         "noDoubleEquals": "off",
-        "noFallthroughSwitchClause": "off",
-        "noApproximativeNumericConstant": "off"
+        "noFallthroughSwitchClause": "off"
       }
     }
   }
