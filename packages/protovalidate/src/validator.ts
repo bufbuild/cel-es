@@ -33,10 +33,10 @@ export type ValidatorOptions = {
   /**
    * RE2 compliant regex matcher to use.
    *
-   * Ecmascript RE mostly matches RE2, except is some cases. You can use a custom
+   * ECMAScript supports most, but not all RE expressions. You can use a custom
    * regex engine to support the unsupported features of RE2.
    *
-   * Know limitations of default RE (Ecmascript) matcher:
+   * Know limitations of default RE (ECMAScript) matcher:
    *  * Cannot change flags mid sequence e.g. 'John(?i)Doe'.
    *  * Doesn't support the 'U' flag.
    */
