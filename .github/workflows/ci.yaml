@@ -34,6 +34,8 @@ jobs:
             diff-check: true
           - task: build
             diff-check: true
+          - task: update-readme
+            diff-check: true
     name: ${{ matrix.task }}
     steps:
       - uses: actions/checkout@v4
