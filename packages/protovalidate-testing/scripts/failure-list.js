@@ -45,7 +45,7 @@ for (const line of lines) {
     kase = {
       name: mCase[1],
       lines: [],
-    }
+    };
     suite.cases.push(kase);
     continue;
   }
