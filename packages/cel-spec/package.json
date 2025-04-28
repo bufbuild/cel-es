@@ -18,6 +18,7 @@
     "fetch-parser-comprehensions": "go run -C scripts gen_parser_tests.go -output ../src/testdata/parser-comprehensions.ts ext/comprehensions_test.go",
     "postfetch-parser-comprehensions": "biome format --write src/testdata/parser-comprehensions.ts && license-header src/testdata/parser-comprehensions.ts",
     "update-exports": "node scripts/update-exports.js",
+    "postupdate-exports": "biome format --write package.json",
     "generate": "buf generate",
     "postgenerate": "license-header src/gen",
     "prebuild": "rm -rf ./dist/*",
