@@ -10,7 +10,7 @@
     "postgenerate": "license-header src/gen",
     "test": "protovalidate-conformance --strict_message --strict_error --expected_failures=expected-failures.yaml -- tsx src/executor.ts",
     "format": "prettier --write --ignore-unknown '.' '!dist' '!src/gen'",
-    "lint": "eslint .",
+    "lint": "biome lint --error-on-warnings",
     "license-header": "license-header"
   },
   "type": "module",
