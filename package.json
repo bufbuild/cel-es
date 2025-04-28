@@ -3,9 +3,9 @@
   "scripts": {
     "clean": "git clean -Xdf",
     "all": "turbo run --ui tui build format test attw license-header",
-    "format": "prettier --write --ignore-unknown '.' '!packages'",
+    "format": "biome format --write",
     "license-header": "license-header --ignore 'packages/**'",
-    "lint": "biome lint --error-on-warnings --config-path biome.json"
+    "lint": "biome lint --error-on-warnings"
   },
   "workspaces": [
     "packages/cel-spec",
@@ -27,7 +27,6 @@
     "@bufbuild/license-header": "^0.0.4",
     "@bufbuild/protoc-gen-es": "^2.2.5",
     "@types/node": "^22.13.8",
-    "prettier": "^3.5.3",
     "tsx": "^4.19.3",
     "turbo": "^2.4.4",
     "typescript": "^5.7.3",
