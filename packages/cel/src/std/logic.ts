@@ -352,10 +352,10 @@ const startsWithFunc = Func.binary(
 );
 
 /**
- * Paterns that are supported in Ecmascript RE and not in
+ * Patterns that are supported in ECMAScript RE and not in
  * RE2.
  *
- * Ecmascript Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet
+ * ECMAScript Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet
  * RE2: https://github.com/google/re2/wiki/syntax
  */
 const invalidPatterns = [
