@@ -1,6 +1,6 @@
 [![The Buf logo](.github/buf-logo.svg)][buf]
 
-# cel-es
+# CEL-ES
 
 An implementation of [Common Expression Language (CEL)][cel] for ECMAScript.
 
