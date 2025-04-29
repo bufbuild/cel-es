@@ -23,16 +23,17 @@ updates:
           - "@bufbuild/buf"
           - "@bufbuild/license-header"
           - "fflate"
-          - "@arethetypeswrong/cli"
           - "@types/node"
-      needs-format:
+      peggy:
         patterns:
-          - "prettier"
-      needs-generate:
+          - "peggy*"
+      lint-and-format:
+        patterns:
+          - "biome"
+          - "@bufbuild/license-header"
+          - "@arethetypeswrong/cli"
+      protobuf-es:
         patterns:
           - "@bufbuild/protobuf"
+          - "@bufbuild/protoplugin"
           - "@bufbuild/protoc-gen-es"
-          - "peggy*"
-      eslint:
-        patterns:
-          - "*eslint*"
