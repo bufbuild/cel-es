@@ -1,3 +1,3 @@
 # @bufbuild/cel
 
-This package provides a [CEL](https://github.com/google/cel-spec) evaluator for ECMAScript.
+This package provides a [CEL](https://cel.dev) evaluator for ECMAScript.

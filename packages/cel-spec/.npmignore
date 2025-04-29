@@ -4,4 +4,5 @@ proto
 tsconfig.json
 tsconfig.*.json
 turbo.json
+biome.json
 buf.*

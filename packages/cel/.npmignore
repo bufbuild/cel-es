@@ -3,7 +3,7 @@ scripts
 tsconfig.json
 tsconfig.*.json
 turbo.json
-cel.peggy
+biome.json
 dist/**/*.test.js
 dist/**/*.test.d.ts
 dist/*/testing.js
