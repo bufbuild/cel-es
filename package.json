@@ -7,12 +7,7 @@
     "license-header": "license-header --ignore 'packages/**'",
     "lint": "biome lint --error-on-warnings"
   },
-  "workspaces": [
-    "packages/cel-spec",
-    "packages/cel",
-    "packages/protovalidate",
-    "packages/protovalidate-testing"
-  ],
+  "workspaces": ["packages/cel-spec", "packages/cel"],
   "type": "module",
   "packageManager": "npm@10.9.0",
   "licenseHeader": {
