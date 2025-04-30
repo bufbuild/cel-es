@@ -1,6 +1,6 @@
 # Contributing
 
-We'd love your help making `protovalidate-es` better!
+We'd love your help making `cel-es` better!
 
 If you'd like to add new exported APIs, please [open an issue][open-issue]
 describing your proposal &mdash; discussing API changes ahead of time makes
@@ -17,9 +17,9 @@ you to accept the CLA when you open your pull request.
 [Fork][fork], then clone the repository:
 
 ```
-git clone git@github.com:your_github_username/protovalidate-es.git
-cd protovalidate-es
-git remote add upstream https://github.com/bufbuild/protovalidate-es.git
+git clone git@github.com:your_github_username/cel-es.git
+cd cel-es
+git remote add upstream https://github.com/bufbuild/cel-es.git
 git fetch upstream
 ```
 
@@ -71,7 +71,7 @@ We're much more likely to approve your changes if you:
 - Write a [good commit message][commit-message].
 - Maintain backward compatibility.
 
-[fork]: https://github.com/bufbuild/protovalidate-es/fork
-[open-issue]: https://github.com/bufbuild/protovalidate-es/issues/new
-[cla]: https://cla-assistant.io/bufbuild/protovalidate-es
+[fork]: https://github.com/bufbuild/cel-es/fork
+[open-issue]: https://github.com/bufbuild/cel-es/issues/new
+[cla]: https://cla-assistant.io/bufbuild/cel-es
 [commit-message]: http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html

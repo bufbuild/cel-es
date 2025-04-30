@@ -1,4 +1,4 @@
-module github.com/bufbuild/protovalidate-es/packages/scripts
+module github.com/bufbuild/cel-es/packages/scripts
 
 go 1.23.2
 
