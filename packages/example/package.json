@@ -5,8 +5,6 @@
   "license": "Apache-2.0",
   "scripts": {
     "start": "tsx src/example.ts",
-    "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
-    "prebuild": "rm -rf ./dist/*",
     "build": "tsc --project tsconfig.json",
     "format": "biome format --write",
     "lint": "biome lint --error-on-warnings",
