@@ -2,6 +2,13 @@
   "name": "@bufbuild/cel",
   "version": "0.0.1",
   "description": "A CEL evaluator for ECMAScript",
+  "keywords": [
+    "javascript",
+    "typescript",
+    "protobuf",
+    "cel",
+    "common-expression-language"
+  ],
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
