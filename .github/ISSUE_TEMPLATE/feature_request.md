@@ -8,11 +8,11 @@ assignees: ""
 
 **Feature description:**
 
-<!-- A clear and concise description of the feature you would like to see implemented in protovalidate.-->
+<!-- A clear and concise description of the feature you would like to see implemented in CEL-ES.-->
 
 **Problem it solves or use case:**
 
-<!-- Explain the problem this feature would solve or the use case it addresses, and how it would benefit users of protovalidate.-->
+<!-- Explain the problem this feature would solve or the use case it addresses, and how it would benefit users of CEL-ES.-->
 
 **Proposed implementation or solution:**
 
