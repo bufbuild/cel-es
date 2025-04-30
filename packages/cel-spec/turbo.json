@@ -5,41 +5,49 @@
     "fetch-proto": {
       "inputs": ["scripts/fetch-proto.js", "package.json"],
       "outputs": ["proto/**"],
-      "dependsOn": []
+      "dependsOn": [],
+      "outputLogs": "new-only"
     },
     "fetch-testdata": {
       "inputs": ["scripts/fetch-testdata.js", "package.json"],
       "outputs": ["src/testdata-json.ts"],
-      "dependsOn": ["fetch-proto"]
+      "dependsOn": ["fetch-proto"],
+      "outputLogs": "new-only"
     },
     "fetch-parser": {
       "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
       "outputs": ["src/testdata/parser.ts"],
-      "env": ["GO*"]
+      "env": ["GO*"],
+      "outputLogs": "new-only"
     },
     "fetch-parser-comprehensions": {
       "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
       "outputs": ["src/testdata/parser-comprehensions.ts"],
-      "env": ["GO*"]
+      "env": ["GO*"],
+      "outputLogs": "new-only"
     },
     "update-exports": {
       "dependsOn": ["generate", "fetch-parser", "fetch-parser-comprehensions"],
       "inputs": ["src/**", "scripts/**"],
-      "outputs": ["package.json"]
+      "outputs": ["package.json"],
+      "outputLogs": "new-only"
     },
     "update-readme": {
       "dependsOn": [],
       "inputs": ["package.json", "scripts/**", "README.md"],
-      "outputs": ["README.md"]
+      "outputs": ["README.md"],
+      "outputLogs": "new-only"
     },
     "generate": {
       "dependsOn": ["fetch-proto"],
       "inputs": ["proto/**", "buf.gen.yaml", "buf.lock", "buf.yaml"],
-      "outputs": ["src/gen/**"]
+      "outputs": ["src/gen/**"],
+      "outputLogs": "new-only"
     },
     "build": {
       "dependsOn": ["^build", "generate", "fetch-testdata", "update-exports"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "outputLogs": "new-only"
     }
   }
 }
