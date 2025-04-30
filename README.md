@@ -2,6 +2,8 @@
 
 # CEL-ES
 
+[![License](https://img.shields.io/github/license/bufbuild/cel-es?color=blue)](./LICENSE) [![NPM Version](https://img.shields.io/npm/v/@bufbuild/cel/latest?color=green&label=%40bufbuild%2Fcel)](https://www.npmjs.com/package/@bufbuild/cel) [![NPM Version](https://img.shields.io/npm/v/@bufbuild/cel-spec/latest?color=green&label=%40bufbuild%2Fcel-spec)](https://www.npmjs.com/package/@bufbuild/cel-spec)
+
 An implementation of [Common Expression Language (CEL)][cel] for ECMAScript.
 
 ## Example
