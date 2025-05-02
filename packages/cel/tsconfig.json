@@ -3,8 +3,9 @@
   "extends": "../../tsconfig.base.json",
   "include": ["src/**/*.test.ts"],
   "compilerOptions": {
-    // peggy generated code uses ES2021 features
-    "target": "es2021",
-    "lib": ["ES2021"]
+    "lib": [
+      // For string.replaceAll in parser.ts
+      "es2021.string"
+    ]
   }
 }

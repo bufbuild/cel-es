@@ -29,8 +29,7 @@ const decoder = new TextDecoder();
 /**
  * Returns adorned debug output for the given expression tree, following cel-go.
  *
- * > [!CAUTION]
- * > This functions requires ES2024 features.
+ * @private Caution: This functions requires ES2024 features.
  */
 export function toDebugString(
   expr: Expr,
@@ -307,12 +306,31 @@ function formatLiteral(c: Constant): string {
   }
 }
 
+// @ts-expect-error - The regex flag `v` is only available in ES2024 or later
 const unprintableExp = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/v;
+// @ts-expect-error - The regex flag `v` is only available in ES2024 or later
 const unprintableExpGlobal = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/gv;
-const segmenter = new Intl.Segmenter("en");
+
+const segmenter: { segment(input: string): Iterable<{ segment: string }> } =
+  // @ts-expect-error - Intl.Segmenter is only available in ES2022 or later
+  new Intl.Segmenter("en");
 
 function isPrintable(c: string) {
-  return !unprintableExp.test(c.normalize()) || !c.isWellFormed();
+  if (unprintableExp.test(c.normalize())) {
+    return false;
+  }
+  try {
+    // We want to verify that the string does not contain any lone surrogates.
+    // Ideally, we would use String.isWellFormed, but it's only available in ES2024,
+    // and we would have to target ES2024 for the entire package to use it.
+    // As a workaround, we rely on encodeURI raising an error on lone surrogates,
+    // and can stay at a more widely supported target.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI#encoding_a_lone_surrogate_throws
+    encodeURI(c);
+  } catch (_) {
+    return false;
+  }
+  return true;
 }
 
 function quoteBytes(bytes: Uint8Array) {
@@ -409,9 +427,10 @@ function escapeString(text: string): string {
         return formatSpecial(s.segment);
       }
       return formatSpecial(
+        // @ts-expect-error - string.replaceAll is only available in ES2021 or later
         s.segment.replaceAll(
           unprintableExpGlobal,
-          (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"),
+          (c: string) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"),
         ),
       );
     })
