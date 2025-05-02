@@ -14,6 +14,7 @@ Let's create a CEL environment, and define the variable `name`:
 import { createEnv } from "@bufbuild/cel";
 import { createRegistry } from "@bufbuild/protobuf";
 
+const env = createEnv("", createRegistry());
 env.set("name", "tacocat");
 ```
 
