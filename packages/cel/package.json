@@ -1,6 +1,6 @@
 {
   "name": "@bufbuild/cel",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A CEL evaluator for ECMAScript",
   "keywords": [
     "javascript",
@@ -41,7 +41,7 @@
     "@bufbuild/protobuf": "^2.2.5"
   },
   "dependencies": {
-    "@bufbuild/cel-spec": "0.0.1"
+    "@bufbuild/cel-spec": "0.1.0"
   },
   "devDependencies": {
     "peggy": "^4.0.3",
