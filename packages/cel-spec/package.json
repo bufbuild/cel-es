@@ -142,7 +142,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.12",
     "fflate": "^0.8.2"
   },
   "peerDependencies": {
