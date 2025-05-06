@@ -17,7 +17,7 @@
   },
   "scripts": {
     "generate": "cd ./src && peggy cel.peggy --format bare --extra-options '{\"typescript\":true}' --plugin peggy-ts -o parser.ts",
-    "postgenerate": "biome format src/parser.ts --write && git apply src/parser.patch",
+    "postgenerate": "biome format src/parser.ts --write",
     "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
