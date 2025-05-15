@@ -36,11 +36,6 @@ const skip: string[] = [
   "[?a[?b]]",
   "Msg{?field: value}",
 
-  // Logic balancing not (yet?) supported
-  "a || b || c || d || e || f ",
-  "a && b && c && d && e && f && g",
-  "a && b && c && d || e && f && g && h",
-
   // Size / depth checks not yet supported
   "0xFFFFFFFFFFFFFFFFF",
   "0xFFFFFFFFFFFFFFFFFu",
