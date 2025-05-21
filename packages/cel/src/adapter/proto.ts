@@ -42,6 +42,7 @@ import {
   ValueSchema,
 } from "@bufbuild/protobuf/wkt";
 import {
+  isReflectList,
   isReflectMap,
   isReflectMessage,
   reflect,
@@ -80,7 +81,14 @@ import {
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 
-type ProtoValue = CelVal | ScalarValue | ReflectMessage | Message | ReflectMap;
+type ProtoValue =
+  | CelVal
+  | ScalarValue
+  | ReflectMessage
+  | Message
+  | ReflectMap
+  | ReflectList;
+
 type ProtoResult = CelResult<ProtoValue>;
 
 export function isProtoMsg(val: unknown): val is Message {
@@ -138,6 +146,22 @@ export class ProtoValAdapter implements CelValAdapter {
     } else if (isReflectMap(rhs)) {
       return false;
     }
+    if (isReflectList(lhs)) {
+      if (!isReflectList(rhs)) {
+        return false;
+      }
+      if (lhs.size != rhs.size) {
+        return false;
+      }
+      for (let i = 0; i < lhs.size; i++) {
+        if (!this.equals(lhs.get(i) as ProtoValue, rhs.get(i) as ProtoValue)) {
+          return false;
+        }
+      }
+      return true;
+    } else if (isReflectList(rhs)) {
+      return false;
+    }
     if (isProtoMsg(lhs)) {
       if (!isMessage(rhs)) {
         return false;
@@ -172,6 +196,9 @@ export class ProtoValAdapter implements CelValAdapter {
       return undefined;
     }
     if (isReflectMap(lhs) || isReflectMap(rhs)) {
+      return undefined;
+    }
+    if (isReflectList(lhs) || isReflectList(rhs)) {
       return undefined;
     }
     return CEL_ADAPTER.compare(lhs, rhs);
@@ -220,6 +247,22 @@ export class ProtoValAdapter implements CelValAdapter {
         this,
         this.getMetadata(native.$typeName).TYPE,
       );
+    }
+    if (isReflectList(native)) {
+      const field = native.field();
+      let valType: CelType;
+      switch (field.listKind) {
+        case "scalar":
+          valType = getScalarType(field.scalar);
+          break;
+        case "enum":
+          valType = new CelType(field.enum.typeName);
+          break;
+        case "message":
+          valType = new CelType(field.message.typeName);
+          break;
+      }
+      return new CelList(Array.from(native.values()), this, valType);
     }
     if (isReflectMap(native)) {
       const field = native.field();
@@ -400,6 +443,14 @@ export class ProtoValAdapter implements CelValAdapter {
     }
     if (isReflectMap(obj)) {
       return undefined;
+    }
+    if (isReflectList(obj)) {
+      const i = Number(index);
+      const v = obj.get(i) as ProtoValue | undefined;
+      if (v === undefined) {
+        return CelErrors.indexOutOfBounds(Number(id), i, obj.size);
+      }
+      return this.toCel(v);
     }
     return CEL_ADAPTER.accessByIndex(id, obj, index);
   }
