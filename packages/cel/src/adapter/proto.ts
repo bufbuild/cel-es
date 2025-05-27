@@ -18,7 +18,6 @@ import {
   type DescField,
   type DescMessage,
   equals,
-  isFieldSet,
   isMessage,
   type Message,
   type Registry,
@@ -108,23 +107,23 @@ export class ProtoValAdapter implements CelValAdapter {
     return val;
   }
 
-  public getMetadata(messageTypeName: string) {
-    const messageSchema = this.registry.getMessage(messageTypeName);
-    if (!messageSchema) {
-      throw new Error(`Message ${messageTypeName} not found in registry`);
+  public getMetadata(msgTypeNameOrDesc: string | DescMessage) {
+    const desc =
+      typeof msgTypeNameOrDesc == "string"
+        ? this.registry.getMessage(msgTypeNameOrDesc)
+        : msgTypeNameOrDesc;
+    if (!desc) {
+      throw new Error(`Message ${msgTypeNameOrDesc} not found in registry`);
     }
-    let metadata = this.metadataCache.get(messageTypeName);
+    let metadata = this.metadataCache.get(desc.typeName);
     if (metadata === undefined) {
-      metadata = new ProtoMetadata(messageSchema, this);
-      this.metadataCache.set(messageTypeName, metadata);
+      metadata = new ProtoMetadata(desc, this);
+      this.metadataCache.set(desc.typeName, metadata);
     }
     return metadata;
   }
 
   equals(lhs: ProtoValue, rhs: ProtoValue): CelResult<boolean> {
-    if (isReflectMessage(lhs) || isReflectMessage(rhs)) {
-      throw new Error("not implemented");
-    }
     if (isReflectMap(lhs)) {
       if (!isReflectMap(rhs)) {
         return false;
@@ -163,26 +162,28 @@ export class ProtoValAdapter implements CelValAdapter {
       return false;
     }
     if (isProtoMsg(lhs)) {
-      if (!isMessage(rhs)) {
+      lhs = reflect(this.getSchema(lhs.$typeName), lhs);
+    }
+    if (isProtoMsg(rhs)) {
+      rhs = reflect(this.getSchema(rhs.$typeName), rhs);
+    }
+    if (isReflectMessage(lhs)) {
+      if (!isReflectMessage(rhs)) {
         return false;
       }
-      if (lhs.$typeName !== rhs.$typeName) {
+      if (lhs.desc.typeName !== rhs.desc.typeName) {
         return false;
-      }
-      const messageSchema = this.registry.getMessage(lhs.$typeName);
-      if (!messageSchema) {
-        throw new Error(`Message ${lhs.$typeName} not found in registry`);
       }
       // equality following the CEL-spec
       // see https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffers
       // see https://github.com/bufbuild/protobuf-es/pull/1029
-      return equals(messageSchema, lhs, rhs, {
+      return equals(lhs.desc, lhs.message, rhs.message, {
         registry: this.registry,
         unpackAny: true,
         unknown: true,
         extensions: true,
       });
-    } else if (isProtoMsg(rhs)) {
+    } else if (isReflectMessage(rhs)) {
       return false;
     }
     return CEL_ADAPTER.equals(lhs, rhs);
@@ -205,11 +206,6 @@ export class ProtoValAdapter implements CelValAdapter {
   }
 
   toCel(native: ProtoValue | ReflectMessage): CelResult {
-    // TODO(tstamm) consider storing ReflectMessage in CelObject
-    if (isReflectMessage(native)) {
-      native = native.message;
-    }
-
     if (isMessage(native, AnySchema)) {
       if (native.typeUrl === "") {
         // TODO(tstamm) defer unpacking so we can provide an id
@@ -225,28 +221,42 @@ export class ProtoValAdapter implements CelValAdapter {
       }
       return this.toCel(unpacked);
     }
-
-    if (isProtoMsg(native) && !isCelMsg(native)) {
-      if (isMessage(native, UInt32ValueSchema)) {
-        return create(UInt64ValueSchema, {
+    if (isMessage(native, UInt32ValueSchema)) {
+      return this.toCel(
+        create(UInt64ValueSchema, {
           value: BigInt(native.value),
-        });
-      }
-      if (isMessage(native, Int32ValueSchema)) {
-        return create(Int64ValueSchema, {
-          value: BigInt(native.value),
-        });
-      }
-      if (isMessage(native, FloatValueSchema)) {
-        return create(DoubleValueSchema, {
-          value: native.value,
-        });
-      }
-      return new CelObject(
-        native,
-        this,
-        this.getMetadata(native.$typeName).TYPE,
+        }),
       );
+    }
+    if (isMessage(native, Int32ValueSchema)) {
+      return this.toCel(
+        create(Int64ValueSchema, {
+          value: BigInt(native.value),
+        }),
+      );
+    }
+    if (isMessage(native, FloatValueSchema)) {
+      return this.toCel(
+        create(DoubleValueSchema, {
+          value: native.value,
+        }),
+      );
+    }
+    if (isProtoMsg(native)) {
+      native = reflect(this.getSchema(native.$typeName), native);
+    }
+    if (isReflectMessage(native)) {
+      if (
+        isCelMsg(native.message) ||
+        [
+          FloatValueSchema.typeName,
+          Int32ValueSchema.typeName,
+          UInt32ValueSchema.typeName,
+        ].includes(native.desc.typeName)
+      ) {
+        return this.toCel(native.message);
+      }
+      return new CelObject(native, this, this.getMetadata(native.desc).TYPE);
     }
     if (isReflectList(native)) {
       const field = native.field();
@@ -262,7 +272,11 @@ export class ProtoValAdapter implements CelValAdapter {
           valType = new CelType(field.message.typeName);
           break;
       }
-      return new CelList(Array.from(native.values()), this, valType);
+      return new CelList(
+        Array.from(native.values()).map((v) => this.celFromListElem(field, v)),
+        this,
+        new type.ListType(valType),
+      );
     }
     if (isReflectMap(native)) {
       const field = native.field();
@@ -293,68 +307,66 @@ export class ProtoValAdapter implements CelValAdapter {
 
   isSetByName(
     id: number,
-    obj: Message | CelVal,
+    obj: Message | ReflectMessage | CelVal,
     name: string,
   ): boolean | CelError | CelUnknown {
     if (isProtoMsg(obj)) {
-      const schema = this.getSchema(obj.$typeName);
-      const field = schema.fields.find((f) => f.name === name);
+      obj = reflect(this.getSchema(obj.$typeName), obj);
+    }
+    if (isReflectMessage(obj)) {
+      const field = obj.desc.fields.find((f) => f.name === name);
       if (!field) {
-        return CelErrors.fieldNotFound(id, name, schema.toString());
+        return CelErrors.fieldNotFound(id, name, obj.desc.toString());
       }
-      return isFieldSet(obj, field);
+      return obj.isSet(field);
     }
     return CEL_ADAPTER.isSetByName(id, obj, name);
   }
 
   accessByName(
     id: number,
-    obj: Message | CelVal,
+    obj: Message | ReflectMessage | CelVal,
     name: string,
   ):
     | undefined
     | ScalarValue
     | ReflectMessage
     | ReflectMap
+    | ReflectList
     | CelVal
     | CelError
     | CelUnknown {
     if (isProtoMsg(obj)) {
-      const schema = this.getSchema(obj.$typeName);
-      const field = schema.fields.find((f) => f.name === name);
+      obj = reflect(this.getSchema(obj.$typeName), obj);
+    }
+    if (isReflectMessage(obj)) {
+      const field = obj.desc.fields.find((f) => f.name === name);
       if (!field) {
-        return CelErrors.fieldNotFound(id, name, schema.toString());
+        return CelErrors.fieldNotFound(id, name, obj.desc.toString());
       }
-      const r = reflect(schema, obj);
       switch (field.fieldKind) {
         case "enum":
-          return r.get(field);
+        case "list":
+        case "map":
+          return obj.get(field);
+        case "message":
+          return obj.isSet(field)
+            ? obj.get(field)
+            : this.getMetadata(field.message.typeName).NULL;
         case "scalar":
           switch (field.scalar) {
             case ScalarType.UINT32:
             case ScalarType.UINT64:
             case ScalarType.FIXED32:
             case ScalarType.FIXED64:
-              return new CelUint(BigInt(r.get(field)));
+              return new CelUint(BigInt(obj.get(field)));
             case ScalarType.INT32:
-            case ScalarType.INT64:
             case ScalarType.SINT32:
-            case ScalarType.SINT64:
             case ScalarType.SFIXED32:
-            case ScalarType.SFIXED64:
-              return BigInt(r.get(field));
+              return BigInt(obj.get(field));
             default:
-              return r.get(field);
+              return obj.get(field);
           }
-        case "message":
-          return r.isSet(field)
-            ? r.get(field)
-            : this.getMetadata(field.message.typeName).NULL;
-        case "list":
-          // TODO(tstamm) return ReflectList instead, and support it in toCel()?
-          return this.accessList(r.get(field));
-        case "map":
-          return r.get(field);
       }
     }
     return CEL_ADAPTER.accessByName(id, obj, name);
@@ -368,64 +380,9 @@ export class ProtoValAdapter implements CelValAdapter {
     return schema;
   }
 
-  private accessList(list: ReflectList): CelList {
-    const field = list.field();
-    // TODO(tstamm) see if we can convert lazily
-    const listValues = Array.from(list.values());
-    switch (field.listKind) {
-      case "scalar":
-        switch (field.scalar) {
-          case ScalarType.BOOL:
-            return new CelList(listValues, this, type.LIST_BOOL);
-          case ScalarType.UINT32:
-          case ScalarType.UINT64:
-          case ScalarType.FIXED32:
-          case ScalarType.FIXED64:
-            return new CelList(
-              (listValues as (number | bigint)[]).map(
-                (v) => new CelUint(BigInt(v)),
-              ),
-              this,
-              type.LIST_UINT,
-            );
-          case ScalarType.INT32:
-          case ScalarType.SINT32:
-          case ScalarType.SFIXED32:
-            return new CelList(
-              (listValues as number[]).map((v) => BigInt(v)),
-              this,
-              type.LIST_INT,
-            );
-          case ScalarType.INT64:
-          case ScalarType.SINT64:
-          case ScalarType.SFIXED64:
-            return new CelList(listValues, this, type.LIST_INT);
-          case ScalarType.FLOAT:
-          case ScalarType.DOUBLE:
-            return new CelList(listValues, this, type.LIST_DOUBLE);
-          case ScalarType.STRING:
-            return new CelList(listValues, this, type.LIST_STRING);
-          case ScalarType.BYTES:
-            return new CelList(listValues, this, type.LIST_BYTES);
-        }
-      case "enum":
-        return new CelList(
-          listValues,
-          this,
-          new type.ListType(new CelType(field.enum.typeName)),
-        );
-      case "message":
-        return new CelList(
-          (listValues as ReflectMessage[]).map((rm) => rm.message),
-          this,
-          new type.ListType(new CelType(field.message.typeName)),
-        );
-    }
-  }
-
   getFields(value: object): string[] {
-    if (isProtoMsg(value)) {
-      return this.getMetadata(value.$typeName).FIELD_NAMES;
+    if (isReflectMessage(value)) {
+      return this.getMetadata(value.desc).FIELD_NAMES;
     }
     return CEL_ADAPTER.getFields(value);
   }
@@ -435,18 +392,14 @@ export class ProtoValAdapter implements CelValAdapter {
     obj: ProtoValue,
     index: number | bigint,
   ): ProtoResult | undefined {
-    if (isProtoMsg(obj)) {
-      return undefined;
-    }
-    if (isReflectMessage(obj)) {
-      return undefined;
-    }
-    if (isReflectMap(obj)) {
+    if (isProtoMsg(obj) || isReflectMessage(obj) || isReflectMap(obj)) {
       return undefined;
     }
     if (isReflectList(obj)) {
       const i = Number(index);
-      const v = obj.get(i) as ProtoValue | undefined;
+      const v = this.celFromListElem(obj.field(), obj.get(i)) as
+        | ProtoValue
+        | undefined;
       if (v === undefined) {
         return CelErrors.indexOutOfBounds(Number(id), i, obj.size);
       }
@@ -801,6 +754,36 @@ export class ProtoValAdapter implements CelValAdapter {
       return result;
     }
     throw new Error("not implemented.");
+  }
+
+  private celFromListElem(desc: DescField & { fieldKind: "list" }, v: unknown) {
+    if (v === undefined) {
+      return v;
+    }
+    switch (desc.listKind) {
+      case "enum":
+        return v;
+      case "message":
+        return this.toCel(v as ReflectMessage);
+      case "scalar":
+        return this.celFromScalar(desc.scalar, v);
+    }
+  }
+
+  private celFromScalar(type: ScalarType, v: unknown) {
+    switch (type) {
+      case ScalarType.UINT32:
+      case ScalarType.UINT64:
+      case ScalarType.FIXED32:
+      case ScalarType.FIXED64:
+        return new CelUint(BigInt(v as bigint));
+      case ScalarType.INT32:
+      case ScalarType.SINT32:
+      case ScalarType.SFIXED32:
+        return BigInt(v as number);
+      default:
+        return v;
+    }
   }
 }
 
