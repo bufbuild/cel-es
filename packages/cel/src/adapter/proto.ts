@@ -222,25 +222,19 @@ export class ProtoValAdapter implements CelValAdapter {
       return this.toCel(unpacked);
     }
     if (isMessage(native, UInt32ValueSchema)) {
-      return this.toCel(
-        create(UInt64ValueSchema, {
-          value: BigInt(native.value),
-        }),
-      );
+      return create(UInt64ValueSchema, {
+        value: BigInt(native.value),
+      });
     }
     if (isMessage(native, Int32ValueSchema)) {
-      return this.toCel(
-        create(Int64ValueSchema, {
-          value: BigInt(native.value),
-        }),
-      );
+      return create(Int64ValueSchema, {
+        value: BigInt(native.value),
+      });
     }
     if (isMessage(native, FloatValueSchema)) {
-      return this.toCel(
-        create(DoubleValueSchema, {
-          value: native.value,
-        }),
-      );
+      return create(DoubleValueSchema, {
+        value: native.value,
+      });
     }
     if (isProtoMsg(native)) {
       native = reflect(this.getSchema(native.$typeName), native);
