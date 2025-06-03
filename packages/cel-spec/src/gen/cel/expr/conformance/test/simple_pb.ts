@@ -20,7 +20,7 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv1";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv1";
-import type { Decl } from "../../checked_pb.js";
+import type { Decl, Type } from "../../checked_pb.js";
 import { file_cel_expr_checked } from "../../checked_pb.js";
 import type { ErrorSet, ExprValue, UnknownSet } from "../../eval_pb.js";
 import { file_cel_expr_eval } from "../../eval_pb.js";
@@ -32,7 +32,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file cel/expr/conformance/test/simple.proto.
  */
 export const file_cel_expr_conformance_test_simple: GenFile = /*@__PURE__*/
-  fileDesc("CiZjZWwvZXhwci9jb25mb3JtYW5jZS90ZXN0L3NpbXBsZS5wcm90bxIZY2VsLmV4cHIuY29uZm9ybWFuY2UudGVzdCJyCg5TaW1wbGVUZXN0RmlsZRIMCgRuYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEj0KB3NlY3Rpb24YAyADKAsyLC5jZWwuZXhwci5jb25mb3JtYW5jZS50ZXN0LlNpbXBsZVRlc3RTZWN0aW9uImsKEVNpbXBsZVRlc3RTZWN0aW9uEgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSMwoEdGVzdBgDIAMoCzIlLmNlbC5leHByLmNvbmZvcm1hbmNlLnRlc3QuU2ltcGxlVGVzdCLSBAoKU2ltcGxlVGVzdBIMCgRuYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEgwKBGV4cHIYAyABKAkSFgoOZGlzYWJsZV9tYWNyb3MYBCABKAgSFQoNZGlzYWJsZV9jaGVjaxgFIAEoCBIgCgh0eXBlX2VudhgGIAMoCzIOLmNlbC5leHByLkRlY2wSEQoJY29udGFpbmVyGA0gASgJEg4KBmxvY2FsZRgOIAEoCRJFCghiaW5kaW5ncxgHIAMoCzIzLmNlbC5leHByLmNvbmZvcm1hbmNlLnRlc3QuU2ltcGxlVGVzdC5CaW5kaW5nc0VudHJ5EiAKBXZhbHVlGAggASgLMg8uY2VsLmV4cHIuVmFsdWVIABIoCgpldmFsX2Vycm9yGAkgASgLMhIuY2VsLmV4cHIuRXJyb3JTZXRIABJFCg9hbnlfZXZhbF9lcnJvcnMYCiABKAsyKi5jZWwuZXhwci5jb25mb3JtYW5jZS50ZXN0LkVycm9yU2V0TWF0Y2hlckgAEicKB3Vua25vd24YCyABKAsyFC5jZWwuZXhwci5Vbmtub3duU2V0SAASRAoMYW55X3Vua25vd25zGAwgASgLMiwuY2VsLmV4cHIuY29uZm9ybWFuY2UudGVzdC5Vbmtub3duU2V0TWF0Y2hlckgAGkQKDUJpbmRpbmdzRW50cnkSCwoDa2V5GAEgASgJEiIKBXZhbHVlGAIgASgLMhMuY2VsLmV4cHIuRXhwclZhbHVlOgI4AUIQCg5yZXN1bHRfbWF0Y2hlciI1Cg9FcnJvclNldE1hdGNoZXISIgoGZXJyb3JzGAEgAygLMhIuY2VsLmV4cHIuRXJyb3JTZXQiOwoRVW5rbm93blNldE1hdGNoZXISJgoIdW5rbm93bnMYASADKAsyFC5jZWwuZXhwci5Vbmtub3duU2V0QksKGGRldi5jZWwuZXhwci5jb25mb3JtYW5jZUILU2ltcGxlUHJvdG9QAVodY2VsLmRldi9leHByL2NvbmZvcm1hbmNlL3Rlc3T4AQFiBnByb3RvMw", [file_cel_expr_checked, file_cel_expr_eval, file_cel_expr_value]);
+  fileDesc("CiZjZWwvZXhwci9jb25mb3JtYW5jZS90ZXN0L3NpbXBsZS5wcm90bxIZY2VsLmV4cHIuY29uZm9ybWFuY2UudGVzdCJyCg5TaW1wbGVUZXN0RmlsZRIMCgRuYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEj0KB3NlY3Rpb24YAyADKAsyLC5jZWwuZXhwci5jb25mb3JtYW5jZS50ZXN0LlNpbXBsZVRlc3RTZWN0aW9uImsKEVNpbXBsZVRlc3RTZWN0aW9uEgwKBG5hbWUYASABKAkSEwoLZGVzY3JpcHRpb24YAiABKAkSMwoEdGVzdBgDIAMoCzIlLmNlbC5leHByLmNvbmZvcm1hbmNlLnRlc3QuU2ltcGxlVGVzdCKmBQoKU2ltcGxlVGVzdBIMCgRuYW1lGAEgASgJEhMKC2Rlc2NyaXB0aW9uGAIgASgJEgwKBGV4cHIYAyABKAkSFgoOZGlzYWJsZV9tYWNyb3MYBCABKAgSFQoNZGlzYWJsZV9jaGVjaxgFIAEoCBISCgpjaGVja19vbmx5GA8gASgIEiAKCHR5cGVfZW52GAYgAygLMg4uY2VsLmV4cHIuRGVjbBIRCgljb250YWluZXIYDSABKAkSDgoGbG9jYWxlGA4gASgJEkUKCGJpbmRpbmdzGAcgAygLMjMuY2VsLmV4cHIuY29uZm9ybWFuY2UudGVzdC5TaW1wbGVUZXN0LkJpbmRpbmdzRW50cnkSIAoFdmFsdWUYCCABKAsyDy5jZWwuZXhwci5WYWx1ZUgAEj4KDHR5cGVkX3Jlc3VsdBgQIAEoCzImLmNlbC5leHByLmNvbmZvcm1hbmNlLnRlc3QuVHlwZWRSZXN1bHRIABIoCgpldmFsX2Vycm9yGAkgASgLMhIuY2VsLmV4cHIuRXJyb3JTZXRIABJFCg9hbnlfZXZhbF9lcnJvcnMYCiABKAsyKi5jZWwuZXhwci5jb25mb3JtYW5jZS50ZXN0LkVycm9yU2V0TWF0Y2hlckgAEicKB3Vua25vd24YCyABKAsyFC5jZWwuZXhwci5Vbmtub3duU2V0SAASRAoMYW55X3Vua25vd25zGAwgASgLMiwuY2VsLmV4cHIuY29uZm9ybWFuY2UudGVzdC5Vbmtub3duU2V0TWF0Y2hlckgAGkQKDUJpbmRpbmdzRW50cnkSCwoDa2V5GAEgASgJEiIKBXZhbHVlGAIgASgLMhMuY2VsLmV4cHIuRXhwclZhbHVlOgI4AUIQCg5yZXN1bHRfbWF0Y2hlciJUCgtUeXBlZFJlc3VsdBIfCgZyZXN1bHQYASABKAsyDy5jZWwuZXhwci5WYWx1ZRIkCgxkZWR1Y2VkX3R5cGUYAiABKAsyDi5jZWwuZXhwci5UeXBlIjUKD0Vycm9yU2V0TWF0Y2hlchIiCgZlcnJvcnMYASADKAsyEi5jZWwuZXhwci5FcnJvclNldCI7ChFVbmtub3duU2V0TWF0Y2hlchImCgh1bmtub3ducxgBIAMoCzIULmNlbC5leHByLlVua25vd25TZXRCUAodZGV2LmNlbC5leHByLmNvbmZvcm1hbmNlLnRlc3RCC1NpbXBsZVByb3RvUAFaHWNlbC5kZXYvZXhwci9jb25mb3JtYW5jZS90ZXN0+AEBYgZwcm90bzM", [file_cel_expr_checked, file_cel_expr_eval, file_cel_expr_value]);
 
 /**
  * The format of a simple test file, expected to be stored in text format.
@@ -153,6 +153,13 @@ export type SimpleTest = Message<"cel.expr.conformance.test.SimpleTest"> & {
   disableCheck: boolean;
 
   /**
+   * Disables the evaluate phase.
+   *
+   * @generated from field: bool check_only = 15;
+   */
+  checkOnly: boolean;
+
+  /**
    * The type environment to use for the check phase.
    *
    * @generated from field: repeated cel.expr.Decl type_env = 6;
@@ -199,6 +206,14 @@ export type SimpleTest = Message<"cel.expr.conformance.test.SimpleTest"> & {
     case: "value";
   } | {
     /**
+     * A result and deduced expression type.
+     *
+     * @generated from field: cel.expr.conformance.test.TypedResult typed_result = 16;
+     */
+    value: TypedResult;
+    case: "typedResult";
+  } | {
+    /**
      * Matches error evaluation results.
      *
      * @generated from field: cel.expr.ErrorSet eval_error = 9;
@@ -242,6 +257,35 @@ export const SimpleTestSchema: GenMessage<SimpleTest> = /*@__PURE__*/
   messageDesc(file_cel_expr_conformance_test_simple, 2);
 
 /**
+ * Matches a result along with deduced expression type.
+ *
+ * @generated from message cel.expr.conformance.test.TypedResult
+ */
+export type TypedResult = Message<"cel.expr.conformance.test.TypedResult"> & {
+  /**
+   * A normal value, which must match the evaluation result exactly
+   * via value equality semantics. This is ignored if the test is `check_only`.
+   *
+   * @generated from field: cel.expr.Value result = 1;
+   */
+  result?: Value;
+
+  /**
+   * The deduced type of the expression as reported by the checker.
+   *
+   * @generated from field: cel.expr.Type deduced_type = 2;
+   */
+  deducedType?: Type;
+};
+
+/**
+ * Describes the message cel.expr.conformance.test.TypedResult.
+ * Use `create(TypedResultSchema)` to create a new message.
+ */
+export const TypedResultSchema: GenMessage<TypedResult> = /*@__PURE__*/
+  messageDesc(file_cel_expr_conformance_test_simple, 3);
+
+/**
  * Matches error results from Eval.
  *
  * @generated from message cel.expr.conformance.test.ErrorSetMatcher
@@ -260,7 +304,7 @@ export type ErrorSetMatcher = Message<"cel.expr.conformance.test.ErrorSetMatcher
  * Use `create(ErrorSetMatcherSchema)` to create a new message.
  */
 export const ErrorSetMatcherSchema: GenMessage<ErrorSetMatcher> = /*@__PURE__*/
-  messageDesc(file_cel_expr_conformance_test_simple, 3);
+  messageDesc(file_cel_expr_conformance_test_simple, 4);
 
 /**
  * Matches unknown results from Eval.
@@ -281,5 +325,5 @@ export type UnknownSetMatcher = Message<"cel.expr.conformance.test.UnknownSetMat
  * Use `create(UnknownSetMatcherSchema)` to create a new message.
  */
 export const UnknownSetMatcherSchema: GenMessage<UnknownSetMatcher> = /*@__PURE__*/
-  messageDesc(file_cel_expr_conformance_test_simple, 4);
+  messageDesc(file_cel_expr_conformance_test_simple, 5);
 

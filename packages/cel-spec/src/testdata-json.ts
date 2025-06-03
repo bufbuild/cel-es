@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from github.com/google/cel-spec v0.18.0 by scripts/fetch-testdata.js
+// Generated from github.com/google/cel-spec v0.19.0 by scripts/fetch-testdata.js
 import type { JsonObject } from "@bufbuild/protobuf";
 
 export const testdataJson: JsonObject[] = [
@@ -19534,6 +19534,308 @@ export const testdataJson: JsonObject[] = [
                   "message": "range"
                 }
               ]
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "type_deductions",
+    "description": "Tests for type checker deduced types",
+    "section": [
+      {
+        "name": "constant_literals",
+        "test": [
+          {
+            "name": "bool",
+            "expr": "true",
+            "typedResult": {
+              "result": {
+                "boolValue": true
+              },
+              "deducedType": {
+                "primitive": "BOOL"
+              }
+            }
+          },
+          {
+            "name": "int",
+            "expr": "42",
+            "typedResult": {
+              "result": {
+                "int64Value": "42"
+              },
+              "deducedType": {
+                "primitive": "INT64"
+              }
+            }
+          },
+          {
+            "name": "uint",
+            "expr": "42u",
+            "typedResult": {
+              "result": {
+                "uint64Value": "42"
+              },
+              "deducedType": {
+                "primitive": "UINT64"
+              }
+            }
+          },
+          {
+            "name": "double",
+            "expr": "0.1",
+            "typedResult": {
+              "result": {
+                "doubleValue": 0.1
+              },
+              "deducedType": {
+                "primitive": "DOUBLE"
+              }
+            }
+          },
+          {
+            "name": "string",
+            "expr": "\"test\"",
+            "typedResult": {
+              "result": {
+                "stringValue": "test"
+              },
+              "deducedType": {
+                "primitive": "STRING"
+              }
+            }
+          },
+          {
+            "name": "bytes",
+            "expr": "b\"test\"",
+            "typedResult": {
+              "result": {
+                "bytesValue": "dGVzdA=="
+              },
+              "deducedType": {
+                "primitive": "BYTES"
+              }
+            }
+          },
+          {
+            "name": "null",
+            "expr": "null",
+            "typedResult": {
+              "result": {
+                "nullValue": null
+              },
+              "deducedType": {
+                "null": null
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "complex_intializers",
+        "test": [
+          {
+            "name": "list",
+            "expr": "[1]",
+            "typedResult": {
+              "result": {
+                "listValue": {
+                  "values": [
+                    {
+                      "int64Value": "1"
+                    }
+                  ]
+                }
+              },
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "primitive": "INT64"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "map",
+            "expr": "{'abc': 123}",
+            "typedResult": {
+              "result": {
+                "mapValue": {
+                  "entries": [
+                    {
+                      "key": {
+                        "stringValue": "abc"
+                      },
+                      "value": {
+                        "int64Value": "123"
+                      }
+                    }
+                  ]
+                }
+              },
+              "deducedType": {
+                "mapType": {
+                  "keyType": {
+                    "primitive": "STRING"
+                  },
+                  "valueType": {
+                    "primitive": "INT64"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "struct",
+            "expr": "TestAllTypes{single_int64: 1}",
+            "container": "cel.expr.conformance.proto3",
+            "typedResult": {
+              "result": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                  "singleInt64": "1"
+                }
+              },
+              "deducedType": {
+                "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "field_access",
+        "test": [
+          {
+            "name": "int_field",
+            "expr": "TestAllTypes{single_int64: 1}.single_int64",
+            "container": "cel.expr.conformance.proto3",
+            "typedResult": {
+              "result": {
+                "int64Value": "1"
+              },
+              "deducedType": {
+                "primitive": "INT64"
+              }
+            }
+          },
+          {
+            "name": "repeated_int_field",
+            "expr": "TestAllTypes{}.repeated_int64",
+            "container": "cel.expr.conformance.proto3",
+            "typedResult": {
+              "result": {
+                "listValue": {}
+              },
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "primitive": "INT64"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "map_bool_int",
+            "expr": "TestAllTypes{}.map_bool_int64",
+            "container": "cel.expr.conformance.proto3",
+            "typedResult": {
+              "result": {
+                "mapValue": {}
+              },
+              "deducedType": {
+                "mapType": {
+                  "keyType": {
+                    "primitive": "BOOL"
+                  },
+                  "valueType": {
+                    "primitive": "INT64"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "indexing",
+        "test": [
+          {
+            "name": "list",
+            "expr": "['foo'][0]",
+            "typedResult": {
+              "result": {
+                "stringValue": "foo"
+              },
+              "deducedType": {
+                "primitive": "STRING"
+              }
+            }
+          },
+          {
+            "name": "map",
+            "expr": "{'abc': 123}['abc']",
+            "typedResult": {
+              "result": {
+                "int64Value": "123"
+              },
+              "deducedType": {
+                "primitive": "INT64"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "functions",
+        "test": [
+          {
+            "name": "nested_calls",
+            "expr": "('foo' + 'bar').startsWith('foo')",
+            "typedResult": {
+              "result": {
+                "boolValue": true
+              },
+              "deducedType": {
+                "primitive": "BOOL"
+              }
+            }
+          },
+          {
+            "name": "function_result_type",
+            "expr": "fn('abc', 123)",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "fn",
+                "function": {
+                  "overloads": [
+                    {
+                      "overloadId": "fn_string_int",
+                      "params": [
+                        {
+                          "primitive": "STRING"
+                        },
+                        {
+                          "primitive": "INT64"
+                        }
+                      ],
+                      "resultType": {
+                        "primitive": "STRING"
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "primitive": "STRING"
+              }
             }
           }
         ]
