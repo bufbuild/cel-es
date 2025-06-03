@@ -364,11 +364,7 @@ export class CelObject implements StructAccess<unknown> {
   }
 
   getItems(): CelResult[] {
-    const result: CelResult[] = [];
-    for (const item of Object.keys(this.value)) {
-      result.push(this.adapter.toCel(item));
-    }
-    return result;
+    return this.getFields().map((key) => this.adapter.toCel(key));
   }
 
   getFields(): string[] {
