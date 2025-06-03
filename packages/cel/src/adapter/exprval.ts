@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isMessage, create } from "@bufbuild/protobuf";
+import {
+  isMessage,
+  create,
+  type Registry,
+  createRegistry,
+} from "@bufbuild/protobuf";
 import {
   type Any,
-  anyUnpack,
   DurationSchema,
   TimestampSchema,
 } from "@bufbuild/protobuf/wkt";
@@ -47,11 +51,19 @@ import {
   CelUnknown,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
+import { ProtoValAdapter } from "./proto.js";
 
 type ExprType = ExprValue | Value | ListValue | MapValue | CelVal;
 type ExprResult = CelResult<ExprType>;
 
 export class ExprValAdapter implements CelValAdapter<ExprType> {
+  private protoAdapter: ProtoValAdapter;
+  constructor(registry?: Registry) {
+    this.protoAdapter = new ProtoValAdapter(
+      registry ?? createRegistry(TimestampSchema, DurationSchema),
+    );
+  }
+
   unwrap(val: ExprType): ExprType {
     if (isCelWrap(val)) {
       return CEL_ADAPTER.unwrap(val);
@@ -335,15 +347,14 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
     throw new Error("unimplemented: " + val.kind.case);
   }
   private objectToCel(value: Any): CelVal {
-    const duration = anyUnpack(value, DurationSchema);
-    if (duration !== undefined) {
-      return duration;
+    const result = this.protoAdapter.toCel(value);
+    if (result instanceof CelError) {
+      throw result;
     }
-    const ts = anyUnpack(value, TimestampSchema);
-    if (ts !== undefined) {
-      return ts;
+    if (result instanceof CelUnknown) {
+      throw new Error(`Unknown object value: ${value.$typeName}`);
     }
-    throw new Error("unimplemented: " + value.typeUrl);
+    return result;
   }
 
   equals(_lhs: ExprValue, _rhs: ExprValue): boolean {

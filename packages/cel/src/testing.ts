@@ -13,13 +13,13 @@
 // limitations under the License.
 
 import {
-  CEL_ADAPTER,
   CelError,
   CelPlanner,
   CelUnknown,
   EXPR_VAL_ADAPTER,
   makeStringExtFuncRegistry,
   ObjectActivation,
+  type CelResult,
 } from "./index.js";
 import type {
   SimpleTest,
@@ -30,6 +30,9 @@ import type { Registry } from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
 import { test } from "node:test";
 import { parse } from "./parser.js";
+import type { Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
+import { ExprValAdapter } from "./adapter/exprval.js";
+import { ProtoValAdapter } from "./adapter/proto.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -137,17 +140,7 @@ function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
   const result = plan.eval(ctx);
   switch (testCase.resultMatcher.case) {
     case "value":
-      if (result instanceof CelError || result instanceof CelUnknown) {
-        assert.deepEqual(result, testCase.resultMatcher.value);
-      } else {
-        const expected = EXPR_VAL_ADAPTER.valToCel(
-          testCase.resultMatcher.value,
-        );
-        if (!CEL_ADAPTER.equals(result, expected)) {
-          const actual = EXPR_VAL_ADAPTER.celToValue(result);
-          assert.deepEqual(actual, testCase.resultMatcher.value);
-        }
-      }
+      assertResultEqual(registry, result, testCase.resultMatcher.value);
       break;
     case "evalError":
     case "anyEvalErrors":
@@ -156,9 +149,38 @@ function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
     case undefined:
       assert.equal(result, true);
       break;
+    case "typedResult":
+      // We don't support type checks yet, we can only assert the value and ignore the type
+      // check for now.
+      if (testCase.resultMatcher.value.result) {
+        assertResultEqual(
+          registry,
+          result,
+          testCase.resultMatcher.value.result,
+        );
+      }
+      break;
     default:
       throw new Error(
         `Unsupported result case: ${testCase.resultMatcher.case}`,
       );
+  }
+}
+
+function assertResultEqual(
+  registry: Registry,
+  result: CelResult,
+  value: Value,
+) {
+  if (result instanceof CelError || result instanceof CelUnknown) {
+    assert.deepEqual(result, value);
+  } else {
+    const evalValAdapter = new ExprValAdapter(registry);
+    const protoAdapter = new ProtoValAdapter(registry);
+    const expected = evalValAdapter.valToCel(value);
+    if (!protoAdapter.equals(result, expected)) {
+      const actual = evalValAdapter.celToValue(result);
+      assert.deepEqual(actual, value);
+    }
   }
 }
