@@ -79,7 +79,7 @@ export default class Builder {
       return this.expandHasMacro(offset, args[0]);
     } else if (
       (functionName === "_||_" || functionName === "_&&_") &&
-      args.length !== 1
+      args.length > 1
     ) {
       const logicManager = LogicManager.newBalancingLogicManager(
         this,
