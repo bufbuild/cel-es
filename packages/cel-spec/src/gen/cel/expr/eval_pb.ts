@@ -18,17 +18,17 @@
 
 import type { GenFile, GenMessage } from "@bufbuild/protobuf/codegenv1";
 import { fileDesc, messageDesc } from "@bufbuild/protobuf/codegenv1";
+import type { Any } from "@bufbuild/protobuf/wkt";
+import { file_google_protobuf_any } from "@bufbuild/protobuf/wkt";
 import type { Value } from "./value_pb.js";
 import { file_cel_expr_value } from "./value_pb.js";
-import type { Status } from "../../google/rpc/status_pb.js";
-import { file_google_rpc_status } from "../../google/rpc/status_pb.js";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file cel/expr/eval.proto.
  */
 export const file_cel_expr_eval: GenFile = /*@__PURE__*/
-  fileDesc("ChNjZWwvZXhwci9ldmFsLnByb3RvEghjZWwuZXhwciKEAQoJRXZhbFN0YXRlEiMKBnZhbHVlcxgBIAMoCzITLmNlbC5leHByLkV4cHJWYWx1ZRIrCgdyZXN1bHRzGAMgAygLMhouY2VsLmV4cHIuRXZhbFN0YXRlLlJlc3VsdBolCgZSZXN1bHQSDAoEZXhwchgBIAEoAxINCgV2YWx1ZRgCIAEoAyKDAQoJRXhwclZhbHVlEiAKBXZhbHVlGAEgASgLMg8uY2VsLmV4cHIuVmFsdWVIABIjCgVlcnJvchgCIAEoCzISLmNlbC5leHByLkVycm9yU2V0SAASJwoHdW5rbm93bhgDIAEoCzIULmNlbC5leHByLlVua25vd25TZXRIAEIGCgRraW5kIi4KCEVycm9yU2V0EiIKBmVycm9ycxgBIAMoCzISLmdvb2dsZS5ycGMuU3RhdHVzIhsKClVua25vd25TZXQSDQoFZXhwcnMYASADKANCLAoMZGV2LmNlbC5leHByQglFdmFsUHJvdG9QAVoMY2VsLmRldi9leHBy+AEBYgZwcm90bzM", [file_cel_expr_value, file_google_rpc_status]);
+  fileDesc("ChNjZWwvZXhwci9ldmFsLnByb3RvEghjZWwuZXhwciKEAQoJRXZhbFN0YXRlEiMKBnZhbHVlcxgBIAMoCzITLmNlbC5leHByLkV4cHJWYWx1ZRIrCgdyZXN1bHRzGAMgAygLMhouY2VsLmV4cHIuRXZhbFN0YXRlLlJlc3VsdBolCgZSZXN1bHQSDAoEZXhwchgBIAEoAxINCgV2YWx1ZRgCIAEoAyKDAQoJRXhwclZhbHVlEiAKBXZhbHVlGAEgASgLMg8uY2VsLmV4cHIuVmFsdWVIABIjCgVlcnJvchgCIAEoCzISLmNlbC5leHByLkVycm9yU2V0SAASJwoHdW5rbm93bhgDIAEoCzIULmNlbC5leHByLlVua25vd25TZXRIAEIGCgRraW5kIiwKCEVycm9yU2V0EiAKBmVycm9ycxgBIAMoCzIQLmNlbC5leHByLlN0YXR1cyJOCgZTdGF0dXMSDAoEY29kZRgBIAEoBRIPCgdtZXNzYWdlGAIgASgJEiUKB2RldGFpbHMYAyADKAsyFC5nb29nbGUucHJvdG9idWYuQW55IhsKClVua25vd25TZXQSDQoFZXhwcnMYASADKANCLAoMZGV2LmNlbC5leHByQglFdmFsUHJvdG9QAVoMY2VsLmRldi9leHBy+AEBYgZwcm90bzM", [file_google_protobuf_any, file_cel_expr_value]);
 
 /**
  * The state of an evaluation.
@@ -181,7 +181,9 @@ export const ExprValueSchema: GenMessage<ExprValue> = /*@__PURE__*/
  */
 export type ErrorSet = Message<"cel.expr.ErrorSet"> & {
   /**
-   * @generated from field: repeated google.rpc.Status errors = 1;
+   * Errors that could come up during evaluation phase.
+   *
+   * @generated from field: repeated cel.expr.Status errors = 1;
    */
   errors: Status[];
 };
@@ -192,6 +194,50 @@ export type ErrorSet = Message<"cel.expr.ErrorSet"> & {
  */
 export const ErrorSetSchema: GenMessage<ErrorSet> = /*@__PURE__*/
   messageDesc(file_cel_expr_eval, 2);
+
+/**
+ * Each `Status` message contains three pieces of data: error code, error message,
+ * and error details.
+ *
+ * You can find out more about this error model and how to work with it in the
+ * [API Design Guide](https://cloud.google.com/apis/design/errors).
+ *
+ * Status value is intended to be wire and field compatible with `google.rpc.Status`.
+ *
+ * @generated from message cel.expr.Status
+ */
+export type Status = Message<"cel.expr.Status"> & {
+  /**
+   * The status code, which should be an enum value of [google.rpc.Code][].
+   *
+   * @generated from field: int32 code = 1;
+   */
+  code: number;
+
+  /**
+   * A developer-facing error message, which should be in English. Any
+   * user-facing error message should be localized and sent in the
+   * [Status.details][] field, or localized by the client.
+   *
+   * @generated from field: string message = 2;
+   */
+  message: string;
+
+  /**
+   * A list of messages that carry the error details.  There is a common set of
+   * message types for APIs to use.
+   *
+   * @generated from field: repeated google.protobuf.Any details = 3;
+   */
+  details: Any[];
+};
+
+/**
+ * Describes the message cel.expr.Status.
+ * Use `create(StatusSchema)` to create a new message.
+ */
+export const StatusSchema: GenMessage<Status> = /*@__PURE__*/
+  messageDesc(file_cel_expr_eval, 3);
 
 /**
  * A set of expressions for which the value is unknown.
@@ -214,5 +260,5 @@ export type UnknownSet = Message<"cel.expr.UnknownSet"> & {
  * Use `create(UnknownSetSchema)` to create a new message.
  */
 export const UnknownSetSchema: GenMessage<UnknownSet> = /*@__PURE__*/
-  messageDesc(file_cel_expr_eval, 3);
+  messageDesc(file_cel_expr_eval, 4);
 

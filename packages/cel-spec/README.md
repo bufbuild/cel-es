@@ -1,6 +1,6 @@
 # @bufbuild/cel-spec
 
-This package provides CEL definitions and test data from https://github.com/google/cel-spec <!-- upstreamCelSpecRef -->v0.19.0<!-- upstreamCelSpecRef -->.
+This package provides CEL definitions and test data from https://github.com/google/cel-spec <!-- upstreamCelSpecRef -->v0.24.0<!-- upstreamCelSpecRef -->.
 
 CEL uses Protocol Buffer definitions for parsed expressions. For example, the
 message `cel.expr.ParsedExpr` provides an abstract representation of a parsed
