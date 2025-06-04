@@ -22,7 +22,6 @@ const files = getSimpleTestFiles();
 const shouldSkip = createSimpleTestFileSkip(files, [
   ["bindings_ext"],
   ["block_ext"],
-  // ["durations", "duration_conversions", "type_comparison"],
   ["dynamic", "int32", "literal"],
   ["dynamic", "int32", "literal_zero"],
   ["dynamic", "int32", "var"],
