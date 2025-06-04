@@ -80,7 +80,7 @@ export default class Builder {
     }
     if (
       (functionName === "_||_" || functionName === "_&&_") &&
-      args.length !== 1
+      args.length > 1
     ) {
       const logicManager = LogicManager.newBalancingLogicManager(
         this,
