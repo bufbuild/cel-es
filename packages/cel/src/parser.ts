@@ -262,7 +262,6 @@ import type {
   Expr_CreateStruct_Entry,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import Builder from "./builder.js";
-import LogicManager from "./logic-manager.js";
 const builder = new Builder();
 const item2: runtime.Expectation = {
   type: "any",
@@ -1034,15 +1033,7 @@ export function parse(
     if (relation.length === 1) {
       return relation[0];
     } else {
-      const logicManager = LogicManager.newBalancingLogicManager(
-        builder,
-        "_&&_",
-        relation[0],
-      );
-      for (let i = 1; i < relation.length; i += 1) {
-        logicManager.addTerm(offset(), relation[i]);
-      }
-      return logicManager.toExpr();
+      return builder.newCallExpr(offset(), "_&&_", relation);
     }
   }
   function item597(
@@ -1057,15 +1048,7 @@ export function parse(
     if (and.length === 1) {
       return and[0];
     } else {
-      const logicManager = LogicManager.newBalancingLogicManager(
-        builder,
-        "_||_",
-        and[0],
-      );
-      for (let i = 1; i < and.length; i += 1) {
-        logicManager.addTerm(offset(), and[i]);
-      }
-      return logicManager.toExpr();
+      return builder.newCallExpr(offset(), "_||_", and);
     }
   }
   function item609(
@@ -1224,15 +1207,7 @@ export function parse(
   // if (and.length === 1) {
   // return and[0];
   // } else {
-  // const logicManager = LogicManager.newBalancingLogicManager(
-  // builder,
-  // "_||_",
-  // and[0]
-  // );
-  // for (let i = 1; i < and.length; i += 1) {
-  // logicManager.addTerm(offset(), and[i]);
-  // }
-  // return logicManager.toExpr();
+  // return builder.newCallExpr(offset(), "_||_", and);
   // }
   // }
   function item8(text: string): runtime.Success<Expr> | runtime.Failure {
@@ -1309,15 +1284,7 @@ export function parse(
   // if (relation.length === 1) {
   // return relation[0];
   // } else {
-  // const logicManager = LogicManager.newBalancingLogicManager(
-  // builder,
-  // "_&&_",
-  // relation[0]
-  // );
-  // for (let i = 1; i < relation.length; i += 1) {
-  // logicManager.addTerm(offset(), relation[i]);
-  // }
-  // return logicManager.toExpr();
+  // return builder.newCallExpr(offset(), "_&&_", relation);
   // }
   // }
   function item12(text: string): runtime.Success<Expr> | runtime.Failure {
@@ -1888,7 +1855,6 @@ export function parse(
   }
   // Comment "comment"
   // = '//' [^\r\n]* NewLine
-  //
   function item44(
     text: string,
   ): runtime.Success<["//", string[], string[]]> | runtime.Failure {
