@@ -305,16 +305,12 @@ const quoteFunc = Func.unary(
 );
 
 export class Formatter {
-  constructor(private readonly locale: string | undefined = undefined) {}
-
   public formatFloatString(id: number, val: string): CelResult<string> {
     switch (val) {
       case "Infinity":
-        return "∞";
       case "-Infinity":
-        return "-∞";
       case "NaN":
-        return "NaN";
+        return val;
       default:
         return CelErrors.invalidArgument(
           id,
@@ -333,14 +329,9 @@ export class Formatter {
       if (isNaN(val)) {
         return "NaN";
       } else if (val === Infinity) {
-        return "∞";
+        return "Infinity";
       } else if (val === -Infinity) {
-        return "-∞";
-      } else if (this.locale !== undefined) {
-        return val.toLocaleString(this.locale.replace("_", "-"), {
-          maximumFractionDigits: precision,
-          minimumFractionDigits: precision,
-        });
+        return "-Infinity";
       } else if (precision === undefined) {
         return val.toString();
       }
@@ -353,7 +344,7 @@ export class Formatter {
     return CelErrors.invalidArgument(
       id,
       "format",
-      "invalid floating point value",
+      "fixed-point clause can only be used on doubles",
     );
   }
 
@@ -366,9 +357,9 @@ export class Formatter {
       if (isNaN(val)) {
         return "NaN";
       } else if (val === Infinity) {
-        return "∞";
+        return "Infinity";
       } else if (val === -Infinity) {
-        return "-∞";
+        return "-Infinity";
       }
       return val.toExponential(precision);
     } else if (typeof val === "string") {
@@ -379,7 +370,7 @@ export class Formatter {
     return CelErrors.invalidArgument(
       id,
       "format",
-      "invalid floating point value",
+      "scientific clause can only be used on doubles",
     );
   }
 
@@ -393,7 +384,11 @@ export class Formatter {
     } else if (val instanceof CelError || val instanceof CelUnknown) {
       return val;
     }
-    return CelErrors.invalidArgument(id, "format", "invalid integer value");
+    return CelErrors.invalidArgument(
+      id,
+      "format",
+      "only integers and bools can be formatted as binary",
+    );
   }
 
   public formatOctal(id: number, val: CelResult): CelResult<string> {
@@ -412,25 +407,22 @@ export class Formatter {
       return val.toString(10);
     } else if (val instanceof CelUint) {
       return val.value.toString(10);
+    } else if (typeof val === "number" && isNaN(val)) {
+      return "NaN";
+    } else if (val === Infinity) {
+      return "Infinity";
+    } else if (val === -Infinity) {
+      return "-Infinity";
     } else if (val instanceof CelError || val instanceof CelUnknown) {
       return val;
     }
     return CelErrors.invalidArgument(id, "format", "invalid integer value");
   }
 
-  public formatHexString(_id: number, val: string): string {
-    let result = "";
-    for (let i = 0; i < val.length; i++) {
-      const c = val.charCodeAt(i);
-      result += c.toString(16);
-    }
-    return result;
-  }
-
   public formatHexBytes(_id: number, val: Uint8Array): string {
     let result = "";
     for (let i = 0; i < val.length; i++) {
-      result += val[i].toString(16);
+      result += val[i].toString(16).padStart(2, "0");
     }
     return result;
   }
@@ -441,28 +433,26 @@ export class Formatter {
     } else if (val instanceof CelUint) {
       return val.value.toString(16);
     } else if (typeof val === "string") {
-      return this.formatHexString(id, val);
+      const encoder = new TextEncoder();
+      return this.formatHexBytes(id, encoder.encode(val));
     } else if (val instanceof Uint8Array) {
       return this.formatHexBytes(id, val);
     } else if (val instanceof CelError || val instanceof CelUnknown) {
       return val;
     }
-    return CelErrors.invalidArgument(id, "format", "invalid integer value");
+    return CelErrors.invalidArgument(
+      id,
+      "format",
+      "only integers, byte buffers, and strings can be formatted as hex",
+    );
   }
 
   public formatHeX(id: number, val: CelResult): CelResult<string> {
-    if (typeof val === "bigint") {
-      return val.toString(16).toUpperCase();
-    } else if (val instanceof CelUint) {
-      return val.value.toString(16).toUpperCase();
-    } else if (typeof val === "string") {
-      return this.formatHexString(id, val).toUpperCase();
-    } else if (val instanceof Uint8Array) {
-      return this.formatHexBytes(id, val).toUpperCase();
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
-      return val;
+    const result = this.formatHex(id, val);
+    if (typeof result !== "string") {
+      return result;
     }
-    return CelErrors.invalidArgument(id, "format", "invalid integer value");
+    return result.toUpperCase();
   }
 
   public formatList(id: number, val: CelList): CelResult<string> {
@@ -483,20 +473,28 @@ export class Formatter {
   }
 
   public formatMap(id: number, val: CelMap): CelResult<string> {
-    let result = "{";
-    let delim = "";
-    for (const [rawKey, raValue] of val.value) {
+    const formatted = new Array<[string, string]>(val.value.size);
+    let i = 0;
+    for (const [rawKey, rawValue] of val.value) {
       const key = val.adapter.toCel(rawKey);
       const keyStr = this.formatRepl(id, key);
       if (keyStr instanceof CelError || keyStr instanceof CelUnknown) {
         return keyStr;
       }
-      const value = val.adapter.toCel(raValue);
+      const value = val.adapter.toCel(rawValue);
       const valueStr = this.formatRepl(id, value);
       if (valueStr instanceof CelError || valueStr instanceof CelUnknown) {
         return valueStr;
       }
-      result += delim + keyStr + ":" + valueStr;
+      formatted[i] = [keyStr, valueStr];
+      i++;
+    }
+    let result = "{";
+    let delim = "";
+    for (const [key, value] of formatted.sort((a, b) =>
+      a[0].localeCompare(b[0]),
+    )) {
+      result += delim + key + ": " + value;
       delim = ", ";
     }
     result += "}";
@@ -510,16 +508,9 @@ export class Formatter {
       case "bigint":
         return DEFAULT_FORMATTER.formatDecimal(id, val);
       case "number":
-        if (isNaN(val)) {
-          return '"NaN"';
-        } else if (val === Infinity) {
-          return '"Infinity"';
-        } else if (val === -Infinity) {
-          return '"-Infinity"';
-        }
-        return DEFAULT_FORMATTER.formatFloating(id, val, 6);
+        return DEFAULT_FORMATTER.formatFloating(id, val, undefined);
       case "string":
-        return quoteString(id, val);
+        return val;
       case "object":
         if (val === null) {
           return "null";
@@ -528,12 +519,12 @@ export class Formatter {
         } else if (val instanceof CelUint) {
           return val.value.toString();
         } else if (isMessage(val, TimestampSchema)) {
-          return 'timestamp("' + toJson(TimestampSchema, val) + '")';
+          return toJson(TimestampSchema, val);
         } else if (isMessage(val, DurationSchema)) {
-          return 'duration("' + toJson(DurationSchema, val) + '")';
+          return toJson(DurationSchema, val);
         } else if (val instanceof Uint8Array) {
           // escape non-printable characters
-          return 'b"' + new TextDecoder().decode(val) + '"';
+          return new TextDecoder().decode(val);
         } else if (val instanceof CelList) {
           return this.formatList(id, val);
         } else if (val instanceof CelMap) {
@@ -591,91 +582,87 @@ export class Formatter {
     let i = 0;
     let j = 0;
     while (i < format.length) {
-      if (format.charAt(i) === "%") {
-        if (i + 1 >= format.length) {
+      if (format.charAt(i) !== "%") {
+        result += format.charAt(i);
+        i++;
+        continue;
+      }
+      if (i + 1 >= format.length) {
+        return CelErrors.invalidArgument(id, "format", "invalid format string");
+      }
+      let c = format.charAt(i + 1);
+      i += 2;
+      if (c === "%") {
+        result += "%";
+        continue;
+      }
+      let precision = 6;
+      if (c === ".") {
+        // Parse precision.
+        precision = 0;
+        while (
+          i < format.length &&
+          format.charAt(i) >= "0" &&
+          format.charAt(i) <= "9"
+        ) {
+          precision = precision * 10 + Number(format.charAt(i));
+          i++;
+        }
+        if (i >= format.length) {
           return CelErrors.invalidArgument(
             id,
             "format",
             "invalid format string",
           );
         }
-        let c = format.charAt(i + 1);
-        i += 2;
-        if (c === "%") {
-          result += "%";
-          continue;
-        }
-        let precision = 6;
-        if (c === ".") {
-          // Parse precision.
-          precision = 0;
-          while (
-            i < format.length &&
-            format.charAt(i) >= "0" &&
-            format.charAt(i) <= "9"
-          ) {
-            precision = precision * 10 + Number(format.charAt(i));
-            i++;
-          }
-          if (i >= format.length) {
-            return CelErrors.invalidArgument(
-              id,
-              "format",
-              "invalid format string",
-            );
-          }
-          c = format.charAt(i);
-          i++;
-        }
-        if (j >= items.length) {
+        c = format.charAt(i);
+        i++;
+      }
+      if (j >= items.length) {
+        return CelErrors.invalidArgument(
+          id,
+          "format",
+          "too few arguments for format string",
+        );
+      }
+      const val = items[j++];
+      let str: CelResult<string> = "";
+      switch (c) {
+        case "e":
+          str = this.formatExponent(id, val, precision);
+          break;
+        case "f":
+          str = this.formatFloating(id, val, precision);
+          break;
+        case "b":
+          str = this.formatBinary(id, val);
+          break;
+        case "d":
+          str = this.formatDecimal(id, val);
+          break;
+        case "s":
+          str = this.formatString(id, val);
+          break;
+        case "x":
+          str = this.formatHex(id, val);
+          break;
+        case "X":
+          str = this.formatHeX(id, val);
+          break;
+        case "o":
+          str = this.formatOctal(id, val);
+          break;
+        default:
           return CelErrors.invalidArgument(
             id,
             "format",
-            "too few arguments for format string",
+            `could not parse formatting clause: unrecognized formatting clause: ${c}`,
           );
-        }
-        const val = items[j++];
-        let str: CelResult<string> = "";
-        switch (c) {
-          case "e":
-            str = this.formatExponent(id, val, precision);
-            break;
-          case "f":
-            str = this.formatFloating(id, val, precision);
-            break;
-          case "b":
-            str = this.formatBinary(id, val);
-            break;
-          case "d":
-            str = this.formatDecimal(id, val);
-            break;
-          case "s":
-            str = this.formatString(id, val);
-            break;
-          case "x":
-            str = this.formatHex(id, val);
-            break;
-          case "X":
-            str = this.formatHeX(id, val);
-            break;
-          case "o":
-            str = this.formatOctal(id, val);
-            break;
-          default:
-            return CelErrors.invalidArgument(
-              id,
-              "format",
-              "invalid format string",
-            );
-        }
-        if (str instanceof CelError || str instanceof CelUnknown) {
-          return str;
-        }
-        result += str;
-      } else {
-        result += format.charAt(i);
-        i++;
       }
+      if (str instanceof CelError || str instanceof CelUnknown) {
+        return str;
+      }
+      result += str;
     }
     if (j < items.length) {
       return CelErrors.invalidArgument(
@@ -720,11 +707,9 @@ export function addStringsExt(
   funcs.add(makeStringFormatFunc(formatter));
 }
 
-export function makeStringExtFuncRegistry(
-  locale: string | undefined = undefined,
-): FuncRegistry {
+export function makeStringExtFuncRegistry(): FuncRegistry {
   const funcs = new FuncRegistry();
-  addStringsExt(funcs, new Formatter(locale));
+  addStringsExt(funcs, new Formatter());
   return funcs;
 }
 

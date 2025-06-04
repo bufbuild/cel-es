@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from github.com/google/cel-spec v0.19.0 by scripts/fetch-testdata.js
+// Generated from github.com/google/cel-spec v0.24.0 by scripts/fetch-testdata.js
 import type { JsonObject } from "@bufbuild/protobuf";
 
 export const testdataJson: JsonObject[] = [
@@ -1795,14 +1795,6 @@ export const testdataJson: JsonObject[] = [
             "name": "no_string_normalization",
             "description": "Should not normalize Unicode.",
             "expr": "'Am\\u00E9lie' == 'Ame\\u0301lie'",
-            "value": {
-              "boolValue": false
-            }
-          },
-          {
-            "name": "no_string_normalization_surrogate",
-            "description": "Should not replace surrogate pairs.",
-            "expr": "'\\U0001F436' == '\\xef\\xbf\\xbd\\xef\\xbf\\bd'",
             "value": {
               "boolValue": false
             }
@@ -5157,7 +5149,7 @@ export const testdataJson: JsonObject[] = [
           },
           {
             "name": "double_big_precision",
-            "description": "Beyond exact range (2^53), but loses precisons (2^55 + 1).",
+            "description": "Beyond exact range (2^53), but loses precision (2^55 + 1).",
             "expr": "int(double(36028797018963969))",
             "value": {
               "int64Value": "36028797018963968"
@@ -5305,7 +5297,7 @@ export const testdataJson: JsonObject[] = [
             "evalError": {
               "errors": [
                 {
-                  "message": "unknown varaible"
+                  "message": "unknown variable"
                 }
               ]
             }
@@ -5554,7 +5546,7 @@ export const testdataJson: JsonObject[] = [
           },
           {
             "name": "double_big_precision",
-            "description": "Beyond exact range (2^53), but loses precisons (2^55 + 1).",
+            "description": "Beyond exact range (2^53), but loses precision (2^55 + 1).",
             "expr": "uint(double(36028797018963969u))",
             "value": {
               "uint64Value": "36028797018963968"
@@ -8712,7 +8704,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "comparision",
+            "name": "comparison",
             "expr": "GlobalEnum.GAR == 1",
             "container": "cel.expr.conformance.proto2",
             "value": {
@@ -8804,6 +8796,44 @@ export const testdataJson: JsonObject[] = [
                 }
               ]
             }
+          },
+          {
+            "name": "access_repeated_enum",
+            "expr": "TestAllTypes{}.repeated_nested_enum",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "listValue": {}
+            }
+          },
+          {
+            "name": "assign_repeated_enum",
+            "expr": "TestAllTypes{  repeated_nested_enum: [    TestAllTypes.NestedEnum.FOO,    TestAllTypes.NestedEnum.BAR]}",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                "repeatedNestedEnum": [
+                  "FOO",
+                  "BAR"
+                ]
+              }
+            }
+          },
+          {
+            "name": "list_enum_as_list_int",
+            "expr": "0 in TestAllTypes{  repeated_nested_enum: [    TestAllTypes.NestedEnum.FOO,    TestAllTypes.NestedEnum.BAR]}.repeated_nested_enum",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "enum_as_int",
+            "expr": "TestAllTypes{standalone_enum: TestAllTypes.NestedEnum.FOO}.standalone_enum in [0]",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "boolValue": true
+            }
           }
         ]
       },
@@ -8836,7 +8866,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "comparision",
+            "name": "comparison",
             "expr": "GlobalEnum.GAR == 1",
             "container": "cel.expr.conformance.proto3",
             "value": {
@@ -9034,6 +9064,44 @@ export const testdataJson: JsonObject[] = [
                 }
               ]
             }
+          },
+          {
+            "name": "access_repeated_enum",
+            "expr": "TestAllTypes{}.repeated_nested_enum",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "listValue": {}
+            }
+          },
+          {
+            "name": "assign_repeated_enum",
+            "expr": "TestAllTypes{  repeated_nested_enum: [    TestAllTypes.NestedEnum.FOO,    TestAllTypes.NestedEnum.BAR]}",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                "repeatedNestedEnum": [
+                  "FOO",
+                  "BAR"
+                ]
+              }
+            }
+          },
+          {
+            "name": "list_enum_as_list_int",
+            "expr": "0 in TestAllTypes{  repeated_nested_enum: [    TestAllTypes.NestedEnum.FOO,    TestAllTypes.NestedEnum.BAR]}.repeated_nested_enum",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "enum_as_int",
+            "expr": "TestAllTypes{standalone_enum: TestAllTypes.NestedEnum.FOO}.standalone_enum in [0]",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "boolValue": true
+            }
           }
         ]
       },
@@ -9074,7 +9142,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "comparision_true",
+            "name": "comparison_true",
             "expr": "GlobalEnum.GAR == GlobalEnum.GAR",
             "container": "cel.expr.conformance.proto2",
             "value": {
@@ -9082,7 +9150,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "comparision_false",
+            "name": "comparison_false",
             "expr": "GlobalEnum.GAR == GlobalEnum.GAZ",
             "container": "cel.expr.conformance.proto2",
             "value": {
@@ -9291,7 +9359,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "comparision_true",
+            "name": "comparison_true",
             "expr": "GlobalEnum.GAR == GlobalEnum.GAR",
             "container": "cel.expr.conformance.proto3",
             "value": {
@@ -9299,7 +9367,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "comparision_false",
+            "name": "comparison_false",
             "expr": "GlobalEnum.GAR == GlobalEnum.GAZ",
             "container": "cel.expr.conformance.proto3",
             "value": {
@@ -10092,7 +10160,7 @@ export const testdataJson: JsonObject[] = [
           },
           {
             "name": "map_value_bytes",
-            "expr": "{0:b\"\"}[0]",
+            "expr": "{0:b''}[0]",
             "value": {
               "bytesValue": ""
             }
@@ -10112,7 +10180,7 @@ export const testdataJson: JsonObject[] = [
           },
           {
             "name": "map_value_map",
-            "expr": "{\"map\": {\"k\": \"v\"}}[\"map\"]",
+            "expr": "{'map': {'k': 'v'}}['map']",
             "value": {
               "mapValue": {
                 "entries": [
@@ -10130,7 +10198,7 @@ export const testdataJson: JsonObject[] = [
           },
           {
             "name": "map_value_mix_type",
-            "expr": "{\"map\": {\"k\": \"v\"}, \"list\": [1]}[\"map\"]",
+            "expr": "{'map': {'k': 'v'}, 'list': [1]}['map']",
             "value": {
               "mapValue": {
                 "entries": [
@@ -10171,6 +10239,54 @@ export const testdataJson: JsonObject[] = [
             "expr": "has({}.a)",
             "value": {
               "boolValue": false
+            }
+          }
+        ]
+      },
+      {
+        "name": "quoted_map_fields",
+        "description": "Field accesses using the quote syntax",
+        "test": [
+          {
+            "name": "field_access_slash",
+            "expr": "{'/api/v1': true, '/api/v2': false}.`/api/v1`",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "field_access_dash",
+            "expr": "{'content-type': 'application/json', 'content-length': 145}.`content-type` == 'application/json'",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "field_access_dot",
+            "expr": "{'foo.txt': 32, 'bar.csv': 1024}.`foo.txt`",
+            "value": {
+              "int64Value": "32"
+            }
+          },
+          {
+            "name": "has_field_slash",
+            "expr": "has({'/api/v1': true, '/api/v2': false}.`/api/v3`)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "has_field_dash",
+            "expr": "has({'content-type': 'application/json', 'content-length': 145}.`content-type`)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "has_field_dot",
+            "expr": "has({'foo.txt': 32, 'bar.csv': 1024}.`foo.txt`)",
+            "value": {
+              "boolValue": true
             }
           }
         ]
@@ -10928,7 +11044,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "negtive_zero",
+            "name": "negative_zero",
             "expr": "-(0)",
             "value": {
               "int64Value": "0"
@@ -11208,7 +11324,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "negtive_no_overload",
+            "name": "negative_no_overload",
             "expr": "-(5u)",
             "disableCheck": true,
             "evalError": {
@@ -11320,7 +11436,7 @@ export const testdataJson: JsonObject[] = [
     "description": "Tests for list operations.",
     "section": [
       {
-        "name": "concatentation",
+        "name": "concatenation",
         "description": "Tests for list concatenation.",
         "test": [
           {
@@ -12382,6 +12498,497 @@ export const testdataJson: JsonObject[] = [
             "expr": "['signer'].all(signer, ['artifact'].all(artifact, true))",
             "value": {
               "boolValue": true
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "macros2",
+    "description": "Tests for CEL comprehensions v2",
+    "section": [
+      {
+        "name": "exists",
+        "description": "Tests for the .exists() macro, which is equivalent to joining the evaluated elements with logical-OR.",
+        "test": [
+          {
+            "name": "list_elem_all_true",
+            "expr": "[1, 2, 3].exists(i, v, i > -1 && v > 0)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "list_elem_some_true",
+            "expr": "[1, 2, 3].exists(i, v, i == 1 && v == 2)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "list_elem_none_true",
+            "expr": "[1, 2, 3].exists(i, v, i > 2 && v > 3)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_elem_type_shortcircuit",
+            "expr": "[1, 'foo', 3].exists(i, v, i == 1 && v != '1')",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "list_elem_type_exhaustive",
+            "expr": "[1, 'foo', 3].exists(i, v, i == 3 || v == '10')",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_elem_exists_error",
+            "expr": "[1, 2, 3].exists(i, v, v / i == 17)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "divide by zero"
+                }
+              ]
+            }
+          },
+          {
+            "name": "list_empty",
+            "expr": "[].exists(i, v, i == 0 || v == 2)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "map_key",
+            "expr": "{'key1':1, 'key2':2}.exists(k, v, k == 'key2' && v == 2)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "not_map_key",
+            "expr": "!{'key1':1, 'key2':2}.exists(k, v, k == 'key3' || v == 3)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "map_key_type_shortcircuit",
+            "expr": "{'key':1, 1:21}.exists(k, v, k != 2 && v != 22)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "map_key_type_exhaustive",
+            "expr": "!{'key':1, 1:42}.exists(k, v, k == 2 && v == 43)",
+            "value": {
+              "boolValue": true
+            }
+          }
+        ]
+      },
+      {
+        "name": "all",
+        "description": "Tests for the .all() macro, which is equivalent to joining the evaluated elements with logical-AND.",
+        "test": [
+          {
+            "name": "list_elem_all_true",
+            "expr": "[1, 2, 3].all(i, v, i > -1 && v > 0)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "list_elem_some_true",
+            "expr": "[1, 2, 3].all(i, v, i == 1 && v == 2)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_elem_none_true",
+            "expr": "[1, 2, 3].all(i, v, i == 3 || v == 4)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_elem_type_shortcircuit",
+            "expr": "[1, 'foo', 3].all(i, v, i == 0 || v == 1)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_elem_type_exhaustive",
+            "expr": "[0, 'foo', 3].all(i, v, v % 2 == i)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_elem_type_error_exhaustive",
+            "expr": "[0, 'foo', 5].all(i, v, v % 3 == i)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "no_such_overload"
+                }
+              ]
+            }
+          },
+          {
+            "name": "list_elem_error_shortcircuit",
+            "expr": "[1, 2, 3].all(i, v, 6 / (2 - v) == i)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_elem_error_exhaustive",
+            "expr": "[1, 2, 3].all(i, v, v / i != 17)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "divide by zero"
+                }
+              ]
+            }
+          },
+          {
+            "name": "list_empty",
+            "expr": "[].all(i, v, i > -1 || v > 0)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "map_key",
+            "expr": "{'key1':1, 'key2':2}.all(k, v, k == 'key2' && v == 2)",
+            "value": {
+              "boolValue": false
+            }
+          }
+        ]
+      },
+      {
+        "name": "existsOne",
+        "description": "Tests for existsOne() macro. An expression 'L.existsOne(I, E)' is equivalent to 'size(L.filter(I, E)) == 1'.",
+        "test": [
+          {
+            "name": "list_empty",
+            "expr": "[].existsOne(i, v, i == 3 || v == 7)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_one_true",
+            "expr": "[7].existsOne(i, v, i == 0 && v == 7)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "list_one_false",
+            "expr": "[8].existsOne(i, v, i == 0 && v == 7)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_none",
+            "expr": "[1, 2, 3].existsOne(i, v, i > 2 || v > 3)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_one",
+            "expr": "[5, 7, 8].existsOne(i, v, v % 5 == i)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "list_many",
+            "expr": "[0, 1, 2, 3, 4].existsOne(i, v, v % 2 == i)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_all",
+            "expr": "['foal', 'foo', 'four'].existsOne(i, v, i > -1 && v.startsWith('fo'))",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "list_no_shortcircuit",
+            "expr": "[3, 2, 1, 0].existsOne(i, v, v / i > 1)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "divide by zero"
+                }
+              ]
+            }
+          },
+          {
+            "name": "map_one",
+            "expr": "{6: 'six', 7: 'seven', 8: 'eight'}.existsOne(k, v, k % 5 == 2 && v == 'seven')",
+            "value": {
+              "boolValue": true
+            }
+          }
+        ]
+      },
+      {
+        "name": "transformList",
+        "description": "Tests for transformList() macro.",
+        "test": [
+          {
+            "name": "empty",
+            "expr": "[].transformList(i, v, i / v)",
+            "value": {
+              "listValue": {}
+            }
+          },
+          {
+            "name": "empty_filter",
+            "expr": "[].transformList(i, v, i > v, i / v)",
+            "value": {
+              "listValue": {}
+            }
+          },
+          {
+            "name": "one",
+            "expr": "[3].transformList(i, v, v * v + i)",
+            "value": {
+              "listValue": {
+                "values": [
+                  {
+                    "int64Value": "9"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "one_filter",
+            "expr": "[3].transformList(i, v, i == 0 && v == 3, v * v + i)",
+            "value": {
+              "listValue": {
+                "values": [
+                  {
+                    "int64Value": "9"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "many",
+            "expr": "[2, 4, 6].transformList(i, v, v / 2 + i)",
+            "value": {
+              "listValue": {
+                "values": [
+                  {
+                    "int64Value": "1"
+                  },
+                  {
+                    "int64Value": "3"
+                  },
+                  {
+                    "int64Value": "5"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "many_filter",
+            "expr": "[2, 4, 6].transformList(i, v, i != 1 && v != 4, v / 2 + i)",
+            "value": {
+              "listValue": {
+                "values": [
+                  {
+                    "int64Value": "1"
+                  },
+                  {
+                    "int64Value": "5"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "error",
+            "expr": "[2, 1, 0].transformList(i, v, v / i)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "divide by zero"
+                }
+              ]
+            }
+          },
+          {
+            "name": "error_filter",
+            "expr": "[2, 1, 0].transformList(i, v, v / i > 0, v)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "divide by zero"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "transformMap",
+        "description": "Tests for transformMap() macro.",
+        "test": [
+          {
+            "name": "empty",
+            "expr": "{}.transformMap(k, v, k + v)",
+            "value": {
+              "mapValue": {}
+            }
+          },
+          {
+            "name": "empty_filter",
+            "expr": "{}.transformMap(k, v, k == 'foo' && v == 'bar', k + v)",
+            "value": {
+              "mapValue": {}
+            }
+          },
+          {
+            "name": "one",
+            "expr": "{'foo': 'bar'}.transformMap(k, v, k + v)",
+            "value": {
+              "mapValue": {
+                "entries": [
+                  {
+                    "key": {
+                      "stringValue": "foo"
+                    },
+                    "value": {
+                      "stringValue": "foobar"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "one_filter",
+            "expr": "{'foo': 'bar'}.transformMap(k, v, k == 'foo' && v == 'bar', k + v)",
+            "value": {
+              "mapValue": {
+                "entries": [
+                  {
+                    "key": {
+                      "stringValue": "foo"
+                    },
+                    "value": {
+                      "stringValue": "foobar"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "many",
+            "expr": "{'foo': 'bar', 'baz': 'bux', 'hello': 'world'}.transformMap(k, v, k + v)",
+            "value": {
+              "mapValue": {
+                "entries": [
+                  {
+                    "key": {
+                      "stringValue": "foo"
+                    },
+                    "value": {
+                      "stringValue": "foobar"
+                    }
+                  },
+                  {
+                    "key": {
+                      "stringValue": "baz"
+                    },
+                    "value": {
+                      "stringValue": "bazbux"
+                    }
+                  },
+                  {
+                    "key": {
+                      "stringValue": "hello"
+                    },
+                    "value": {
+                      "stringValue": "helloworld"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "many_filter",
+            "expr": "{'foo': 'bar', 'baz': 'bux', 'hello': 'world'}.transformMap(k, v, k != 'baz' && v != 'bux', k + v)",
+            "value": {
+              "mapValue": {
+                "entries": [
+                  {
+                    "key": {
+                      "stringValue": "foo"
+                    },
+                    "value": {
+                      "stringValue": "foobar"
+                    }
+                  },
+                  {
+                    "key": {
+                      "stringValue": "hello"
+                    },
+                    "value": {
+                      "stringValue": "helloworld"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "name": "error",
+            "expr": "{'foo': 2, 'bar': 1, 'baz': 0}.transformMap(k, v, 4 / v)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "divide by zero"
+                }
+              ]
+            }
+          },
+          {
+            "name": "error_filter",
+            "expr": "{'foo': 2, 'bar': 1, 'baz': 0}.transformMap(k, v, k == 'baz' && 4 / v == 0, v)",
+            "evalError": {
+              "errors": [
+                {
+                  "message": "divide by zero"
+                }
+              ]
             }
           }
         ]
@@ -14410,6 +15017,27 @@ export const testdataJson: JsonObject[] = [
             "value": {
               "boolValue": false
             }
+          },
+          {
+            "name": "map_optional_has",
+            "expr": "has({'foo': optional.none()}.foo)",
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "map_optional_select_has",
+            "expr": "has({'foo': optional.none()}.foo.bar)",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "map_optional_entry_has",
+            "expr": "has({?'foo': optional.none()}.foo)",
+            "value": {
+              "boolValue": false
+            }
           }
         ]
       }
@@ -14601,6 +15229,66 @@ export const testdataJson: JsonObject[] = [
             "container": "cel.expr.conformance.proto3",
             "value": {
               "int64Value": "30"
+            }
+          }
+        ]
+      },
+      {
+        "name": "whitespace",
+        "description": "Check that whitespace is ignored by the grammar.",
+        "test": [
+          {
+            "name": "spaces",
+            "description": "Check that spaces are ignored.",
+            "expr": "[ . cel. expr .conformance. proto3. TestAllTypes { single_int64 : int ( 17 ) } . single_int64 ] [ 0 ] == ( 18 - 1 ) && ! false ? 1 : 2",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "tabs",
+            "description": "Check that tabs (`\\t`) are ignored.",
+            "expr": "[\t.\tcel.\texpr\t.conformance.\tproto3.\tTestAllTypes\t{\tsingle_int64\t:\tint\t(\t17\t)\t}\t.\tsingle_int64\t]\t[\t0\t]\t==\t(\t18\t-\t1\t)\t&&\t!\tfalse\t?\t1\t:\t2",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "new_lines",
+            "description": "Check that new lines (`\\n`) are ignored.",
+            "expr": "[\n.\ncel.\nexpr\n.conformance.\nproto3.\nTestAllTypes\n{\nsingle_int64\n:\nint\n(\n17\n)\n}\n.\nsingle_int64\n]\n[\n0\n]\n==\n(\n18\n-\n1\n)\n&&\n!\nfalse\n?\n1\n:\n2",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "new_pages",
+            "description": "Check that new pages (`\\f`) are ignored.",
+            "expr": "[\f.\fcel.\fexpr\f.conformance.\fproto3.\fTestAllTypes\f{\fsingle_int64\f:\fint\f(\f17\f)\f}\f.\fsingle_int64\f]\f[\f0\f]\f==\f(\f18\f-\f1\f)\f&&\f!\ffalse\f?\f1\f:\f2",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "carriage_returns",
+            "description": "Check that carriage returns (`\\r`) are ignored.",
+            "expr": "[\r.\rcel.\rexpr\r.conformance.\rproto3.\rTestAllTypes\r{\rsingle_int64\r:\rint\r(\r17\r)\r}\r.\rsingle_int64\r]\r[\r0\r]\r==\r(\r18\r-\r1\r)\r&&\r!\rfalse\r?\r1\r:\r2",
+            "value": {
+              "int64Value": "1"
+            }
+          }
+        ]
+      },
+      {
+        "name": "comments",
+        "description": "Check that comments are ignored by the grammar. Note that carriage returns alone cannot terminate comments.",
+        "test": [
+          {
+            "name": "new_line_terminated",
+            "description": "Check that new-line-terminated comments are ignored.",
+            "expr": "[// @\n.// @\ncel.// @\nexpr// @\n.conformance.// @\nproto3.// @\nTestAllTypes// @\n{// @\nsingle_int64// @\n:// @\nint// @\n(// @\n17// @\n)// @\n}// @\n.// @\nsingle_int64// @\n]// @\n[// @\n0// @\n]// @\n==// @\n(// @\n18// @\n-// @\n1// @\n)// @\n&&// @\n!// @\nfalse// @\n?// @\n1// @\n:// @\n2",
+            "value": {
+              "int64Value": "1"
             }
           }
         ]
@@ -15166,7 +15854,7 @@ export const testdataJson: JsonObject[] = [
       },
       {
         "name": "singular_bind",
-        "description": "Binding the singlular fields.",
+        "description": "Binding the singular fields.",
         "test": [
           {
             "name": "int32",
@@ -15274,6 +15962,14 @@ export const testdataJson: JsonObject[] = [
             "name": "repeated_scalar",
             "expr": "TestAllTypes{}.repeated_int64",
             "container": "cel.expr.conformance.proto2",
+            "value": {
+              "listValue": {}
+            }
+          },
+          {
+            "name": "repeated_enum",
+            "expr": "TestAllTypes{}.repeated_nested_enum",
+            "container": "cel.expr.conformance.proto3",
             "value": {
               "listValue": {}
             }
@@ -15613,6 +16309,499 @@ export const testdataJson: JsonObject[] = [
                   "message": "unsupported field type"
                 }
               ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "quoted_fields",
+        "test": [
+          {
+            "name": "set_field_with_quoted_name",
+            "expr": "TestAllTypes{`in`: true} == TestAllTypes{}",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "get_field_with_quoted_name",
+            "expr": "TestAllTypes{`in`: true}.`in`",
+            "container": "cel.expr.conformance.proto2",
+            "value": {
+              "boolValue": true
+            }
+          }
+        ]
+      },
+      {
+        "name": "extensions_has",
+        "description": "Tests for presence checks on proto2 extension fields.",
+        "test": [
+          {
+            "name": "package_scoped_int32",
+            "expr": "has(msg.`cel.expr.conformance.proto2.int32_ext`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.int32_ext]": 42
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_nested_ext",
+            "expr": "has(msg.`cel.expr.conformance.proto2.nested_ext`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.nested_ext]": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_test_all_types_ext",
+            "expr": "has(msg.`cel.expr.conformance.proto2.test_all_types_ext`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.test_all_types_ext]": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_test_all_types_nested_enum_ext",
+            "expr": "has(msg.`cel.expr.conformance.proto2.nested_enum_ext`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.nested_enum_ext]": "BAR"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_repeated_test_all_types",
+            "expr": "has(msg.`cel.expr.conformance.proto2.repeated_test_all_types`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.repeated_test_all_types]": [
+                      {
+                        "singleInt64": "1"
+                      },
+                      {
+                        "singleBool": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_int64",
+            "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext]": "42"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_nested_ext",
+            "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext]": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_nested_enum_ext",
+            "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext]": "BAR"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_repeated_test_all_types",
+            "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types`)",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types]": [
+                      {
+                        "singleInt64": "1"
+                      },
+                      {
+                        "singleBool": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "extensions_get",
+        "description": "Tests for accessing proto2 extension fields.",
+        "test": [
+          {
+            "name": "package_scoped_int32",
+            "expr": "msg.`cel.expr.conformance.proto2.int32_ext` == 42",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.int32_ext]": 42
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_nested_ext",
+            "expr": "msg.`cel.expr.conformance.proto2.nested_ext` == cel.expr.conformance.proto2.TestAllTypes{}",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.nested_ext]": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_test_all_types_ext",
+            "expr": "msg.`cel.expr.conformance.proto2.test_all_types_ext` == cel.expr.conformance.proto2.TestAllTypes{}",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.test_all_types_ext]": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_test_all_types_nested_enum_ext",
+            "expr": "msg.`cel.expr.conformance.proto2.nested_enum_ext` == cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.nested_enum_ext]": "BAR"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "package_scoped_repeated_test_all_types",
+            "expr": "msg.`cel.expr.conformance.proto2.repeated_test_all_types` == [cel.expr.conformance.proto2.TestAllTypes{single_int64: 1}, cel.expr.conformance.proto2.TestAllTypes{single_bool: true}]",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.repeated_test_all_types]": [
+                      {
+                        "singleInt64": "1"
+                      },
+                      {
+                        "singleBool": true
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_int64",
+            "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext` == 42",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext]": "42"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_nested_ext",
+            "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext` == cel.expr.conformance.proto2.TestAllTypes{}",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext]": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_nested_enum_ext",
+            "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext` == cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext]": "BAR"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "message_scoped_repeated_test_all_types",
+            "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types` == [cel.expr.conformance.proto2.TestAllTypes{single_int64: 1}, cel.expr.conformance.proto2.TestAllTypes{single_bool: true}]",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types]": [
+                      {
+                        "singleInt64": "1"
+                      },
+                      {
+                        "singleBool": true
+                      }
+                    ]
+                  }
+                }
+              }
             }
           }
         ]
@@ -16448,7 +17637,7 @@ export const testdataJson: JsonObject[] = [
       },
       {
         "name": "singular_bind",
-        "description": "Binding the singlular fields.",
+        "description": "Binding the singular fields.",
         "test": [
           {
             "name": "int32",
@@ -16547,6 +17736,14 @@ export const testdataJson: JsonObject[] = [
           {
             "name": "repeated_scalar",
             "expr": "TestAllTypes{}.repeated_int64",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "listValue": {}
+            }
+          },
+          {
+            "name": "repeated_enum",
+            "expr": "TestAllTypes{}.repeated_nested_enum",
             "container": "cel.expr.conformance.proto3",
             "value": {
               "listValue": {}
@@ -16874,6 +18071,27 @@ export const testdataJson: JsonObject[] = [
             }
           }
         ]
+      },
+      {
+        "name": "quoted_fields",
+        "test": [
+          {
+            "name": "set_field",
+            "expr": "TestAllTypes{`in`: true} == TestAllTypes{}",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "boolValue": false
+            }
+          },
+          {
+            "name": "get_field",
+            "expr": "TestAllTypes{`in`: true}.`in`",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "boolValue": true
+            }
+          }
+        ]
       }
     ]
   },
@@ -17116,7 +18334,7 @@ export const testdataJson: JsonObject[] = [
         ]
       },
       {
-        "name": "concatentation",
+        "name": "concatenation",
         "description": "Tests for string concatenation.",
         "test": [
           {
@@ -17699,7 +18917,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "substution inside escaped percent signs",
+            "name": "substitution inside escaped percent signs",
             "expr": "\"%%%s%%\".format([\"text\"])",
             "value": {
               "stringValue": "%text%"
@@ -17828,7 +19046,7 @@ export const testdataJson: JsonObject[] = [
             "name": "scientific notation formatting clause",
             "expr": "\"%.6e\".format([1052.032911275])",
             "value": {
-              "stringValue": "1.052033 × 10⁰³"
+              "stringValue": "1.052033e+03"
             }
           },
           {
@@ -17842,35 +19060,70 @@ export const testdataJson: JsonObject[] = [
             "name": "default precision for scientific notation",
             "expr": "\"%e\".format([2.71828])",
             "value": {
-              "stringValue": "2.718280 × 10⁰⁰"
+              "stringValue": "2.718280e+00"
             }
           },
           {
-            "name": "unicode output for scientific notation",
-            "expr": "\"unescaped unicode: %e, escaped unicode: %e\".format([2.71828, 2.71828])",
+            "name": "NaN support for scientific notation",
+            "expr": "\"%e\".format([double(\"NaN\")])",
             "value": {
-              "stringValue": "unescaped unicode: 2.718280 × 10⁰⁰, escaped unicode: 2.718280 × 10⁰⁰"
+              "stringValue": "NaN"
+            }
+          },
+          {
+            "name": "positive infinity support for scientific notation",
+            "expr": "\"%e\".format([double(\"Infinity\")])",
+            "value": {
+              "stringValue": "Infinity"
+            }
+          },
+          {
+            "name": "negative infinity support for scientific notation",
+            "expr": "\"%e\".format([double(\"-Infinity\")])",
+            "value": {
+              "stringValue": "-Infinity"
+            }
+          },
+          {
+            "name": "NaN support for decimal",
+            "expr": "\"%d\".format([double(\"NaN\")])",
+            "value": {
+              "stringValue": "NaN"
+            }
+          },
+          {
+            "name": "positive infinity support for decimal",
+            "expr": "\"%d\".format([double(\"Infinity\")])",
+            "value": {
+              "stringValue": "Infinity"
+            }
+          },
+          {
+            "name": "negative infinity support for decimal",
+            "expr": "\"%d\".format([double(\"-Infinity\")])",
+            "value": {
+              "stringValue": "-Infinity"
             }
           },
           {
             "name": "NaN support for fixed-point",
-            "expr": "\"%f\".format([\"NaN\"])",
+            "expr": "\"%f\".format([double(\"NaN\")])",
             "value": {
               "stringValue": "NaN"
             }
           },
           {
             "name": "positive infinity support for fixed-point",
-            "expr": "\"%f\".format([\"Infinity\"])",
+            "expr": "\"%f\".format([double(\"Infinity\")])",
             "value": {
-              "stringValue": "∞"
+              "stringValue": "Infinity"
             }
           },
           {
             "name": "negative infinity support for fixed-point",
-            "expr": "\"%f\".format([\"-Infinity\"])",
+            "expr": "\"%f\".format([double(\"-Infinity\")])",
             "value": {
-              "stringValue": "-∞"
+              "stringValue": "-Infinity"
             }
           },
           {
@@ -17882,9 +19135,9 @@ export const testdataJson: JsonObject[] = [
           },
           {
             "name": "null support for string",
-            "expr": "\"null: %s\".format([null])",
+            "expr": "\"%s\".format([null])",
             "value": {
-              "stringValue": "null: null"
+              "stringValue": "null"
             }
           },
           {
@@ -17896,16 +19149,16 @@ export const testdataJson: JsonObject[] = [
           },
           {
             "name": "bytes support for string",
-            "expr": "\"some bytes: %s\".format([b\"xyz\"])",
+            "expr": "\"%s\".format([b\"xyz\"])",
             "value": {
-              "stringValue": "some bytes: xyz"
+              "stringValue": "xyz"
             }
           },
           {
             "name": "type() support for string",
-            "expr": "\"type is %s\".format([type(\"test string\")])",
+            "expr": "\"%s\".format([type(\"test string\")])",
             "value": {
-              "stringValue": "type is string"
+              "stringValue": "string"
             }
           },
           {
@@ -17926,133 +19179,126 @@ export const testdataJson: JsonObject[] = [
             "name": "list support for string",
             "expr": "\"%s\".format([[\"abc\", 3.14, null, [9, 8, 7, 6], timestamp(\"2023-02-03T23:31:20Z\")]])",
             "value": {
-              "stringValue": "[\"abc\", 3.140000, null, [9, 8, 7, 6], timestamp(\"2023-02-03T23:31:20Z\")]"
+              "stringValue": "[abc, 3.14, null, [9, 8, 7, 6], 2023-02-03T23:31:20Z]"
             }
           },
           {
             "name": "map support for string",
             "expr": "\"%s\".format([{\"key1\": b\"xyz\", \"key5\": null, \"key2\": duration(\"2h\"), \"key4\": true, \"key3\": 2.71828}])",
             "value": {
-              "stringValue": "{\"key1\":b\"xyz\", \"key2\":duration(\"7200s\"), \"key3\":2.718280, \"key4\":true, \"key5\":null}"
+              "stringValue": "{key1: xyz, key2: 7200s, key3: 2.71828, key4: true, key5: null}"
             }
           },
           {
             "name": "map support (all key types)",
-            "expr": "\"map with multiple key types: %s\".format([{1: \"value1\", uint(2): \"value2\", true: double(\"NaN\")}])",
+            "expr": "\"%s\".format([{1: \"value1\", uint(2): \"value2\", true: double(\"NaN\")}])",
             "value": {
-              "stringValue": "map with multiple key types: {1:\"value1\", 2:\"value2\", true:\"NaN\"}"
+              "stringValue": "{1: value1, 2: value2, true: NaN}"
             }
           },
           {
             "name": "boolean support for %s",
-            "expr": "\"true bool: %s, false bool: %s\".format([true, false])",
+            "expr": "\"%s, %s\".format([true, false])",
             "value": {
-              "stringValue": "true bool: true, false bool: false"
+              "stringValue": "true, false"
             }
           },
           {
             "name": "dyntype support for string formatting clause",
-            "expr": "\"dynamic string: %s\".format([dyn(\"a string\")])",
+            "expr": "\"%s\".format([dyn(\"a string\")])",
             "value": {
-              "stringValue": "dynamic string: a string"
+              "stringValue": "a string"
             }
           },
           {
             "name": "dyntype support for numbers with string formatting clause",
-            "expr": "\"dynIntStr: %s dynDoubleStr: %s\".format([dyn(32), dyn(56.8)])",
+            "expr": "\"%s, %s\".format([dyn(32), dyn(56.8)])",
             "value": {
-              "stringValue": "dynIntStr: 32 dynDoubleStr: 56.8"
+              "stringValue": "32, 56.8"
             }
           },
           {
             "name": "dyntype support for integer formatting clause",
-            "expr": "\"dynamic int: %d\".format([dyn(128)])",
+            "expr": "\"%d\".format([dyn(128)])",
             "value": {
-              "stringValue": "dynamic int: 128"
+              "stringValue": "128"
             }
           },
           {
             "name": "dyntype support for integer formatting clause (unsigned)",
-            "expr": "\"dynamic unsigned int: %d\".format([dyn(256u)])",
+            "expr": "\"%d\".format([dyn(256u)])",
             "value": {
-              "stringValue": "dynamic unsigned int: 256"
+              "stringValue": "256"
             }
           },
           {
             "name": "dyntype support for hex formatting clause",
-            "expr": "\"dynamic hex int: %x\".format([dyn(22)])",
+            "expr": "\"%x\".format([dyn(22)])",
             "value": {
-              "stringValue": "dynamic hex int: 16"
+              "stringValue": "16"
             }
           },
           {
             "name": "dyntype support for hex formatting clause (uppercase)",
-            "expr": "\"dynamic hex int: %X (uppercase)\".format([dyn(26)])",
+            "expr": "\"%X\".format([dyn(26)])",
             "value": {
-              "stringValue": "dynamic hex int: 1A (uppercase)"
+              "stringValue": "1A"
             }
           },
           {
             "name": "dyntype support for unsigned hex formatting clause",
-            "expr": "\"dynamic hex int: %x (unsigned)\".format([dyn(500u)])",
+            "expr": "\"%x\".format([dyn(500u)])",
             "value": {
-              "stringValue": "dynamic hex int: 1f4 (unsigned)"
+              "stringValue": "1f4"
             }
           },
           {
             "name": "dyntype support for fixed-point formatting clause",
-            "expr": "\"dynamic double: %.3f\".format([dyn(4.5)])",
+            "expr": "\"%.3f\".format([dyn(4.5)])",
             "value": {
-              "stringValue": "dynamic double: 4.500"
+              "stringValue": "4.500"
             }
           },
           {
             "name": "dyntype support for scientific notation",
-            "expr": "\"(dyntype) e: %e\".format([dyn(2.71828)])",
+            "expr": "\"%e\".format([dyn(2.71828)])",
             "value": {
-              "stringValue": "(dyntype) e: 2.718280 × 10⁰⁰"
+              "stringValue": "2.718280e+00"
             }
           },
           {
-            "name": "dyntype NaN/infinity support for fixed-point",
-            "expr": "\"NaN: %f, infinity: %f\".format([dyn(\"NaN\"), dyn(\"Infinity\")])",
+            "name": "dyntype NaN/infinity support",
+            "expr": "\"%s\".format([[double(\"NaN\"), double(\"Infinity\"), double(\"-Infinity\")]])",
             "value": {
-              "stringValue": "NaN: NaN, infinity: ∞"
+              "stringValue": "[NaN, Infinity, -Infinity]"
             }
           },
           {
             "name": "dyntype support for timestamp",
-            "expr": "\"dyntype timestamp: %s\".format([dyn(timestamp(\"2009-11-10T23:00:00Z\"))])",
+            "expr": "\"%s\".format([dyn(timestamp(\"2009-11-10T23:00:00Z\"))])",
             "value": {
-              "stringValue": "dyntype timestamp: 2009-11-10T23:00:00Z"
+              "stringValue": "2009-11-10T23:00:00Z"
             }
           },
           {
             "name": "dyntype support for duration",
-            "expr": "\"dyntype duration: %s\".format([dyn(duration(\"8747s\"))])",
+            "expr": "\"%s\".format([dyn(duration(\"8747s\"))])",
             "value": {
-              "stringValue": "dyntype duration: 8747s"
+              "stringValue": "8747s"
             }
           },
           {
             "name": "dyntype support for lists",
-            "expr": "\"dyntype list: %s\".format([dyn([6, 4.2, \"a string\"])])",
+            "expr": "\"%s\".format([dyn([6, 4.2, \"a string\"])])",
             "value": {
-              "stringValue": "dyntype list: [6, 4.200000, \"a string\"]"
+              "stringValue": "[6, 4.2, a string]"
             }
           },
           {
             "name": "dyntype support for maps",
-            "expr": "\"dyntype map: %s\".format([{\"strKey\":\"x\", 6:duration(\"422s\"), true:42}])",
+            "expr": "\"%s\".format([{\"strKey\":\"x\", 6:duration(\"422s\"), true:42}])",
             "value": {
-              "stringValue": "dyntype map: {\"strKey\":\"x\", 6:duration(\"422s\"), true:42}"
-            }
-          },
-          {
-            "name": "message field support",
-            "expr": "\"message field msg.single_int32: %d, msg.single_double: %.1f\".format([2, 1.0])",
-            "value": {
-              "stringValue": "message field msg.single_int32: 2, msg.single_double: 1.0"
+              "stringValue": "{6: 422s, strKey: x, true: 42}"
             }
           },
           {
@@ -18071,12 +19317,12 @@ export const testdataJson: JsonObject[] = [
             "bindings": {
               "str_var": {
                 "value": {
-                  "stringValue": "str is %s and some more"
+                  "stringValue": "%s"
                 }
               }
             },
             "value": {
-              "stringValue": "str is filler and some more"
+              "stringValue": "filler"
             }
           },
           {
@@ -18104,7 +19350,7 @@ export const testdataJson: JsonObject[] = [
             }
           },
           {
-            "name": "substution inside escaped percent signs in a string variable",
+            "name": "substitution inside escaped percent signs in a string variable",
             "expr": "str_var.format([\"text\"])",
             "typeEnv": [
               {
@@ -18167,12 +19413,12 @@ export const testdataJson: JsonObject[] = [
             "bindings": {
               "str_var": {
                 "value": {
-                  "stringValue": "this is 5 in binary: %b"
+                  "stringValue": "%b"
                 }
               }
             },
             "value": {
-              "stringValue": "this is 5 in binary: 101"
+              "stringValue": "101"
             }
           },
           {
@@ -18196,7 +19442,7 @@ export const testdataJson: JsonObject[] = [
               }
             },
             "value": {
-              "stringValue": "1.052033 × 10⁰³"
+              "stringValue": "1.052033e+03"
             }
           },
           {
@@ -18228,10 +19474,6 @@ export const testdataJson: JsonObject[] = [
       {
         "name": "format_errors",
         "test": [
-          {
-            "name": "multiline",
-            "expr": "strings.quote(\"first\\nsecond\") == \"\\\"first\\\\nsecond\\\"\""
-          },
           {
             "name": "unrecognized formatting clause",
             "expr": "\"%a\".format([1])",
@@ -18908,6 +20150,13 @@ export const testdataJson: JsonObject[] = [
             "value": {
               "typeValue": "google.protobuf.Timestamp"
             }
+          },
+          {
+            "name": "type_comparison",
+            "expr": "google.protobuf.Timestamp == type(timestamp('2009-02-13T23:31:30Z'))",
+            "value": {
+              "boolValue": true
+            }
           }
         ]
       },
@@ -18927,6 +20176,13 @@ export const testdataJson: JsonObject[] = [
             "expr": "type(duration('1000000s'))",
             "value": {
               "typeValue": "google.protobuf.Duration"
+            }
+          },
+          {
+            "name": "type_comparison",
+            "expr": "google.protobuf.Duration == type(duration('1000000s'))",
+            "value": {
+              "boolValue": true
             }
           }
         ]
@@ -19634,7 +20890,7 @@ export const testdataJson: JsonObject[] = [
         ]
       },
       {
-        "name": "complex_intializers",
+        "name": "complex_initializers",
         "test": [
           {
             "name": "list",
@@ -19758,6 +21014,56 @@ export const testdataJson: JsonObject[] = [
                 }
               }
             }
+          },
+          {
+            "name": "enum_field",
+            "expr": "TestAllTypes{}.standalone_enum",
+            "container": "cel.expr.conformance.proto3",
+            "typedResult": {
+              "result": {
+                "int64Value": "0"
+              },
+              "deducedType": {
+                "primitive": "INT64"
+              }
+            }
+          },
+          {
+            "name": "repeated_enum_field",
+            "expr": "TestAllTypes{}.repeated_nested_enum",
+            "container": "cel.expr.conformance.proto3",
+            "typedResult": {
+              "result": {
+                "listValue": {}
+              },
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "primitive": "INT64"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "enum_map_field",
+            "expr": "TestAllTypes{}.map_int32_enum",
+            "container": "cel.expr.conformance.proto3",
+            "typedResult": {
+              "result": {
+                "mapValue": {}
+              },
+              "deducedType": {
+                "mapType": {
+                  "keyType": {
+                    "primitive": "INT64"
+                  },
+                  "valueType": {
+                    "primitive": "INT64"
+                  }
+                }
+              }
+            }
           }
         ]
       },
@@ -19835,6 +21141,825 @@ export const testdataJson: JsonObject[] = [
             "typedResult": {
               "deducedType": {
                 "primitive": "STRING"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "flexible_type_parameter_assignment",
+        "test": [
+          {
+            "name": "list_parameter",
+            "expr": "[[], [[]], [[[]]], [[[[]]]]]",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "listType": {
+                      "elemType": {
+                        "listType": {
+                          "elemType": {
+                            "listType": {
+                              "elemType": {
+                                "listType": {
+                                  "elemType": {
+                                    "dyn": {}
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "list_parameter_order_independent",
+            "expr": "[[[[[]]]], [], [[[]]]]",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "listType": {
+                      "elemType": {
+                        "listType": {
+                          "elemType": {
+                            "listType": {
+                              "elemType": {
+                                "listType": {
+                                  "elemType": {
+                                    "dyn": {}
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "comprehension_type_var_aliasing",
+            "expr": "msg.repeated_nested_message.map(x, x).map(y, y.bb)",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "primitive": "INT64"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "overload_type_var_aliasing",
+            "expr": "([] + msg.repeated_nested_message + [])[0].bb",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "primitive": "INT64"
+              }
+            }
+          },
+          {
+            "name": "unconstrained_type_var_as_dyn",
+            "expr": "([].map(x,x))[0].foo",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "dyn": {}
+              }
+            }
+          },
+          {
+            "name": "list_parameters_do_not_unify",
+            "expr": "[msg.single_int64_wrapper, msg.single_string_wrapper]",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "dyn": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "optional_none",
+            "expr": "[optional.none(), optional.of(1)]",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "abstractType": {
+                      "name": "optional_type",
+                      "parameterTypes": [
+                        {
+                          "primitive": "INT64"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "optional_none_2",
+            "expr": "[optional.of(1), optional.none()]",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "abstractType": {
+                      "name": "optional_type",
+                      "parameterTypes": [
+                        {
+                          "primitive": "INT64"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "optional_dyn_promotion",
+            "expr": "[optional.of(1), optional.of(dyn(1))]",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "abstractType": {
+                      "name": "optional_type",
+                      "parameterTypes": [
+                        {
+                          "dyn": {}
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "optional_dyn_promotion_2",
+            "expr": "[optional.of(dyn(1)), optional.of(1)]",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "abstractType": {
+                      "name": "optional_type",
+                      "parameterTypes": [
+                        {
+                          "dyn": {}
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "optional_in_ternary",
+            "expr": "true ? optional.of(dyn(1)) : optional.of(1)",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "abstractType": {
+                  "name": "optional_type",
+                  "parameterTypes": [
+                    {
+                      "dyn": {}
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "wrappers",
+        "test": [
+          {
+            "name": "wrapper_promotion",
+            "expr": "[msg.single_int64_wrapper, msg.single_int64]",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "wrapper": "INT64"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "wrapper_promotion_2",
+            "expr": "[msg.single_int64, msg.single_int64_wrapper]",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "wrapper": "INT64"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "wrapper_dyn_promotion",
+            "expr": "[msg.single_int64_wrapper, msg.single_int64, dyn(1)]",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "dyn": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "wrapper_dyn_promotion_2",
+            "expr": "[dyn(1), msg.single_int64_wrapper, msg.single_int64]",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "listType": {
+                  "elemType": {
+                    "dyn": {}
+                  }
+                }
+              }
+            }
+          },
+          {
+            "name": "wrapper_primitive_assignable",
+            "expr": "msg.single_int64_wrapper + 1",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "primitive": "INT64"
+              }
+            }
+          },
+          {
+            "name": "wrapper_null_assignable",
+            "expr": "msg.single_int64_wrapper == null",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "primitive": "BOOL"
+              }
+            }
+          },
+          {
+            "name": "wrapper_ternary_parameter_assignment",
+            "expr": "false ? msg.single_int64_wrapper : null",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "wrapper": "INT64"
+              }
+            }
+          },
+          {
+            "name": "wrapper_ternary_parameter_assignment_2",
+            "expr": "true ? msg.single_int64_wrapper : 42",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "wrapper": "INT64"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "type_parameters",
+        "test": [
+          {
+            "name": "multiple_parameters_generality",
+            "expr": "[tuple(1, 2u, 3.0), tuple(dyn(1), dyn(2u), dyn(3.0))][0]",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "tuple",
+                "function": {
+                  "overloads": [
+                    {
+                      "overloadId": "tuple_T_U_V",
+                      "params": [
+                        {
+                          "typeParam": "T"
+                        },
+                        {
+                          "typeParam": "U"
+                        },
+                        {
+                          "typeParam": "V"
+                        }
+                      ],
+                      "resultType": {
+                        "abstractType": {
+                          "name": "tuple",
+                          "parameterTypes": [
+                            {
+                              "typeParam": "T"
+                            },
+                            {
+                              "typeParam": "U"
+                            },
+                            {
+                              "typeParam": "V"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "abstractType": {
+                  "name": "tuple",
+                  "parameterTypes": [
+                    {
+                      "dyn": {}
+                    },
+                    {
+                      "dyn": {}
+                    },
+                    {
+                      "dyn": {}
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "name": "multiple_parameters_generality_2",
+            "expr": "sort(tuple(dyn(1), 2u, 3.0))",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "tuple",
+                "function": {
+                  "overloads": [
+                    {
+                      "overloadId": "tuple_T_U_V",
+                      "params": [
+                        {
+                          "typeParam": "T"
+                        },
+                        {
+                          "typeParam": "U"
+                        },
+                        {
+                          "typeParam": "V"
+                        }
+                      ],
+                      "resultType": {
+                        "abstractType": {
+                          "name": "tuple",
+                          "parameterTypes": [
+                            {
+                              "typeParam": "T"
+                            },
+                            {
+                              "typeParam": "U"
+                            },
+                            {
+                              "typeParam": "V"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "sort",
+                "function": {
+                  "overloads": [
+                    {
+                      "overloadId": "sort_tuple_T_T_T",
+                      "params": [
+                        {
+                          "abstractType": {
+                            "name": "tuple",
+                            "parameterTypes": [
+                              {
+                                "typeParam": "T"
+                              },
+                              {
+                                "typeParam": "T"
+                              },
+                              {
+                                "typeParam": "T"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "resultType": {
+                        "abstractType": {
+                          "name": "tuple",
+                          "parameterTypes": [
+                            {
+                              "typeParam": "T"
+                            },
+                            {
+                              "typeParam": "T"
+                            },
+                            {
+                              "typeParam": "T"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "abstractType": {
+                  "name": "tuple",
+                  "parameterTypes": [
+                    {
+                      "dyn": {}
+                    },
+                    {
+                      "dyn": {}
+                    },
+                    {
+                      "dyn": {}
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "name": "multiple_parameters_parameterized_ovl",
+            "expr": "tuple(1, 2u, 3.0) == tuple(1, dyn(2u), dyn(3.0))",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "tuple",
+                "function": {
+                  "overloads": [
+                    {
+                      "overloadId": "tuple_T_U_V",
+                      "params": [
+                        {
+                          "typeParam": "T"
+                        },
+                        {
+                          "typeParam": "U"
+                        },
+                        {
+                          "typeParam": "V"
+                        }
+                      ],
+                      "resultType": {
+                        "abstractType": {
+                          "name": "tuple",
+                          "parameterTypes": [
+                            {
+                              "typeParam": "T"
+                            },
+                            {
+                              "typeParam": "U"
+                            },
+                            {
+                              "typeParam": "V"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "primitive": "BOOL"
+              }
+            }
+          },
+          {
+            "name": "multiple_parameters_parameterized_ovl_2",
+            "expr": "tuple(dyn(1), dyn(2u), 3.0) == tuple(1, 2u, 3.0)",
+            "checkOnly": true,
+            "typeEnv": [
+              {
+                "name": "tuple",
+                "function": {
+                  "overloads": [
+                    {
+                      "overloadId": "tuple_T_U_V",
+                      "params": [
+                        {
+                          "typeParam": "T"
+                        },
+                        {
+                          "typeParam": "U"
+                        },
+                        {
+                          "typeParam": "V"
+                        }
+                      ],
+                      "resultType": {
+                        "abstractType": {
+                          "name": "tuple",
+                          "parameterTypes": [
+                            {
+                              "typeParam": "T"
+                            },
+                            {
+                              "typeParam": "U"
+                            },
+                            {
+                              "typeParam": "V"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "typedResult": {
+              "deducedType": {
+                "primitive": "BOOL"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "name": "legacy_nullable_types",
+        "test": [
+          {
+            "name": "null_assignable_to_message_parameter_candidate",
+            "expr": "[msg, null][0]",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            },
+            "typedResult": {
+              "result": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes"
+                }
+              },
+              "deducedType": {
+                "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+              }
+            }
+          },
+          {
+            "name": "null_assignable_to_duration_parameter_candidate",
+            "expr": "[msg.single_duration, null][0]",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            },
+            "typedResult": {
+              "result": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Duration",
+                  "value": "0s"
+                }
+              },
+              "deducedType": {
+                "wellKnown": "DURATION"
+              }
+            }
+          },
+          {
+            "name": "null_assignable_to_timestamp_parameter_candidate",
+            "expr": "[msg.single_timestamp, null][0]",
+            "typeEnv": [
+              {
+                "name": "msg",
+                "ident": {
+                  "type": {
+                    "messageType": "cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            ],
+            "bindings": {
+              "msg": {
+                "value": {
+                  "objectValue": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes"
+                  }
+                }
+              }
+            },
+            "typedResult": {
+              "result": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Timestamp",
+                  "value": "1970-01-01T00:00:00Z"
+                }
+              },
+              "deducedType": {
+                "wellKnown": "TIMESTAMP"
+              }
+            }
+          },
+          {
+            "name": "null_assignable_to_abstract_parameter_candidate",
+            "expr": "[optional.of(1), null][0]",
+            "checkOnly": true,
+            "typedResult": {
+              "deducedType": {
+                "abstractType": {
+                  "name": "optional_type",
+                  "parameterTypes": [
+                    {
+                      "primitive": "INT64"
+                    }
+                  ]
+                }
               }
             }
           }

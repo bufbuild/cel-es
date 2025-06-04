@@ -39,6 +39,8 @@ export const file_cel_expr_conformance_test_simple: GenFile = /*@__PURE__*/
  * A file is the unit of granularity for selecting conformance tests,
  * so tests of optional features should be segregated into separate files.
  *
+ * Deprecated: Use cel.expr.conformance.test.Suite
+ *
  * @generated from message cel.expr.conformance.test.SimpleTestFile
  */
 export type SimpleTestFile = Message<"cel.expr.conformance.test.SimpleTestFile"> & {

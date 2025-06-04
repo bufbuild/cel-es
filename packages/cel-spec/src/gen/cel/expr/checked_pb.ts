@@ -28,7 +28,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file cel/expr/checked.proto.
  */
 export const file_cel_expr_checked: GenFile = /*@__PURE__*/
-  fileDesc("ChZjZWwvZXhwci9jaGVja2VkLnByb3RvEghjZWwuZXhwciLsAgoLQ2hlY2tlZEV4cHISPgoNcmVmZXJlbmNlX21hcBgCIAMoCzInLmNlbC5leHByLkNoZWNrZWRFeHByLlJlZmVyZW5jZU1hcEVudHJ5EjQKCHR5cGVfbWFwGAMgAygLMiIuY2VsLmV4cHIuQ2hlY2tlZEV4cHIuVHlwZU1hcEVudHJ5EikKC3NvdXJjZV9pbmZvGAUgASgLMhQuY2VsLmV4cHIuU291cmNlSW5mbxIUCgxleHByX3ZlcnNpb24YBiABKAkSHAoEZXhwchgEIAEoCzIOLmNlbC5leHByLkV4cHIaSAoRUmVmZXJlbmNlTWFwRW50cnkSCwoDa2V5GAEgASgDEiIKBXZhbHVlGAIgASgLMhMuY2VsLmV4cHIuUmVmZXJlbmNlOgI4ARo+CgxUeXBlTWFwRW50cnkSCwoDa2V5GAEgASgDEh0KBXZhbHVlGAIgASgLMg4uY2VsLmV4cHIuVHlwZToCOAEioggKBFR5cGUSJQoDZHluGAEgASgLMhYuZ29vZ2xlLnByb3RvYnVmLkVtcHR5SAASKgoEbnVsbBgCIAEoDjIaLmdvb2dsZS5wcm90b2J1Zi5OdWxsVmFsdWVIABIxCglwcmltaXRpdmUYAyABKA4yHC5jZWwuZXhwci5UeXBlLlByaW1pdGl2ZVR5cGVIABIvCgd3cmFwcGVyGAQgASgOMhwuY2VsLmV4cHIuVHlwZS5QcmltaXRpdmVUeXBlSAASMgoKd2VsbF9rbm93bhgFIAEoDjIcLmNlbC5leHByLlR5cGUuV2VsbEtub3duVHlwZUgAEiwKCWxpc3RfdHlwZRgGIAEoCzIXLmNlbC5leHByLlR5cGUuTGlzdFR5cGVIABIqCghtYXBfdHlwZRgHIAEoCzIWLmNlbC5leHByLlR5cGUuTWFwVHlwZUgAEi8KCGZ1bmN0aW9uGAggASgLMhsuY2VsLmV4cHIuVHlwZS5GdW5jdGlvblR5cGVIABIWCgxtZXNzYWdlX3R5cGUYCSABKAlIABIUCgp0eXBlX3BhcmFtGAogASgJSAASHgoEdHlwZRgLIAEoCzIOLmNlbC5leHByLlR5cGVIABInCgVlcnJvchgMIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eUgAEjQKDWFic3RyYWN0X3R5cGUYDiABKAsyGy5jZWwuZXhwci5UeXBlLkFic3RyYWN0VHlwZUgAGi0KCExpc3RUeXBlEiEKCWVsZW1fdHlwZRgBIAEoCzIOLmNlbC5leHByLlR5cGUaTwoHTWFwVHlwZRIgCghrZXlfdHlwZRgBIAEoCzIOLmNlbC5leHByLlR5cGUSIgoKdmFsdWVfdHlwZRgCIAEoCzIOLmNlbC5leHByLlR5cGUaVgoMRnVuY3Rpb25UeXBlEiMKC3Jlc3VsdF90eXBlGAEgASgLMg4uY2VsLmV4cHIuVHlwZRIhCglhcmdfdHlwZXMYAiADKAsyDi5jZWwuZXhwci5UeXBlGkUKDEFic3RyYWN0VHlwZRIMCgRuYW1lGAEgASgJEicKD3BhcmFtZXRlcl90eXBlcxgCIAMoCzIOLmNlbC5leHByLlR5cGUicwoNUHJpbWl0aXZlVHlwZRIeChpQUklNSVRJVkVfVFlQRV9VTlNQRUNJRklFRBAAEggKBEJPT0wQARIJCgVJTlQ2NBACEgoKBlVJTlQ2NBADEgoKBkRPVUJMRRAEEgoKBlNUUklORxAFEgkKBUJZVEVTEAYiVgoNV2VsbEtub3duVHlwZRIfChtXRUxMX0tOT1dOX1RZUEVfVU5TUEVDSUZJRUQQABIHCgNBTlkQARINCglUSU1FU1RBTVAQAhIMCghEVVJBVElPThADQgsKCXR5cGVfa2luZCLJAwoERGVjbBIMCgRuYW1lGAEgASgJEikKBWlkZW50GAIgASgLMhguY2VsLmV4cHIuRGVjbC5JZGVudERlY2xIABIvCghmdW5jdGlvbhgDIAEoCzIbLmNlbC5leHByLkRlY2wuRnVuY3Rpb25EZWNsSAAaWQoJSWRlbnREZWNsEhwKBHR5cGUYASABKAsyDi5jZWwuZXhwci5UeXBlEiEKBXZhbHVlGAIgASgLMhIuY2VsLmV4cHIuQ29uc3RhbnQSCwoDZG9jGAMgASgJGu4BCgxGdW5jdGlvbkRlY2wSNwoJb3ZlcmxvYWRzGAEgAygLMiQuY2VsLmV4cHIuRGVjbC5GdW5jdGlvbkRlY2wuT3ZlcmxvYWQapAEKCE92ZXJsb2FkEhMKC292ZXJsb2FkX2lkGAEgASgJEh4KBnBhcmFtcxgCIAMoCzIOLmNlbC5leHByLlR5cGUSEwoLdHlwZV9wYXJhbXMYAyADKAkSIwoLcmVzdWx0X3R5cGUYBCABKAsyDi5jZWwuZXhwci5UeXBlEhwKFGlzX2luc3RhbmNlX2Z1bmN0aW9uGAUgASgIEgsKA2RvYxgGIAEoCUILCglkZWNsX2tpbmQiUQoJUmVmZXJlbmNlEgwKBG5hbWUYASABKAkSEwoLb3ZlcmxvYWRfaWQYAyADKAkSIQoFdmFsdWUYBCABKAsyEi5jZWwuZXhwci5Db25zdGFudEIsCgxkZXYuY2VsLmV4cHJCCURlY2xQcm90b1ABWgxjZWwuZGV2L2V4cHL4AQFiBnByb3RvMw", [file_cel_expr_syntax, file_google_protobuf_empty, file_google_protobuf_struct]);
+  fileDesc("ChZjZWwvZXhwci9jaGVja2VkLnByb3RvEghjZWwuZXhwciLsAgoLQ2hlY2tlZEV4cHISPgoNcmVmZXJlbmNlX21hcBgCIAMoCzInLmNlbC5leHByLkNoZWNrZWRFeHByLlJlZmVyZW5jZU1hcEVudHJ5EjQKCHR5cGVfbWFwGAMgAygLMiIuY2VsLmV4cHIuQ2hlY2tlZEV4cHIuVHlwZU1hcEVudHJ5EikKC3NvdXJjZV9pbmZvGAUgASgLMhQuY2VsLmV4cHIuU291cmNlSW5mbxIUCgxleHByX3ZlcnNpb24YBiABKAkSHAoEZXhwchgEIAEoCzIOLmNlbC5leHByLkV4cHIaSAoRUmVmZXJlbmNlTWFwRW50cnkSCwoDa2V5GAEgASgDEiIKBXZhbHVlGAIgASgLMhMuY2VsLmV4cHIuUmVmZXJlbmNlOgI4ARo+CgxUeXBlTWFwRW50cnkSCwoDa2V5GAEgASgDEh0KBXZhbHVlGAIgASgLMg4uY2VsLmV4cHIuVHlwZToCOAEioggKBFR5cGUSJQoDZHluGAEgASgLMhYuZ29vZ2xlLnByb3RvYnVmLkVtcHR5SAASKgoEbnVsbBgCIAEoDjIaLmdvb2dsZS5wcm90b2J1Zi5OdWxsVmFsdWVIABIxCglwcmltaXRpdmUYAyABKA4yHC5jZWwuZXhwci5UeXBlLlByaW1pdGl2ZVR5cGVIABIvCgd3cmFwcGVyGAQgASgOMhwuY2VsLmV4cHIuVHlwZS5QcmltaXRpdmVUeXBlSAASMgoKd2VsbF9rbm93bhgFIAEoDjIcLmNlbC5leHByLlR5cGUuV2VsbEtub3duVHlwZUgAEiwKCWxpc3RfdHlwZRgGIAEoCzIXLmNlbC5leHByLlR5cGUuTGlzdFR5cGVIABIqCghtYXBfdHlwZRgHIAEoCzIWLmNlbC5leHByLlR5cGUuTWFwVHlwZUgAEi8KCGZ1bmN0aW9uGAggASgLMhsuY2VsLmV4cHIuVHlwZS5GdW5jdGlvblR5cGVIABIWCgxtZXNzYWdlX3R5cGUYCSABKAlIABIUCgp0eXBlX3BhcmFtGAogASgJSAASHgoEdHlwZRgLIAEoCzIOLmNlbC5leHByLlR5cGVIABInCgVlcnJvchgMIAEoCzIWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eUgAEjQKDWFic3RyYWN0X3R5cGUYDiABKAsyGy5jZWwuZXhwci5UeXBlLkFic3RyYWN0VHlwZUgAGi0KCExpc3RUeXBlEiEKCWVsZW1fdHlwZRgBIAEoCzIOLmNlbC5leHByLlR5cGUaTwoHTWFwVHlwZRIgCghrZXlfdHlwZRgBIAEoCzIOLmNlbC5leHByLlR5cGUSIgoKdmFsdWVfdHlwZRgCIAEoCzIOLmNlbC5leHByLlR5cGUaVgoMRnVuY3Rpb25UeXBlEiMKC3Jlc3VsdF90eXBlGAEgASgLMg4uY2VsLmV4cHIuVHlwZRIhCglhcmdfdHlwZXMYAiADKAsyDi5jZWwuZXhwci5UeXBlGkUKDEFic3RyYWN0VHlwZRIMCgRuYW1lGAEgASgJEicKD3BhcmFtZXRlcl90eXBlcxgCIAMoCzIOLmNlbC5leHByLlR5cGUicwoNUHJpbWl0aXZlVHlwZRIeChpQUklNSVRJVkVfVFlQRV9VTlNQRUNJRklFRBAAEggKBEJPT0wQARIJCgVJTlQ2NBACEgoKBlVJTlQ2NBADEgoKBkRPVUJMRRAEEgoKBlNUUklORxAFEgkKBUJZVEVTEAYiVgoNV2VsbEtub3duVHlwZRIfChtXRUxMX0tOT1dOX1RZUEVfVU5TUEVDSUZJRUQQABIHCgNBTlkQARINCglUSU1FU1RBTVAQAhIMCghEVVJBVElPThADQgsKCXR5cGVfa2luZCLWAwoERGVjbBIMCgRuYW1lGAEgASgJEikKBWlkZW50GAIgASgLMhguY2VsLmV4cHIuRGVjbC5JZGVudERlY2xIABIvCghmdW5jdGlvbhgDIAEoCzIbLmNlbC5leHByLkRlY2wuRnVuY3Rpb25EZWNsSAAaWQoJSWRlbnREZWNsEhwKBHR5cGUYASABKAsyDi5jZWwuZXhwci5UeXBlEiEKBXZhbHVlGAIgASgLMhIuY2VsLmV4cHIuQ29uc3RhbnQSCwoDZG9jGAMgASgJGvsBCgxGdW5jdGlvbkRlY2wSNwoJb3ZlcmxvYWRzGAEgAygLMiQuY2VsLmV4cHIuRGVjbC5GdW5jdGlvbkRlY2wuT3ZlcmxvYWQSCwoDZG9jGAIgASgJGqQBCghPdmVybG9hZBITCgtvdmVybG9hZF9pZBgBIAEoCRIeCgZwYXJhbXMYAiADKAsyDi5jZWwuZXhwci5UeXBlEhMKC3R5cGVfcGFyYW1zGAMgAygJEiMKC3Jlc3VsdF90eXBlGAQgASgLMg4uY2VsLmV4cHIuVHlwZRIcChRpc19pbnN0YW5jZV9mdW5jdGlvbhgFIAEoCBILCgNkb2MYBiABKAlCCwoJZGVjbF9raW5kIlEKCVJlZmVyZW5jZRIMCgRuYW1lGAEgASgJEhMKC292ZXJsb2FkX2lkGAMgAygJEiEKBXZhbHVlGAQgASgLMhIuY2VsLmV4cHIuQ29uc3RhbnRCLAoMZGV2LmNlbC5leHByQglEZWNsUHJvdG9QAVoMY2VsLmRldi9leHBy+AEBYgZwcm90bzM", [file_cel_expr_syntax, file_google_protobuf_empty, file_google_protobuf_struct]);
 
 /**
  * A CEL expression which has been successfully type checked.
@@ -550,6 +550,20 @@ export type Decl_IdentDecl = Message<"cel.expr.Decl.IdentDecl"> & {
   /**
    * Documentation string for the identifier.
    *
+   * Provide a brief description of what the variable represents and whether
+   * there are any constraints on the formatting or supported value range.
+   *
+   * Examples:
+   *
+   *    'request.auth.principal' - string which uniquely identifies an
+   *    authenticated principal. For JSON Web Tokens (JWTs), the principal
+   *    is the combination of the issuer ('iss') and subject ('sub') token
+   *    fields concatenated by a forward slash: iss + `/` + sub.
+   *
+   *    'min_cpus' - integer value indicates the minimum number of CPUs
+   *    required for a compute cluster. The 'min_cpus' value must be 
+   *    greater than zero and less than 'max_cpus' or 64 whichever is less.
+   *
    * @generated from field: string doc = 3;
    */
   doc: string;
@@ -578,6 +592,23 @@ export type Decl_FunctionDecl = Message<"cel.expr.Decl.FunctionDecl"> & {
    * @generated from field: repeated cel.expr.Decl.FunctionDecl.Overload overloads = 1;
    */
   overloads: Decl_FunctionDecl_Overload[];
+
+  /**
+   * Documentation string for the function that indicates the general purpose
+   * of the function and its behavior.
+   *
+   * Documentation strings for the function should be general purpose with
+   * specific examples provided in the overload doc string.
+   *
+   * Examples:
+   *
+   *     The 'in' operator tests whether an item exists in a collection.
+   *
+   *     The 'substring' function returns a substring of a target string.
+   *
+   * @generated from field: string doc = 2;
+   */
+  doc: string;
 };
 
 /**
@@ -660,6 +691,27 @@ export type Decl_FunctionDecl_Overload = Message<"cel.expr.Decl.FunctionDecl.Ove
 
   /**
    * Documentation string for the overload.
+   *
+   * Provide examples of the overload behavior, preferring to use literal
+   * values as input with a comment on the return value.
+   *
+   * Examples:
+   *
+   *    // Determine whether a value of type <V> exists within a list<V>.
+   *    2 in [1, 2, 3] // returns true
+   *
+   *    // Determine whether a key of type <K> exists within a map<K,V>.
+   *    'hello' in {'hi': 'you', 'hello': 'there'}  // returns true
+   *    'help' in {'hi': 'you', 'hello': 'there'}  // returns false
+   *
+   *    // Take the substring of a string starting at a specific character
+   *    // offset (inclusive).
+   *    "tacocat".substring(1) // returns "acocat"
+   *    "tacocat".substring(20) // error
+   *
+   *    // Take the substring of a string starting at a specific character
+   *    // offset (inclusive) and ending at the given offset (exclusive).
+   *    "tacocat".substring(1, 6) // returns "acoca"
    *
    * @generated from field: string doc = 6;
    */
