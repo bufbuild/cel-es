@@ -372,7 +372,11 @@ const invalidPatterns = [
 ];
 
 const flagPattern = new RegExp(/^\(\?(?<flags>[ims\-]+)\)/);
-const matchesStringOp: StrictBinaryOp = (_id: number, x: CelVal, y: CelVal) => {
+export const matchesStringOp: StrictBinaryOp = (
+  _id: number,
+  x: CelVal,
+  y: CelVal,
+) => {
   if (typeof x === "string" && typeof y === "string") {
     for (const invalidPattern of invalidPatterns) {
       if (invalidPattern.test(y)) {
