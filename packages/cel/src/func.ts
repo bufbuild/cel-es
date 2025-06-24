@@ -19,7 +19,6 @@ import {
   type CelVal,
   CelType,
   CelError,
-  CelUnknown,
   type Unwrapper,
 } from "./value/value.js";
 
@@ -78,7 +77,7 @@ export class Func implements CallDispatch {
     }
 
     const vals = unwrapResults(args, unwrap);
-    if (vals instanceof CelError || vals instanceof CelUnknown) {
+    if (vals instanceof CelError) {
       return vals;
     }
     return this.call.op(id, vals);

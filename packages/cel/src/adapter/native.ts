@@ -20,7 +20,6 @@ import {
   isCelVal,
   CelError,
   CelMap,
-  CelUnknown,
   type CelValAdapter,
   CelList,
   CelObject,
@@ -86,7 +85,7 @@ class NativeValAdapter implements CelValAdapter {
       }
       return cel.value.map((v) => {
         const tmp = cel.adapter.toCel(v);
-        if (tmp instanceof CelError || tmp instanceof CelUnknown) {
+        if (tmp instanceof CelError) {
           return tmp;
         }
         return this.fromCel(tmp);
@@ -98,11 +97,11 @@ class NativeValAdapter implements CelValAdapter {
       const map = new Map();
       cel.value.forEach((v, k) => {
         const key = cel.adapter.toCel(k);
-        if (key instanceof CelError || key instanceof CelUnknown) {
+        if (key instanceof CelError) {
           return key;
         }
         const val = cel.adapter.toCel(v);
-        if (val instanceof CelError || val instanceof CelUnknown) {
+        if (val instanceof CelError) {
           return val;
         }
         map.set(this.fromCel(key), this.fromCel(val));
@@ -116,7 +115,7 @@ class NativeValAdapter implements CelValAdapter {
       const obj: { [key: string]: unknown } = {};
       for (const k of cel.getFields()) {
         const val = cel.accessByName(0, k);
-        if (val instanceof CelError || val instanceof CelUnknown) {
+        if (val instanceof CelError) {
           return val;
         } else if (val !== undefined) {
           obj[k] = this.fromCel(val);
@@ -164,11 +163,7 @@ class NativeValAdapter implements CelValAdapter {
     return Object.keys(value);
   }
 
-  isSetByName(
-    id: number,
-    obj: unknown,
-    name: string,
-  ): boolean | CelError | CelUnknown {
+  isSetByName(id: number, obj: unknown, name: string): boolean | CelError {
     return this.accessByName(id, obj, name) !== undefined;
   }
 

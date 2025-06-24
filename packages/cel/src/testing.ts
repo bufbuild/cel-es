@@ -15,7 +15,6 @@
 import {
   CelError,
   CelPlanner,
-  CelUnknown,
   EXPR_VAL_ADAPTER,
   makeStringExtFuncRegistry,
   ObjectActivation,
@@ -172,7 +171,7 @@ function assertResultEqual(
   result: CelResult,
   value: Value,
 ) {
-  if (result instanceof CelError || result instanceof CelUnknown) {
+  if (result instanceof CelError) {
     assert.deepEqual(result, value);
   } else {
     const evalValAdapter = new ExprValAdapter(registry);

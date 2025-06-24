@@ -55,7 +55,6 @@ import {
   CelObject,
   CelType,
   CelUint,
-  CelUnknown,
   coerceToBigInt,
   coerceToBool,
   coerceToBytes,
@@ -397,7 +396,7 @@ export class EvalHas implements Interpretable {
     const raw = this.attr.resolve(ctx);
     if (raw === undefined) {
       return false;
-    } else if (raw instanceof CelError || raw instanceof CelUnknown) {
+    } else if (raw instanceof CelError) {
       return raw;
     }
     return this.access.isPresent(ctx, raw);
@@ -457,7 +456,7 @@ export class EvalAttr implements Attribute, Interpretable {
     const val = this.attr.resolve(ctx);
     if (val === undefined) {
       return CelErrors.unresolvedAttr(this.id);
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
+    } else if (val instanceof CelError) {
       return val;
     }
 
@@ -494,7 +493,7 @@ export class EvalCall implements Interpretable {
     }
 
     const vals = coerceToValues(argVals);
-    if (vals instanceof CelError || vals instanceof CelUnknown) {
+    if (vals instanceof CelError) {
       return vals;
     }
     return CelErrors.overloadNotFound(
@@ -522,7 +521,7 @@ export class EvalObj implements InterpretableCtor {
   }
   eval(ctx: Activation): CelResult {
     const vals = coerceToValues(this.values.map((x) => x.eval(ctx)));
-    if (vals instanceof CelError || vals instanceof CelUnknown) {
+    if (vals instanceof CelError) {
       return vals;
     }
     const obj: { [key: string]: CelVal } = {};
@@ -536,18 +535,18 @@ export class EvalObj implements InterpretableCtor {
       switch (this.typeName) {
         case "google.protobuf.Any": {
           const typeUrl = coerceToString(this.id, obj.type_url);
-          if (typeUrl instanceof CelError || typeUrl instanceof CelUnknown) {
+          if (typeUrl instanceof CelError) {
             return typeUrl;
           }
           const value = coerceToBytes(this.id, obj.value);
-          if (value instanceof CelError || value instanceof CelUnknown) {
+          if (value instanceof CelError) {
             return value;
           }
           return create(AnySchema, { typeUrl: typeUrl, value: value });
         }
         case "google.protobuf.BoolValue": {
           const val = coerceToBool(this.id, obj.value);
-          if (val instanceof CelError || val instanceof CelUnknown) {
+          if (val instanceof CelError) {
             return val;
           }
           return create(BoolValueSchema, { value: val });
@@ -555,7 +554,7 @@ export class EvalObj implements InterpretableCtor {
         case "google.protobuf.UInt32Value":
         case "google.protobuf.UInt64Value": {
           const val = coerceToBigInt(this.id, obj.value);
-          if (val instanceof CelError || val instanceof CelUnknown) {
+          if (val instanceof CelError) {
             return val;
           }
           return create(UInt64ValueSchema, { value: val.valueOf() });
@@ -563,7 +562,7 @@ export class EvalObj implements InterpretableCtor {
         case "google.protobuf.Int32Value":
         case "google.protobuf.Int64Value": {
           const val = coerceToBigInt(this.id, obj.value);
-          if (val instanceof CelError || val instanceof CelUnknown) {
+          if (val instanceof CelError) {
             return val;
           }
           return create(Int64ValueSchema, { value: val.valueOf() });
@@ -571,21 +570,21 @@ export class EvalObj implements InterpretableCtor {
         case "google.protobuf.FloatValue":
         case "google.protobuf.DoubleValue": {
           const val = coerceToNumber(this.id, obj.value);
-          if (val instanceof CelError || val instanceof CelUnknown) {
+          if (val instanceof CelError) {
             return val;
           }
           return create(DoubleValueSchema, { value: val });
         }
         case "google.protobuf.StringValue": {
           const val = coerceToString(this.id, obj.value);
-          if (val instanceof CelError || val instanceof CelUnknown) {
+          if (val instanceof CelError) {
             return val;
           }
           return create(StringValueSchema, { value: val });
         }
         case "google.protobuf.BytesValue": {
           const val = coerceToBytes(this.id, obj.value);
-          if (val instanceof CelError || val instanceof CelUnknown) {
+          if (val instanceof CelError) {
             return val;
           }
           return create(BytesValueSchema, { value: val });
@@ -621,14 +620,12 @@ export class EvalList implements InterpretableCtor {
     const first = this.elems[0].eval(ctx);
     if (first instanceof CelError) {
       return first;
-    } else if (first instanceof CelUnknown) {
-      return first;
     }
     let elemType = type.getCelType(first);
     const elemVals: CelVal[] = [first];
     for (let i = 1; i < this.elems.length; i++) {
       const elemVal = this.elems[i].eval(ctx);
-      if (elemVal instanceof CelError || elemVal instanceof CelUnknown) {
+      if (elemVal instanceof CelError) {
         return elemVal;
       }
       if (elemType !== type.DYN && type.getCelType(elemVal) !== elemType) {
@@ -668,11 +665,11 @@ export class EvalMap implements InterpretableCtor {
     }
     const entries: Map<CelVal, CelVal> = new Map();
     const firstKey = this.keys[0].eval(ctx);
-    if (firstKey instanceof CelError || firstKey instanceof CelUnknown) {
+    if (firstKey instanceof CelError) {
       return firstKey;
     }
     const firstVal = this.values[0].eval(ctx);
-    if (firstVal instanceof CelError || firstVal instanceof CelUnknown) {
+    if (firstVal instanceof CelError) {
       return firstVal;
     }
     let keyType = type.getCelType(firstKey);
@@ -683,14 +680,14 @@ export class EvalMap implements InterpretableCtor {
     entries.set(firstKey, firstVal);
     for (let i = 1; i < this.keys.length; i++) {
       const key = this.keys[i].eval(ctx);
-      if (key instanceof CelError || key instanceof CelUnknown) {
+      if (key instanceof CelError) {
         return key;
       }
       if (keyType !== type.DYN && type.getCelType(key) !== keyType) {
         keyType = type.DYN;
       }
       const val = this.values[i].eval(ctx);
-      if (val instanceof CelError || val instanceof CelUnknown) {
+      if (val instanceof CelError) {
         return val;
       }
       if (valType !== type.DYN && type.getCelType(val) !== valType) {
@@ -721,11 +718,11 @@ export class EvalFold implements Interpretable {
 
   eval(ctx: Activation): CelResult {
     const foldRange = this.iterRange.eval(ctx);
-    if (foldRange instanceof CelError || foldRange instanceof CelUnknown) {
+    if (foldRange instanceof CelError) {
       return foldRange;
     }
     const accuInit = this.accu.eval(ctx);
-    if (accuInit instanceof CelError || accuInit instanceof CelUnknown) {
+    if (accuInit instanceof CelError) {
       return accuInit;
     }
     const accuCtx = new VarActivation(
@@ -734,7 +731,7 @@ export class EvalFold implements Interpretable {
       ctx,
     );
     const iterRange = this.iterRange.eval(ctx);
-    if (iterRange instanceof CelError || iterRange instanceof CelUnknown) {
+    if (iterRange instanceof CelError) {
       return iterRange;
     }
 
@@ -751,7 +748,7 @@ export class EvalFold implements Interpretable {
 
     // Fold the items.
     for (const item of items) {
-      if (item instanceof CelError || item instanceof CelUnknown) {
+      if (item instanceof CelError) {
         return item;
       }
       const iterCtx = new VarActivation(
@@ -760,7 +757,7 @@ export class EvalFold implements Interpretable {
         accuCtx,
       );
       const cond = this.cond.eval(iterCtx);
-      if (cond instanceof CelError || cond instanceof CelUnknown) {
+      if (cond instanceof CelError) {
         return cond;
       }
       if (cond !== true) {

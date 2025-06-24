@@ -28,7 +28,6 @@ import * as type from "../value/type.js";
 import {
   type CelVal,
   CelError,
-  CelUnknown,
   CelList,
   CelUint,
   newDuration,
@@ -186,11 +185,11 @@ const addListOp: StrictOp = (_id: number, args: CelVal[]) => {
     for (let j = 0; j < argValues.length; j++) {
       const val = argValues[j];
       const celVal = arg.adapter.toCel(val);
-      if (celVal instanceof CelError || celVal instanceof CelUnknown) {
+      if (celVal instanceof CelError) {
         return celVal;
       }
       const converted = adapter.fromCel(celVal);
-      if (converted instanceof CelError || converted instanceof CelUnknown) {
+      if (converted instanceof CelError) {
         return converted;
       }
       values.push(converted);

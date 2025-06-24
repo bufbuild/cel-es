@@ -31,7 +31,6 @@ import {
   isCelWrap,
   CelType,
   CelError,
-  CelUnknown,
   CelObject,
   CelUint,
   ProtoNull,
@@ -225,11 +224,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
     return Object.keys(obj);
   }
 
-  isSetByName(
-    id: number,
-    obj: CelVal,
-    name: string,
-  ): boolean | CelError | CelUnknown {
+  isSetByName(id: number, obj: CelVal, name: string): boolean | CelError {
     if (obj === null) {
       return false;
     }
@@ -298,7 +293,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
         lhs.adapter.toCel(lhs.value[i]),
         rhs.adapter.toCel(rhs.value[i]),
       ]);
-      if (args instanceof CelError || args instanceof CelUnknown) {
+      if (args instanceof CelError) {
         return args;
       }
       if (!this.equals(args[0], args[1])) {
@@ -335,7 +330,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
         lhs.adapter.toCel(lhsValue),
         rhs.adapter.toCel(rhsValue),
       ]);
-      if (args instanceof CelError || args instanceof CelUnknown) {
+      if (args instanceof CelError) {
         return args;
       }
       if (!this.equals(args[0], args[1])) {
@@ -365,7 +360,7 @@ function equalsStruct<K = unknown>(
       return false;
     }
     const args = unwrapResults([va, vb], adapter);
-    if (args instanceof CelError || args instanceof CelUnknown) {
+    if (args instanceof CelError) {
       return args;
     }
     va = args[0];

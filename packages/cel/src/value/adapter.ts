@@ -16,7 +16,6 @@ import {
   type CelResult,
   type CelVal,
   CelError,
-  CelUnknown,
   type CelValAdapter,
   type Unwrapper,
   CelErrors,
@@ -39,18 +38,14 @@ export class RawVal<V = unknown> {
   static unwrap<V = unknown>(
     raw: RawResult<V> | undefined,
   ): CelResult<V> | undefined {
-    if (
-      raw instanceof CelError ||
-      raw instanceof CelUnknown ||
-      raw === undefined
-    ) {
+    if (raw instanceof CelError || raw === undefined) {
       return raw;
     }
     return raw.value;
   }
 
   static of<V>(adapter: CelValAdapter<V>, value: CelResult<V>): RawResult<V> {
-    if (value instanceof CelError || value instanceof CelUnknown) {
+    if (value instanceof CelError) {
       return value;
     }
     return new RawVal(adapter, value);
@@ -82,22 +77,16 @@ export function unwrapResults<V = CelVal>(
   args: CelResult<V>[],
   unwrapper: Unwrapper,
 ) {
-  const unknowns: CelUnknown[] = [];
   const errors: CelError[] = [];
   const vals: V[] = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg instanceof CelUnknown) {
-      unknowns.push(arg);
-    } else if (arg instanceof CelError) {
+    if (arg instanceof CelError) {
       errors.push(arg);
     } else {
       // TODO(tstamm) fix types or investigate extracting into standalone fn
       vals.push(unwrapper.unwrap(arg) as V);
     }
-  }
-  if (unknowns.length > 0) {
-    return CelUnknown.merge(unknowns);
   }
   if (errors.length > 0) {
     return CelErrors.merge(errors);

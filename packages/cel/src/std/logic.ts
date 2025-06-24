@@ -26,7 +26,6 @@ import {
   CelList,
   CelMap,
   CelError,
-  CelUnknown,
   CelErrors,
   isCelWrap,
 } from "../value/value.js";
@@ -38,7 +37,7 @@ const notStrictlyFalse = Func.newVarArg(
   [olc.NOT_STRICTLY_FALSE],
   (_id: number, args: CelResult[]) => {
     const raw = args[0];
-    if (raw instanceof CelUnknown || raw instanceof CelError) {
+    if (raw instanceof CelError) {
       // TODO(tstamm) this doesn't look right, investigate
       return true;
     }
@@ -68,7 +67,6 @@ const andFunc = Func.newVarArg(
   [olc.LOGICAL_AND],
   (_id: number, args: CelResult[]) => {
     let allBools = true;
-    const unknowns: CelUnknown[] = [];
     const errors: CelError[] = [];
     for (let i = 0; i < args.length; i++) {
       let arg = args[i];
@@ -82,16 +80,13 @@ const andFunc = Func.newVarArg(
         allBools = false;
         if (arg instanceof CelError) {
           errors.push(arg);
-        } else if (arg instanceof CelUnknown) {
-          unknowns.push(arg);
         }
       }
     }
     if (allBools) {
       return true;
-    } else if (unknowns.length > 0) {
-      return CelUnknown.merge(unknowns);
-    } else if (errors.length > 0) {
+    }
+    if (errors.length > 0) {
       return CelErrors.merge(errors);
     }
     return undefined;
@@ -103,7 +98,6 @@ const orFunc = Func.newVarArg(
   [olc.LOGICAL_OR],
   (_id: number, args: CelResult[]) => {
     let allBools = true;
-    const unknowns: CelUnknown[] = [];
     const errors: CelError[] = [];
     for (let i = 0; i < args.length; i++) {
       let arg = args[i];
@@ -117,16 +111,13 @@ const orFunc = Func.newVarArg(
         allBools = false;
         if (arg instanceof CelError) {
           errors.push(arg);
-        } else if (arg instanceof CelUnknown) {
-          unknowns.push(arg);
         }
       }
     }
     if (allBools) {
       return false;
-    } else if (unknowns.length > 0) {
-      return CelUnknown.merge(unknowns);
-    } else if (errors.length > 0) {
+    }
+    if (errors.length > 0) {
       return CelErrors.merge(errors);
     }
     return undefined;
@@ -146,7 +137,7 @@ const neFunc = Func.binary(
   [olc.NOT_EQUALS],
   (_id: number, lhs: CelVal, rhs: CelVal) => {
     const eq = CEL_ADAPTER.equals(lhs, rhs);
-    if (eq instanceof CelError || eq instanceof CelUnknown) {
+    if (eq instanceof CelError) {
       return eq;
     }
     return !eq;
@@ -173,11 +164,7 @@ const ltFunc = Func.binary(
   ],
   (_id: number, lhs: CelVal, rhs: CelVal) => {
     const cmp = CEL_ADAPTER.compare(lhs, rhs);
-    if (
-      cmp instanceof CelError ||
-      cmp instanceof CelUnknown ||
-      cmp === undefined
-    ) {
+    if (cmp instanceof CelError || cmp === undefined) {
       return cmp;
     }
     return cmp < 0;
@@ -204,11 +191,7 @@ const leFunc = Func.binary(
   ],
   (_id: number, lhs: CelVal, rhs: CelVal) => {
     const cmp = CEL_ADAPTER.compare(lhs, rhs);
-    if (
-      cmp instanceof CelError ||
-      cmp instanceof CelUnknown ||
-      cmp === undefined
-    ) {
+    if (cmp instanceof CelError || cmp === undefined) {
       return cmp;
     }
     return cmp <= 0;
@@ -235,11 +218,7 @@ const gtFunc = Func.binary(
   ],
   (_id: number, lhs: CelVal, rhs: CelVal) => {
     const cmp = CEL_ADAPTER.compare(lhs, rhs);
-    if (
-      cmp instanceof CelError ||
-      cmp instanceof CelUnknown ||
-      cmp === undefined
-    ) {
+    if (cmp instanceof CelError || cmp === undefined) {
       return cmp;
     }
     return cmp > 0;
@@ -266,11 +245,7 @@ const geFunc = Func.binary(
   ],
   (_id: number, lhs: CelVal, rhs: CelVal) => {
     const cmp = CEL_ADAPTER.compare(lhs, rhs);
-    if (
-      cmp instanceof CelError ||
-      cmp instanceof CelUnknown ||
-      cmp === undefined
-    ) {
+    if (cmp instanceof CelError || cmp === undefined) {
       return cmp;
     }
     return cmp >= 0;
