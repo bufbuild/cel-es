@@ -22,7 +22,6 @@ import {
   type CelResult,
   type CelVal,
   CelError,
-  CelUnknown,
   CelList,
   CelMap,
   CelUint,
@@ -338,7 +337,7 @@ export class Formatter {
       return val.toFixed(precision);
     } else if (typeof val === "string") {
       return this.formatFloatString(id, val);
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
+    } else if (val instanceof CelError) {
       return val;
     }
     return CelErrors.invalidArgument(
@@ -364,7 +363,7 @@ export class Formatter {
       return val.toExponential(precision);
     } else if (typeof val === "string") {
       return this.formatFloatString(id, val);
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
+    } else if (val instanceof CelError) {
       return val;
     }
     return CelErrors.invalidArgument(
@@ -381,7 +380,7 @@ export class Formatter {
       return val.toString(2);
     } else if (val instanceof CelUint) {
       return val.value.toString(2);
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
+    } else if (val instanceof CelError) {
       return val;
     }
     return CelErrors.invalidArgument(
@@ -396,7 +395,7 @@ export class Formatter {
       return val.toString(8);
     } else if (val instanceof CelUint) {
       return val.value.toString(8);
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
+    } else if (val instanceof CelError) {
       return val;
     }
     return CelErrors.invalidArgument(id, "format", "invalid integer value");
@@ -413,7 +412,7 @@ export class Formatter {
       return "Infinity";
     } else if (val === -Infinity) {
       return "-Infinity";
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
+    } else if (val instanceof CelError) {
       return val;
     }
     return CelErrors.invalidArgument(id, "format", "invalid integer value");
@@ -437,7 +436,7 @@ export class Formatter {
       return this.formatHexBytes(id, encoder.encode(val));
     } else if (val instanceof Uint8Array) {
       return this.formatHexBytes(id, val);
-    } else if (val instanceof CelError || val instanceof CelUnknown) {
+    } else if (val instanceof CelError) {
       return val;
     }
     return CelErrors.invalidArgument(
@@ -463,7 +462,7 @@ export class Formatter {
         result += ", ";
       }
       const item = this.formatRepl(id, items[i]);
-      if (item instanceof CelError || item instanceof CelUnknown) {
+      if (item instanceof CelError) {
         return item;
       }
       result += item;
@@ -478,12 +477,12 @@ export class Formatter {
     for (const [rawKey, rawValue] of val.value) {
       const key = val.adapter.toCel(rawKey);
       const keyStr = this.formatRepl(id, key);
-      if (keyStr instanceof CelError || keyStr instanceof CelUnknown) {
+      if (keyStr instanceof CelError) {
         return keyStr;
       }
       const value = val.adapter.toCel(rawValue);
       const valueStr = this.formatRepl(id, value);
-      if (valueStr instanceof CelError || valueStr instanceof CelUnknown) {
+      if (valueStr instanceof CelError) {
         return valueStr;
       }
       formatted[i] = [keyStr, valueStr];
@@ -529,7 +528,7 @@ export class Formatter {
           return this.formatList(id, val);
         } else if (val instanceof CelMap) {
           return this.formatMap(id, val);
-        } else if (val instanceof CelError || val instanceof CelUnknown) {
+        } else if (val instanceof CelError) {
           return val;
         }
         break;
@@ -566,7 +565,7 @@ export class Formatter {
           return this.formatList(id, val);
         } else if (val instanceof CelMap) {
           return this.formatMap(id, val);
-        } else if (val instanceof CelError || val instanceof CelUnknown) {
+        } else if (val instanceof CelError) {
           return val;
         }
         break;
@@ -659,7 +658,7 @@ export class Formatter {
             `could not parse formatting clause: unrecognized formatting clause: ${c}`,
           );
       }
-      if (str instanceof CelError || str instanceof CelUnknown) {
+      if (str instanceof CelError) {
         return str;
       }
       result += str;

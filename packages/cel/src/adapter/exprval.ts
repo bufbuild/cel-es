@@ -48,7 +48,6 @@ import {
   type CelVal,
   type CelValAdapter,
   CelError,
-  CelUnknown,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 import { ProtoValAdapter } from "./proto.js";
@@ -128,11 +127,7 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
     return CelErrors.badIndexAccess(id, this.valueToType(value));
   }
 
-  isSetByName(
-    id: number,
-    obj: ExprType,
-    name: string,
-  ): boolean | CelError | CelUnknown {
+  isSetByName(id: number, obj: ExprType, name: string): boolean | CelError {
     return this.accessByName(id, obj, name) !== undefined;
   }
 
@@ -350,9 +345,6 @@ export class ExprValAdapter implements CelValAdapter<ExprType> {
     const result = this.protoAdapter.toCel(value);
     if (result instanceof CelError) {
       throw result;
-    }
-    if (result instanceof CelUnknown) {
-      throw new Error(`Unknown object value: ${value.$typeName}`);
     }
     return result;
   }

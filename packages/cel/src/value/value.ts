@@ -479,35 +479,17 @@ export class CelError {
   }
 }
 
-export class CelUnknown {
-  constructor(public readonly ids: readonly bigint[]) {}
-
-  public static merge(unknowns: CelUnknown[]): CelUnknown {
-    if (unknowns.length === 0) {
-      return new CelUnknown([]);
-    }
-    if (unknowns.length === 1) {
-      return unknowns[0];
-    }
-    let ids: bigint[] = [];
-    for (const unknown of unknowns) {
-      ids = ids.concat(unknown.ids);
-    }
-    return new CelUnknown(ids);
-  }
-}
-
-export type CelResult<T = CelVal> = T | CelError | CelUnknown;
+export type CelResult<T = CelVal> = T | CelError;
 
 export function isCelResult(val: unknown): val is CelResult {
-  return isCelVal(val) || val instanceof CelError || val instanceof CelUnknown;
+  return isCelVal(val) || val instanceof CelError;
 }
 
 export function coerceToBool(
   _id: number,
   val: CelResult | undefined,
 ): CelResult<boolean> {
-  if (val instanceof CelError || val instanceof CelUnknown) {
+  if (val instanceof CelError) {
     return val;
   }
   if (
@@ -526,7 +508,7 @@ export function coerceToBigInt(
   id: number,
   val: CelResult | undefined,
 ): CelResult<bigint> {
-  if (val instanceof CelError || val instanceof CelUnknown) {
+  if (val instanceof CelError) {
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return 0n;
@@ -545,7 +527,7 @@ export function coerceToNumber(
   id: number,
   val: CelResult | undefined,
 ): CelResult<number> {
-  if (val instanceof CelError || val instanceof CelUnknown) {
+  if (val instanceof CelError) {
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return 0;
@@ -564,7 +546,7 @@ export function coerceToString(
   id: number,
   val: CelResult | undefined,
 ): CelResult<string> {
-  if (val instanceof CelError || val instanceof CelUnknown) {
+  if (val instanceof CelError) {
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return "";
@@ -581,7 +563,7 @@ export function coerceToBytes(
   id: number,
   val: CelResult | undefined,
 ): CelResult<Uint8Array> {
-  if (val instanceof CelError || val instanceof CelUnknown) {
+  if (val instanceof CelError) {
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return new Uint8Array();
@@ -595,18 +577,12 @@ export function coerceToBytes(
 }
 
 export function coerceToValues(args: CelResult[]): CelResult<CelVal[]> {
-  const unknowns: CelUnknown[] = [];
   const errors: CelError[] = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg instanceof CelUnknown) {
-      unknowns.push(arg);
-    } else if (arg instanceof CelError) {
+    if (arg instanceof CelError) {
       errors.push(arg);
     }
-  }
-  if (unknowns.length > 0) {
-    return CelUnknown.merge(unknowns);
   }
   if (errors.length > 0) {
     return CelErrors.merge(errors);

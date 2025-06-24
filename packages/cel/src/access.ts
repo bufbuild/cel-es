@@ -23,7 +23,6 @@ import {
   type CelResult,
   type CelVal,
   CelError,
-  CelUnknown,
   type Unwrapper,
   CelErrors,
 } from "./value/value.js";
@@ -84,7 +83,7 @@ function attrAccess<T = unknown>(
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
-  } else if (val instanceof CelError || val instanceof CelUnknown) {
+  } else if (val instanceof CelError) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
@@ -101,7 +100,7 @@ function attrIsPresent<T = unknown>(
   if (val === undefined) {
     return false;
   }
-  if (val instanceof CelError || val instanceof CelUnknown) {
+  if (val instanceof CelError) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
@@ -118,7 +117,7 @@ function attrAccessIfPresent<T = unknown>(
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
-  } else if (val instanceof CelError || val instanceof CelUnknown) {
+  } else if (val instanceof CelError) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
@@ -141,7 +140,7 @@ function applyAccesses<T = unknown>(
     const result = access.access(vars, cur) as RawResult<T>;
     if (result === undefined) {
       return undefined;
-    } else if (result instanceof CelError || result instanceof CelUnknown) {
+    } else if (result instanceof CelError) {
       return result;
     }
     cur = result;
@@ -198,7 +197,7 @@ class AbsoluteAttr implements NamespacedAttribute {
     for (const name of this.nsNames) {
       const raw = vars.resolve(name);
       if (raw !== undefined) {
-        if (raw instanceof CelError || raw instanceof CelUnknown) {
+        if (raw instanceof CelError) {
           return raw;
         }
         return applyAccesses(vars, raw, this.accesses_);
@@ -253,7 +252,7 @@ class ConditionalAttr implements Attribute {
       return this.t.resolve(vars);
     } else if (cond === false) {
       return this.f.resolve(vars);
-    } else if (cond instanceof CelError || cond instanceof CelUnknown) {
+    } else if (cond instanceof CelError) {
       return cond;
     }
     return CelErrors.overloadNotFound(this.id, "_?_:_", [getCelType(cond)]);
@@ -356,7 +355,7 @@ class RelativeAttr implements Attribute {
 
   resolve(vars: Activation): RawResult | undefined {
     const v = this.operand.eval(vars);
-    if (v instanceof CelError || v instanceof CelUnknown) {
+    if (v instanceof CelError) {
       return v;
     }
     return applyAccesses(vars, new RawVal(CEL_ADAPTER, v), this.accesses_);
@@ -538,7 +537,7 @@ class EvalAccess implements Access {
       return obj;
     }
     const key = this.key.eval(vars);
-    if (key instanceof CelError || key instanceof CelUnknown) {
+    if (key instanceof CelError) {
       return key;
     }
     const access = this.factory.newAccess(this.id, key, this.optional);
@@ -550,7 +549,7 @@ class EvalAccess implements Access {
       return false;
     }
     const key = this.key.eval(vars);
-    if (key instanceof CelError || key instanceof CelUnknown) {
+    if (key instanceof CelError) {
       return key;
     }
     const access = this.factory.newAccess(this.id, key, this.optional);
@@ -563,7 +562,7 @@ class EvalAccess implements Access {
     presenceOnly: boolean,
   ): RawResult | undefined {
     const key = this.key.eval(vars);
-    if (key instanceof CelError || key instanceof CelUnknown) {
+    if (key instanceof CelError) {
       return key;
     }
     const access = this.factory.newAccess(this.id, key, this.optional);

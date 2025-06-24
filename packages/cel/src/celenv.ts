@@ -37,12 +37,7 @@ import {
 import { OrderedDispatcher, type Dispatcher } from "./func.js";
 import { Planner, type Interpretable } from "./planner.js";
 import { STD_FUNCS } from "./std/std.js";
-import {
-  CelError,
-  CelUnknown,
-  isCelVal,
-  type CelResult,
-} from "./value/value.js";
+import { CelError, isCelVal, type CelResult } from "./value/value.js";
 import { Namespace } from "./value/namespace.js";
 import {
   isReflectList,
@@ -161,11 +156,7 @@ export class CelEnv {
   public set(name: string, value: unknown): void {
     if (value === undefined) {
       delete this.data[name];
-    } else if (
-      isCelVal(value) ||
-      value instanceof CelError ||
-      value instanceof CelUnknown
-    ) {
+    } else if (isCelVal(value) || value instanceof CelError) {
       this.data[name] = value;
     } else if (
       isProtoMsg(value) ||

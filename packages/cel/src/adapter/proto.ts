@@ -65,7 +65,6 @@ import {
   type CelResult,
   CelType,
   CelUint,
-  CelUnknown,
   type CelVal,
   type CelValAdapter,
   coerceToBigInt,
@@ -303,7 +302,7 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     obj: Message | ReflectMessage | CelVal,
     name: string,
-  ): boolean | CelError | CelUnknown {
+  ): boolean | CelError {
     if (isProtoMsg(obj)) {
       obj = reflect(this.getSchema(obj.$typeName), obj);
     }
@@ -328,8 +327,7 @@ export class ProtoValAdapter implements CelValAdapter {
     | ReflectMap
     | ReflectList
     | CelVal
-    | CelError
-    | CelUnknown {
+    | CelError {
     if (isProtoMsg(obj)) {
       obj = reflect(this.getSchema(obj.$typeName), obj);
     }
@@ -406,7 +404,7 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     messageSchema: DescMessage,
     val: CelResult,
-  ): ProtoNull | ReflectMessage | CelError | CelUnknown {
+  ): ProtoNull | ReflectMessage | CelError {
     const result = this.messageFromCel(id, messageSchema, val);
     return isMessage(result) ? reflect(messageSchema, result) : result;
   }
@@ -415,8 +413,8 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     messageSchema: DescMessage,
     val: CelResult,
-  ): ProtoNull | Message | ReflectMessage | CelError | CelUnknown {
-    if (val instanceof CelError || val instanceof CelUnknown) {
+  ): ProtoNull | Message | ReflectMessage | CelError {
+    if (val instanceof CelError) {
       return val;
     }
     switch (messageSchema.typeName) {
@@ -429,63 +427,63 @@ export class ProtoValAdapter implements CelValAdapter {
         return this.valueFromCel2(id, val);
       case BoolValueSchema.typeName: {
         const cval = coerceToBool(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(BoolValueSchema, { value: cval });
       }
       case UInt32ValueSchema.typeName: {
         const cval = coerceToNumber(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(UInt32ValueSchema, { value: cval });
       }
       case UInt64ValueSchema.typeName: {
         const cval = coerceToBigInt(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(UInt64ValueSchema, { value: cval.valueOf() });
       }
       case Int32ValueSchema.typeName: {
         const cval = coerceToNumber(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(Int32ValueSchema, { value: cval });
       }
       case Int64ValueSchema.typeName: {
         const cval = coerceToBigInt(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(Int64ValueSchema, { value: cval.valueOf() });
       }
       case FloatValueSchema.typeName: {
         const cval = coerceToNumber(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(FloatValueSchema, { value: cval });
       }
       case DoubleValueSchema.typeName: {
         const cval = coerceToNumber(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(DoubleValueSchema, { value: cval });
       }
       case StringValueSchema.typeName: {
         const cval = coerceToString(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(StringValueSchema, { value: cval });
       }
       case BytesValueSchema.typeName: {
         const cval = coerceToBytes(id, val);
-        if (cval instanceof CelError || cval instanceof CelUnknown) {
+        if (cval instanceof CelError) {
           return cval;
         }
         return create(BytesValueSchema, { value: cval });
@@ -503,7 +501,7 @@ export class ProtoValAdapter implements CelValAdapter {
     throw new Error("not implemented.");
   }
 
-  valueFromCel2(_id: number, celVal: CelVal): Value | CelError | CelUnknown {
+  valueFromCel2(_id: number, celVal: CelVal): Value | CelError {
     if (isMessage(celVal, ValueSchema)) {
       return celVal;
     }
@@ -566,7 +564,7 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     messageSchema: DescMessage,
     obj: StructAccess,
-  ): ReflectMessage | CelError | CelUnknown {
+  ): ReflectMessage | CelError {
     const fields = this.getMetadata(messageSchema.typeName).FIELDS;
     const message = reflect(messageSchema);
     const keys = obj.getFields();
@@ -583,7 +581,7 @@ export class ProtoValAdapter implements CelValAdapter {
       if (val instanceof ProtoNull) {
         continue;
       }
-      if (val instanceof CelError || val instanceof CelUnknown) {
+      if (val instanceof CelError) {
         return val;
       }
       let protoVal:
@@ -592,8 +590,7 @@ export class ProtoValAdapter implements CelValAdapter {
         | ReflectList
         | ReflectMap
         | ProtoNull
-        | CelError
-        | CelUnknown;
+        | CelError;
       switch (field.fieldKind) {
         case "enum":
           protoVal = this.enumFromCel(id, field.enum, val);
@@ -611,7 +608,7 @@ export class ProtoValAdapter implements CelValAdapter {
           protoVal = this.mapFromCel(id, field, val);
           break;
       }
-      if (protoVal instanceof CelError || protoVal instanceof CelUnknown) {
+      if (protoVal instanceof CelError) {
         return protoVal;
       }
       if (protoVal instanceof ProtoNull) {
@@ -626,7 +623,7 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     _descEnum: DescEnum,
     val: CelVal,
-  ): number | CelError | CelUnknown {
+  ): number | CelError {
     // TODO(tstamm) should this coerce?
     // TODO(tstamm) check enum values?
     return coerceToNumber(id, val);
@@ -636,8 +633,8 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     scalar: ScalarType,
     val: CelVal,
-  ): ScalarValue | CelError | CelUnknown {
-    let result: ScalarValue | CelError | CelUnknown;
+  ): ScalarValue | CelError {
+    let result: ScalarValue | CelError;
     switch (scalar) {
       case ScalarType.BOOL:
         // TODO(tstamm) should this coerce?
@@ -690,20 +687,15 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     field: DescField & { fieldKind: "list" },
     val: CelVal,
-  ): ReflectList | CelError | CelUnknown {
+  ): ReflectList | CelError {
     if (val instanceof CelList) {
       const result = reflectList(field);
       for (const listItem of val.value) {
         const celItem = val.adapter.toCel(listItem);
-        if (celItem instanceof CelError || celItem instanceof CelUnknown) {
+        if (celItem instanceof CelError) {
           return celItem;
         }
-        let protoItem:
-          | ScalarValue
-          | ReflectMessage
-          | ProtoNull
-          | CelError
-          | CelUnknown;
+        let protoItem: ScalarValue | ReflectMessage | ProtoNull | CelError;
         switch (field.listKind) {
           case "scalar":
             protoItem = this.scalarFromCel(id, field.scalar, celItem);
@@ -715,7 +707,7 @@ export class ProtoValAdapter implements CelValAdapter {
             protoItem = this.reflectMessageFromCel(id, field.message, celItem);
             break;
         }
-        if (protoItem instanceof CelError || protoItem instanceof CelUnknown) {
+        if (protoItem instanceof CelError) {
           return protoItem;
         }
         result.add(protoItem);
@@ -729,7 +721,7 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     field: DescField & { fieldKind: "map" },
     val: CelVal,
-  ): ReflectMap | CelError | CelUnknown {
+  ): ReflectMap | CelError {
     if (val instanceof CelMap || val instanceof CelObject) {
       const result = reflectMap(field);
       const keys = val.getFields();
@@ -737,7 +729,7 @@ export class ProtoValAdapter implements CelValAdapter {
         const fval = val.accessByName(id, key as string);
         if (fval === undefined) {
           continue;
-        } else if (fval instanceof CelError || fval instanceof CelUnknown) {
+        } else if (fval instanceof CelError) {
           return fval;
         }
         // TODO(tstamm) we don't actually convert anything here
@@ -844,10 +836,7 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
       return undefined;
     }
     const protoMessage = this.adapter.messageFromCel(id, messageSchema, obj);
-    if (
-      protoMessage instanceof CelError ||
-      protoMessage instanceof CelUnknown
-    ) {
+    if (protoMessage instanceof CelError) {
       return protoMessage;
     }
     return this.adapter.toCel(protoMessage);

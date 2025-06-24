@@ -30,7 +30,6 @@ import * as type from "../value/type.js";
 import {
   coerceToValues,
   CelError,
-  CelUnknown,
   CelUint,
   parseDuration,
   CelErrors,
@@ -488,7 +487,7 @@ const typeFunc = Func.newVarArg(
   [],
   (_id: number, args: CelResult[]) => {
     const values = coerceToValues(args);
-    if (values instanceof CelError || values instanceof CelUnknown) {
+    if (values instanceof CelError) {
       return values;
     }
     if (values.length !== 1) {
