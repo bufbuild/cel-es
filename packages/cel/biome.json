@@ -5,6 +5,11 @@
     "ignore": ["dist", "src/gen", "src/grammar.ts"]
   },
   "linter": {
-    "include": ["src/type.ts", "src/type.test.ts"]
+    "include": [
+      "src/type.ts",
+      "src/type.test.ts",
+      "src/std/math.ts",
+      "src/errors.ts"
+    ]
   }
 }
