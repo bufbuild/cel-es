@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import type { DescMessage, MessageShape } from "@bufbuild/protobuf";
-import type { CelList, CelMap, CelUint } from "./value/value.js";
+import type { CelList, CelMap, CelUint, CelVal } from "./value/value.js";
 
 /**
  * Types of CEL values.
@@ -88,7 +88,7 @@ type mapKeyValueTypes =
 // biome-ignore format: Ternaries
 export type TypeOf<T extends CelValueType> =
   T extends CelScalar.ANY
-  ? unknown :
+  ? CelVal :
   T extends CelScalar.INT
   ? bigint :
   T extends CelScalar.UINT

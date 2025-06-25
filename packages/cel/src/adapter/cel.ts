@@ -163,7 +163,7 @@ export class CelAdapter implements CelValAdapter<CelVal> {
     return equalsStruct(id, lhs.adapter, lhs, rhs, lhs.getFields());
   }
 
-  compare(lhs: CelVal, rhs: CelVal): CelResult<number> | undefined {
+  compare(lhs: CelVal, rhs: CelVal) {
     if (isCelWrap(lhs) || lhs instanceof CelUint) {
       lhs = lhs.value;
     }
