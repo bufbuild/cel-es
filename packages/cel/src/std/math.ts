@@ -17,10 +17,11 @@ import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import {
   Func,
+  FuncOverload,
   FuncRegistry,
+  TypedFunc,
   type StrictBinaryOp,
   type StrictOp,
-  type StrictUnaryOp,
 } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
@@ -34,6 +35,7 @@ import {
   newTimestamp,
   CelErrors,
 } from "../value/value.js";
+import { CelScalar } from "../type.js";
 
 const MAX_INT = 9223372036854775807n;
 const MAX_INT_NUM = 9223372036854775807.0;
@@ -72,7 +74,7 @@ export function addMath(funcs: FuncRegistry) {
   funcs.add(mulFunc, [mulIntFunc, mulUintFunc, mulDoubleFunc]);
   funcs.add(divFunc, [divIntFunc, divUintFunc, divDoubleFunc]);
   funcs.add(modFunc, [modIntFunc, modUintFunc]);
-  funcs.add(negFunc, [negIntFunc, negDoubleFunc]);
+  funcs.addTypedFunc(negate);
 }
 
 const addIntOp: StrictOp = (id: number, args: CelVal[]) => {
@@ -502,31 +504,15 @@ const modFunc = Func.binary(
   },
 );
 
-const negIntOp: StrictUnaryOp = (id: number, arg: CelVal) => {
-  if (typeof arg === "bigint") {
+const negate = new TypedFunc(opc.NEGATE, [
+  new FuncOverload([CelScalar.INT], CelScalar.INT, (arg) => {
     const val = -arg;
     if (isOverflowInt(val)) {
-      return CelErrors.overflow(id, opc.NEGATE, type.INT);
+      throw new Error(CelErrors.overflow(-1, opc.NEGATE, type.INT).message);
     }
     return val;
-  }
-  return undefined;
-};
-const negIntFunc = Func.unary(opc.NEGATE, [olc.NEGATE_INT64], negIntOp);
-const negDoubleOp: StrictUnaryOp = (_id: number, arg: CelVal) => {
-  if (typeof arg === "number") {
+  }),
+  new FuncOverload([CelScalar.DOUBLE], CelScalar.DOUBLE, (arg) => {
     return -arg;
-  }
-  return undefined;
-};
-const negDoubleFunc = Func.unary(opc.NEGATE, [olc.NEGATE_DOUBLE], negDoubleOp);
-const negFunc = Func.unary(opc.NEGATE, [], (id: number, arg: CelVal) => {
-  switch (type.getCelType(arg)) {
-    case type.INT:
-      return negIntOp(id, arg);
-    case type.DOUBLE:
-      return negDoubleOp(id, arg);
-    default:
-      return undefined;
-  }
-});
+  }),
+]);

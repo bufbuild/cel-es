@@ -2,6 +2,6 @@
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "extends": ["./biome.base.json"],
   "files": {
-    "ignore": ["packages/**"]
+    "include": ["packages/cel/src/type.ts", "packages/cel/src/type.test.ts"]
   }
 }

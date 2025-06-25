@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {
+  type CelValueType,
+  type TypeOf,
+  type TupleTypeOf,
+  CelScalar,
+} from "./type.js";
 import { unwrapResults } from "./value/adapter.js";
 import { getCelType } from "./value/type.js";
 import {
@@ -20,7 +26,11 @@ import {
   CelType,
   CelError,
   type Unwrapper,
+  CelUint,
+  CelList,
+  CelMap,
 } from "./value/value.js";
+import { isMessage } from "@bufbuild/protobuf";
 
 export type ZeroOp = (id: number) => CelResult | undefined;
 export type UnaryOp = (id: number, arg: CelResult) => CelResult | undefined;
@@ -127,9 +137,64 @@ export class Func implements CallDispatch {
   }
 }
 
+export class TypedFunc implements CallDispatch {
+  constructor(
+    public readonly name: string,
+    public readonly overloads: FuncOverload<
+      readonly CelValueType[],
+      CelValueType
+    >[],
+  ) {}
+
+  dispatch(
+    id: number,
+    args: CelResult[],
+    unwrap: Unwrapper,
+  ): CelResult | undefined {
+    const vals = unwrapResults(args, unwrap);
+    if (vals instanceof CelError) {
+      return vals;
+    }
+    for (const overload of this.overloads) {
+      if (overload.parameters.length !== vals.length) {
+        continue;
+      }
+      const checkedVals = [];
+      for (let i = 0; i < vals.length; i++) {
+        if (!isOfType(vals[i], overload.parameters[i])) {
+          break;
+        }
+        checkedVals.push(vals[i]);
+      }
+      if (checkedVals.length === vals.length) {
+        try {
+          return overload.impl(...checkedVals) as CelVal;
+        } catch (ex) {
+          if (ex instanceof Error) {
+            ex = ex.message;
+          }
+          return new CelError(id, `${ex}`);
+        }
+      }
+    }
+    return undefined;
+  }
+}
+
+export class FuncOverload<
+  const P extends readonly CelValueType[],
+  const R extends CelValueType,
+> {
+  constructor(
+    public readonly parameters: P,
+    public readonly result: R,
+    public readonly impl: (...args: TupleTypeOf<P>) => TypeOf<R>,
+  ) {}
+}
+
 export class FuncRegistry implements Dispatcher {
-  private functions: Map<string, Func> = new Map();
-  private overloads: Map<string, Func> = new Map();
+  private functions = new Map<string, Func>();
+  private typedFunctions = new Map<string, TypedFunc>();
 
   constructor(private readonly parent: FuncRegistry | undefined = undefined) {}
 
@@ -139,18 +204,19 @@ export class FuncRegistry implements Dispatcher {
     } else {
       this.functions.set(func.name, func);
     }
-    for (const overloadName of func.overloads) {
-      this.overloads.set(overloadName, func);
-    }
-    for (const overload of overloads) {
-      for (const overloadName of overload.overloads) {
-        this.overloads.set(overloadName, overload);
-      }
+  }
+
+  public addTypedFunc(func: TypedFunc): void {
+    if (this.functions.has(func.name) || this.typedFunctions.has(func.name)) {
+      throw new Error(`Function ${func.name} already registered`);
+    } else {
+      this.typedFunctions.set(func.name, func);
     }
   }
 
   public find(name: string): CallDispatch | undefined {
-    let result: CallDispatch | undefined = this.functions.get(name);
+    let result: CallDispatch | undefined =
+      this.functions.get(name) ?? this.typedFunctions.get(name);
     if (result === undefined && this.parent !== undefined) {
       result = this.parent.find(name);
     }
@@ -192,5 +258,45 @@ export class OrderedDispatcher implements Dispatcher {
       }
     }
     return undefined;
+  }
+}
+
+function isOfType(
+  val: unknown,
+  type: CelValueType,
+): val is TypeOf<CelValueType> {
+  if (typeof type === "object") {
+    if ("type" in type) {
+      switch (type.type) {
+        case "list":
+          return val instanceof CelList;
+        case "map":
+          return val instanceof CelMap;
+        default:
+          return false;
+      }
+    }
+    return isMessage(val, type);
+  }
+  // Must be a scalar
+  switch (type) {
+    case CelScalar.ANY:
+      return true;
+    case CelScalar.INT:
+      return typeof val === "bigint";
+    case CelScalar.UINT:
+      return val instanceof CelUint;
+    case CelScalar.BOOL:
+      return typeof val === "boolean";
+    case CelScalar.DOUBLE:
+      return typeof val === "number";
+    case CelScalar.NULL:
+      return val === null;
+    case CelScalar.STRING:
+      return typeof val === "string";
+    case CelScalar.BYTES:
+      return val instanceof Uint8Array;
+    default:
+      return false;
   }
 }
