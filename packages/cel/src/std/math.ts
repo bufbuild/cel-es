@@ -125,6 +125,21 @@ function addDuration(lhs: Duration, rhs: Duration) {
   return create(DurationSchema, { seconds: seconds, nanos: nanos });
 }
 
+function subtractDurationOrTimestamp<T extends Timestamp | Duration>(
+  lhs: T,
+  rhs: T,
+) {
+  const errOrDuration = newDuration(
+    -1,
+    lhs.seconds - rhs.seconds,
+    lhs.nanos - rhs.nanos,
+  );
+  if (errOrDuration instanceof CelError) {
+    throw new Error(errOrDuration.message);
+  }
+  return errOrDuration;
+}
+
 const add = new TypedFunc(opc.ADD, [
   new FuncOverload(
     [CelScalar.INT, CelScalar.INT],
@@ -249,21 +264,6 @@ const subtract = new TypedFunc(opc.SUBTRACT, [
     },
   ),
 ]);
-
-function subtractDurationOrTimestamp<T extends Timestamp | Duration>(
-  lhs: T,
-  rhs: T,
-) {
-  const errOrDuration = newDuration(
-    -1,
-    lhs.seconds - rhs.seconds,
-    lhs.nanos - rhs.nanos,
-  );
-  if (errOrDuration instanceof CelError) {
-    throw new Error(errOrDuration.message);
-  }
-  return errOrDuration;
-}
 
 const multiply = new TypedFunc(opc.MULTIPLY, [
   new FuncOverload(
