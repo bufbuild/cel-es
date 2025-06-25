@@ -25,6 +25,7 @@ jobs:
           - format
           - attw
           - build
+          - lint
           - license-header
           - update-readme
         include:
