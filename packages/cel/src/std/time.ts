@@ -12,44 +12,54 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isMessage, toJson } from "@bufbuild/protobuf";
 import {
   DurationSchema,
   timestampDate,
   TimestampSchema,
+  type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import {
-  Func,
-  FuncRegistry,
-  type StrictOp,
-  type StrictUnaryOp,
-} from "../func.js";
+import { CelScalar } from "../type.js";
+import { FuncOverload, type FuncRegistry, TypedFunc } from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import { type CelVal } from "../value/value.js";
+import { toJson } from "@bufbuild/protobuf";
 
-type TimeFunc = (val: Date) => number;
-function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
-  return (id: number, args: CelVal[]) => {
-    if (!isMessage(args[0], TimestampSchema)) {
-      return undefined;
-    }
-    let val = timestampDate(args[0]);
-    if (args.length >= 2) {
-      if (typeof args[1] !== "string") {
-        return undefined;
-      }
+export function addTime(funcs: FuncRegistry): void {
+  funcs.addTypedFunc(getFullYearFunc);
+  funcs.addTypedFunc(getMonthFunc);
+  funcs.addTypedFunc(getDateFunc);
+  funcs.addTypedFunc(getDayOfWeekFunc);
+  funcs.addTypedFunc(getDayOfMonthFunc);
+  funcs.addTypedFunc(getDayOfYearFunc);
+  funcs.addTypedFunc(getSecondsFunc);
+  funcs.addTypedFunc(getMinutesFunc);
+  funcs.addTypedFunc(getHoursFunc);
+  funcs.addTypedFunc(getMillisecondsFunc);
+}
+
+function getDayOfYear(date: Date): number {
+  const start = new Date(0, 0, 1);
+  start.setFullYear(date.getFullYear());
+  const diff = date.getTime() - start.getTime();
+  const oneDay = 1000 * 60 * 60 * 24;
+  return Math.floor(diff / oneDay);
+}
+
+function makeTimeOp(t: TimeFunc) {
+  return (ts: Timestamp, tz?: string) => {
+    let val = timestampDate(ts);
+    if (tz !== undefined) {
       // Timezone can either be Fixed or IANA or "UTC".
       // We first check for the fixed offset case.
       //
       // Ref: https://github.com/google/cel-spec/blob/master/doc/langdef.md#timezones
-      const timeOffset = args[1].match(
+      const timeOffset = tz.match(
         /^(?<sign>[+-]?)(?<hours>\d\d):(?<minutes>\d\d)$/,
       );
-      if (timeOffset && timeOffset.groups) {
-        const sign = timeOffset.groups["sign"] == "-" ? 1 : -1;
-        const hours = parseInt(timeOffset.groups["hours"]);
-        const minutes = parseInt(timeOffset.groups["minutes"]);
+      if (timeOffset?.groups) {
+        const sign = timeOffset.groups.sign == "-" ? 1 : -1;
+        const hours = parseInt(timeOffset.groups.hours);
+        const minutes = parseInt(timeOffset.groups.minutes);
         const offset = sign * (hours * 60 * 60 * 1000 + minutes * 60 * 1000);
         val = new Date(val.getTime() - offset);
         val = new Date(
@@ -69,7 +79,7 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
         const format = new Intl.DateTimeFormat("en-US", {
           hourCycle: "h23",
           hour12: false,
-          timeZone: args[1],
+          timeZone: tz,
           year: "numeric",
           month: "numeric",
           day: "2-digit",
@@ -77,7 +87,12 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
           minute: "2-digit",
           second: "2-digit",
         });
-        let year, month, day, hour, minute, second;
+        let year: number | undefined,
+          month: number | undefined,
+          day: number | undefined,
+          hour: number | undefined,
+          minute: number | undefined,
+          second: number | undefined;
         for (const part of format.formatToParts(val)) {
           switch (part.type) {
             case "year":
@@ -109,7 +124,7 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
           second === undefined
         ) {
           throw new Error(
-            `Error converting ${toJson(TimestampSchema, args[0])} to IANA timezone ${args[1]}`,
+            `Error converting ${toJson(TimestampSchema, ts)} to IANA timezone ${tz}`,
           );
         }
         val = new Date(
@@ -138,217 +153,152 @@ function makeTimeOp(_op: string, t: TimeFunc): StrictOp {
       return BigInt(result);
     } catch (_e) {
       throw new Error(
-        `Error converting ${result} of ${String(val)} of ${toJson(TimestampSchema, args[0])} to BigInt`,
+        `Error converting ${result} of ${String(val)} of ${toJson(TimestampSchema, ts)} to BigInt`,
       );
     }
   };
 }
-function makeTimeFunc(name: string, overloads: string[], t: TimeFunc): Func {
-  return Func.newStrict(name, overloads, makeTimeOp(name, t));
-}
 
-const timeGeFullYearFunc = makeTimeFunc(
-  olc.TIME_GET_FULL_YEAR,
-  [olc.TIMESTAMP_TO_YEAR, olc.TIMESTAMP_TO_YEAR_WITH_TZ],
-  (val) => val.getFullYear(),
-);
+type TimeFunc = (date: Date) => number;
 
-const timeGetMonthFunc = makeTimeFunc(
-  olc.TIME_GET_MONTH,
-  [olc.TIMESTAMP_TO_MONTH, olc.TIMESTAMP_TO_MONTH_WITH_TZ],
-  (val) => val.getMonth(),
-);
+const getFullYearFunc = new TypedFunc(olc.TIME_GET_FULL_YEAR, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getFullYear()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getFullYear()),
+  ),
+]);
 
-const timeGetDateFunc = makeTimeFunc(
-  olc.TIME_GET_DATE,
-  [
-    olc.TIMESTAMP_TO_DAY_OF_MONTH_ONE_BASED,
-    olc.TIMESTAMP_TO_DAY_OF_MONTH_ONE_BASED_WITH_TZ,
-  ],
-  (val) => val.getDate(),
-);
+const getMonthFunc = new TypedFunc(olc.TIME_GET_MONTH, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getMonth()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getMonth()),
+  ),
+]);
 
-const timeGetDayOfMonthFunc = makeTimeFunc(
-  olc.TIME_GET_DAY_OF_MONTH,
-  [
-    olc.TIMESTAMP_TO_DAY_OF_MONTH_ZERO_BASED,
-    olc.TIMESTAMP_TO_DAY_OF_MONTH_ZERO_BASED_WITH_TZ,
-  ],
-  (val) => val.getDate() - 1,
-);
+const getDateFunc = new TypedFunc(olc.TIME_GET_DATE, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getDate()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getDate()),
+  ),
+]);
 
-const timeGetDayOfYearFunc = makeTimeFunc(
-  olc.TIME_GET_DAY_OF_YEAR,
-  [olc.TIMESTAMP_TO_DAY_OF_YEAR, olc.TIMESTAMP_TO_DAY_OF_YEAR_WITH_TZ],
-  (val) => {
-    const start = new Date(0, 0, 1);
-    start.setFullYear(val.getFullYear());
-    const diff = val.getTime() - start.getTime();
-    const oneDay = 1000 * 60 * 60 * 24;
-    return Math.floor(diff / oneDay);
-  },
-);
+const getDayOfMonthFunc = new TypedFunc(olc.TIME_GET_DAY_OF_MONTH, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getDate() - 1),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getDate() - 1),
+  ),
+]);
 
-const timeGetDayOfWeekFunc = makeTimeFunc(
-  olc.TIME_GET_DAY_OF_WEEK,
-  [olc.TIMESTAMP_TO_DAY_OF_WEEK, olc.TIMESTAMP_TO_DAY_OF_WEEK_WITH_TZ],
-  (val) => val.getDay(),
-);
+const getDayOfWeekFunc = new TypedFunc(olc.TIME_GET_DAY_OF_WEEK, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getDay()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getDay()),
+  ),
+]);
 
-// TimeGetSeconds
-const timestampToSecondsOp: StrictOp = makeTimeOp(
-  olc.TIMESTAMP_TO_SECONDS,
-  (val) => val.getSeconds(),
-);
-const timestampToSecondsFunc = Func.newStrict(
-  olc.TIME_GET_SECONDS,
-  [olc.TIMESTAMP_TO_SECONDS, olc.TIMESTAMP_TO_SECONDS_WITH_TZ],
-  timestampToSecondsOp,
-);
-const durationToSecondsOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, DurationSchema)) {
-    return val.seconds;
-  }
-  return undefined;
-};
-const durationToSecondsFunc = Func.unary(
-  olc.TIME_GET_SECONDS,
-  [olc.DURATION_TO_SECONDS],
-  durationToSecondsOp,
-);
-const timeGetSecondsFunc = Func.newStrict(
-  olc.TIME_GET_SECONDS,
-  [],
-  (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], TimestampSchema)) {
-      return timestampToSecondsOp(id, args);
-    } else if (isMessage(args[0], DurationSchema)) {
-      return durationToSecondsOp(id, args[0]);
-    }
-    return undefined;
-  },
-);
+const getDayOfYearFunc = new TypedFunc(olc.TIME_GET_DAY_OF_YEAR, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => getDayOfYear(d)),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => getDayOfYear(d)),
+  ),
+]);
 
-// TimeGetHours
-const timestampToHoursOp: StrictOp = makeTimeOp(olc.TIMESTAMP_TO_HOURS, (val) =>
-  val.getHours(),
-);
-const timestampToHoursFunc = Func.newStrict(
-  olc.TIME_GET_HOURS,
-  [olc.TIMESTAMP_TO_HOURS, olc.TIMESTAMP_TO_HOURS_WITH_TZ],
-  timestampToHoursOp,
-);
-const durationToHoursOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, DurationSchema)) {
-    return val.seconds / 3600n;
-  }
-  return undefined;
-};
-const DurationToHoursFunc = Func.unary(
-  olc.TIME_GET_HOURS,
-  [olc.DURATION_TO_HOURS],
-  durationToHoursOp,
-);
-const timeGetHoursFunc = Func.newStrict(
-  olc.TIME_GET_HOURS,
-  [],
-  (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], TimestampSchema)) {
-      return timestampToHoursOp(id, args);
-    } else if (isMessage(args[0], DurationSchema)) {
-      return durationToHoursOp(id, args[0]);
-    }
-    return undefined;
-  },
-);
+const getSecondsFunc = new TypedFunc(olc.TIME_GET_SECONDS, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getSeconds()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getSeconds()),
+  ),
+  new FuncOverload([DurationSchema], CelScalar.INT, (dur) => dur.seconds),
+]);
 
-// TimeGetMinutes
-const timestampToMinutesOp: StrictOp = makeTimeOp(
-  olc.TIMESTAMP_TO_MINUTES,
-  (val) => val.getMinutes(),
-);
-const timestampToMinutesFunc = Func.newStrict(
-  olc.TIME_GET_MINUTES,
-  [olc.TIMESTAMP_TO_MINUTES, olc.TIMESTAMP_TO_MINUTES_WITH_TZ],
-  timestampToMinutesOp,
-);
-const durationToMinutesOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, DurationSchema)) {
-    return val.seconds / 60n;
-  }
-  return undefined;
-};
-const durationToMinutesFunc = Func.unary(
-  olc.TIME_GET_MINUTES,
-  [olc.DURATION_TO_MINUTES],
-  durationToMinutesOp,
-);
-const timeGetMinutesFunc = Func.newStrict(
-  olc.TIME_GET_MINUTES,
-  [],
-  (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], TimestampSchema)) {
-      return timestampToMinutesOp(id, args);
-    } else if (isMessage(args[0], DurationSchema)) {
-      return durationToMinutesOp(id, args[0]);
-    }
-    return undefined;
-  },
-);
+const getMinutesFunc = new TypedFunc(olc.TIME_GET_MINUTES, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getMinutes()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getMinutes()),
+  ),
+  new FuncOverload([DurationSchema], CelScalar.INT, (dur) => dur.seconds / 60n),
+]);
 
-// TimeGetMilliseconds
-const timestampToMillisecondsOp: StrictOp = makeTimeOp(
-  olc.TIMESTAMP_TO_MILLISECONDS,
-  (val) => val.getMilliseconds(),
-);
-const timestampToMillisecondsFunc = Func.newStrict(
-  olc.TIME_GET_MILLISECONDS,
-  [olc.TIMESTAMP_TO_MILLISECONDS, olc.TIMESTAMP_TO_MILLISECONDS_WITH_TZ],
-  timestampToMillisecondsOp,
-);
-const durationToMillisecondsOp: StrictUnaryOp = (_id: number, val: CelVal) => {
-  if (isMessage(val, DurationSchema)) {
-    return BigInt(val.nanos) / 1000000n;
-  }
-  return undefined;
-};
-const durationToMillisecondsFunc = Func.unary(
-  olc.TIME_GET_MILLISECONDS,
-  [olc.DURATION_TO_MILLISECONDS],
-  durationToMillisecondsOp,
-);
+const getHoursFunc = new TypedFunc(olc.TIME_GET_HOURS, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getHours()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getHours()),
+  ),
+  new FuncOverload(
+    [DurationSchema],
+    CelScalar.INT,
+    (dur) => dur.seconds / 3600n,
+  ),
+]);
 
-const timeGetMillisecondsFunc = Func.newStrict(
-  olc.TIME_GET_MILLISECONDS,
-  [],
-  (id: number, args: CelVal[]) => {
-    if (isMessage(args[0], TimestampSchema)) {
-      return timestampToMillisecondsOp(id, args);
-    } else if (isMessage(args[0], DurationSchema)) {
-      return durationToMillisecondsOp(id, args[0]);
-    }
-    return undefined;
-  },
-);
-
-export function addTime(funcs: FuncRegistry): void {
-  funcs.add(timeGeFullYearFunc);
-  funcs.add(timeGetMonthFunc);
-  funcs.add(timeGetDateFunc);
-  funcs.add(timeGetDayOfWeekFunc);
-  funcs.add(timeGetDayOfMonthFunc);
-  funcs.add(timeGetDayOfYearFunc);
-  funcs.add(timeGetSecondsFunc, [
-    durationToSecondsFunc,
-    timestampToSecondsFunc,
-  ]);
-  funcs.add(timeGetMinutesFunc, [
-    durationToMinutesFunc,
-    timestampToMinutesFunc,
-  ]);
-  funcs.add(timeGetHoursFunc, [DurationToHoursFunc, timestampToHoursFunc]);
-  funcs.add(timeGetMillisecondsFunc, [
-    durationToMillisecondsFunc,
-    timestampToMillisecondsFunc,
-  ]);
-}
+const getMillisecondsFunc = new TypedFunc(olc.TIME_GET_MILLISECONDS, [
+  new FuncOverload(
+    [TimestampSchema],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getMilliseconds()),
+  ),
+  new FuncOverload(
+    [TimestampSchema, CelScalar.STRING],
+    CelScalar.INT,
+    makeTimeOp((d) => d.getMilliseconds()),
+  ),
+  new FuncOverload(
+    [DurationSchema],
+    CelScalar.INT,
+    (dur) => BigInt(dur.nanos) / 1000000n,
+  ),
+]);
