@@ -21,7 +21,8 @@
         "noParameterAssign": "off",
         "useSingleVarDeclarator": "off",
         "useNumberNamespace": "off",
-        "noUnusedTemplateLiteral": "off"
+        "noUnusedTemplateLiteral": "off",
+        "useEnumInitializers": "off"
       },
       "correctness": {
         "noSwitchDeclarations": "off"

@@ -168,7 +168,7 @@ export class TypedFunc implements CallDispatch {
       }
       if (checkedVals.length === vals.length) {
         try {
-          return (overload.impl as any)(...checkedVals);
+          return overload.impl(...checkedVals) as CelVal;
         } catch (ex) {
           if (ex instanceof Error) {
             ex = ex.message;
@@ -277,27 +277,26 @@ function isOfType(
       }
     }
     return isMessage(val, type);
-  } else {
-    // Must be a scalar
-    switch (type) {
-      case CelScalar.ANY:
-        return true;
-      case CelScalar.INT:
-        return typeof val === "bigint";
-      case CelScalar.UINT:
-        return val instanceof CelUint;
-      case CelScalar.BOOL:
-        return typeof val === "boolean";
-      case CelScalar.DOUBLE:
-        return typeof val === "number";
-      case CelScalar.NULL:
-        return val === null;
-      case CelScalar.STRING:
-        return typeof val === "string";
-      case CelScalar.BYTES:
-        return val instanceof Uint8Array;
-      default:
-        return false;
-    }
+  }
+  // Must be a scalar
+  switch (type) {
+    case CelScalar.ANY:
+      return true;
+    case CelScalar.INT:
+      return typeof val === "bigint";
+    case CelScalar.UINT:
+      return val instanceof CelUint;
+    case CelScalar.BOOL:
+      return typeof val === "boolean";
+    case CelScalar.DOUBLE:
+      return typeof val === "number";
+    case CelScalar.NULL:
+      return val === null;
+    case CelScalar.STRING:
+      return typeof val === "string";
+    case CelScalar.BYTES:
+      return val instanceof Uint8Array;
+    default:
+      return false;
   }
 }

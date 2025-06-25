@@ -20,8 +20,8 @@ import {
   type TypeOf,
   type TupleTypeOf,
 } from "./type.js";
-import { CelList, CelMap, CelUint } from "./value/value.js";
-import { type Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import type { CelList, CelMap, CelUint } from "./value/value.js";
+import type { Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { expectTypeOf } from "expect-type";
 
 test("TypeOf", () => {

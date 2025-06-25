@@ -111,10 +111,12 @@ export type TypeOf<T extends CelValueType> =
   ? MessageShape<T> :
   T;
 
+// biome-ignore format: Ternaries
 export type TupleTypeOf<T extends readonly CelValueType[]> =
   T extends readonly [
     infer First extends CelValueType,
     ...infer Rest extends CelValueType[],
   ]
     ? [TypeOf<First>, ...TupleTypeOf<Rest>]
-    : [];
+    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of TupleTypeOf<CelValueType[]>     
+    : CelValueType[] extends T ? any[] : [];
