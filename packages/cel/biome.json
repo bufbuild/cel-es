@@ -1,7 +1,10 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "extends": ["../../biome.base.json"],
-  "files": {
+  "formatter": {
     "ignore": ["dist", "src/gen", "src/grammar.ts"]
+  },
+  "linter": {
+    "include": ["src/type.ts", "src/type.test.ts"]
   }
 }
