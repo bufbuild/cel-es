@@ -9,7 +9,8 @@
       "src/type.ts",
       "src/type.test.ts",
       "src/std/math.ts",
-      "src/errors.ts"
+      "src/errors.ts",
+      "src/std/time.ts"
     ]
   }
 }
