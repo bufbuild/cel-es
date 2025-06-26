@@ -10,7 +10,8 @@
       "src/type.test.ts",
       "src/std/math.ts",
       "src/errors.ts",
-      "src/std/time.ts"
+      "src/std/time.ts",
+      "src/std/cast.ts"
     ]
   }
 }
