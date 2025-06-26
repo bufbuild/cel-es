@@ -29,7 +29,8 @@
       },
       "suspicious": {
         "noDoubleEquals": "off",
-        "noFallthroughSwitchClause": "off"
+        "noFallthroughSwitchClause": "off",
+        "noCatchAssign": "off"
       }
     }
   }

@@ -13,7 +13,8 @@
       "src/std/time.ts",
       "src/std/cast.ts",
       "src/std/logic.ts",
-      "src/ext/strings.ts"
+      "src/ext/strings.ts",
+      "src/func.ts"
     ]
   }
 }

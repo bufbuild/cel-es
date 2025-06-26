@@ -16,7 +16,7 @@ import { isMessage, toJson } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
-import { FuncOverload, FuncRegistry, TypedFunc } from "../func.js";
+import { FuncOverload, FuncRegistry, Func } from "../func.js";
 import * as type from "../value/type.js";
 import {
   type CelResult,
@@ -29,7 +29,7 @@ import {
 import { CelScalar, listType } from "../type.js";
 import { indexOutOfBounds, invalidArgument } from "../errors.js";
 
-const charAt = new TypedFunc("charAt", [
+const charAt = new Func("charAt", [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.INT],
     CelScalar.STRING,
@@ -43,7 +43,7 @@ const charAt = new TypedFunc("charAt", [
   ),
 ]);
 
-const indexOf = new TypedFunc("indexOf", [
+const indexOf = new Func("indexOf", [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.INT,
@@ -62,7 +62,7 @@ const indexOf = new TypedFunc("indexOf", [
   ),
 ]);
 
-const lastIndexOf = new TypedFunc("lastIndexOf", [
+const lastIndexOf = new Func("lastIndexOf", [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.INT,
@@ -81,7 +81,7 @@ const lastIndexOf = new TypedFunc("lastIndexOf", [
   ),
 ]);
 
-const lowerAscii = new TypedFunc("lowerAscii", [
+const lowerAscii = new Func("lowerAscii", [
   new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     // Only lower case ascii characters.
     let result = "";
@@ -97,7 +97,7 @@ const lowerAscii = new TypedFunc("lowerAscii", [
   }),
 ]);
 
-const upperAscii = new TypedFunc("upperAscii", [
+const upperAscii = new Func("upperAscii", [
   new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     let result = "";
     for (let i = 0; i < str.length; i++) {
@@ -129,7 +129,7 @@ function replaceOp(str: string, substr: string, repl: string, num: number) {
   return result;
 }
 
-const replace = new TypedFunc("replace", [
+const replace = new Func("replace", [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING],
     CelScalar.STRING,
@@ -149,7 +149,7 @@ function splitOp(str: string, sep: string, num?: number) {
   return new CelList(str.split(sep, num), CEL_ADAPTER, type.LIST_STRING);
 }
 
-const split = new TypedFunc("split", [
+const split = new Func("split", [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
     listType(CelScalar.STRING),
@@ -184,7 +184,7 @@ function substringOp(str: string, start: bigint, end?: bigint) {
   return str.substring(Number(start), Number(end));
 }
 
-const substring = new TypedFunc("substring", [
+const substring = new Func("substring", [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.INT],
     CelScalar.STRING,
@@ -204,7 +204,7 @@ const WHITE_SPACE = new Set([
   0x2028, 0x2029, 0x202f, 0x205f, 0x3000,
 ]);
 
-const trim = new TypedFunc("trim", [
+const trim = new Func("trim", [
   new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     // Trim using the unicode white space definition.
     let start = 0;
@@ -234,7 +234,7 @@ function joinOp(list: CelList, sep = "") {
   return result;
 }
 
-const join = new TypedFunc("join", [
+const join = new Func("join", [
   new FuncOverload([listType(CelScalar.ANY)], CelScalar.STRING, joinOp),
   new FuncOverload(
     [listType(CelScalar.ANY), CelScalar.STRING],
@@ -256,7 +256,7 @@ const QUOTE_MAP: Map<number, string> = new Map([
   [0x5c, "\\\\"],
 ]);
 
-const quote = new TypedFunc("strings.quote", [
+const quote = new Func("strings.quote", [
   new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     let result = '"';
     for (let i = 0; i < str.length; i++) {
@@ -504,7 +504,6 @@ export class Formatter {
           case val instanceof CelError:
             return val;
         }
-        break;
     }
     throw invalidArgument("format", "invalid value");
   }
@@ -540,7 +539,6 @@ export class Formatter {
           case val instanceof CelError:
             return val;
         }
-        break;
     }
     throw invalidArgument("format", "invalid string value");
   }
@@ -634,7 +632,7 @@ export class Formatter {
 export const DEFAULT_FORMATTER = new Formatter();
 
 export function makeStringFormatFunc(formatter: Formatter) {
-  return new TypedFunc("format", [
+  return new Func("format", [
     new FuncOverload(
       [CelScalar.STRING, listType(CelScalar.ANY)],
       CelScalar.STRING,
@@ -648,18 +646,18 @@ export function addStringsExt(
   funcs: FuncRegistry,
   formatter: Formatter = DEFAULT_FORMATTER,
 ) {
-  funcs.addTypedFunc(charAt);
-  funcs.addTypedFunc(indexOf);
-  funcs.addTypedFunc(lastIndexOf);
-  funcs.addTypedFunc(lowerAscii);
-  funcs.addTypedFunc(upperAscii);
-  funcs.addTypedFunc(replace);
-  funcs.addTypedFunc(split);
-  funcs.addTypedFunc(substring);
-  funcs.addTypedFunc(trim);
-  funcs.addTypedFunc(join);
-  funcs.addTypedFunc(quote);
-  funcs.addTypedFunc(makeStringFormatFunc(formatter));
+  funcs.add(charAt);
+  funcs.add(indexOf);
+  funcs.add(lastIndexOf);
+  funcs.add(lowerAscii);
+  funcs.add(upperAscii);
+  funcs.add(replace);
+  funcs.add(split);
+  funcs.add(substring);
+  funcs.add(trim);
+  funcs.add(join);
+  funcs.add(quote);
+  funcs.add(makeStringFormatFunc(formatter));
 }
 
 export function makeStringExtFuncRegistry(): FuncRegistry {
