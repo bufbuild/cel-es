@@ -193,30 +193,28 @@ export class FuncOverload<
 }
 
 export class FuncRegistry implements Dispatcher {
-  private functions = new Map<string, Func>();
-  private typedFunctions = new Map<string, TypedFunc>();
+  private functions = new Map<string, CallDispatch>();
 
   constructor(private readonly parent: FuncRegistry | undefined = undefined) {}
 
   public add(func: Func, overloads: Func[] = []): void {
-    if (this.functions.has(func.name)) {
-      throw new Error(`Function ${func.name} already registered`);
-    } else {
-      this.functions.set(func.name, func);
-    }
+    this.addCall(func.name, func);
   }
 
   public addTypedFunc(func: TypedFunc): void {
-    if (this.functions.has(func.name) || this.typedFunctions.has(func.name)) {
-      throw new Error(`Function ${func.name} already registered`);
+    this.addCall(func.name, func);
+  }
+
+  public addCall(name: string, call: CallDispatch): void {
+    if (this.functions.has(name)) {
+      throw new Error(`Function ${name} already registered`);
     } else {
-      this.typedFunctions.set(func.name, func);
+      this.functions.set(name, call);
     }
   }
 
   public find(name: string): CallDispatch | undefined {
-    let result: CallDispatch | undefined =
-      this.functions.get(name) ?? this.typedFunctions.get(name);
+    let result = this.functions.get(name);
     if (result === undefined && this.parent !== undefined) {
       result = this.parent.find(name);
     }
