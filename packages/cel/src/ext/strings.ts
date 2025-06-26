@@ -16,94 +16,73 @@ import { isMessage, toJson } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
-import { argsMatch, Func, FuncRegistry } from "../func.js";
+import { FuncOverload, FuncRegistry, TypedFunc } from "../func.js";
 import * as type from "../value/type.js";
 import {
   type CelResult,
-  type CelVal,
   CelError,
   CelList,
   CelMap,
   CelUint,
   CelType,
-  CelErrors,
 } from "../value/value.js";
+import { CelScalar, listType } from "../type.js";
+import { indexOutOfBounds, invalidArgument } from "../errors.js";
 
-function toNum(number: unknown): number | undefined {
-  switch (typeof number) {
-    case "number":
-      return number;
-    case "bigint":
-      return Number(number);
-    default:
-      return undefined;
-  }
-}
+const charAt = new TypedFunc("charAt", [
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.INT],
+    CelScalar.STRING,
+    (str, index) => {
+      const i = Number(index);
+      if (i < 0 || i > str.length) {
+        throw indexOutOfBounds(i, str.length);
+      }
+      return str.charAt(i);
+    },
+  ),
+]);
 
-// Checks that the args matched, followed by an optional int.
-function argsMatchInt(args: CelVal[], ...celTypes: CelType[]): boolean {
-  return argsMatch(args, celTypes.length, ...celTypes, type.INT);
-}
+const indexOf = new TypedFunc("indexOf", [
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING],
+    CelScalar.INT,
+    (str, substr) => BigInt(str.indexOf(substr)),
+  ),
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+    CelScalar.INT,
+    (str, substr, startN) => {
+      const start = Number(startN);
+      if (start !== undefined && (start < 0 || start >= str.length)) {
+        throw indexOutOfBounds(start, str.length);
+      }
+      return BigInt(str.indexOf(substr, start));
+    },
+  ),
+]);
 
-const charAtFunc = Func.binary(
-  "charAt",
-  ["string_char_at_int"],
-  (id: number, str: CelVal, index: CelVal) => {
-    if (
-      typeof str !== "string" ||
-      (typeof index !== "number" && typeof index !== "bigint")
-    ) {
-      return undefined;
-    }
-    const i = Number(index);
-    if (i < 0 || i > str.length) {
-      return CelErrors.indexOutOfBounds(id, i, str.length);
-    }
-    return str.charAt(i);
-  },
-);
+const lastIndexOf = new TypedFunc("lastIndexOf", [
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING],
+    CelScalar.INT,
+    (str, substr) => BigInt(str.lastIndexOf(substr)),
+  ),
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+    CelScalar.INT,
+    (str, substr, startN) => {
+      const start = Number(startN);
+      if (start !== undefined && (start < 0 || start >= str.length)) {
+        throw indexOutOfBounds(start, str.length);
+      }
+      return BigInt(str.lastIndexOf(substr, start));
+    },
+  ),
+]);
 
-const indexOfFunc = Func.newStrict(
-  "indexOf",
-  ["string_index_of_string", "string_index_of_string_int"],
-  (id: number, args: CelVal[]) => {
-    if (!argsMatchInt(args, type.STRING, type.STRING)) {
-      return undefined;
-    }
-    const str = args[0] as string;
-    const substr = args[1] as string;
-    const start = toNum(args[2]);
-    if (start !== undefined && (start < 0 || start >= str.length)) {
-      return CelErrors.indexOutOfBounds(id, start, str.length);
-    }
-    return str.indexOf(substr, start);
-  },
-);
-
-const lastIndexOfFunc = Func.newStrict(
-  "lastIndexOf",
-  ["string_last_index_of_string", "string_last_index_of_string_int"],
-  (id: number, args: CelVal[]) => {
-    if (!argsMatchInt(args, type.STRING, type.STRING)) {
-      return undefined;
-    }
-    const str = args[0] as string;
-    const substr = args[1] as string;
-    const start = toNum(args[2]);
-    if (start !== undefined && (start < 0 || start >= str.length)) {
-      return CelErrors.indexOutOfBounds(id, start, str.length);
-    }
-    return str.lastIndexOf(substr, start);
-  },
-);
-
-const lowerAsciiFunc = Func.unary(
-  "lowerAscii",
-  ["string_lower_ascii"],
-  (_id: number, str: CelVal) => {
-    if (typeof str !== "string") {
-      return undefined;
-    }
+const lowerAscii = new TypedFunc("lowerAscii", [
+  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     // Only lower case ascii characters.
     let result = "";
     for (let i = 0; i < str.length; i++) {
@@ -115,16 +94,11 @@ const lowerAsciiFunc = Func.unary(
       }
     }
     return result;
-  },
-);
+  }),
+]);
 
-const upperAsciiFunc = Func.unary(
-  "upperAscii",
-  ["string_upper_ascii"],
-  (_id: number, str: CelVal) => {
-    if (typeof str !== "string") {
-      return undefined;
-    }
+const upperAscii = new TypedFunc("upperAscii", [
+  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     let result = "";
     for (let i = 0; i < str.length; i++) {
       const c = str.charCodeAt(i);
@@ -135,85 +109,93 @@ const upperAsciiFunc = Func.unary(
       }
     }
     return result;
-  },
-);
+  }),
+]);
 
-const replaceFunc = Func.newStrict(
-  "replace",
-  ["string_replace_string_string", "string_replace_string_string_int"],
-  (_id: number, args: CelVal[]) => {
-    if (!argsMatchInt(args, type.STRING, type.STRING, type.STRING)) {
-      return undefined;
-    }
-    const str = args[0] as string;
-    const substr = args[1] as string;
-    const repl = args[2] as string;
-    let num = toNum(args[3]) ?? str.length;
-    // Replace the first num occurrences of substr with repl.
-    let result = str;
-    let offset = 0;
-    let index = result.indexOf(substr, offset);
-    while (num > 0 && index !== -1) {
-      result =
-        result.substring(0, index) +
-        repl +
-        result.substring(index + substr.length);
-      offset = index + repl.length;
-      num--;
-      index = result.indexOf(substr, offset);
-    }
-    return result;
-  },
-);
+function replaceOp(str: string, substr: string, repl: string, num: number) {
+  // Replace the first num occurrences of substr with repl.
+  let result = str;
+  let offset = 0;
+  let index = result.indexOf(substr, offset);
+  while (num > 0 && index !== -1) {
+    result =
+      result.substring(0, index) +
+      repl +
+      result.substring(index + substr.length);
+    offset = index + repl.length;
+    num--;
+    index = result.indexOf(substr, offset);
+  }
+  return result;
+}
 
-const splitFunc = Func.newStrict(
-  "split",
-  ["string_split_string", "string_split_string_int"],
-  (_id: number, args: CelVal[]) => {
-    if (!argsMatchInt(args, type.STRING, type.STRING)) {
-      return undefined;
-    }
-    const str = args[0] as string;
-    const sep = args[1] as string;
-    const num = toNum(args[2]);
-    if (num === 1) {
-      return new CelList([str], CEL_ADAPTER, type.LIST_STRING);
-    }
-    return new CelList(str.split(sep, num), CEL_ADAPTER, type.LIST_STRING);
-  },
-);
+const replace = new TypedFunc("replace", [
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING],
+    CelScalar.STRING,
+    (str, substr, repl) => replaceOp(str, substr, repl, str.length),
+  ),
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+    CelScalar.STRING,
+    (str, substr, repl, num) => replaceOp(str, substr, repl, Number(num)),
+  ),
+]);
 
-const substringFunc = Func.newStrict(
-  "substring",
-  ["string_substring_int", "string_substring_int_int"],
-  (id: number, args: CelVal[]) => {
-    if (!argsMatchInt(args, type.STRING, type.INT)) {
-      return undefined;
-    }
-    const str = args[0] as string;
-    const start = args[1] as number | bigint;
-    const end = args[2] as number | bigint | undefined;
-    if (end === undefined) {
-      const i = Number(start);
-      if (i < 0 || i > str.length) {
-        return CelErrors.indexOutOfBounds(id, i, str.length);
-      }
-      return str.substring(i);
-    }
+function splitOp(str: string, sep: string, num?: number) {
+  if (num === 1) {
+    return new CelList([str], CEL_ADAPTER, type.LIST_STRING);
+  }
+  return new CelList(str.split(sep, num), CEL_ADAPTER, type.LIST_STRING);
+}
+
+const split = new TypedFunc("split", [
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING],
+    listType(CelScalar.STRING),
+    splitOp,
+  ),
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+    listType(CelScalar.STRING),
+    (str, sep, num) => splitOp(str, sep, Number(num)),
+  ),
+]);
+
+function substringOp(str: string, start: bigint, end?: bigint) {
+  if (end === undefined) {
     const i = Number(start);
-    const j = Number(end);
     if (i < 0 || i > str.length) {
-      return CelErrors.indexOutOfBounds(id, i, str.length);
+      throw indexOutOfBounds(i, str.length);
     }
-    if (j < 0 || j > str.length) {
-      return CelErrors.indexOutOfBounds(id, j, str.length);
-    }
-    if (i > j) {
-      return CelErrors.invalidArgument(id, "substring", "start > end");
-    }
-    return str.substring(Number(start), Number(end));
-  },
-);
+    return str.substring(i);
+  }
+  const i = Number(start);
+  const j = Number(end);
+  if (i < 0 || i > str.length) {
+    throw indexOutOfBounds(i, str.length);
+  }
+  if (j < 0 || j > str.length) {
+    throw indexOutOfBounds(j, str.length);
+  }
+  if (i > j) {
+    throw invalidArgument("substring", "start > end");
+  }
+  return str.substring(Number(start), Number(end));
+}
+
+const substring = new TypedFunc("substring", [
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.INT],
+    CelScalar.STRING,
+    substringOp,
+  ),
+  new FuncOverload(
+    [CelScalar.STRING, CelScalar.INT, CelScalar.INT],
+    CelScalar.STRING,
+    substringOp,
+  ),
+]);
 
 // The set of white space characters defined by the unicode standard.
 const WHITE_SPACE = new Set([
@@ -222,13 +204,8 @@ const WHITE_SPACE = new Set([
   0x2028, 0x2029, 0x202f, 0x205f, 0x3000,
 ]);
 
-const trimFunc = Func.unary(
-  "trim",
-  ["string_trim"],
-  (_id: number, str: CelVal) => {
-    if (typeof str !== "string") {
-      return undefined;
-    }
+const trim = new TypedFunc("trim", [
+  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     // Trim using the unicode white space definition.
     let start = 0;
     let end = str.length - 1;
@@ -239,36 +216,32 @@ const trimFunc = Func.unary(
       end--;
     }
     return str.substring(start, end + 1);
-  },
-);
+  }),
+]);
 
-const joinFunc = Func.newStrict(
-  "join",
-  ["list_join", "list_join_string"],
-  (id: number, args: CelVal[]) => {
-    if (!argsMatch(args, 1, type.LIST, type.STRING)) {
-      return undefined;
+function joinOp(list: CelList, sep = "") {
+  const items = list.getItems();
+  let result = "";
+  for (let i = 0; i < items.length; i++) {
+    if (typeof items[i] !== "string") {
+      throw invalidArgument("join", "list contains non-string value");
     }
-    const list = args[0] as CelList;
-    const sep = args[1] === undefined ? "" : (args[1] as string);
-    const items = list.getItems();
-    let result = "";
-    for (let i = 0; i < items.length; i++) {
-      if (typeof items[i] !== "string") {
-        return CelErrors.invalidArgument(
-          id,
-          "join",
-          "list contains non-string value",
-        );
-      }
-      if (i > 0) {
-        result += sep;
-      }
-      result += items[i];
+    if (i > 0) {
+      result += sep;
     }
-    return result;
-  },
-);
+    result += items[i];
+  }
+  return result;
+}
+
+const join = new TypedFunc("join", [
+  new FuncOverload([listType(CelScalar.ANY)], CelScalar.STRING, joinOp),
+  new FuncOverload(
+    [listType(CelScalar.ANY), CelScalar.STRING],
+    CelScalar.STRING,
+    joinOp,
+  ),
+]);
 
 const QUOTE_MAP: Map<number, string> = new Map([
   [0x00, "\\0"],
@@ -282,143 +255,141 @@ const QUOTE_MAP: Map<number, string> = new Map([
   [0x22, '\\"'],
   [0x5c, "\\\\"],
 ]);
-function quoteString(_id: number, str: string): string {
-  let result = '"';
-  for (let i = 0; i < str.length; i++) {
-    const c = str.charCodeAt(i);
-    result += QUOTE_MAP.get(c) ?? str.charAt(i);
-  }
-  result += '"';
-  return result;
-}
 
-const quoteFunc = Func.unary(
-  "strings.quote",
-  ["strings_quote"],
-  (id: number, str: CelVal) => {
-    if (typeof str !== "string") {
-      return undefined;
+const quote = new TypedFunc("strings.quote", [
+  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+    let result = '"';
+    for (let i = 0; i < str.length; i++) {
+      const c = str.charCodeAt(i);
+      result += QUOTE_MAP.get(c) ?? str.charAt(i);
     }
-    return quoteString(id, str);
-  },
-);
+    result += '"';
+    return result;
+  }),
+]);
 
 export class Formatter {
-  public formatFloatString(id: number, val: string): CelResult<string> {
+  public formatFloatString(val: string): CelResult<string> {
     switch (val) {
       case "Infinity":
       case "-Infinity":
       case "NaN":
         return val;
       default:
-        return CelErrors.invalidArgument(
-          id,
-          "format",
-          "invalid floating point value",
-        );
+        throw invalidArgument("format", "invalid floating point value");
     }
   }
 
   public formatFloating(
-    id: number,
     val: CelResult,
     precision: number | undefined,
   ): CelResult<string> {
-    if (typeof val === "number") {
-      if (isNaN(val)) {
-        return "NaN";
-      } else if (val === Infinity) {
-        return "Infinity";
-      } else if (val === -Infinity) {
-        return "-Infinity";
-      } else if (precision === undefined) {
-        return val.toString();
-      }
-      return val.toFixed(precision);
-    } else if (typeof val === "string") {
-      return this.formatFloatString(id, val);
-    } else if (val instanceof CelError) {
-      return val;
+    switch (true) {
+      case typeof val === "number":
+        if (Number.isNaN(val)) {
+          return "NaN";
+        }
+        if (val === Infinity) {
+          return "Infinity";
+        }
+        if (val === -Infinity) {
+          return "-Infinity";
+        }
+        if (precision === undefined) {
+          return val.toString();
+        }
+        return val.toFixed(precision);
+      case typeof val === "string":
+        return this.formatFloatString(val);
+      case val instanceof CelError:
+        return val;
+      default:
+        throw invalidArgument(
+          "format",
+          "fixed-point clause can only be used on doubles",
+        );
     }
-    return CelErrors.invalidArgument(
-      id,
-      "format",
-      "fixed-point clause can only be used on doubles",
-    );
   }
 
   public formatExponent(
-    id: number,
     val: CelResult,
     precision: number | undefined,
   ): CelResult<string> {
-    if (typeof val === "number") {
-      if (isNaN(val)) {
+    switch (true) {
+      case typeof val === "number":
+        if (Number.isNaN(val)) {
+          return "NaN";
+        }
+        if (val === Infinity) {
+          return "Infinity";
+        }
+        if (val === -Infinity) {
+          return "-Infinity";
+        }
+        return val.toExponential(precision);
+      case typeof val === "string":
+        return this.formatFloatString(val);
+      case val instanceof CelError:
+        return val;
+      default:
+        throw invalidArgument(
+          "format",
+          "scientific clause can only be used on doubles",
+        );
+    }
+  }
+
+  public formatBinary(val: CelResult): CelResult<string> {
+    switch (true) {
+      case typeof val === "boolean":
+        return val ? "1" : "0";
+      case typeof val === "bigint":
+        return val.toString(2);
+      case val instanceof CelUint:
+        return val.value.toString(2);
+      case val instanceof CelError:
+        return val;
+      default:
+        throw invalidArgument(
+          "format",
+          "only integers and bools can be formatted as binary",
+        );
+    }
+  }
+
+  public formatOctal(val: CelResult): CelResult<string> {
+    switch (true) {
+      case typeof val === "bigint":
+        return val.toString(8);
+      case val instanceof CelUint:
+        return val.value.toString(8);
+      case val instanceof CelError:
+        return val;
+      default:
+        throw invalidArgument("format", "invalid integer value");
+    }
+  }
+
+  public formatDecimal(val: CelResult): CelResult<string> {
+    switch (true) {
+      case typeof val === "bigint":
+        return val.toString(10);
+      case val instanceof CelUint:
+        return val.value.toString(10);
+      case typeof val === "number" && Number.isNaN(val):
         return "NaN";
-      } else if (val === Infinity) {
+      case val === Infinity:
         return "Infinity";
-      } else if (val === -Infinity) {
+      case val === -Infinity:
         return "-Infinity";
-      }
-      return val.toExponential(precision);
-    } else if (typeof val === "string") {
-      return this.formatFloatString(id, val);
-    } else if (val instanceof CelError) {
-      return val;
+      case val instanceof CelError:
+        return val;
+      default:
+        throw invalidArgument("format", "invalid integer value");
     }
-    return CelErrors.invalidArgument(
-      id,
-      "format",
-      "scientific clause can only be used on doubles",
-    );
   }
 
-  public formatBinary(id: number, val: CelResult): CelResult<string> {
-    if (typeof val === "boolean") {
-      return val ? "1" : "0";
-    } else if (typeof val === "bigint") {
-      return val.toString(2);
-    } else if (val instanceof CelUint) {
-      return val.value.toString(2);
-    } else if (val instanceof CelError) {
-      return val;
-    }
-    return CelErrors.invalidArgument(
-      id,
-      "format",
-      "only integers and bools can be formatted as binary",
-    );
-  }
-
-  public formatOctal(id: number, val: CelResult): CelResult<string> {
-    if (typeof val === "bigint") {
-      return val.toString(8);
-    } else if (val instanceof CelUint) {
-      return val.value.toString(8);
-    } else if (val instanceof CelError) {
-      return val;
-    }
-    return CelErrors.invalidArgument(id, "format", "invalid integer value");
-  }
-
-  public formatDecimal(id: number, val: CelResult): CelResult<string> {
-    if (typeof val === "bigint") {
-      return val.toString(10);
-    } else if (val instanceof CelUint) {
-      return val.value.toString(10);
-    } else if (typeof val === "number" && isNaN(val)) {
-      return "NaN";
-    } else if (val === Infinity) {
-      return "Infinity";
-    } else if (val === -Infinity) {
-      return "-Infinity";
-    } else if (val instanceof CelError) {
-      return val;
-    }
-    return CelErrors.invalidArgument(id, "format", "invalid integer value");
-  }
-
-  public formatHexBytes(_id: number, val: Uint8Array): string {
+  public formatHexBytes(val: Uint8Array): string {
     let result = "";
     for (let i = 0; i < val.length; i++) {
       result += val[i].toString(16).padStart(2, "0");
@@ -426,42 +397,43 @@ export class Formatter {
     return result;
   }
 
-  public formatHex(id: number, val: CelResult): CelResult<string> {
-    if (typeof val === "bigint") {
-      return val.toString(16);
-    } else if (val instanceof CelUint) {
-      return val.value.toString(16);
-    } else if (typeof val === "string") {
-      const encoder = new TextEncoder();
-      return this.formatHexBytes(id, encoder.encode(val));
-    } else if (val instanceof Uint8Array) {
-      return this.formatHexBytes(id, val);
-    } else if (val instanceof CelError) {
-      return val;
+  public formatHex(val: CelResult): CelResult<string> {
+    switch (true) {
+      case typeof val === "bigint":
+        return val.toString(16);
+      case val instanceof CelUint:
+        return val.value.toString(16);
+      case typeof val === "string":
+        const encoder = new TextEncoder();
+        return this.formatHexBytes(encoder.encode(val));
+      case val instanceof Uint8Array:
+        return this.formatHexBytes(val);
+      case val instanceof CelError:
+        return val;
+      default:
+        throw invalidArgument(
+          "format",
+          "only integers, byte buffers, and strings can be formatted as hex",
+        );
     }
-    return CelErrors.invalidArgument(
-      id,
-      "format",
-      "only integers, byte buffers, and strings can be formatted as hex",
-    );
   }
 
-  public formatHeX(id: number, val: CelResult): CelResult<string> {
-    const result = this.formatHex(id, val);
+  public formatHeX(val: CelResult): CelResult<string> {
+    const result = this.formatHex(val);
     if (typeof result !== "string") {
       return result;
     }
     return result.toUpperCase();
   }
 
-  public formatList(id: number, val: CelList): CelResult<string> {
+  public formatList(val: CelList): CelResult<string> {
     const items = val.getItems();
     let result = "[";
     for (let i = 0; i < items.length; i++) {
       if (i > 0) {
         result += ", ";
       }
-      const item = this.formatRepl(id, items[i]);
+      const item = this.formatRepl(items[i]);
       if (item instanceof CelError) {
         return item;
       }
@@ -471,17 +443,17 @@ export class Formatter {
     return result;
   }
 
-  public formatMap(id: number, val: CelMap): CelResult<string> {
+  public formatMap(val: CelMap): CelResult<string> {
     const formatted = new Array<[string, string]>(val.value.size);
     let i = 0;
     for (const [rawKey, rawValue] of val.value) {
       const key = val.adapter.toCel(rawKey);
-      const keyStr = this.formatRepl(id, key);
+      const keyStr = this.formatRepl(key);
       if (keyStr instanceof CelError) {
         return keyStr;
       }
       const value = val.adapter.toCel(rawValue);
-      const valueStr = this.formatRepl(id, value);
+      const valueStr = this.formatRepl(value);
       if (valueStr instanceof CelError) {
         return valueStr;
       }
@@ -500,82 +472,80 @@ export class Formatter {
     return result;
   }
 
-  public formatRepl(id: number, val: CelResult): CelResult<string> {
+  public formatRepl(val: CelResult): CelResult<string> {
     switch (typeof val) {
       case "boolean":
         return val ? "true" : "false";
       case "bigint":
-        return DEFAULT_FORMATTER.formatDecimal(id, val);
+        return DEFAULT_FORMATTER.formatDecimal(val);
       case "number":
-        return DEFAULT_FORMATTER.formatFloating(id, val, undefined);
+        return DEFAULT_FORMATTER.formatFloating(val, undefined);
       case "string":
         return val;
       case "object":
-        if (val === null) {
-          return "null";
-        } else if (val instanceof CelType) {
-          return val.name;
-        } else if (val instanceof CelUint) {
-          return val.value.toString();
-        } else if (isMessage(val, TimestampSchema)) {
-          return toJson(TimestampSchema, val);
-        } else if (isMessage(val, DurationSchema)) {
-          return toJson(DurationSchema, val);
-        } else if (val instanceof Uint8Array) {
-          // escape non-printable characters
-          return new TextDecoder().decode(val);
-        } else if (val instanceof CelList) {
-          return this.formatList(id, val);
-        } else if (val instanceof CelMap) {
-          return this.formatMap(id, val);
-        } else if (val instanceof CelError) {
-          return val;
+        switch (true) {
+          case val === null:
+            return "null";
+          case val instanceof CelType:
+            return val.name;
+          case val instanceof CelUint:
+            return val.value.toString();
+          case isMessage(val, TimestampSchema):
+            return toJson(TimestampSchema, val);
+          case isMessage(val, DurationSchema):
+            return toJson(DurationSchema, val);
+          case val instanceof Uint8Array:
+            // escape non-printable characters
+            return new TextDecoder().decode(val);
+          case val instanceof CelList:
+            return this.formatList(val);
+          case val instanceof CelMap:
+            return this.formatMap(val);
+          case val instanceof CelError:
+            return val;
         }
         break;
-      default:
-        break;
     }
-    return CelErrors.invalidArgument(id, "format", "invalid value");
+    throw invalidArgument("format", "invalid value");
   }
 
-  public formatString(id: number, val: CelResult): CelResult<string> {
+  public formatString(val: CelResult): CelResult<string> {
     switch (typeof val) {
       case "boolean":
         return val ? "true" : "false";
       case "bigint":
-        return this.formatDecimal(id, val);
+        return this.formatDecimal(val);
       case "number":
-        return this.formatFloating(id, val, undefined);
+        return this.formatFloating(val, undefined);
       case "string":
         return val;
       case "object":
-        if (val === null) {
-          return "null";
-        } else if (val instanceof CelType) {
-          return val.name;
-        } else if (val instanceof CelUint) {
-          return val.value.toString();
-        } else if (isMessage(val, TimestampSchema)) {
-          return toJson(TimestampSchema, val);
-        } else if (isMessage(val, DurationSchema)) {
-          return toJson(DurationSchema, val);
-        } else if (val instanceof Uint8Array) {
-          return new TextDecoder().decode(val);
-        } else if (val instanceof CelList) {
-          return this.formatList(id, val);
-        } else if (val instanceof CelMap) {
-          return this.formatMap(id, val);
-        } else if (val instanceof CelError) {
-          return val;
+        switch (true) {
+          case val === null:
+            return "null";
+          case val instanceof CelType:
+            return val.name;
+          case val instanceof CelUint:
+            return val.value.toString();
+          case isMessage(val, TimestampSchema):
+            return toJson(TimestampSchema, val);
+          case isMessage(val, DurationSchema):
+            return toJson(DurationSchema, val);
+          case val instanceof Uint8Array:
+            return new TextDecoder().decode(val);
+          case val instanceof CelList:
+            return this.formatList(val);
+          case val instanceof CelMap:
+            return this.formatMap(val);
+          case val instanceof CelError:
+            return val;
         }
         break;
-      default:
-        break;
     }
-    return CelErrors.invalidArgument(id, "format", "invalid string value");
+    throw invalidArgument("format", "invalid string value");
   }
 
-  public format(id: number, format: string, args: CelList): CelResult<string> {
+  public format(format: string, args: CelList): string {
     const items = args.getItems();
     let result = "";
     let i = 0;
@@ -587,7 +557,7 @@ export class Formatter {
         continue;
       }
       if (i + 1 >= format.length) {
-        return CelErrors.invalidArgument(id, "format", "invalid format string");
+        throw invalidArgument("format", "invalid format string");
       }
       let c = format.charAt(i + 1);
       i += 2;
@@ -608,67 +578,54 @@ export class Formatter {
           i++;
         }
         if (i >= format.length) {
-          return CelErrors.invalidArgument(
-            id,
-            "format",
-            "invalid format string",
-          );
+          throw invalidArgument("format", "invalid format string");
         }
         c = format.charAt(i);
         i++;
       }
       if (j >= items.length) {
-        return CelErrors.invalidArgument(
-          id,
-          "format",
-          "too few arguments for format string",
-        );
+        throw invalidArgument("format", "too few arguments for format string");
       }
       const val = items[j++];
       let str: CelResult<string> = "";
       switch (c) {
         case "e":
-          str = this.formatExponent(id, val, precision);
+          str = this.formatExponent(val, precision);
           break;
         case "f":
-          str = this.formatFloating(id, val, precision);
+          str = this.formatFloating(val, precision);
           break;
         case "b":
-          str = this.formatBinary(id, val);
+          str = this.formatBinary(val);
           break;
         case "d":
-          str = this.formatDecimal(id, val);
+          str = this.formatDecimal(val);
           break;
         case "s":
-          str = this.formatString(id, val);
+          str = this.formatString(val);
           break;
         case "x":
-          str = this.formatHex(id, val);
+          str = this.formatHex(val);
           break;
         case "X":
-          str = this.formatHeX(id, val);
+          str = this.formatHeX(val);
           break;
         case "o":
-          str = this.formatOctal(id, val);
+          str = this.formatOctal(val);
           break;
         default:
-          return CelErrors.invalidArgument(
-            id,
+          throw invalidArgument(
             "format",
             `could not parse formatting clause: unrecognized formatting clause: ${c}`,
           );
       }
       if (str instanceof CelError) {
-        return str;
+        throw new Error(str.message);
       }
       result += str;
     }
     if (j < items.length) {
-      return CelErrors.invalidArgument(
-        id,
-        "format",
-        "too many arguments for format string",
-      );
+      throw invalidArgument("format", "too many arguments for format string");
     }
     return result;
   }
@@ -676,34 +633,33 @@ export class Formatter {
 
 export const DEFAULT_FORMATTER = new Formatter();
 
-export function makeStringFormatFunc(formatter: Formatter): Func {
-  return Func.binary(
-    "format",
-    ["string_format_list"],
-    (id: number, format: CelVal, args: CelVal) => {
-      if (typeof format !== "string" || !(args instanceof CelList)) {
-        return undefined;
-      }
-      return formatter.format(id, format, args);
-    },
-  );
+export function makeStringFormatFunc(formatter: Formatter) {
+  return new TypedFunc("format", [
+    new FuncOverload(
+      [CelScalar.STRING, listType(CelScalar.ANY)],
+      CelScalar.STRING,
+      (format, args) => {
+        return formatter.format(format, args);
+      },
+    ),
+  ]);
 }
 export function addStringsExt(
   funcs: FuncRegistry,
   formatter: Formatter = DEFAULT_FORMATTER,
 ) {
-  funcs.add(charAtFunc);
-  funcs.add(indexOfFunc);
-  funcs.add(lastIndexOfFunc);
-  funcs.add(lowerAsciiFunc);
-  funcs.add(replaceFunc);
-  funcs.add(splitFunc);
-  funcs.add(substringFunc);
-  funcs.add(trimFunc);
-  funcs.add(upperAsciiFunc);
-  funcs.add(joinFunc);
-  funcs.add(quoteFunc);
-  funcs.add(makeStringFormatFunc(formatter));
+  funcs.addTypedFunc(charAt);
+  funcs.addTypedFunc(indexOf);
+  funcs.addTypedFunc(lastIndexOf);
+  funcs.addTypedFunc(lowerAscii);
+  funcs.addTypedFunc(upperAscii);
+  funcs.addTypedFunc(replace);
+  funcs.addTypedFunc(split);
+  funcs.addTypedFunc(substring);
+  funcs.addTypedFunc(trim);
+  funcs.addTypedFunc(join);
+  funcs.addTypedFunc(quote);
+  funcs.addTypedFunc(makeStringFormatFunc(formatter));
 }
 
 export function makeStringExtFuncRegistry(): FuncRegistry {
