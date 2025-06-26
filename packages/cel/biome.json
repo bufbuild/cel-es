@@ -11,7 +11,8 @@
       "src/std/math.ts",
       "src/errors.ts",
       "src/std/time.ts",
-      "src/std/cast.ts"
+      "src/std/cast.ts",
+      "src/std/logic.ts"
     ]
   }
 }

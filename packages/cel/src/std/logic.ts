@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Func, FuncRegistry, TypedFunc, FuncOverload } from "../func.js";
+import {
+  type FuncRegistry,
+  TypedFunc,
+  FuncOverload,
+  type CallDispatch,
+} from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import {
-  type CelResult,
   type CelVal,
   CelError,
   CelErrors,
-  CelMap,
+  type CelMap,
   isCelWrap,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "../adapter/cel.js";
@@ -34,31 +38,27 @@ import {
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { cannotCompare } from "../errors.js";
 
-const notStrictlyFalse = Func.newVarArg(
-  opc.NOT_STRICTLY_FALSE,
-  [olc.NOT_STRICTLY_FALSE],
-  (_id: number, args: CelResult[]) => {
+/**
+ * This is not in the spec but is part of at least go,java, and cpp implementations.
+ *
+ * It should return true for anything exept for the literal `false`.
+ */
+const notStrictlyFalse: CallDispatch = {
+  dispatch(_, args) {
     const raw = args[0];
     if (raw instanceof CelError) {
-      // TODO(tstamm) this doesn't look right, investigate
       return true;
     }
-    const val = CEL_ADAPTER.unwrap(raw);
-    if (val === false) {
-      return false;
-    }
-    return true;
+    return CEL_ADAPTER.unwrap(raw) !== false;
   },
-);
+};
 
 const notFunc = new TypedFunc(opc.LOGICAL_NOT, [
   new FuncOverload([CelScalar.BOOL], CelScalar.BOOL, (x) => !x),
 ]);
 
-const andFunc = Func.newVarArg(
-  opc.LOGICAL_AND,
-  [olc.LOGICAL_AND],
-  (_id: number, args: CelResult[]) => {
+const and: CallDispatch = {
+  dispatch(_id, args) {
     let allBools = true;
     const errors: CelError[] = [];
     for (let i = 0; i < args.length; i++) {
@@ -84,12 +84,10 @@ const andFunc = Func.newVarArg(
     }
     return undefined;
   },
-);
+};
 
-const orFunc = Func.newVarArg(
-  opc.LOGICAL_OR,
-  [olc.LOGICAL_OR],
-  (_id: number, args: CelResult[]) => {
+const or: CallDispatch = {
+  dispatch(_, args) {
     let allBools = true;
     const errors: CelError[] = [];
     for (let i = 0; i < args.length; i++) {
@@ -115,7 +113,7 @@ const orFunc = Func.newVarArg(
     }
     return undefined;
   },
-);
+};
 
 const eqFunc = new TypedFunc(opc.EQUALS, [
   new FuncOverload(
@@ -285,7 +283,7 @@ export function matchesString(x: string, y: string): boolean {
   let flags = "";
   const flagMatches = y.match(flagPattern);
   if (flagMatches) {
-    for (let flag of flagMatches?.groups?.["flags"] ?? "") {
+    for (let flag of flagMatches?.groups?.flags ?? "") {
       if (flag == "-") {
         break;
       }
@@ -384,9 +382,9 @@ const inFunc = new TypedFunc(opc.IN, [
 ]);
 
 export function addLogic(funcs: FuncRegistry) {
-  funcs.add(notStrictlyFalse);
-  funcs.add(andFunc);
-  funcs.add(orFunc);
+  funcs.addCall(opc.NOT_STRICTLY_FALSE, notStrictlyFalse);
+  funcs.addCall(opc.LOGICAL_AND, and);
+  funcs.addCall(opc.LOGICAL_OR, or);
   funcs.addTypedFunc(notFunc);
   funcs.addTypedFunc(eqFunc);
   funcs.addTypedFunc(neFunc);
