@@ -30,30 +30,6 @@ import {
 } from "./value/value.js";
 import { isMessage } from "@bufbuild/protobuf";
 
-export type ZeroOp = (id: number) => CelResult | undefined;
-export type UnaryOp = (id: number, arg: CelResult) => CelResult | undefined;
-export type StrictUnaryOp = (id: number, arg: CelVal) => CelResult | undefined;
-export type BinaryOp = (
-  id: number,
-  lhs: CelResult,
-  rhs: CelResult,
-) => CelResult | undefined;
-export type StrictBinaryOp = (
-  id: number,
-  lhs: CelVal,
-  rhs: CelVal,
-) => CelResult | undefined;
-export type StrictOp = (id: number, args: CelVal[]) => CelResult | undefined;
-export type ResultOp = (id: number, args: CelResult[]) => CelResult | undefined;
-
-enum DispatchType {
-  Result = 0, // Args can be CelResults
-  Strict = 1, // All args must be unwrapped CelVals
-}
-
-export const identityStrictOp: StrictUnaryOp = (_id: number, arg: CelResult) =>
-  arg;
-
 export interface CallDispatch {
   dispatch(
     id: number,
@@ -67,75 +43,6 @@ export interface Dispatcher {
 }
 
 export class Func implements CallDispatch {
-  constructor(
-    public readonly name: string,
-    public readonly overloads: string[],
-    private readonly call:
-      | { type: DispatchType.Strict; op: StrictOp }
-      | { type: DispatchType.Result; op: ResultOp },
-  ) {}
-
-  public dispatch(
-    id: number,
-    args: CelResult[],
-    unwrap: Unwrapper,
-  ): CelResult | undefined {
-    if (this.call.type === DispatchType.Result) {
-      return this.call.op(id, args);
-    }
-
-    const vals = unwrapResults(args, unwrap);
-    if (vals instanceof CelError) {
-      return vals;
-    }
-    return this.call.op(id, vals);
-  }
-
-  public static zero(func: string, overload: string, op: ZeroOp) {
-    return new Func(func, [overload], {
-      type: DispatchType.Result,
-      op: (id: number, args: CelResult[]) => {
-        if (args.length !== 0) {
-          return undefined;
-        }
-        return op(id);
-      },
-    });
-  }
-
-  public static unary(func: string, overloads: string[], op: StrictUnaryOp) {
-    return new Func(func, overloads, {
-      type: DispatchType.Strict,
-      op: (id: number, args: CelVal[]) => {
-        if (args.length !== 1) {
-          return undefined;
-        }
-        return op(id, args[0]);
-      },
-    });
-  }
-
-  public static binary(func: string, overloads: string[], op: StrictBinaryOp) {
-    return new Func(func, overloads, {
-      type: DispatchType.Strict,
-      op: (id: number, args: CelVal[]) => {
-        if (args.length !== 2) {
-          return undefined;
-        }
-        return op(id, args[0], args[1]);
-      },
-    });
-  }
-
-  public static newStrict(func: string, overloads: string[], op: StrictOp) {
-    return new Func(func, overloads, { type: DispatchType.Strict, op: op });
-  }
-  public static newVarArg(func: string, overloads: string[], op: ResultOp) {
-    return new Func(func, overloads, { type: DispatchType.Result, op: op });
-  }
-}
-
-export class TypedFunc implements CallDispatch {
   constructor(
     public readonly name: string,
     public readonly overloads: FuncOverload<
@@ -193,33 +100,45 @@ export class FuncOverload<
   ) {}
 }
 
+/**
+ * Set of functions uniquely identified by their name.
+ */
 export class FuncRegistry implements Dispatcher {
   private functions = new Map<string, CallDispatch>();
 
-  constructor(private readonly parent: FuncRegistry | undefined = undefined) {}
-
-  public add(func: Func, overloads: Func[] = []): void {
-    this.addCall(func.name, func);
+  /**
+   * Adds a new function to the registry.
+   *
+   * Throws an error if the function with the same name is already added.
+   */
+  add(func: Func): void;
+  /**
+   * Adds a function by name and the call.
+   */
+  add(name: string, call: CallDispatch): void;
+  add(nameOrFunc: Func | string, call?: CallDispatch) {
+    if (typeof nameOrFunc !== "string") {
+      call = nameOrFunc;
+      nameOrFunc = nameOrFunc.name;
+    }
+    if (call === undefined) {
+      throw new Error("dispatch is required with name");
+    }
+    this.addCall(nameOrFunc, call);
   }
 
-  public addTypedFunc(func: TypedFunc): void {
-    this.addCall(func.name, func);
+  /**
+   * Find a function by name.
+   */
+  find(name: string) {
+    return this.functions.get(name);
   }
 
-  public addCall(name: string, call: CallDispatch): void {
+  private addCall(name: string, call: CallDispatch): void {
     if (this.functions.has(name)) {
       throw new Error(`Function ${name} already registered`);
-    } else {
-      this.functions.set(name, call);
     }
-  }
-
-  public find(name: string): CallDispatch | undefined {
-    let result = this.functions.get(name);
-    if (result === undefined && this.parent !== undefined) {
-      result = this.parent.find(name);
-    }
-    return result;
+    this.functions.set(name, call);
   }
 }
 

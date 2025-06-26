@@ -20,21 +20,21 @@ import {
 } from "@bufbuild/protobuf/wkt";
 
 import { CelScalar } from "../type.js";
-import { FuncOverload, type FuncRegistry, TypedFunc } from "../func.js";
+import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { toJson } from "@bufbuild/protobuf";
 
 export function addTime(funcs: FuncRegistry): void {
-  funcs.addTypedFunc(getFullYearFunc);
-  funcs.addTypedFunc(getMonthFunc);
-  funcs.addTypedFunc(getDateFunc);
-  funcs.addTypedFunc(getDayOfWeekFunc);
-  funcs.addTypedFunc(getDayOfMonthFunc);
-  funcs.addTypedFunc(getDayOfYearFunc);
-  funcs.addTypedFunc(getSecondsFunc);
-  funcs.addTypedFunc(getMinutesFunc);
-  funcs.addTypedFunc(getHoursFunc);
-  funcs.addTypedFunc(getMillisecondsFunc);
+  funcs.add(getFullYearFunc);
+  funcs.add(getMonthFunc);
+  funcs.add(getDateFunc);
+  funcs.add(getDayOfWeekFunc);
+  funcs.add(getDayOfMonthFunc);
+  funcs.add(getDayOfYearFunc);
+  funcs.add(getSecondsFunc);
+  funcs.add(getMinutesFunc);
+  funcs.add(getHoursFunc);
+  funcs.add(getMillisecondsFunc);
 }
 
 function getDayOfYear(date: Date): number {
@@ -161,7 +161,7 @@ function makeTimeOp(t: TimeFunc) {
 
 type TimeFunc = (date: Date) => number;
 
-const getFullYearFunc = new TypedFunc(olc.TIME_GET_FULL_YEAR, [
+const getFullYearFunc = new Func(olc.TIME_GET_FULL_YEAR, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -174,7 +174,7 @@ const getFullYearFunc = new TypedFunc(olc.TIME_GET_FULL_YEAR, [
   ),
 ]);
 
-const getMonthFunc = new TypedFunc(olc.TIME_GET_MONTH, [
+const getMonthFunc = new Func(olc.TIME_GET_MONTH, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -187,7 +187,7 @@ const getMonthFunc = new TypedFunc(olc.TIME_GET_MONTH, [
   ),
 ]);
 
-const getDateFunc = new TypedFunc(olc.TIME_GET_DATE, [
+const getDateFunc = new Func(olc.TIME_GET_DATE, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -200,7 +200,7 @@ const getDateFunc = new TypedFunc(olc.TIME_GET_DATE, [
   ),
 ]);
 
-const getDayOfMonthFunc = new TypedFunc(olc.TIME_GET_DAY_OF_MONTH, [
+const getDayOfMonthFunc = new Func(olc.TIME_GET_DAY_OF_MONTH, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -213,7 +213,7 @@ const getDayOfMonthFunc = new TypedFunc(olc.TIME_GET_DAY_OF_MONTH, [
   ),
 ]);
 
-const getDayOfWeekFunc = new TypedFunc(olc.TIME_GET_DAY_OF_WEEK, [
+const getDayOfWeekFunc = new Func(olc.TIME_GET_DAY_OF_WEEK, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -226,7 +226,7 @@ const getDayOfWeekFunc = new TypedFunc(olc.TIME_GET_DAY_OF_WEEK, [
   ),
 ]);
 
-const getDayOfYearFunc = new TypedFunc(olc.TIME_GET_DAY_OF_YEAR, [
+const getDayOfYearFunc = new Func(olc.TIME_GET_DAY_OF_YEAR, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -239,7 +239,7 @@ const getDayOfYearFunc = new TypedFunc(olc.TIME_GET_DAY_OF_YEAR, [
   ),
 ]);
 
-const getSecondsFunc = new TypedFunc(olc.TIME_GET_SECONDS, [
+const getSecondsFunc = new Func(olc.TIME_GET_SECONDS, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -253,7 +253,7 @@ const getSecondsFunc = new TypedFunc(olc.TIME_GET_SECONDS, [
   new FuncOverload([DurationSchema], CelScalar.INT, (dur) => dur.seconds),
 ]);
 
-const getMinutesFunc = new TypedFunc(olc.TIME_GET_MINUTES, [
+const getMinutesFunc = new Func(olc.TIME_GET_MINUTES, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -267,7 +267,7 @@ const getMinutesFunc = new TypedFunc(olc.TIME_GET_MINUTES, [
   new FuncOverload([DurationSchema], CelScalar.INT, (dur) => dur.seconds / 60n),
 ]);
 
-const getHoursFunc = new TypedFunc(olc.TIME_GET_HOURS, [
+const getHoursFunc = new Func(olc.TIME_GET_HOURS, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,
@@ -285,7 +285,7 @@ const getHoursFunc = new TypedFunc(olc.TIME_GET_HOURS, [
   ),
 ]);
 
-const getMillisecondsFunc = new TypedFunc(olc.TIME_GET_MILLISECONDS, [
+const getMillisecondsFunc = new Func(olc.TIME_GET_MILLISECONDS, [
   new FuncOverload(
     [TimestampSchema],
     CelScalar.INT,

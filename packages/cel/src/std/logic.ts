@@ -14,7 +14,7 @@
 
 import {
   type FuncRegistry,
-  TypedFunc,
+  Func,
   FuncOverload,
   type CallDispatch,
 } from "../func.js";
@@ -53,7 +53,7 @@ const notStrictlyFalse: CallDispatch = {
   },
 };
 
-const notFunc = new TypedFunc(opc.LOGICAL_NOT, [
+const notFunc = new Func(opc.LOGICAL_NOT, [
   new FuncOverload([CelScalar.BOOL], CelScalar.BOOL, (x) => !x),
 ]);
 
@@ -115,7 +115,7 @@ const or: CallDispatch = {
   },
 };
 
-const eqFunc = new TypedFunc(opc.EQUALS, [
+const eqFunc = new Func(opc.EQUALS, [
   new FuncOverload(
     [CelScalar.ANY, CelScalar.ANY],
     CelScalar.BOOL,
@@ -129,7 +129,7 @@ const eqFunc = new TypedFunc(opc.EQUALS, [
   ),
 ]);
 
-const neFunc = new TypedFunc(opc.NOT_EQUALS, [
+const neFunc = new Func(opc.NOT_EQUALS, [
   new FuncOverload(
     [CelScalar.ANY, CelScalar.ANY],
     CelScalar.BOOL,
@@ -144,7 +144,7 @@ const neFunc = new TypedFunc(opc.NOT_EQUALS, [
 ]);
 
 const ltOp = makeCompareOp((cmp) => cmp < 0);
-const ltFunc = new TypedFunc(opc.LESS, [
+const ltFunc = new Func(opc.LESS, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, ltOp),
   new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, ltOp),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, ltOp),
@@ -162,7 +162,7 @@ const ltFunc = new TypedFunc(opc.LESS, [
 ]);
 
 const lteOp = makeCompareOp((cmp) => cmp <= 0);
-const leFunc = new TypedFunc(opc.LESS_EQUALS, [
+const leFunc = new Func(opc.LESS_EQUALS, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, lteOp),
   new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, lteOp),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, lteOp),
@@ -180,7 +180,7 @@ const leFunc = new TypedFunc(opc.LESS_EQUALS, [
 ]);
 
 const gtOp = makeCompareOp((cmp) => cmp > 0);
-const gtFunc = new TypedFunc(opc.GREATER, [
+const gtFunc = new Func(opc.GREATER, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gtOp),
   new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, gtOp),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gtOp),
@@ -198,7 +198,7 @@ const gtFunc = new TypedFunc(opc.GREATER, [
 ]);
 
 const gteOp = makeCompareOp((v) => v >= 0);
-const geFunc = new TypedFunc(opc.GREATER_EQUALS, [
+const geFunc = new Func(opc.GREATER_EQUALS, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gteOp),
   new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, gteOp),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gteOp),
@@ -215,7 +215,7 @@ const geFunc = new TypedFunc(opc.GREATER_EQUALS, [
   new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, gteOp),
 ]);
 
-const containsFunc = new TypedFunc(olc.CONTAINS, [
+const containsFunc = new Func(olc.CONTAINS, [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.BOOL,
@@ -223,7 +223,7 @@ const containsFunc = new TypedFunc(olc.CONTAINS, [
   ),
 ]);
 
-const endsWithFunc = new TypedFunc(olc.ENDS_WITH, [
+const endsWithFunc = new Func(olc.ENDS_WITH, [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.BOOL,
@@ -231,7 +231,7 @@ const endsWithFunc = new TypedFunc(olc.ENDS_WITH, [
   ),
 ]);
 
-const startsWithFunc = new TypedFunc(olc.STARTS_WITH, [
+const startsWithFunc = new Func(olc.STARTS_WITH, [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.BOOL,
@@ -294,7 +294,7 @@ export function matchesString(x: string, y: string): boolean {
   const re = new RegExp(y, flags);
   return re.test(x);
 }
-const matchesFunc = new TypedFunc(olc.MATCHES, [
+const matchesFunc = new Func(olc.MATCHES, [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.BOOL,
@@ -302,7 +302,7 @@ const matchesFunc = new TypedFunc(olc.MATCHES, [
   ),
 ]);
 
-const sizeFunc = new TypedFunc(olc.SIZE, [
+const sizeFunc = new Func(olc.SIZE, [
   new FuncOverload([CelScalar.STRING], CelScalar.INT, (x) => {
     let size = 0;
     for (const _ of x) {
@@ -345,7 +345,7 @@ function mapInOp(x: CelVal, y: CelMap<TypeOf<CelMapValueType["key"]>, CelVal>) {
   }
   return false;
 }
-const inFunc = new TypedFunc(opc.IN, [
+const inFunc = new Func(opc.IN, [
   new FuncOverload(
     [CelScalar.ANY, listType(CelScalar.ANY)],
     CelScalar.BOOL,
@@ -382,22 +382,22 @@ const inFunc = new TypedFunc(opc.IN, [
 ]);
 
 export function addLogic(funcs: FuncRegistry) {
-  funcs.addCall(opc.NOT_STRICTLY_FALSE, notStrictlyFalse);
-  funcs.addCall(opc.LOGICAL_AND, and);
-  funcs.addCall(opc.LOGICAL_OR, or);
-  funcs.addTypedFunc(notFunc);
-  funcs.addTypedFunc(eqFunc);
-  funcs.addTypedFunc(neFunc);
-  funcs.addTypedFunc(ltFunc);
-  funcs.addTypedFunc(leFunc);
-  funcs.addTypedFunc(gtFunc);
-  funcs.addTypedFunc(geFunc);
-  funcs.addTypedFunc(containsFunc);
-  funcs.addTypedFunc(endsWithFunc);
-  funcs.addTypedFunc(startsWithFunc);
-  funcs.addTypedFunc(matchesFunc);
-  funcs.addTypedFunc(sizeFunc);
-  funcs.addTypedFunc(inFunc);
+  funcs.add(opc.NOT_STRICTLY_FALSE, notStrictlyFalse);
+  funcs.add(opc.LOGICAL_AND, and);
+  funcs.add(opc.LOGICAL_OR, or);
+  funcs.add(notFunc);
+  funcs.add(eqFunc);
+  funcs.add(neFunc);
+  funcs.add(ltFunc);
+  funcs.add(leFunc);
+  funcs.add(gtFunc);
+  funcs.add(geFunc);
+  funcs.add(containsFunc);
+  funcs.add(endsWithFunc);
+  funcs.add(startsWithFunc);
+  funcs.add(matchesFunc);
+  funcs.add(sizeFunc);
+  funcs.add(inFunc);
 }
 
 function makeCompareOp(compare: (cmp: number) => boolean) {

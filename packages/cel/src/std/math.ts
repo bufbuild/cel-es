@@ -20,7 +20,7 @@ import {
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import { FuncOverload, type FuncRegistry, TypedFunc } from "../func.js";
+import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as type from "../value/type.js";
 import {
@@ -61,12 +61,12 @@ export function isOverflowUintNum(val: number): boolean {
 }
 
 export function addMath(funcs: FuncRegistry) {
-  funcs.addTypedFunc(add);
-  funcs.addTypedFunc(subtract);
-  funcs.addTypedFunc(multiply);
-  funcs.addTypedFunc(divide);
-  funcs.addTypedFunc(modulo);
-  funcs.addTypedFunc(negate);
+  funcs.add(add);
+  funcs.add(subtract);
+  funcs.add(multiply);
+  funcs.add(divide);
+  funcs.add(modulo);
+  funcs.add(negate);
 }
 
 function addList(lhs: CelList, rhs: CelList) {
@@ -140,7 +140,7 @@ function subtractDurationOrTimestamp<T extends Timestamp | Duration>(
   return errOrDuration;
 }
 
-const add = new TypedFunc(opc.ADD, [
+const add = new Func(opc.ADD, [
   new FuncOverload(
     [CelScalar.INT, CelScalar.INT],
     CelScalar.INT,
@@ -210,7 +210,7 @@ const add = new TypedFunc(opc.ADD, [
   ),
 ]);
 
-const subtract = new TypedFunc(opc.SUBTRACT, [
+const subtract = new Func(opc.SUBTRACT, [
   new FuncOverload(
     [CelScalar.INT, CelScalar.INT],
     CelScalar.INT,
@@ -265,7 +265,7 @@ const subtract = new TypedFunc(opc.SUBTRACT, [
   ),
 ]);
 
-const multiply = new TypedFunc(opc.MULTIPLY, [
+const multiply = new Func(opc.MULTIPLY, [
   new FuncOverload(
     [CelScalar.INT, CelScalar.INT],
     CelScalar.INT,
@@ -295,7 +295,7 @@ const multiply = new TypedFunc(opc.MULTIPLY, [
   ),
 ]);
 
-const divide = new TypedFunc(opc.DIVIDE, [
+const divide = new Func(opc.DIVIDE, [
   new FuncOverload(
     [CelScalar.INT, CelScalar.INT],
     CelScalar.INT,
@@ -326,7 +326,7 @@ const divide = new TypedFunc(opc.DIVIDE, [
   ),
 ]);
 
-const modulo = new TypedFunc(opc.MODULO, [
+const modulo = new Func(opc.MODULO, [
   new FuncOverload(
     [CelScalar.INT, CelScalar.INT],
     CelScalar.INT,
@@ -349,7 +349,7 @@ const modulo = new TypedFunc(opc.MODULO, [
   ),
 ]);
 
-const negate = new TypedFunc(opc.NEGATE, [
+const negate = new Func(opc.NEGATE, [
   new FuncOverload([CelScalar.INT], CelScalar.INT, (arg) => {
     const val = -arg;
     if (isOverflowInt(val)) {

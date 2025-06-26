@@ -19,7 +19,7 @@ import {
   TimestampSchema,
 } from "@bufbuild/protobuf/wkt";
 
-import { FuncOverload, type FuncRegistry, TypedFunc } from "../func.js";
+import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as type from "../value/type.js";
 import {
   CelError,
@@ -47,7 +47,7 @@ export const DURATION = "duration";
 export const TYPE = "type";
 export const DYN = "dyn";
 
-const intFunc = new TypedFunc(INT, [
+const intFunc = new Func(INT, [
   new FuncOverload([CelScalar.INT], CelScalar.INT, (x) => x),
   new FuncOverload([CelScalar.UINT], CelScalar.INT, (x) => {
     const val = x.value.valueOf();
@@ -85,7 +85,7 @@ const intFunc = new TypedFunc(INT, [
   }),
 ]);
 
-const uintFunc = new TypedFunc(UINT, [
+const uintFunc = new Func(UINT, [
   new FuncOverload([CelScalar.UINT], CelScalar.UINT, (x) => x),
   new FuncOverload([CelScalar.INT], CelScalar.UINT, (x) => {
     if (isOverflowUint(x)) {
@@ -108,14 +108,14 @@ const uintFunc = new TypedFunc(UINT, [
   }),
 ]);
 
-const doubleFunc = new TypedFunc(DOUBLE, [
+const doubleFunc = new Func(DOUBLE, [
   new FuncOverload([CelScalar.DOUBLE], CelScalar.DOUBLE, (x) => x),
   new FuncOverload([CelScalar.INT], CelScalar.DOUBLE, (x) => Number(x)),
   new FuncOverload([CelScalar.UINT], CelScalar.DOUBLE, (x) => Number(x.value)),
   new FuncOverload([CelScalar.STRING], CelScalar.DOUBLE, (x) => Number(x)),
 ]);
 
-const boolFunc = new TypedFunc(BOOL, [
+const boolFunc = new Func(BOOL, [
   new FuncOverload([CelScalar.BOOL], CelScalar.BOOL, (x) => x),
   new FuncOverload([CelScalar.STRING], CelScalar.BOOL, (x) => {
     switch (x) {
@@ -137,12 +137,12 @@ const boolFunc = new TypedFunc(BOOL, [
   }),
 ]);
 
-const bytesFunc = new TypedFunc(BYTES, [
+const bytesFunc = new Func(BYTES, [
   new FuncOverload([CelScalar.BYTES], CelScalar.BYTES, (x) => x),
   new FuncOverload([CelScalar.STRING], CelScalar.BYTES, (x) => Buffer.from(x)),
 ]);
 
-const stringFunc = new TypedFunc(STRING, [
+const stringFunc = new Func(STRING, [
   new FuncOverload([CelScalar.STRING], CelScalar.STRING, (x) => x),
   new FuncOverload([CelScalar.BOOL], CelScalar.STRING, (x) =>
     x ? "true" : "false",
@@ -168,7 +168,7 @@ const stringFunc = new TypedFunc(STRING, [
   ),
 ]);
 
-const timestampFunc = new TypedFunc(TIMESTAMP, [
+const timestampFunc = new Func(TIMESTAMP, [
   new FuncOverload([TimestampSchema], TimestampSchema, (x) => x),
   new FuncOverload([CelScalar.STRING], TimestampSchema, (x) => {
     try {
@@ -182,7 +182,7 @@ const timestampFunc = new TypedFunc(TIMESTAMP, [
   ),
 ]);
 
-const durationFunc = new TypedFunc(DURATION, [
+const durationFunc = new Func(DURATION, [
   new FuncOverload([DurationSchema], DurationSchema, (x) => x),
   new FuncOverload([CelScalar.STRING], DurationSchema, (x) => {
     const result = parseDuration(-1, x);
@@ -196,25 +196,25 @@ const durationFunc = new TypedFunc(DURATION, [
   ),
 ]);
 
-const typeFunc = new TypedFunc(TYPE, [
+const typeFunc = new Func(TYPE, [
   new FuncOverload([CelScalar.ANY], CelScalar.TYPE, (x) =>
     type.getCelType(x as CelVal),
   ),
 ]);
 
-const dynFunc = new TypedFunc(DYN, [
+const dynFunc = new Func(DYN, [
   new FuncOverload([CelScalar.ANY], CelScalar.ANY, (x) => x),
 ]);
 
 export function addCasts(funcs: FuncRegistry) {
-  funcs.addTypedFunc(intFunc);
-  funcs.addTypedFunc(uintFunc);
-  funcs.addTypedFunc(doubleFunc);
-  funcs.addTypedFunc(boolFunc);
-  funcs.addTypedFunc(bytesFunc);
-  funcs.addTypedFunc(stringFunc);
-  funcs.addTypedFunc(timestampFunc);
-  funcs.addTypedFunc(durationFunc);
-  funcs.addTypedFunc(typeFunc);
-  funcs.addTypedFunc(dynFunc);
+  funcs.add(intFunc);
+  funcs.add(uintFunc);
+  funcs.add(doubleFunc);
+  funcs.add(boolFunc);
+  funcs.add(bytesFunc);
+  funcs.add(stringFunc);
+  funcs.add(timestampFunc);
+  funcs.add(durationFunc);
+  funcs.add(typeFunc);
+  funcs.add(dynFunc);
 }
