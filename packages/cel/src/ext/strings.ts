@@ -620,7 +620,7 @@ export class Formatter {
           );
       }
       if (str instanceof CelError) {
-        throw new Error(str.message);
+        throw CelError;
       }
       result += str;
     }

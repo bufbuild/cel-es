@@ -168,6 +168,9 @@ export class TypedFunc implements CallDispatch {
         try {
           return overload.impl(...checkedVals) as CelVal;
         } catch (ex) {
+          if (ex instanceof CelError) {
+            return ex;
+          }
           if (ex instanceof Error) {
             ex = ex.message;
           }
