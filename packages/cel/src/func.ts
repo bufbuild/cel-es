@@ -19,11 +19,9 @@ import {
   CelScalar,
 } from "./type.js";
 import { unwrapResults } from "./value/adapter.js";
-import { getCelType } from "./value/type.js";
 import {
   type CelResult,
   type CelVal,
-  CelType,
   CelError,
   type Unwrapper,
   CelUint,
@@ -170,6 +168,9 @@ export class TypedFunc implements CallDispatch {
         try {
           return overload.impl(...checkedVals) as CelVal;
         } catch (ex) {
+          if (ex instanceof CelError) {
+            return ex;
+          }
           if (ex instanceof Error) {
             ex = ex.message;
           }
@@ -220,25 +221,6 @@ export class FuncRegistry implements Dispatcher {
     }
     return result;
   }
-}
-
-export function argsMatch(
-  args: CelVal[],
-  min: number,
-  ...celTypes: CelType[]
-): boolean {
-  if (args.length < min) {
-    return false;
-  }
-  if (args.length > celTypes.length) {
-    return false;
-  }
-  for (let i = 0; i < args.length; i++) {
-    if (!getCelType(args[i]).equals(celTypes[i])) {
-      return false;
-    }
-  }
-  return true;
 }
 
 export class OrderedDispatcher implements Dispatcher {
