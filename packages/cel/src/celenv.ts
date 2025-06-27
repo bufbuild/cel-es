@@ -44,6 +44,7 @@ import {
   isReflectMap,
   isReflectMessage,
 } from "@bufbuild/protobuf/reflect";
+import { setEvalContext } from "./eval.js";
 
 /**
  * A CEL parser interface
@@ -140,7 +141,14 @@ export class CelEnv {
   }
 
   public eval(expr: Interpretable): CelResult {
-    return expr.eval(this.ctx);
+    const unset = setEvalContext({
+      registry: this.planner.getAdapter().registry,
+    });
+    try {
+      return expr.eval(this.ctx);
+    } finally {
+      unset();
+    }
   }
 
   /** Parses, plans, and evals the given expr. */
