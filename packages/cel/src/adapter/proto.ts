@@ -338,6 +338,7 @@ export class ProtoValAdapter implements CelValAdapter {
       }
       switch (field.fieldKind) {
         case "enum":
+          return BigInt(obj.get(field));
         case "list":
         case "map":
           return obj.get(field);

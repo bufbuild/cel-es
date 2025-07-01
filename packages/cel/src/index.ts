@@ -46,7 +46,6 @@ export {
 export { getCelType } from "./value/type.js";
 export { NATIVE_ADAPTER } from "./adapter/native.js";
 export { CEL_ADAPTER } from "./adapter/cel.js";
-export { EXPR_VAL_ADAPTER } from "./adapter/exprval.js";
 export { ObjectActivation } from "./activation.js";
 export { makeStringExtFuncRegistry } from "./ext/strings.js";
 export { Func, FuncRegistry } from "./func.js";
