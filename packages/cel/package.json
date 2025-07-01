@@ -45,7 +45,7 @@
     "@bufbuild/cel-spec": "0.2.0"
   },
   "devDependencies": {
-    "peggy": "^4.0.3",
+    "peggy": "^5.0.4",
     "peggy-ts": "github:hudlow/peggy-ts",
     "expect-type": "^1.2.1"
   }
