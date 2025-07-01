@@ -17,7 +17,6 @@ import {
   type DescEnum,
   type DescField,
   type DescMessage,
-  equals,
   isMessage,
   type Message,
   type Registry,
@@ -78,6 +77,7 @@ import {
   type StructAccess,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
+import { equals } from "../equals.js";
 
 type ProtoValue =
   | CelVal
@@ -123,69 +123,7 @@ export class ProtoValAdapter implements CelValAdapter {
   }
 
   equals(lhs: ProtoValue, rhs: ProtoValue): CelResult<boolean> {
-    if (isReflectMap(lhs)) {
-      if (!isReflectMap(rhs)) {
-        return false;
-      }
-      if (lhs.size != rhs.size) {
-        return false;
-      }
-      for (const [key, val] of lhs) {
-        const rhsVal = rhs.get(key);
-        if (rhsVal == null) {
-          return false;
-        }
-        // Map values are either of type ReflectMessage or scalars.
-        if (!this.equals(val as ProtoValue, rhsVal as ProtoValue)) {
-          return false;
-        }
-      }
-      return true;
-    } else if (isReflectMap(rhs)) {
-      return false;
-    }
-    if (isReflectList(lhs)) {
-      if (!isReflectList(rhs)) {
-        return false;
-      }
-      if (lhs.size != rhs.size) {
-        return false;
-      }
-      for (let i = 0; i < lhs.size; i++) {
-        if (!this.equals(lhs.get(i) as ProtoValue, rhs.get(i) as ProtoValue)) {
-          return false;
-        }
-      }
-      return true;
-    } else if (isReflectList(rhs)) {
-      return false;
-    }
-    if (isProtoMsg(lhs)) {
-      lhs = reflect(this.getSchema(lhs.$typeName), lhs);
-    }
-    if (isProtoMsg(rhs)) {
-      rhs = reflect(this.getSchema(rhs.$typeName), rhs);
-    }
-    if (isReflectMessage(lhs)) {
-      if (!isReflectMessage(rhs)) {
-        return false;
-      }
-      if (lhs.desc.typeName !== rhs.desc.typeName) {
-        return false;
-      }
-      // equality following the CEL-spec
-      // see https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffers
-      // see https://github.com/bufbuild/protobuf-es/pull/1029
-      return equals(lhs.desc, lhs.message, rhs.message, {
-        registry: this.registry,
-        unpackAny: true,
-        unknown: true,
-        extensions: true,
-      });
-    } else if (isReflectMessage(rhs)) {
-      return false;
-    }
-    return CEL_ADAPTER.equals(lhs, rhs);
+    return equals(lhs, rhs);
   }
 
   compare(lhs: ProtoValue, rhs: ProtoValue): CelResult<number> | undefined {

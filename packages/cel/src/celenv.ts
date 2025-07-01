@@ -44,7 +44,7 @@ import {
   isReflectMap,
   isReflectMessage,
 } from "@bufbuild/protobuf/reflect";
-import { setEvalContext } from "./eval.js";
+import { withEvalContext } from "./eval.js";
 
 /**
  * A CEL parser interface
@@ -90,7 +90,10 @@ export class CelPlanner {
     } else {
       maybeExpr = expr;
     }
-    return this.planner.plan(maybeExpr ?? create(ExprSchema));
+    return withEvalContext(
+      { registry: this.protoProvider.adapter.registry },
+      this.planner.plan(maybeExpr ?? create(ExprSchema)),
+    );
   }
 
   public addFuncs(funcs: Dispatcher): void {
@@ -141,14 +144,7 @@ export class CelEnv {
   }
 
   public eval(expr: Interpretable): CelResult {
-    const unset = setEvalContext({
-      registry: this.planner.getAdapter().registry,
-    });
-    try {
-      return expr.eval(this.ctx);
-    } finally {
-      unset();
-    }
+    return expr.eval(this.ctx);
   }
 
   /** Parses, plans, and evals the given expr. */

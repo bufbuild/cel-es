@@ -18,7 +18,9 @@
       "src/eval.ts",
       "src/value/adapter.ts",
       "src/access.ts",
-      "src/testing.ts"
+      "src/testing.ts",
+      "src/equals.ts",
+      "src/equals.test.ts"
     ]
   }
 }

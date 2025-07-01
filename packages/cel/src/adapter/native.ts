@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { equals } from "../equals.js";
 import { isOverflowInt, isOverflowUint } from "../std/math.js";
 import { EMPTY_LIST, EMPTY_MAP } from "../value/empty.js";
 import * as type from "../value/type.js";
@@ -129,7 +130,7 @@ class NativeValAdapter implements CelValAdapter {
   }
 
   equals(lhs: unknown, rhs: unknown): boolean {
-    return lhs === rhs;
+    return equals(lhs, rhs);
   }
 
   compare(lhs: unknown, rhs: unknown): number | undefined {
