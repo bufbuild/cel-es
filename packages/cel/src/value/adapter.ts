@@ -35,15 +35,6 @@ export class RawVal<V = unknown> {
     }
   }
 
-  static unwrap<V = unknown>(
-    raw: RawResult<V> | undefined,
-  ): CelResult<V> | undefined {
-    if (raw instanceof CelError || raw === undefined) {
-      return raw;
-    }
-    return raw.value;
-  }
-
   static of<V>(adapter: CelValAdapter<V>, value: CelResult<V>): RawResult<V> {
     if (value instanceof CelError) {
       return value;
@@ -63,15 +54,6 @@ export class RawVal<V = unknown> {
 }
 
 export type RawResult<V = unknown> = CelResult<RawVal<V>>;
-
-export function unwrapValues<V = CelVal>(
-  args: V[],
-  adapter: CelValAdapter<V>,
-): V[] {
-  return args.map((arg) => {
-    return adapter.unwrap(arg);
-  });
-}
 
 export function unwrapResults<V = CelVal>(
   args: CelResult<V>[],
