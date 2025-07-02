@@ -209,8 +209,6 @@ export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
 
-  compare(lhs: V, rhs: V): CelResult<number> | undefined;
-
   accessByName(id: number, obj: V, name: string): CelResult<V> | undefined;
   isSetByName(id: number, obj: V, name: string): CelResult<boolean>;
   accessByIndex(
@@ -433,16 +431,6 @@ export class CelType {
       return this.name === other.name;
     }
     return false;
-  }
-
-  compare(other: CelVal): number | undefined {
-    if (!(other instanceof CelType)) {
-      return undefined;
-    }
-    if (this.name === other.name) {
-      return 0;
-    }
-    return this.name < other.name ? -1 : 1;
   }
 }
 

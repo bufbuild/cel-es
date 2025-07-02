@@ -121,22 +121,6 @@ export class ProtoValAdapter implements CelValAdapter {
     return metadata;
   }
 
-  compare(lhs: ProtoValue, rhs: ProtoValue): CelResult<number> | undefined {
-    if (isProtoMsg(lhs) || isProtoMsg(rhs)) {
-      return undefined;
-    }
-    if (isReflectMessage(lhs) || isReflectMessage(rhs)) {
-      return undefined;
-    }
-    if (isReflectMap(lhs) || isReflectMap(rhs)) {
-      return undefined;
-    }
-    if (isReflectList(lhs) || isReflectList(rhs)) {
-      return undefined;
-    }
-    return CEL_ADAPTER.compare(lhs, rhs);
-  }
-
   toCel(native: ProtoValue | ReflectMessage): CelResult {
     if (isMessage(native, AnySchema)) {
       if (native.typeUrl === "") {
