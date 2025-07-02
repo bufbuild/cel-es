@@ -217,7 +217,7 @@ export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   accessByIndex(
     id: number,
     obj: V,
-    index: number | bigint,
+    index: number | bigint | boolean,
   ): CelResult<V> | undefined;
   getFields(value: object): string[];
 }
@@ -301,16 +301,18 @@ export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
     const nativeKeys = new Map<unknown, V>();
     for (const [key, value] of this.value) {
       const celKey = this.adapter.toCel(key);
-      if (typeof celKey === "string" || typeof celKey === "bigint") {
+      if (
+        typeof celKey === "string" ||
+        typeof celKey === "bigint" ||
+        celKey instanceof Uint8Array
+      ) {
         nativeKeys.set(celKey, value);
       } else if (isCelWrap(celKey) || celKey instanceof CelUint) {
         nativeKeys.set(celKey.value, value);
-      } else if (celKey instanceof Uint8Array) {
-        nativeKeys.set(celKey, value);
       } else if (typeof celKey === "number" && Number.isInteger(celKey)) {
         nativeKeys.set(BigInt(celKey), value);
       } else if (typeof celKey === "boolean") {
-        nativeKeys.set(celKey ? 1n : 0n, value);
+        nativeKeys.set(celKey, value);
       } else {
         nativeKeys.set(key, value);
       }
@@ -326,7 +328,10 @@ export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
     return result;
   }
 
-  accessByIndex(_id: number, index: number | bigint): CelResult | undefined {
+  accessByIndex(
+    _id: number,
+    index: number | bigint | boolean,
+  ): CelResult | undefined {
     let result = this.nativeKeyMap.get(index);
     if (result === undefined) {
       if (typeof index === "number" && Number.isInteger(index)) {

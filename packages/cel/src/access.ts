@@ -400,6 +400,49 @@ class StringAccess implements Access {
   }
 }
 
+class BoolAccess implements Access {
+  constructor(
+    public readonly id: number,
+    readonly index: boolean,
+    readonly optional: boolean,
+  ) {}
+
+  isOptional(): boolean {
+    return this.optional;
+  }
+
+  access(_vars: Activation, obj: RawVal): RawResult | undefined {
+    if (obj === undefined) {
+      return obj;
+    }
+    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    if (raw === undefined && !this.optional) {
+      return CelErrors.fieldNotFound(this.id, this.index);
+    }
+    return RawVal.if(obj.adapter, raw);
+  }
+
+  isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
+    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    if (raw === undefined && !this.optional) {
+      return CelErrors.fieldNotFound(this.id, this.index);
+    }
+    return true;
+  }
+
+  accessIfPresent(
+    _vars: Activation,
+    obj: RawVal,
+    _presenceOnly: boolean,
+  ): RawResult | undefined {
+    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    if (raw === undefined && !this.optional) {
+      return CelErrors.fieldNotFound(this.id, this.index);
+    }
+    return RawVal.if(obj.adapter, raw);
+  }
+}
+
 class NumAccess implements Access {
   constructor(
     public readonly id: number,
@@ -610,7 +653,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
   newAccess(id: number, val: unknown, opt: boolean): Access {
     switch (typeof val) {
       case "boolean":
-        return new NumAccess(id, val ? 1 : 0, val, opt);
+        return new BoolAccess(id, val, opt);
       case "number":
         return new NumAccess(id, val, val, opt);
       case "bigint":
@@ -621,9 +664,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
         if (val instanceof EvalAttr) {
           return new EvalAccess(id, val, this, opt);
         }
-        if (typeof val === "string") {
-          return new StringAccess(id, val, val, opt);
-        } else if (val instanceof CelUint) {
+        if (val instanceof CelUint) {
           return new IntAccess(id, val.value, val, opt);
         }
         break;
