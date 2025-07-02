@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type Activation } from "./activation.js";
+import type { Activation } from "./activation.js";
 import { CEL_ADAPTER } from "./adapter/cel.js";
 import { EvalAttr, type Interpretable } from "./planner.js";
 import { type RawResult, RawVal } from "./value/adapter.js";
-import { Namespace } from "./value/namespace.js";
-import { type CelValProvider } from "./value/provider.js";
+import type { Namespace } from "./value/namespace.js";
+import type { CelValProvider } from "./value/provider.js";
 import {
   CelUint,
   type CelResult,
@@ -83,7 +83,8 @@ function attrAccess<T = unknown>(
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
-  } else if (val instanceof CelError) {
+  }
+  if (val instanceof CelError) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
@@ -117,7 +118,8 @@ function attrAccessIfPresent<T = unknown>(
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
-  } else if (val instanceof CelError) {
+  }
+  if (val instanceof CelError) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
@@ -140,7 +142,8 @@ function applyAccesses<T = unknown>(
     const result = access.access(vars, cur) as RawResult<T>;
     if (result === undefined) {
       return undefined;
-    } else if (result instanceof CelError) {
+    }
+    if (result instanceof CelError) {
       return result;
     }
     cur = result;
@@ -248,12 +251,13 @@ class ConditionalAttr implements Attribute {
 
   resolve(vars: Activation): RawResult | undefined {
     const cond = this.unwrap.unwrap(this.cond.eval(vars)) as CelResult;
-    if (cond === true) {
-      return this.t.resolve(vars);
-    } else if (cond === false) {
-      return this.f.resolve(vars);
-    } else if (cond instanceof CelError) {
-      return cond;
+    switch (true) {
+      case cond === true:
+        return this.t.resolve(vars);
+      case cond === false:
+        return this.f.resolve(vars);
+      case cond instanceof CelError:
+        return cond;
     }
     return CelErrors.overloadNotFound(this.id, "_?_:_", [getCelType(cond)]);
   }
