@@ -336,9 +336,8 @@ const inFunc = new Func(opc.IN, [
     [CelScalar.ANY, listType(CelScalar.ANY)],
     CelScalar.BOOL,
     (x, y) => {
-      const val = y.adapter.fromCel(x);
       for (let i = 0; i < y.value.length; i++) {
-        if (y.adapter.equals(val, y.value[i])) {
+        if (equals(x, y.value[i])) {
           return true;
         }
       }

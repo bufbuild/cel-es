@@ -48,15 +48,6 @@ void suite("adapter tests", () => {
     assert.deepEqual(actual, expected);
   });
 
-  void test("equals", () => {
-    assert.ok(NATIVE_ADAPTER.equals(true, true));
-    assert.ok(!NATIVE_ADAPTER.equals(true, false));
-    assert.ok(NATIVE_ADAPTER.equals(-0.0, 0.0));
-    assert.ok(NATIVE_ADAPTER.equals(-0.0, -0.0));
-    assert.ok(NATIVE_ADAPTER.equals(0.0, 0.0));
-    assert.ok(!NATIVE_ADAPTER.equals(NaN, NaN));
-  });
-
   void test("bool", () => {
     assert.equal(NATIVE_ADAPTER.toCel(true), true);
     assert.equal(NATIVE_ADAPTER.toCel(false), false);

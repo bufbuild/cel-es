@@ -197,6 +197,12 @@ describe("equals()", () => {
       testEq(lhs, rhs, true);
     }
   });
+  describe("must be false", () => {
+    const pairs = [[NaN, NaN]] as const;
+    for (const [lhs, rhs] of pairs) {
+      testEq(lhs, rhs, false);
+    }
+  });
 });
 
 function testEq(lhs: unknown, rhs: unknown, result: boolean) {

@@ -77,7 +77,6 @@ import {
   type StructAccess,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
-import { equals } from "../equals.js";
 
 type ProtoValue =
   | CelVal
@@ -120,10 +119,6 @@ export class ProtoValAdapter implements CelValAdapter {
       this.metadataCache.set(desc.typeName, metadata);
     }
     return metadata;
-  }
-
-  equals(lhs: ProtoValue, rhs: ProtoValue): CelResult<boolean> {
-    return equals(lhs, rhs);
   }
 
   compare(lhs: ProtoValue, rhs: ProtoValue): CelResult<number> | undefined {

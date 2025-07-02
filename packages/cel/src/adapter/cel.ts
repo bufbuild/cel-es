@@ -31,7 +31,6 @@ import {
   CelUint,
   ProtoNull,
 } from "../value/value.js";
-import { equals } from "../equals.js";
 
 function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
   const minLen = Math.min(lhs.length, rhs.length);
@@ -59,10 +58,6 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       return val.value;
     }
     return val;
-  }
-
-  equals(lhs: CelVal, rhs: CelVal) {
-    return equals(lhs, rhs);
   }
 
   compare(lhs: CelVal, rhs: CelVal) {

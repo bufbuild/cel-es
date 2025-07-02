@@ -209,7 +209,6 @@ export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
 
-  equals(lhs: V, rhs: V): CelResult<boolean>;
   compare(lhs: V, rhs: V): CelResult<number> | undefined;
 
   accessByName(id: number, obj: V, name: string): CelResult<V> | undefined;
