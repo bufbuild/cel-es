@@ -14,23 +14,38 @@
 
 import {
   CelError,
+  CelList,
+  CelMap,
+  CelObject,
   CelPlanner,
-  EXPR_VAL_ADAPTER,
+  CelType,
+  CelUint,
   makeStringExtFuncRegistry,
   ObjectActivation,
+  ProtoNull,
   type CelResult,
+  type CelVal,
 } from "./index.js";
 import type {
   SimpleTest,
   SimpleTestFile,
   SimpleTestSection,
 } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
-import type { Registry } from "@bufbuild/protobuf";
+import * as type from "./value/type.js";
+import {
+  create,
+  equals,
+  isMessage,
+  type MessageInitShape,
+  type Registry,
+} from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
 import { test } from "node:test";
 import { parse } from "./parser.js";
-import type { Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
-import { ExprValAdapter } from "./adapter/exprval.js";
+import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
+import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
+import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { ProtoValAdapter } from "./adapter/proto.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
@@ -135,7 +150,14 @@ function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
   planner.addFuncs(STRINGS_EXT_FUNCS);
   const parsed = parse(testCase.expr);
   const plan = planner.plan(parsed);
-  const ctx = new ObjectActivation(testCase.bindings, EXPR_VAL_ADAPTER);
+  const bindings: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(testCase.bindings)) {
+    if (v.kind.case !== "value") {
+      throw new Error(`unimplemented binding conversion: ${v.kind.case}`);
+    }
+    bindings[k] = valueToCelValue(v.kind.value, registry);
+  }
+  const ctx = new ObjectActivation(bindings, new ProtoValAdapter(registry));
   const result = plan.eval(ctx);
   switch (testCase.resultMatcher.case) {
     case "value":
@@ -174,12 +196,158 @@ function assertResultEqual(
   if (result instanceof CelError) {
     assert.deepEqual(result, value);
   } else {
-    const evalValAdapter = new ExprValAdapter(registry);
-    const protoAdapter = new ProtoValAdapter(registry);
-    const expected = evalValAdapter.valToCel(value);
-    if (!protoAdapter.equals(result, expected)) {
-      const actual = evalValAdapter.celToValue(result);
+    const actual = create(ValueSchema, celValueToValue(result, registry));
+    sortMapValueDeep(actual);
+    sortMapValueDeep(value);
+    if (!equals(ValueSchema, actual, value, { registry, unpackAny: true })) {
+      // To print a friendly diff
       assert.deepEqual(actual, value);
     }
   }
+}
+
+function celValueToValue(
+  value: unknown,
+  registry: Registry,
+): MessageInitShape<typeof ValueSchema> {
+  switch (typeof value) {
+    case "number":
+      return { kind: { case: "doubleValue", value } };
+    case "boolean":
+      return { kind: { case: "boolValue", value } };
+    case "bigint":
+      return { kind: { case: "int64Value", value } };
+    case "string":
+      return { kind: { case: "stringValue", value } };
+    case "function":
+    case "undefined":
+    case "symbol":
+      throw new Error(`unrecognised cel type: ${typeof value}`);
+  }
+  if (value === null || value instanceof ProtoNull) {
+    return { kind: { case: "nullValue", value: NullValue.NULL_VALUE } };
+  }
+  if (value instanceof Uint8Array) {
+    return { kind: { case: "bytesValue", value: value } };
+  }
+  if (value instanceof CelUint) {
+    return { kind: { case: "uint64Value", value: value.value } };
+  }
+  if (value instanceof CelType) {
+    return { kind: { case: "typeValue", value: value.name } };
+  }
+  if (value instanceof CelList) {
+    return {
+      kind: {
+        case: "listValue",
+        value: {
+          values: value.value.map((e) => celValueToValue(e, registry)),
+        },
+      },
+    };
+  }
+  if (value instanceof CelMap) {
+    return {
+      kind: {
+        case: "mapValue",
+        value: {
+          entries: Array.from(value.nativeKeyMap.entries()).map((pair) => ({
+            key: celValueToValue(pair[0], registry),
+            value: celValueToValue(pair[1], registry),
+          })),
+        },
+      },
+    };
+  }
+  if (value instanceof CelObject) {
+    value = value.value;
+  }
+  if (isReflectMessage(value)) {
+    value = value.message;
+  }
+  if (isMessage(value)) {
+    const desc = registry.getMessage(value.$typeName);
+    if (desc === undefined) {
+      throw new Error(`unrecognized message ${value.$typeName}`);
+    }
+    return {
+      kind: {
+        case: "objectValue",
+        value: anyPack(desc, value),
+      },
+    };
+  }
+  throw new Error(`unrecognised cel type: ${value}`);
+}
+
+function valueToCelValue(value: Value, registry: Registry): unknown {
+  switch (value.kind.case) {
+    case "nullValue":
+      return null;
+    case "uint64Value":
+      return CelUint.of(value.kind.value);
+    case "listValue":
+      return new CelList(
+        value.kind.value.values.map((e) => valueToCelValue(e, registry)),
+        new ProtoValAdapter(registry),
+        type.LIST,
+      );
+    case "objectValue":
+      return anyUnpack(value.kind.value, registry);
+    case "mapValue": {
+      const map = new Map<CelVal, unknown>();
+      for (const entry of value.kind.value.entries) {
+        if (entry.key === undefined || entry.value === undefined) {
+          throw new Error("Invalid map entry");
+        }
+        map.set(
+          valueToCelValue(entry.key, registry) as string,
+          valueToCelValue(entry.value, registry),
+        );
+      }
+      return new CelMap(map, new ProtoValAdapter(registry), type.DYN_MAP);
+    }
+    case "typeValue":
+      return new CelType(value.kind.value);
+    case "enumValue":
+      return BigInt(value.kind.value.value);
+    default:
+      return value.kind.value;
+  }
+}
+
+function sortMapValueDeep(value: Value) {
+  switch (value.kind.case) {
+    case "mapValue":
+      sortMapValue(value.kind.value);
+      break;
+    case "listValue":
+      for (const element of value.kind.value.values) {
+        sortMapValueDeep(element);
+      }
+      break;
+  }
+}
+
+function sortMapValue(value: MapValue) {
+  value.entries = value.entries.sort((a, b) => {
+    if (a.key?.kind.case !== b.key?.kind.case) {
+      throw new Error(
+        `invalid MapValue, keys are of different types: ${a.key?.kind.case} ${b.key?.kind.case}`,
+      );
+    }
+    switch (a.key?.kind.case) {
+      case "boolValue":
+        if (a.key.kind.value === b.key?.kind.value) {
+          return 0;
+        }
+        return a.key.kind.value ? 1 : -1;
+      case "stringValue":
+        return a.key.kind.value.localeCompare(b.key?.kind.value as string);
+      case "int64Value":
+      case "uint64Value":
+        return Number(a.key.kind.value - (b.key?.kind.value as bigint));
+    }
+    throw new Error(`invalid MapValue key: ${a.key?.kind.case}`);
+  });
 }
