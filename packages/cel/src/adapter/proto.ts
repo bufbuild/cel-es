@@ -52,7 +52,6 @@ import {
   type ScalarValue,
 } from "@bufbuild/protobuf/reflect";
 
-import { EMPTY_PROVIDER } from "../value/empty.js";
 import { type CelValProvider } from "../value/provider.js";
 import * as type from "../value/type.js";
 import {
@@ -74,9 +73,9 @@ import {
   isCelMsg,
   isCelWrap,
   ProtoNull,
-  type StructAccess,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
+import { accessByName, getFields } from "../field.js";
 
 type ProtoValue =
   | CelVal
@@ -215,86 +214,12 @@ export class ProtoValAdapter implements CelValAdapter {
     return cel;
   }
 
-  isSetByName(
-    id: number,
-    obj: Message | ReflectMessage | CelVal,
-    name: string,
-  ): boolean | CelError {
-    if (isProtoMsg(obj)) {
-      obj = reflect(this.getSchema(obj.$typeName), obj);
-    }
-    if (isReflectMessage(obj)) {
-      const field = obj.desc.fields.find((f) => f.name === name);
-      if (!field) {
-        return CelErrors.fieldNotFound(id, name, obj.desc.toString());
-      }
-      return obj.isSet(field);
-    }
-    return CEL_ADAPTER.isSetByName(id, obj, name);
-  }
-
-  accessByName(
-    id: number,
-    obj: Message | ReflectMessage | CelVal,
-    name: string,
-  ):
-    | undefined
-    | ScalarValue
-    | ReflectMessage
-    | ReflectMap
-    | ReflectList
-    | CelVal
-    | CelError {
-    if (isProtoMsg(obj)) {
-      obj = reflect(this.getSchema(obj.$typeName), obj);
-    }
-    if (isReflectMessage(obj)) {
-      const field = obj.desc.fields.find((f) => f.name === name);
-      if (!field) {
-        return CelErrors.fieldNotFound(id, name, obj.desc.toString());
-      }
-      switch (field.fieldKind) {
-        case "enum":
-          return BigInt(obj.get(field));
-        case "list":
-        case "map":
-          return obj.get(field);
-        case "message":
-          return obj.isSet(field)
-            ? obj.get(field)
-            : this.getMetadata(field.message.typeName).NULL;
-        case "scalar":
-          switch (field.scalar) {
-            case ScalarType.UINT32:
-            case ScalarType.UINT64:
-            case ScalarType.FIXED32:
-            case ScalarType.FIXED64:
-              return new CelUint(BigInt(obj.get(field)));
-            case ScalarType.INT32:
-            case ScalarType.SINT32:
-            case ScalarType.SFIXED32:
-              return BigInt(obj.get(field));
-            default:
-              return obj.get(field);
-          }
-      }
-    }
-    return CEL_ADAPTER.accessByName(id, obj, name);
-  }
-
   private getSchema(messageTypeName: string): DescMessage {
     const schema = this.registry.getMessage(messageTypeName);
     if (!schema) {
       throw new Error(`Message ${messageTypeName} not found in registry`);
     }
     return schema;
-  }
-
-  getFields(value: object): string[] {
-    if (isReflectMessage(value)) {
-      return this.getMetadata(value.desc).FIELD_NAMES;
-    }
-    return CEL_ADAPTER.getFields(value);
   }
 
   accessByIndex(
@@ -481,18 +406,18 @@ export class ProtoValAdapter implements CelValAdapter {
   private messageFromStruct(
     id: number,
     messageSchema: DescMessage,
-    obj: StructAccess,
+    obj: CelObject | CelMap,
   ): ReflectMessage | CelError {
     const fields = this.getMetadata(messageSchema.typeName).FIELDS;
     const message = reflect(messageSchema);
-    const keys = obj.getFields();
+    const keys = getFields(obj);
     for (const key of keys) {
       const field = fields.get(key as string);
       if (!field) {
         return CelErrors.fieldNotFound(id, key, messageSchema.toString());
       }
       // TODO(tstamm) what does accessByName return? why don't we use the adapter?
-      const val = obj.accessByName(id, key);
+      const val = accessByName(obj, key as string);
       if (val === undefined) {
         continue;
       }
@@ -642,16 +567,16 @@ export class ProtoValAdapter implements CelValAdapter {
   ): ReflectMap | CelError {
     if (val instanceof CelMap || val instanceof CelObject) {
       const result = reflectMap(field);
-      const keys = val.getFields();
+      const keys = getFields(val);
       for (const key of keys) {
-        const fval = val.accessByName(id, key as string);
+        const fval = accessByName(val, key as string);
         if (fval === undefined) {
           continue;
         } else if (fval instanceof CelError) {
           return fval;
         }
         // TODO(tstamm) we don't actually convert anything here
-        const pkey = this.fromCel(key) as number | string;
+        const pkey = this.fromCel(key as CelVal) as number | string;
         const pval = this.fromCel(fval);
         result.set(pkey, pval);
       }
@@ -745,10 +670,6 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
     typeName: string,
     obj: CelObject | CelMap,
   ): CelResult<ProtoValue> | undefined {
-    const result = EMPTY_PROVIDER.newValue(id, typeName, obj);
-    if (result !== undefined) {
-      return result;
-    }
     const messageSchema = this.adapter.registry.getMessage(typeName);
     if (messageSchema === undefined) {
       return undefined;
@@ -761,7 +682,7 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
   }
 
   findType(candidate: string): CelType | undefined {
-    const result = EMPTY_PROVIDER.findType(candidate);
+    const result = type.WK_PROTO_TYPES.get(candidate);
     if (result !== undefined) {
       return result;
     }
@@ -784,7 +705,30 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
         }
       }
     }
-    return EMPTY_PROVIDER.findIdent(id, ident);
+    switch (ident) {
+      case "int":
+        return type.INT;
+      case "uint":
+        return type.UINT;
+      case "double":
+        return type.DOUBLE;
+      case "bool":
+        return type.BOOL;
+      case "string":
+        return type.STRING;
+      case "bytes":
+        return type.BYTES;
+      case "list":
+        return type.LIST;
+      case "map":
+        return type.DYN_MAP;
+      case "null_type":
+        return type.NULL;
+      case "type":
+        return type.TYPE;
+      default:
+        return undefined;
+    }
   }
 }
 

@@ -29,13 +29,9 @@ import {
   type ReflectList,
   type ReflectMap,
 } from "@bufbuild/protobuf/reflect";
-import { getEvalContext } from "./eval.js";
+import { getEvalContext, getMsgDesc } from "./eval.js";
 import { equals as equalsMessage } from "@bufbuild/protobuf";
-import {
-  DurationSchema,
-  isWrapper,
-  TimestampSchema,
-} from "@bufbuild/protobuf/wkt";
+import { isWrapper } from "@bufbuild/protobuf/wkt";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -110,14 +106,14 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
     if (isWrapper(lhs)) {
       lhs = lhs.value;
     } else {
-      lhs = reflect(getSchema(lhs.$typeName), lhs);
+      lhs = reflect(getMsgDesc(lhs.$typeName), lhs);
     }
   }
   if (isMessage(rhs)) {
     if (isWrapper(rhs)) {
       rhs = rhs.value;
     } else {
-      rhs = reflect(getSchema(rhs.$typeName), rhs);
+      rhs = reflect(getMsgDesc(rhs.$typeName), rhs);
     }
   }
   if (isReflectMessage(lhs)) {
@@ -201,18 +197,4 @@ function equalsReflectMap(lhs: ReflectMap, rhs: ReflectMap) {
     }
   }
   return true;
-}
-
-function getSchema(messageTypeName: string) {
-  switch (messageTypeName) {
-    case TimestampSchema.typeName:
-      return TimestampSchema;
-    case DurationSchema.typeName:
-      return DurationSchema;
-  }
-  const schema = getEvalContext().registry.getMessage(messageTypeName);
-  if (!schema) {
-    throw new Error(`Message ${messageTypeName} not found in registry`);
-  }
-  return schema;
 }

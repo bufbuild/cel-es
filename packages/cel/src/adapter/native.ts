@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { accessByName, getFields } from "../field.js";
 import { isOverflowInt, isOverflowUint } from "../std/math.js";
 import { EMPTY_LIST, EMPTY_MAP } from "../value/empty.js";
 import * as type from "../value/type.js";
@@ -113,12 +114,12 @@ class NativeValAdapter implements CelValAdapter {
         return cel.value;
       }
       const obj: { [key: string]: unknown } = {};
-      for (const k of cel.getFields()) {
-        const val = cel.accessByName(0, k);
+      for (const k of getFields(cel)) {
+        const val = accessByName(cel, k as string);
         if (val instanceof CelError) {
           return val;
         } else if (val !== undefined) {
-          obj[k] = this.fromCel(val);
+          obj[k as string] = this.fromCel(val);
         }
       }
       return obj;
@@ -126,25 +127,6 @@ class NativeValAdapter implements CelValAdapter {
       return cel.value;
     }
     return cel;
-  }
-
-  getFields(value: object): string[] {
-    return Object.keys(value);
-  }
-
-  isSetByName(id: number, obj: unknown, name: string): boolean | CelError {
-    return this.accessByName(id, obj, name) !== undefined;
-  }
-
-  accessByName(id: number, obj: unknown, name: string) {
-    if (obj instanceof Map) {
-      return obj.get(name);
-    } else if (isCelVal(obj)) {
-      return CEL_ADAPTER.accessByName(id, obj, name);
-    } else if (obj instanceof Object) {
-      return obj[name as keyof typeof obj];
-    }
-    return undefined;
   }
 
   accessByIndex(id: number, obj: unknown, index: number | bigint) {

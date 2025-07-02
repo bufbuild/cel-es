@@ -14,6 +14,7 @@
 
 import type { Registry } from "@bufbuild/protobuf";
 import type { Interpretable } from "./planner.js";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 /**
  * Context available in the evaluation phase.
@@ -66,4 +67,22 @@ export function withEvalContext(
       }
     },
   };
+}
+
+/**
+ * Returns a message descriptor with the matching type name
+ * from the evaluation context.
+ */
+export function getMsgDesc(typeName: string) {
+  switch (typeName) {
+    case TimestampSchema.typeName:
+      return TimestampSchema;
+    case DurationSchema.typeName:
+      return DurationSchema;
+  }
+  const schema = getEvalContext().registry.getMessage(typeName);
+  if (!schema) {
+    throw new Error(`Message ${typeName} not found in registry`);
+  }
+  return schema;
 }

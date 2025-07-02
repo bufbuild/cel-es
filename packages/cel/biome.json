@@ -20,7 +20,9 @@
       "src/access.ts",
       "src/testing.ts",
       "src/equals.ts",
-      "src/equals.test.ts"
+      "src/equals.test.ts",
+      "src/field.ts",
+      "src/value/empty.ts"
     ]
   }
 }
