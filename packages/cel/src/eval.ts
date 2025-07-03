@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import type { Registry } from "@bufbuild/protobuf";
+import type { Interpretable } from "./planner.js";
 
 /**
  * Context available in the evaluation phase.
@@ -45,4 +46,24 @@ export function getEvalContext(): EvalContext {
     throw new Error("cannot use `getEvalContext` outside of an evaluation");
   }
   return contextStack[contextStack.length - 1];
+}
+
+/**
+ * Returns an Interpretable that sets the context for the given call.
+ */
+export function withEvalContext(
+  context: EvalContext,
+  next: Interpretable,
+): Interpretable {
+  return {
+    id: -1, // This will never be used.
+    eval(ctx) {
+      const unset = setEvalContext(context);
+      try {
+        return next.eval(ctx);
+      } finally {
+        unset();
+      }
+    },
+  };
 }

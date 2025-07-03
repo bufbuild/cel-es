@@ -128,10 +128,6 @@ class NativeValAdapter implements CelValAdapter {
     return cel;
   }
 
-  equals(lhs: unknown, rhs: unknown): boolean {
-    return lhs === rhs;
-  }
-
   compare(lhs: unknown, rhs: unknown): number | undefined {
     if (
       (typeof lhs === "number" || typeof lhs === "bigint") &&

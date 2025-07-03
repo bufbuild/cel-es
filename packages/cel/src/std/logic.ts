@@ -37,6 +37,7 @@ import {
 } from "../type.js";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { cannotCompare } from "../errors.js";
+import { equals } from "../equals.js";
 
 /**
  * This is not in the spec but is part of at least go,java, and cpp implementations.
@@ -116,30 +117,14 @@ const or: CallDispatch = {
 };
 
 const eqFunc = new Func(opc.EQUALS, [
-  new FuncOverload(
-    [CelScalar.ANY, CelScalar.ANY],
-    CelScalar.BOOL,
-    (lhs, rhs) => {
-      const result = CEL_ADAPTER.equals(lhs, rhs);
-      if (result instanceof CelError) {
-        throw new Error(result.message);
-      }
-      return result;
-    },
-  ),
+  new FuncOverload([CelScalar.ANY, CelScalar.ANY], CelScalar.BOOL, equals),
 ]);
 
 const neFunc = new Func(opc.NOT_EQUALS, [
   new FuncOverload(
     [CelScalar.ANY, CelScalar.ANY],
     CelScalar.BOOL,
-    (lhs, rhs) => {
-      const eq = CEL_ADAPTER.equals(lhs, rhs);
-      if (eq instanceof CelError) {
-        throw new Error(eq.message);
-      }
-      return !eq;
-    },
+    (lhs, rhs) => !equals(lhs, rhs),
   ),
 ]);
 
@@ -294,6 +279,7 @@ export function matchesString(x: string, y: string): boolean {
   const re = new RegExp(y, flags);
   return re.test(x);
 }
+
 const matchesFunc = new Func(olc.MATCHES, [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
@@ -337,22 +323,21 @@ const sizeFunc = new Func(olc.SIZE, [
 ]);
 
 function mapInOp(x: CelVal, y: CelMap<TypeOf<CelMapValueType["key"]>, CelVal>) {
-  const val = y.adapter.fromCel(x);
-  for (const [k, _] of y.value) {
-    if (y.adapter.equals(val, k)) {
+  for (const k of y.nativeKeyMap.keys()) {
+    if (equals(k, x)) {
       return true;
     }
   }
   return false;
 }
+
 const inFunc = new Func(opc.IN, [
   new FuncOverload(
     [CelScalar.ANY, listType(CelScalar.ANY)],
     CelScalar.BOOL,
     (x, y) => {
-      const val = y.adapter.fromCel(x);
       for (let i = 0; i < y.value.length; i++) {
-        if (y.adapter.equals(val, y.value[i])) {
+        if (equals(x, y.value[i])) {
           return true;
         }
       }
