@@ -44,7 +44,7 @@ import { CEL_ADAPTER } from "./adapter/cel.js";
 import { type CallDispatch, type Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { RawVal, type RawResult } from "./value/adapter.js";
-import { EMPTY_LIST, EMPTY_MAP, EMPTY_PROVIDER } from "./value/empty.js";
+import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
 import { Namespace } from "./value/namespace.js";
 import { type CelValProvider } from "./value/provider.js";
 import * as type from "./value/type.js";
@@ -71,7 +71,7 @@ export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
     private readonly functions: Dispatcher,
-    private readonly provider: CelValProvider = EMPTY_PROVIDER,
+    private readonly provider: CelValProvider,
     private readonly namespace: Namespace = Namespace.ROOT,
   ) {
     this.factory = new ConcreteAttributeFactory(this.provider, this.namespace);
@@ -736,11 +736,7 @@ export class EvalFold implements Interpretable {
     }
 
     let items: CelResult[] = [];
-    if (
-      iterRange instanceof CelMap ||
-      iterRange instanceof CelObject ||
-      iterRange instanceof CelList
-    ) {
+    if (iterRange instanceof CelMap || iterRange instanceof CelList) {
       items = iterRange.getItems();
     } else {
       return CelErrors.typeMismatch(this.id, "iterable", iterRange);

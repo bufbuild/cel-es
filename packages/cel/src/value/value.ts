@@ -209,14 +209,11 @@ export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
 
-  accessByName(id: number, obj: V, name: string): CelResult<V> | undefined;
-  isSetByName(id: number, obj: V, name: string): CelResult<boolean>;
   accessByIndex(
     id: number,
     obj: V,
     index: number | bigint | boolean,
   ): CelResult<V> | undefined;
-  getFields(value: object): string[];
 }
 
 export interface IterAccess {
@@ -227,15 +224,7 @@ export interface IndexAccess {
   accessByIndex(id: number, index: number | bigint): CelResult | undefined;
 }
 
-export interface FieldAccess<K> {
-  getFields(): K[];
-  accessByName(id: number, name: K): CelResult | undefined;
-}
-
 export type ListAccess = IterAccess & IndexAccess;
-export type StructAccess<K = unknown> = IterAccess &
-  FieldAccess<K> &
-  IndexAccess;
 
 // proto3 has typed nulls.
 export class ProtoNull {
@@ -287,7 +276,7 @@ export class CelList implements ListAccess {
   }
 }
 
-export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
+export class CelMap<K = unknown, V = unknown> implements IndexAccess {
   public readonly nativeKeyMap: ReadonlyMap<unknown, V>;
 
   constructor(
@@ -340,21 +329,9 @@ export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
     }
     return this.adapter.toCel(result);
   }
-
-  isSetByName(_id: number, name: unknown): CelResult<boolean> {
-    return this.nativeKeyMap.has(name);
-  }
-
-  accessByName(_id: number, name: unknown): CelResult | undefined {
-    return this.adapter.toCel(this.nativeKeyMap.get(name));
-  }
-
-  getFields(): CelVal[] {
-    return [...this.value.keys()].map((k) => this.adapter.toCel(k) as CelVal);
-  }
 }
 
-export class CelObject implements StructAccess<unknown> {
+export class CelObject implements IndexAccess {
   constructor(
     public readonly value: object,
     public readonly adapter: CelValAdapter,
@@ -365,25 +342,6 @@ export class CelObject implements StructAccess<unknown> {
     }
   }
 
-  getItems(): CelResult[] {
-    return this.getFields().map((key) => this.adapter.toCel(key));
-  }
-
-  getFields(): string[] {
-    return this.adapter.getFields(this.value);
-  }
-
-  isSetByName(id: number, name: string): CelResult<boolean> {
-    return this.adapter.isSetByName(id, this.value, name);
-  }
-
-  accessByName(id: number, name: string): CelResult | undefined {
-    const result = this.adapter.accessByName(id, this.value, name);
-    if (result === undefined) {
-      return undefined;
-    }
-    return this.adapter.toCel(result);
-  }
   accessByIndex(id: number, index: number | bigint): CelResult | undefined {
     const result = this.adapter.accessByIndex(id, this.value, index);
     if (result === undefined) {

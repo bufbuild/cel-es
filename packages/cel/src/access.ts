@@ -27,6 +27,7 @@ import {
   CelErrors,
 } from "./value/value.js";
 import { getCelType } from "./value/type.js";
+import { accessByName, isSet } from "./field.js";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;
@@ -379,7 +380,7 @@ class StringAccess implements Access {
   }
 
   access<T>(_vars: Activation, obj: RawVal<T>): RawResult<T> | undefined {
-    const val = obj.adapter.accessByName(this.id, obj.value, this.name);
+    const val = accessByName(obj.value, this.name) as T | undefined;
     if (val === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.name);
     }
@@ -387,7 +388,11 @@ class StringAccess implements Access {
   }
 
   isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    return obj.adapter.isSetByName(this.id, obj.value, this.name);
+    const set = isSet(obj.value, this.name);
+    if (set === undefined) {
+      return CelErrors.fieldNotFound(this.id, this.name);
+    }
+    return set;
   }
 
   accessIfPresent(
@@ -395,7 +400,7 @@ class StringAccess implements Access {
     obj: RawVal,
     presenceOnly: boolean,
   ): RawResult | undefined {
-    const val = obj.adapter.accessByName(this.id, obj.value, this.name);
+    const val = accessByName(obj.value, this.name);
     // TODO(tstamm) obj.adapter.toCel(val) ?
     if (val === undefined && !this.optional && !presenceOnly) {
       return CelErrors.fieldNotFound(this.id, this.name);
