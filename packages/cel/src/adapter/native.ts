@@ -18,7 +18,6 @@ import { EMPTY_LIST, EMPTY_MAP } from "../value/empty.js";
 import * as type from "../value/type.js";
 import {
   type CelVal,
-  isCelVal,
   CelError,
   CelMap,
   type CelValAdapter,
@@ -127,19 +126,6 @@ class NativeValAdapter implements CelValAdapter {
       return cel.value;
     }
     return cel;
-  }
-
-  accessByIndex(id: number, obj: unknown, index: number | bigint) {
-    if (obj instanceof Array) {
-      return obj[Number(index)];
-    } else if (isCelVal(obj)) {
-      return CEL_ADAPTER.accessByIndex(id, obj, index);
-    } else if (obj instanceof Object) {
-      return obj[String(index) as keyof typeof obj];
-    } else if (obj instanceof Map) {
-      return obj.get(index);
-    }
-    return undefined;
   }
 }
 
