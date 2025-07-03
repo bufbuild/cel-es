@@ -13,11 +13,7 @@
 // limitations under the License.
 
 import { ScalarType, create, isMessage } from "@bufbuild/protobuf";
-import {
-  isReflectList,
-  isReflectMessage,
-  reflect,
-} from "@bufbuild/protobuf/reflect";
+import { isReflectMessage, reflect } from "@bufbuild/protobuf/reflect";
 import {
   AnySchema,
   DurationSchema,
@@ -28,13 +24,13 @@ import {
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { getEvalContext, getMsgDesc } from "./eval.js";
 import {
-  CelList,
   CelMap,
   CelObject,
   CelUint,
   type CelVal,
   ProtoNull,
 } from "./value/value.js";
+import { List } from "./list.js";
 
 export function accessByIndex(
   obj: unknown,
@@ -52,21 +48,8 @@ export function accessByIndex(
     }
     return result;
   }
-  if (obj instanceof CelList) {
-    const i = Number(index);
-    if (i < 0 || i >= obj.value.length) {
-      return undefined;
-    }
-    return obj.value[i] as CelVal;
-  }
-  if (isReflectList(obj)) {
-    const v = obj.get(Number(index));
-    if (v === undefined) {
-      return undefined;
-    }
-    // TODO(srikrsna): Remove usage once we update map/list/object types.
-    const protoAdapter = new ProtoValAdapter(getEvalContext().registry);
-    return protoAdapter.toCel(v as CelVal) as CelVal;
+  if (obj instanceof List) {
+    return obj.get(Number(index)) as CelVal;
   }
   return undefined;
 }
@@ -104,6 +87,7 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
       case "enum":
         return BigInt(obj.get(field));
       case "list":
+        return List.of(obj.get(field));
       case "map":
         return protoAdapter.toCel(obj.get(field)) as CelVal;
       case "message":

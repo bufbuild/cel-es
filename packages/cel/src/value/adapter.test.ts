@@ -18,8 +18,9 @@ import { CEL_ADAPTER } from "../adapter/cel.js";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./empty.js";
 import { Namespace } from "./namespace.js";
-import { CelList, CelMap, CelUint, type CelVal } from "./value.js";
+import { CelMap, CelUint, type CelVal } from "./value.js";
 import * as type from "./type.js";
+import { List } from "../list.js";
 
 void suite("adapter tests", () => {
   void test("main namespace", () => {
@@ -96,18 +97,10 @@ void suite("adapter tests", () => {
     assert.equal(NATIVE_ADAPTER.toCel([]), EMPTY_LIST);
     assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_LIST), []);
 
+    assert.deepEqual(NATIVE_ADAPTER.toCel([1, 2, 3]), List.of([1, 2, 3]));
+    assert.deepEqual(NATIVE_ADAPTER.fromCel(List.of([1, 2, 3])), [1, 2, 3]);
     assert.deepEqual(
-      NATIVE_ADAPTER.toCel([1, 2, 3]),
-      new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST),
-    );
-    assert.deepEqual(
-      NATIVE_ADAPTER.fromCel(new CelList([1, 2, 3], NATIVE_ADAPTER, type.LIST)),
-      [1, 2, 3],
-    );
-    assert.deepEqual(
-      NATIVE_ADAPTER.fromCel(
-        new CelList([1n, new CelUint(2n), 3], CEL_ADAPTER, type.DYN_MAP),
-      ),
+      NATIVE_ADAPTER.fromCel(List.of([1n, new CelUint(2n), 3])),
       [1n, 2n, 3],
     );
   });

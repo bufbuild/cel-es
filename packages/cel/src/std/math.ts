@@ -25,7 +25,6 @@ import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as type from "../value/type.js";
 import {
   CelError,
-  CelList,
   CelUint,
   newDuration,
   newTimestamp,
@@ -33,6 +32,7 @@ import {
 } from "../value/value.js";
 import { CelScalar, listType } from "../type.js";
 import { divisionByZero, moduloByZero, overflow } from "../errors.js";
+import { List } from "../list.js";
 
 const MAX_INT = 9223372036854775807n;
 // biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
@@ -67,36 +67,6 @@ export function addMath(funcs: FuncRegistry) {
   funcs.add(divide);
   funcs.add(modulo);
   funcs.add(negate);
-}
-
-function addList(lhs: CelList, rhs: CelList) {
-  let listType = type.getCelType(lhs) as type.ListType;
-  let values = lhs.value.slice();
-  const argType = type.getCelType(rhs) as type.ListType;
-  if (
-    listType.elemType !== type.DYN &&
-    !listType.elemType.identical(argType.elemType)
-  ) {
-    listType = type.LIST;
-  }
-  const adapter = lhs.adapter;
-  if (adapter === rhs.adapter) {
-    values = values.concat(rhs.value);
-  } else {
-    // Convert to the same adapter.
-    for (const val of rhs.value) {
-      const celVal = rhs.adapter.toCel(val);
-      if (celVal instanceof CelError) {
-        throw new Error(celVal.message);
-      }
-      const converted = adapter.fromCel(celVal);
-      if (converted instanceof CelError) {
-        throw new Error(converted.message);
-      }
-      values.push(converted);
-    }
-  }
-  return new CelList(values, adapter, listType);
 }
 
 function addTimestamp(lhs: Timestamp, rhs: Timestamp | Duration) {
@@ -206,7 +176,7 @@ const add = new Func(opc.ADD, [
   new FuncOverload(
     [listType(CelScalar.ANY), listType(CelScalar.ANY)],
     listType(CelScalar.ANY),
-    addList,
+    (l, r) => List.concat(l, r),
   ),
 ]);
 

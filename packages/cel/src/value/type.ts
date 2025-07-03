@@ -34,9 +34,9 @@ import {
   CelType,
   ConcreteType,
   WrapperType,
-  CelList,
   CelMap,
 } from "./value.js";
+import { List } from "../list.js";
 
 export const DYN = new CelType("dyn");
 export const NULL = new ConcreteType("null_type", null);
@@ -134,8 +134,8 @@ export function getCelType(val: CelVal): CelType {
         } else if (isMessage(val, BytesValueSchema)) {
           return WRAP_BYTES;
         }
-      } else if (val instanceof CelList) {
-        return val.type_;
+      } else if (val instanceof List) {
+        return LIST;
       } else if (val instanceof CelUint) {
         return UINT;
       } else if (val instanceof CelMap) {

@@ -14,7 +14,6 @@
 
 import { isMessage } from "@bufbuild/protobuf";
 import {
-  CelList,
   CelMap,
   CelObject,
   CelType,
@@ -22,16 +21,15 @@ import {
   ProtoNull,
 } from "./value/value.js";
 import {
-  isReflectList,
   isReflectMap,
   isReflectMessage,
   reflect,
-  type ReflectList,
   type ReflectMap,
 } from "@bufbuild/protobuf/reflect";
 import { getEvalContext, getMsgDesc } from "./eval.js";
 import { equals as equalsMessage } from "@bufbuild/protobuf";
 import { isWrapper } from "@bufbuild/protobuf/wkt";
+import { List } from "./list.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -74,14 +72,12 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
   switch (true) {
     case lhs instanceof Uint8Array:
       return rhs instanceof Uint8Array && equalsBytes(lhs, rhs);
-    case lhs instanceof CelList:
-      return rhs instanceof CelList && equalsList(lhs, rhs);
+    case lhs instanceof List:
+      return rhs instanceof List && equalsList(lhs, rhs);
     case lhs instanceof CelMap:
       return rhs instanceof CelMap && equalsMap(lhs, rhs);
     case lhs instanceof CelType:
       return rhs instanceof CelType && lhs.name === rhs.name;
-    case isReflectList(lhs):
-      return isReflectList(rhs) && equalsReflectList(lhs, rhs);
     case isReflectMap(lhs):
       return isReflectMap(rhs) && equalsReflectMap(lhs, rhs);
   }
@@ -134,12 +130,12 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
   return false;
 }
 
-function equalsList(lhs: CelList, rhs: CelList): boolean {
-  if (lhs.value.length !== rhs.value.length) {
+function equalsList(lhs: List, rhs: List): boolean {
+  if (lhs.size !== rhs.size) {
     return false;
   }
-  for (let i = 0; i < lhs.value.length; i++) {
-    if (!equals(lhs.value[i], rhs.value[i])) {
+  for (let i = 0; i < lhs.size; i++) {
+    if (!equals(lhs.get(i), rhs.get(i))) {
       return false;
     }
   }
@@ -164,18 +160,6 @@ function equalsBytes(lhs: Uint8Array, rhs: Uint8Array): boolean {
   }
   for (let i = 0; i < lhs.length; i++) {
     if (lhs[i] !== rhs[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function equalsReflectList(lhs: ReflectList, rhs: ReflectList): boolean {
-  if (lhs.size != rhs.size) {
-    return false;
-  }
-  for (let i = 0; i < lhs.size; i++) {
-    if (!equals(lhs.get(i), rhs.get(i))) {
       return false;
     }
   }

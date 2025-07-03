@@ -25,10 +25,10 @@ import {
   CelError,
   type Unwrapper,
   CelUint,
-  CelList,
   CelMap,
 } from "./value/value.js";
 import { isMessage } from "@bufbuild/protobuf";
+import { List } from "./list.js";
 
 export interface CallDispatch {
   dispatch(
@@ -168,7 +168,7 @@ function isOfType(
     if ("type" in type) {
       switch (type.type) {
         case "list":
-          return val instanceof CelList;
+          return val instanceof List;
         case "map":
           return val instanceof CelMap;
         default:

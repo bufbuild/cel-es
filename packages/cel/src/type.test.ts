@@ -20,9 +20,10 @@ import {
   type TypeOf,
   type TupleTypeOf,
 } from "./type.js";
-import type { CelList, CelMap, CelUint } from "./value/value.js";
+import type { CelMap, CelUint } from "./value/value.js";
 import type { Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { expectTypeOf } from "expect-type";
+import type { List } from "./list.js";
 
 test("TypeOf", () => {
   expectTypeOf<TypeOf<CelScalar.INT>>().toEqualTypeOf<bigint>();
@@ -35,7 +36,7 @@ test("TypeOf", () => {
   expectTypeOf<TypeOf<CelScalar.INT>>().toEqualTypeOf<bigint>();
   expectTypeOf<TypeOf<CelScalar.INT>>().toEqualTypeOf<bigint>();
   const list = listType(CelScalar.BOOL);
-  expectTypeOf<TypeOf<typeof list>>().toEqualTypeOf<CelList>();
+  expectTypeOf<TypeOf<typeof list>>().toEqualTypeOf<List>();
   const map = mapType(CelScalar.STRING, CelScalar.STRING);
   expectTypeOf<TypeOf<typeof map>>().toEqualTypeOf<CelMap<string, string>>();
   expectTypeOf<TypeOf<typeof TimestampSchema>>().toEqualTypeOf<Timestamp>();

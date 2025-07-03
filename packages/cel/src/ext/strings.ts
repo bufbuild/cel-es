@@ -15,19 +15,17 @@
 import { isMessage, toJson } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
-import { CEL_ADAPTER } from "../adapter/cel.js";
 import { FuncOverload, FuncRegistry, Func } from "../func.js";
-import * as type from "../value/type.js";
 import {
   type CelResult,
   CelError,
-  CelList,
   CelMap,
   CelUint,
   CelType,
 } from "../value/value.js";
 import { CelScalar, listType } from "../type.js";
 import { indexOutOfBounds, invalidArgument } from "../errors.js";
+import { List } from "../list.js";
 
 const charAt = new Func("charAt", [
   new FuncOverload(
@@ -144,9 +142,9 @@ const replace = new Func("replace", [
 
 function splitOp(str: string, sep: string, num?: number) {
   if (num === 1) {
-    return new CelList([str], CEL_ADAPTER, type.LIST_STRING);
+    return List.of([str]);
   }
-  return new CelList(str.split(sep, num), CEL_ADAPTER, type.LIST_STRING);
+  return List.of(str.split(sep, num));
 }
 
 const split = new Func("split", [
@@ -219,17 +217,17 @@ const trim = new Func("trim", [
   }),
 ]);
 
-function joinOp(list: CelList, sep = "") {
-  const items = list.getItems();
+function joinOp(list: List, sep = "") {
   let result = "";
-  for (let i = 0; i < items.length; i++) {
-    if (typeof items[i] !== "string") {
+  for (let i = 0; i < list.size; i++) {
+    const item = list.get(i);
+    if (typeof item !== "string") {
       throw invalidArgument("join", "list contains non-string value");
     }
     if (i > 0) {
       result += sep;
     }
-    result += items[i];
+    result += item;
   }
   return result;
 }
@@ -281,7 +279,7 @@ export class Formatter {
   }
 
   public formatFloating(
-    val: CelResult,
+    val: unknown,
     precision: number | undefined,
   ): CelResult<string> {
     switch (true) {
@@ -312,7 +310,7 @@ export class Formatter {
   }
 
   public formatExponent(
-    val: CelResult,
+    val: unknown,
     precision: number | undefined,
   ): CelResult<string> {
     switch (true) {
@@ -339,7 +337,7 @@ export class Formatter {
     }
   }
 
-  public formatBinary(val: CelResult): CelResult<string> {
+  public formatBinary(val: unknown): CelResult<string> {
     switch (true) {
       case typeof val === "boolean":
         return val ? "1" : "0";
@@ -357,7 +355,7 @@ export class Formatter {
     }
   }
 
-  public formatOctal(val: CelResult): CelResult<string> {
+  public formatOctal(val: unknown): CelResult<string> {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(8);
@@ -370,7 +368,7 @@ export class Formatter {
     }
   }
 
-  public formatDecimal(val: CelResult): CelResult<string> {
+  public formatDecimal(val: unknown): CelResult<string> {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(10);
@@ -397,7 +395,7 @@ export class Formatter {
     return result;
   }
 
-  public formatHex(val: CelResult): CelResult<string> {
+  public formatHex(val: unknown): CelResult<string> {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(16);
@@ -418,7 +416,7 @@ export class Formatter {
     }
   }
 
-  public formatHeX(val: CelResult): CelResult<string> {
+  public formatHeX(val: unknown): CelResult<string> {
     const result = this.formatHex(val);
     if (typeof result !== "string") {
       return result;
@@ -426,14 +424,13 @@ export class Formatter {
     return result.toUpperCase();
   }
 
-  public formatList(val: CelList): CelResult<string> {
-    const items = val.getItems();
+  public formatList(val: List): CelResult<string> {
     let result = "[";
-    for (let i = 0; i < items.length; i++) {
+    for (let i = 0; i < val.size; i++) {
       if (i > 0) {
         result += ", ";
       }
-      const item = this.formatRepl(items[i]);
+      const item = this.formatRepl(val.get(i));
       if (item instanceof CelError) {
         return item;
       }
@@ -472,7 +469,7 @@ export class Formatter {
     return result;
   }
 
-  public formatRepl(val: CelResult): CelResult<string> {
+  public formatRepl(val: unknown): CelResult<string> {
     switch (typeof val) {
       case "boolean":
         return val ? "true" : "false";
@@ -497,7 +494,7 @@ export class Formatter {
           case val instanceof Uint8Array:
             // escape non-printable characters
             return new TextDecoder().decode(val);
-          case val instanceof CelList:
+          case val instanceof List:
             return this.formatList(val);
           case val instanceof CelMap:
             return this.formatMap(val);
@@ -508,7 +505,7 @@ export class Formatter {
     throw invalidArgument("format", "invalid value");
   }
 
-  public formatString(val: CelResult): CelResult<string> {
+  public formatString(val: unknown): CelResult<string> {
     switch (typeof val) {
       case "boolean":
         return val ? "true" : "false";
@@ -532,7 +529,7 @@ export class Formatter {
             return toJson(DurationSchema, val);
           case val instanceof Uint8Array:
             return new TextDecoder().decode(val);
-          case val instanceof CelList:
+          case val instanceof List:
             return this.formatList(val);
           case val instanceof CelMap:
             return this.formatMap(val);
@@ -543,8 +540,7 @@ export class Formatter {
     throw invalidArgument("format", "invalid string value");
   }
 
-  public format(format: string, args: CelList): string {
-    const items = args.getItems();
+  public format(format: string, args: List): string {
     let result = "";
     let i = 0;
     let j = 0;
@@ -581,10 +577,10 @@ export class Formatter {
         c = format.charAt(i);
         i++;
       }
-      if (j >= items.length) {
+      if (j >= args.size) {
         throw invalidArgument("format", "too few arguments for format string");
       }
-      const val = items[j++];
+      const val = args.get(j++);
       let str: CelResult<string> = "";
       switch (c) {
         case "e":
@@ -622,7 +618,7 @@ export class Formatter {
       }
       result += str;
     }
-    if (j < items.length) {
+    if (j < args.size) {
       throw invalidArgument("format", "too many arguments for format string");
     }
     return result;
