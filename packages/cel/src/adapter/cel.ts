@@ -13,11 +13,9 @@
 // limitations under the License.
 
 import {
-  CelList,
   type CelValAdapter,
   type CelResult,
   type CelVal,
-  CelMap,
   isCelWrap,
 } from "../value/value.js";
 
@@ -35,17 +33,6 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       return val.value;
     }
     return val;
-  }
-
-  accessByIndex(
-    id: number,
-    obj: CelVal,
-    index: number | bigint,
-  ): CelVal | undefined {
-    if (obj instanceof CelMap || obj instanceof CelList) {
-      return obj.accessByIndex(id, index) as CelVal;
-    }
-    return undefined;
   }
 }
 

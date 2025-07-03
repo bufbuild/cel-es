@@ -208,23 +208,13 @@ export interface Unwrapper<V = unknown> {
 export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
-
-  accessByIndex(
-    id: number,
-    obj: V,
-    index: number | bigint | boolean,
-  ): CelResult<V> | undefined;
 }
 
 export interface IterAccess {
   getItems(): CelResult[];
 }
 
-export interface IndexAccess {
-  accessByIndex(id: number, index: number | bigint): CelResult | undefined;
-}
-
-export type ListAccess = IterAccess & IndexAccess;
+export type ListAccess = IterAccess;
 
 // proto3 has typed nulls.
 export class ProtoNull {
@@ -266,17 +256,9 @@ export class CelList implements ListAccess {
     }
     return result;
   }
-
-  accessByIndex(id: number, index: number | bigint): CelResult {
-    const i = Number(index);
-    if (i < 0 || i >= this.value.length) {
-      return CelErrors.indexOutOfBounds(Number(id), i, this.value.length);
-    }
-    return this.adapter.toCel(this.value[i]);
-  }
 }
 
-export class CelMap<K = unknown, V = unknown> implements IndexAccess {
+export class CelMap<K = unknown, V = unknown> {
   public readonly nativeKeyMap: ReadonlyMap<unknown, V>;
 
   constructor(
@@ -313,25 +295,9 @@ export class CelMap<K = unknown, V = unknown> implements IndexAccess {
     }
     return result;
   }
-
-  accessByIndex(
-    _id: number,
-    index: number | bigint | boolean,
-  ): CelResult | undefined {
-    let result = this.nativeKeyMap.get(index);
-    if (result === undefined) {
-      if (typeof index === "number" && Number.isInteger(index)) {
-        result = this.nativeKeyMap.get(BigInt(index));
-      }
-    }
-    if (result === undefined) {
-      return undefined;
-    }
-    return this.adapter.toCel(result);
-  }
 }
 
-export class CelObject implements IndexAccess {
+export class CelObject {
   constructor(
     public readonly value: object,
     public readonly adapter: CelValAdapter,
@@ -340,14 +306,6 @@ export class CelObject implements IndexAccess {
     if (isCelVal(value)) {
       throw new Error("Cannot wrap CelVal in CelObject");
     }
-  }
-
-  accessByIndex(id: number, index: number | bigint): CelResult | undefined {
-    const result = this.adapter.accessByIndex(id, this.value, index);
-    if (result === undefined) {
-      return undefined;
-    }
-    return this.adapter.toCel(result);
   }
 }
 

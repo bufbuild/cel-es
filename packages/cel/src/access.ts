@@ -27,7 +27,7 @@ import {
   CelErrors,
 } from "./value/value.js";
 import { getCelType } from "./value/type.js";
-import { accessByName, isSet } from "./field.js";
+import { accessByIndex, accessByName, isSet } from "./field.js";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;
@@ -424,7 +424,7 @@ class BoolAccess implements Access {
     if (obj === undefined) {
       return obj;
     }
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.index);
     }
@@ -432,7 +432,7 @@ class BoolAccess implements Access {
   }
 
   isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.index);
     }
@@ -444,7 +444,7 @@ class BoolAccess implements Access {
     obj: RawVal,
     _presenceOnly: boolean,
   ): RawResult | undefined {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.index);
     }
@@ -468,7 +468,7 @@ class NumAccess implements Access {
     if (obj === undefined) {
       return obj;
     }
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
@@ -476,7 +476,7 @@ class NumAccess implements Access {
   }
 
   isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
@@ -488,7 +488,7 @@ class NumAccess implements Access {
     obj: RawVal,
     _presenceOnly: boolean,
   ): RawResult | undefined {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
@@ -508,7 +508,7 @@ class IntAccess implements Access {
     if (obj === undefined) {
       return obj;
     }
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
@@ -516,7 +516,7 @@ class IntAccess implements Access {
   }
 
   isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
@@ -528,7 +528,7 @@ class IntAccess implements Access {
     obj: RawVal,
     _presenceOnly: boolean,
   ): RawResult | undefined {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }

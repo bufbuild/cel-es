@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import { ScalarType, create, isMessage } from "@bufbuild/protobuf";
-import { isReflectMessage, reflect } from "@bufbuild/protobuf/reflect";
+import {
+  isReflectList,
+  isReflectMessage,
+  reflect,
+} from "@bufbuild/protobuf/reflect";
 import {
   AnySchema,
   DurationSchema,
@@ -24,12 +28,48 @@ import {
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { getEvalContext, getMsgDesc } from "./eval.js";
 import {
+  CelList,
   CelMap,
   CelObject,
   CelUint,
   type CelVal,
   ProtoNull,
 } from "./value/value.js";
+
+export function accessByIndex(
+  obj: unknown,
+  index: number | bigint | boolean,
+): CelVal | undefined {
+  if (typeof obj !== "object" || obj === null) {
+    return undefined;
+  }
+  if (obj instanceof CelMap) {
+    let result = obj.nativeKeyMap.get(index);
+    if (result === undefined) {
+      if (typeof index === "number" && Number.isInteger(index)) {
+        result = obj.nativeKeyMap.get(BigInt(index));
+      }
+    }
+    return result;
+  }
+  if (obj instanceof CelList) {
+    const i = Number(index);
+    if (i < 0 || i >= obj.value.length) {
+      return undefined;
+    }
+    return obj.value[i] as CelVal;
+  }
+  if (isReflectList(obj)) {
+    const v = obj.get(Number(index));
+    if (v === undefined) {
+      return undefined;
+    }
+    // TODO(srikrsna): Remove usage once we update map/list/object types.
+    const protoAdapter = new ProtoValAdapter(getEvalContext().registry);
+    return protoAdapter.toCel(v as CelVal) as CelVal;
+  }
+  return undefined;
+}
 
 /**
  * Access fields on Maps and Message by name.

@@ -222,27 +222,6 @@ export class ProtoValAdapter implements CelValAdapter {
     return schema;
   }
 
-  accessByIndex(
-    id: number,
-    obj: ProtoValue,
-    index: number | bigint,
-  ): ProtoResult | undefined {
-    if (isProtoMsg(obj) || isReflectMessage(obj) || isReflectMap(obj)) {
-      return undefined;
-    }
-    if (isReflectList(obj)) {
-      const i = Number(index);
-      const v = this.celFromListElem(obj.field(), obj.get(i)) as
-        | ProtoValue
-        | undefined;
-      if (v === undefined) {
-        return CelErrors.indexOutOfBounds(Number(id), i, obj.size);
-      }
-      return this.toCel(v);
-    }
-    return CEL_ADAPTER.accessByIndex(id, obj, index);
-  }
-
   reflectMessageFromCel(
     id: number,
     messageSchema: DescMessage,
