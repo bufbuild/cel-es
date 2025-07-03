@@ -145,6 +145,8 @@ const ltFunc = new Func(opc.LESS, [
   new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < r.value),
   new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value < r),
   new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value < r.value),
+  // TODO investigate: ECMAScript relational operators support mixed bigint/number operands, 
+  // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
   new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) < r),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l < Number(r)),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < Number(r.value)),
