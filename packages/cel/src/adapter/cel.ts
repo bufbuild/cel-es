@@ -13,11 +13,7 @@
 // limitations under the License.
 
 import { isMessage } from "@bufbuild/protobuf";
-import {
-  AnySchema,
-  DurationSchema,
-  TimestampSchema,
-} from "@bufbuild/protobuf/wkt";
+import { AnySchema } from "@bufbuild/protobuf/wkt";
 
 import {
   CelList,
@@ -28,21 +24,8 @@ import {
   isCelWrap,
   CelError,
   CelObject,
-  CelUint,
   ProtoNull,
 } from "../value/value.js";
-
-function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
-  const minLen = Math.min(lhs.length, rhs.length);
-  for (let i = 0; i < minLen; i++) {
-    if (lhs[i] < rhs[i]) {
-      return -1;
-    } else if (lhs[i] > rhs[i]) {
-      return 1;
-    }
-  }
-  return lhs.length - rhs.length;
-}
 
 /** How CelVal are converted (noop), compared, and accessed. */
 export class CelAdapter implements CelValAdapter<CelVal> {
@@ -58,63 +41,6 @@ export class CelAdapter implements CelValAdapter<CelVal> {
       return val.value;
     }
     return val;
-  }
-
-  compare(lhs: CelVal, rhs: CelVal) {
-    if (isCelWrap(lhs) || lhs instanceof CelUint) {
-      lhs = lhs.value;
-    }
-    if (isCelWrap(rhs) || rhs instanceof CelUint) {
-      rhs = rhs.value;
-    }
-
-    if (
-      (typeof lhs === "number" || typeof lhs === "bigint") &&
-      (typeof rhs === "number" || typeof rhs === "bigint")
-    ) {
-      if (typeof lhs !== typeof rhs) {
-        lhs = Number(lhs);
-        rhs = Number(rhs);
-      }
-      if (lhs < rhs) {
-        return -1;
-      }
-      return lhs > rhs ? 1 : 0;
-    } else if (
-      lhs instanceof CelList ||
-      lhs instanceof CelMap ||
-      lhs instanceof CelObject
-    ) {
-      return undefined;
-    } else if (typeof lhs === "boolean" && typeof rhs === "boolean") {
-      if (lhs === rhs) {
-        return 0;
-      }
-      return lhs ? 1 : -1;
-    } else if (lhs instanceof Uint8Array && rhs instanceof Uint8Array) {
-      return compareBytes(lhs, rhs);
-    } else if (typeof lhs === "string" && typeof rhs === "string") {
-      return lhs < rhs ? -1 : lhs > rhs ? 1 : 0;
-    } else if (
-      isMessage(lhs, DurationSchema) &&
-      isMessage(rhs, DurationSchema)
-    ) {
-      const cmp = lhs.seconds - rhs.seconds;
-      if (cmp == 0n) {
-        return lhs.nanos - rhs.nanos;
-      }
-      return cmp < 0n ? -1 : 1;
-    } else if (
-      isMessage(lhs, TimestampSchema) &&
-      isMessage(rhs, TimestampSchema)
-    ) {
-      const cmp = lhs.seconds - rhs.seconds;
-      if (cmp == 0n) {
-        return lhs.nanos - rhs.nanos;
-      }
-      return cmp < 0n ? -1 : 1;
-    }
-    return undefined;
   }
 
   getFields(obj: object) {

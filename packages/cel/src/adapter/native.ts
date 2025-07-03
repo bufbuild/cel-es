@@ -128,33 +128,6 @@ class NativeValAdapter implements CelValAdapter {
     return cel;
   }
 
-  compare(lhs: unknown, rhs: unknown): number | undefined {
-    if (
-      (typeof lhs === "number" || typeof lhs === "bigint") &&
-      (typeof rhs === "number" || typeof rhs === "bigint")
-    ) {
-      if (typeof lhs !== typeof rhs) {
-        lhs = Number(lhs);
-        rhs = Number(rhs);
-      }
-      if (lhs === rhs) {
-        return 0;
-      }
-      return (lhs as number | bigint) < (rhs as number | bigint) ? -1 : 1;
-    } else if (
-      (typeof lhs === "string" && typeof rhs === "string") ||
-      (typeof lhs === "boolean" && typeof rhs === "boolean") ||
-      (lhs instanceof Uint8Array && rhs instanceof Uint8Array)
-    ) {
-      if (lhs === rhs) {
-        return 0;
-      }
-      return lhs < rhs ? -1 : 1;
-    }
-
-    return undefined;
-  }
-
   getFields(value: object): string[] {
     return Object.keys(value);
   }

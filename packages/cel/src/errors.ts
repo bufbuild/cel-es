@@ -121,8 +121,4 @@ export function overloadNotFound(name: string, types: CelType[]) {
   );
 }
 
-export function cannotCompare(lhs: CelVal, rhs: CelVal) {
-  return new Error(`cannot compare ${lhs} and ${rhs}`);
-}
-
 type NumType = typeof type.INT | typeof type.UINT | typeof type.DOUBLE;
