@@ -205,16 +205,16 @@ describe("equals()", () => {
   });
 });
 
-function testEq(lhs: unknown, rhs: unknown, result: boolean) {
-  test(`${formatCelValue(lhs)} ${result ? "==" : "!="} ${formatCelValue(rhs)}`, () => {
-    assert.strictEqual(equals(lhs, rhs), result);
+function testEq(lhs: unknown, rhs: unknown, expected: boolean) {
+  test(`${toTestString(lhs)} ${expected ? "==" : "!="} ${toTestString(rhs)}`, () => {
+    assert.strictEqual(equals(lhs, rhs), expected);
   });
-  test(`${formatCelValue(rhs)} ${result ? "==" : "!="} ${formatCelValue(lhs)}`, () => {
-    assert.strictEqual(equals(rhs, lhs), result);
+  test(`${toTestString(rhs)} ${expected ? "==" : "!="} ${toTestString(lhs)}`, () => {
+    assert.strictEqual(equals(rhs, lhs), expected);
   });
 }
 
-function formatCelValue(value: unknown) {
+function toTestString(value: unknown) {
   let str = "";
   if (typeof value === "object") {
     str = formatCelObject(value);
@@ -247,17 +247,17 @@ function formatCelObject(value: object | null) {
       return value.value.toString();
     case isReflectList(value):
       return `[${Array.from(value.values())
-        .map((e) => formatCelValue(e))
+        .map((e) => toTestString(e))
         .join(",")}]`;
     case value instanceof CelList:
-      return `[${value.value.map((e) => formatCelValue(e)).join(",")}]`;
+      return `[${value.value.map((e) => toTestString(e)).join(",")}]`;
     case isReflectMap(value):
       return `{${Array.from(value.entries())
-        .map((p) => p.map((e) => formatCelValue(e)).join(": "))
+        .map((p) => p.map((e) => toTestString(e)).join(": "))
         .join(",")}}`;
     case value instanceof CelMap:
       return `{${Array.from(value.nativeKeyMap.entries())
-        .map((p) => p.map((e) => formatCelValue(e)).join(": "))
+        .map((p) => p.map((e) => toTestString(e)).join(": "))
         .join(",")}}`;
     case isReflectMessage(value):
       return toJsonString(value.desc, value.message);

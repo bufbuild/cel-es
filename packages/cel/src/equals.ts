@@ -40,14 +40,16 @@ import {
 /**
  * Checks for equality of two CEL values. It follows the following rules:
  *
- * - Primitives are checked for value equality using native equality check.
- * - Types need not be equal for numerical values to be equal.
- * - Wrappers are treated as scalars.
- * - Protobuf messages are checked using protobuf equality
- * - Lists are equal of if lengths match and each element matches the corresponding element in the other one.
+ * - Numeric values (`int`, `uint`, and `double`) are compared across types.
+ * - `NaN` does not equal `NaN`.
+ * - Other scalar values (`bool`, `string`, `bytes`, and `type`) are only equal if type and value are identical.
+ * - Wrapped scalars (e.g. `google.protobuf.StringValue`) are unwrapped before comparison.
+ * - `google.protobuf.Any` is unpacked before comparison.
+ * - Lists are equal if lengths match and each element matches the corresponding element in the other one.
  * - Maps are equal if both the have the same set of keys and corresponding values.
+ * - If the types don't match it returns false.
  *
- * If the two cannot be compared, it returns false.
+ * Ref: https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#equality
  */
 export function equals(lhs: unknown, rhs: unknown): boolean {
   // Fast path for Int, Double, Bool, and String types.
@@ -70,11 +72,7 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
     (typeof lhs === "number" || typeof lhs === "bigint") &&
     (typeof rhs === "number" || typeof rhs === "bigint")
   ) {
-    if (typeof lhs !== typeof rhs) {
-      lhs = Number(lhs);
-      rhs = Number(rhs);
-    }
-    return lhs === rhs;
+    return lhs == rhs;
   }
   // For values whose types must be equal for them to be equal.
   switch (true) {
@@ -129,8 +127,6 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
     if (lhs.desc.typeName !== rhs.desc.typeName) {
       return false;
     }
-    // equality following the CEL-spec
-    // see https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffers
     // see https://github.com/bufbuild/protobuf-es/pull/1029
     return equalsMessage(lhs.desc, lhs.message, rhs.message, {
       registry: getEvalContext().registry,
