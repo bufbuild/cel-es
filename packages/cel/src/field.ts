@@ -30,7 +30,7 @@ import {
   type CelVal,
   ProtoNull,
 } from "./value/value.js";
-import { List } from "./list.js";
+import { celList, isCelList } from "./list.js";
 
 export function accessByIndex(
   obj: unknown,
@@ -48,7 +48,7 @@ export function accessByIndex(
     }
     return result;
   }
-  if (obj instanceof List) {
+  if (isCelList(obj)) {
     return obj.get(Number(index)) as CelVal;
   }
   return undefined;
@@ -87,7 +87,7 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
       case "enum":
         return BigInt(obj.get(field));
       case "list":
-        return List.of(obj.get(field));
+        return celList(obj.get(field));
       case "map":
         return protoAdapter.toCel(obj.get(field)) as CelVal;
       case "message":

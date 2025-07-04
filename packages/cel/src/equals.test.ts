@@ -43,7 +43,7 @@ import { CEL_ADAPTER } from "./adapter/cel.js";
 import * as type from "./value/type.js";
 import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto2/test_all_types_pb.js";
 import { setEvalContext } from "./eval.js";
-import { List } from "./list.js";
+import { celList, isCelList } from "./list.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -121,8 +121,8 @@ describe("equals()", () => {
         ),
       ],
       // Lists
-      [List.of([1, 2, 3]), List.of([1, 2, 3])],
-      [List.of([1, 2n, CelUint.of(3n)]), List.of([1n, CelUint.of(2n), 3n])],
+      [celList([1, 2, 3]), celList([1, 2, 3])],
+      [celList([1, 2n, CelUint.of(3n)]), celList([1n, CelUint.of(2n), 3n])],
       // Maps
       [
         new CelMap(
@@ -221,7 +221,7 @@ function formatCelObject(value: object | null) {
       return "null";
     case value instanceof CelUint:
       return value.value.toString();
-    case value instanceof List:
+    case isCelList(value):
       return `[${Array.from(value)
         .map((e) => toTestString(e))
         .join(",")}]`;

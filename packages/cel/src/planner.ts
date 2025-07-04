@@ -65,7 +65,7 @@ import {
   type CelValAdapter,
   CelErrors,
 } from "./value/value.js";
-import { List } from "./list.js";
+import { celList, isCelList } from "./list.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
@@ -629,7 +629,7 @@ export class EvalList implements InterpretableCtor {
       }
       elemVals.push(elemVal);
     }
-    return List.of(elemVals);
+    return celList(elemVals);
   }
 
   type(): CelType {
@@ -734,7 +734,7 @@ export class EvalFold implements Interpretable {
     let items: CelResult[] = [];
     if (iterRange instanceof CelMap) {
       items = iterRange.getItems();
-    } else if (iterRange instanceof List) {
+    } else if (isCelList(iterRange)) {
       items = Array.from(iterRange) as CelResult[];
     } else {
       return CelErrors.typeMismatch(this.id, "iterable", iterRange);

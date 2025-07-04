@@ -32,7 +32,7 @@ import {
 } from "../value/value.js";
 import { CelScalar, listType } from "../type.js";
 import { divisionByZero, moduloByZero, overflow } from "../errors.js";
-import { List } from "../list.js";
+import { celListConcat } from "../list.js";
 
 const MAX_INT = 9223372036854775807n;
 // biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
@@ -176,7 +176,7 @@ const add = new Func(opc.ADD, [
   new FuncOverload(
     [listType(CelScalar.ANY), listType(CelScalar.ANY)],
     listType(CelScalar.ANY),
-    (l, r) => List.concat(l, r),
+    celListConcat,
   ),
 ]);
 

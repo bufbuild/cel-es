@@ -25,7 +25,7 @@ import {
 } from "../value/value.js";
 import { CelScalar, listType } from "../type.js";
 import { indexOutOfBounds, invalidArgument } from "../errors.js";
-import { List } from "../list.js";
+import { type CelList, celList, isCelList } from "../list.js";
 
 const charAt = new Func("charAt", [
   new FuncOverload(
@@ -142,9 +142,9 @@ const replace = new Func("replace", [
 
 function splitOp(str: string, sep: string, num?: number) {
   if (num === 1) {
-    return List.of([str]);
+    return celList([str]);
   }
-  return List.of(str.split(sep, num));
+  return celList(str.split(sep, num));
 }
 
 const split = new Func("split", [
@@ -217,7 +217,7 @@ const trim = new Func("trim", [
   }),
 ]);
 
-function joinOp(list: List, sep = "") {
+function joinOp(list: CelList, sep = "") {
   let result = "";
   for (let i = 0; i < list.size; i++) {
     const item = list.get(i);
@@ -424,7 +424,7 @@ export class Formatter {
     return result.toUpperCase();
   }
 
-  public formatList(val: List): CelResult<string> {
+  public formatList(val: CelList): CelResult<string> {
     let result = "[";
     for (let i = 0; i < val.size; i++) {
       if (i > 0) {
@@ -494,7 +494,7 @@ export class Formatter {
           case val instanceof Uint8Array:
             // escape non-printable characters
             return new TextDecoder().decode(val);
-          case val instanceof List:
+          case isCelList(val):
             return this.formatList(val);
           case val instanceof CelMap:
             return this.formatMap(val);
@@ -529,7 +529,7 @@ export class Formatter {
             return toJson(DurationSchema, val);
           case val instanceof Uint8Array:
             return new TextDecoder().decode(val);
-          case val instanceof List:
+          case isCelList(val):
             return this.formatList(val);
           case val instanceof CelMap:
             return this.formatMap(val);
@@ -540,7 +540,7 @@ export class Formatter {
     throw invalidArgument("format", "invalid string value");
   }
 
-  public format(format: string, args: List): string {
+  public format(format: string, args: CelList): string {
     let result = "";
     let i = 0;
     let j = 0;

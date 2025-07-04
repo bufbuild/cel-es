@@ -15,85 +15,98 @@
 import { type ReflectList, isReflectList } from "@bufbuild/protobuf/reflect";
 import { celFromListElem } from "./proto.js";
 
+const privateSymbol = Symbol.for("@bufbuild/cel/list");
+
 /**
  * List is common abstraction for list types.
  */
-export abstract class List implements Iterable<unknown> {
+export interface CelList extends Iterable<unknown> {
   /**
    * The size of the list.
    */
-  abstract readonly size: number;
+  readonly size: number;
   /**
    * Retrieves the item at the specified index, or undefined if the index
    * is out of range.
    */
-  abstract get(index: number): unknown;
+  get(index: number): unknown;
 
-  abstract [Symbol.iterator](): IterableIterator<unknown>;
-  abstract values(): IterableIterator<unknown>;
-
+  [Symbol.iterator](): IterableIterator<unknown>;
+  values(): IterableIterator<unknown>;
   /**
-   * Create a new list from a native array or a ReflectList.
+   * To prevent external implementations.
    */
-  static of(array: readonly unknown[]): List;
-  static of(reflectList: ReflectList): List;
-  static of(arrayOrReflectList: readonly unknown[] | ReflectList): List {
-    if (isReflectList(arrayOrReflectList)) {
-      return new RepeatedFieldList(arrayOrReflectList as ReflectList);
-    }
-    return new ArrayList(arrayOrReflectList);
-  }
-
-  /**
-   * Returns a new List that has all the elements
-   * of the lists in order.
-   */
-  static concat(...lists: List[]): List {
-    return new ConcatList(lists);
-  }
+  [privateSymbol]: unknown;
 }
 
-class ArrayList extends List {
-  constructor(private readonly array: readonly unknown[]) {
-    super();
+/**
+ * Create a new list from a native array or a ReflectList.
+ */
+export function celList(array: readonly unknown[]): CelList;
+export function celList(reflectList: ReflectList): CelList;
+export function celList(
+  arrayOrReflectList: readonly unknown[] | ReflectList,
+): CelList {
+  if (isReflectList(arrayOrReflectList)) {
+    return new RepeatedFieldList(arrayOrReflectList as ReflectList);
   }
+  return new ArrayList(arrayOrReflectList);
+}
+
+/**
+ * Returns a new List that has all the elements
+ * of the lists in order.
+ */
+export function celListConcat(...lists: CelList[]) {
+  return new ConcatList(lists);
+}
+
+/**
+ * Returns true if the given value is a CelList.
+ */
+export function isCelList(v: unknown): v is CelList {
+  return typeof v === "object" && v !== null && privateSymbol in v;
+}
+
+class ArrayList implements CelList {
+  [privateSymbol] = {};
+  constructor(private readonly _array: readonly unknown[]) {}
   get size(): number {
-    return this.array.length;
+    return this._array.length;
   }
   get(index: number): unknown {
     if (index < 0 || index >= this.size) {
       return undefined;
     }
-    return this.array[index];
+    return this._array[index];
   }
   values(): IterableIterator<unknown> {
-    return this.array.values();
+    return this._array.values();
   }
   [Symbol.iterator](): IterableIterator<unknown> {
-    return this.array.values();
+    return this._array.values();
   }
 }
 
-class RepeatedFieldList extends List {
-  constructor(private readonly list: ReflectList) {
-    super();
-  }
+class RepeatedFieldList implements CelList {
+  [privateSymbol] = {};
+  constructor(private readonly _list: ReflectList) {}
 
   get size(): number {
-    return this.list.size;
+    return this._list.size;
   }
 
   get(index: number): unknown {
-    const val = this.list.get(index);
+    const val = this._list.get(index);
     if (val === undefined) {
       return undefined;
     }
-    return celFromListElem(this.list.field(), val);
+    return celFromListElem(this._list.field(), val);
   }
 
   *values() {
-    for (const val of this.list) {
-      yield celFromListElem(this.list.field(), val);
+    for (const val of this._list) {
+      yield celFromListElem(this._list.field(), val);
     }
   }
 
@@ -102,23 +115,26 @@ class RepeatedFieldList extends List {
   }
 }
 
-class ConcatList extends List {
-  constructor(private readonly lists: readonly List[]) {
-    super();
+class ConcatList implements CelList {
+  [privateSymbol] = {};
+  private readonly _size: number;
+  constructor(private readonly _lists: readonly CelList[]) {
     let size = 0;
-    for (const list of lists) {
+    for (const list of _lists) {
       size += list.size;
     }
-    this.size = size;
+    this._size = size;
   }
 
-  readonly size: number;
+  get size(): number {
+    return this._size;
+  }
 
   get(index: number): unknown {
     if (index < 0 || index >= this.size) {
       return undefined;
     }
-    for (const list of this.lists) {
+    for (const list of this._lists) {
       if (index < list.size) {
         return list.get(index);
       }
@@ -128,7 +144,7 @@ class ConcatList extends List {
   }
 
   *values() {
-    for (const list of this.lists) {
+    for (const list of this._lists) {
       yield* list.values();
     }
   }

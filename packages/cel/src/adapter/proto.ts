@@ -74,7 +74,7 @@ import {
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 import { accessByName, getFields } from "../field.js";
-import { List } from "../list.js";
+import { celList, isCelList } from "../list.js";
 
 type ProtoValue =
   | CelVal
@@ -167,7 +167,7 @@ export class ProtoValAdapter implements CelValAdapter {
       return new CelObject(native, this, this.getMetadata(native.desc).TYPE);
     }
     if (isReflectList(native)) {
-      return List.of(native);
+      return celList(native);
     }
     if (isReflectMap(native)) {
       const field = native.field();
@@ -492,7 +492,7 @@ export class ProtoValAdapter implements CelValAdapter {
     field: DescField & { fieldKind: "list" },
     val: CelVal,
   ): ReflectList | CelError {
-    if (val instanceof List) {
+    if (isCelList(val)) {
       const result = reflectList(field);
       for (const listItem of val) {
         const celItem = listItem as CelVal;

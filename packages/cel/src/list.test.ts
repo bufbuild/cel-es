@@ -13,21 +13,21 @@
 // limitations under the License.
 
 import { describe, test } from "node:test";
-import { List } from "./list.js";
+import { celListConcat, celList } from "./list.js";
 import * as assert from "node:assert/strict";
 
 describe("ConcatList", () => {
   describe("empty lists", () => {
     test("Multiple empty lists", () => {
-      const list = List.concat(List.of([]), List.of([]));
+      const list = celListConcat(celList([]), celList([]));
       assert.deepEqual(list.size, 0);
       assert.deepEqual(Array.from(list), []);
     });
     test("Empty in the middle", () => {
-      const list = List.concat(
-        List.of([1, 2, 3]),
-        List.of([]),
-        List.of([4, 5]),
+      const list = celListConcat(
+        celList([1, 2, 3]),
+        celList([]),
+        celList([4, 5]),
       );
       assert.deepEqual(list.size, 5);
       assert.deepEqual(Array.from(list), [1, 2, 3, 4, 5]);

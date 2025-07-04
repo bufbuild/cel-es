@@ -27,7 +27,7 @@ import {
 } from "../value/value.js";
 import { type CelResult, isCelResult } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
-import { List } from "../list.js";
+import { celList, isCelList } from "../list.js";
 
 class NativeValAdapter implements CelValAdapter {
   unwrap(val: CelVal): CelVal {
@@ -60,7 +60,7 @@ class NativeValAdapter implements CelValAdapter {
           if (val.length === 0) {
             return EMPTY_LIST;
           }
-          return List.of(val);
+          return celList(val);
         } else if (val instanceof Map) {
           if (val.size === 0) {
             return EMPTY_MAP;
@@ -79,7 +79,7 @@ class NativeValAdapter implements CelValAdapter {
   }
 
   fromCel(cel: CelVal): unknown {
-    if (cel instanceof List) {
+    if (isCelList(cel)) {
       return Array.from(cel).map((v) => this.fromCel(v as CelVal));
     } else if (cel instanceof CelMap) {
       if (cel.adapter === this) {

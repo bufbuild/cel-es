@@ -29,7 +29,7 @@ import {
 import { getEvalContext, getMsgDesc } from "./eval.js";
 import { equals as equalsMessage } from "@bufbuild/protobuf";
 import { isWrapper } from "@bufbuild/protobuf/wkt";
-import { List } from "./list.js";
+import { type CelList, isCelList } from "./list.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -72,8 +72,8 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
   switch (true) {
     case lhs instanceof Uint8Array:
       return rhs instanceof Uint8Array && equalsBytes(lhs, rhs);
-    case lhs instanceof List:
-      return rhs instanceof List && equalsList(lhs, rhs);
+    case isCelList(lhs):
+      return isCelList(rhs) && equalsList(lhs, rhs);
     case lhs instanceof CelMap:
       return rhs instanceof CelMap && equalsMap(lhs, rhs);
     case lhs instanceof CelType:
@@ -130,7 +130,7 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
   return false;
 }
 
-function equalsList(lhs: List, rhs: List): boolean {
+function equalsList(lhs: CelList, rhs: CelList): boolean {
   if (lhs.size !== rhs.size) {
     return false;
   }

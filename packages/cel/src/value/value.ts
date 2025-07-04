@@ -35,7 +35,7 @@ import type { UInt64Value } from "@bufbuild/protobuf/wkt";
 import type { Int64Value } from "@bufbuild/protobuf/wkt";
 import type { Duration } from "@bufbuild/protobuf/wkt";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { List } from "../list.js";
+import { type CelList, isCelList } from "../list.js";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
@@ -187,7 +187,7 @@ export type CelVal =
   | CelMap
   | CelObject
   | CelType
-  | List;
+  | CelList;
 
 export function isCelVal(val: unknown): val is CelVal {
   return (
@@ -195,7 +195,7 @@ export function isCelVal(val: unknown): val is CelVal {
     val instanceof ProtoNull ||
     isCelPrim(val) ||
     isCelMsg(val) ||
-    val instanceof List ||
+    isCelList(val) ||
     val instanceof CelMap ||
     val instanceof CelObject ||
     val instanceof CelType

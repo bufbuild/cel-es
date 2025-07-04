@@ -46,7 +46,7 @@ import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { ProtoValAdapter } from "./adapter/proto.js";
-import { List } from "./list.js";
+import { celList, isCelList } from "./list.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -236,7 +236,7 @@ function celValueToValue(
   if (value instanceof CelType) {
     return { kind: { case: "typeValue", value: value.name } };
   }
-  if (value instanceof List) {
+  if (isCelList(value)) {
     return {
       kind: {
         case: "listValue",
@@ -287,7 +287,7 @@ function valueToCelValue(value: Value, registry: Registry): unknown {
     case "uint64Value":
       return CelUint.of(value.kind.value);
     case "listValue":
-      return List.of(
+      return celList(
         value.kind.value.values.map((e) => valueToCelValue(e, registry)),
       );
     case "objectValue":
