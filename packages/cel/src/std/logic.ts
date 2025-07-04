@@ -316,7 +316,7 @@ const sizeFunc = new Func(olc.SIZE, [
   }),
   new FuncOverload([CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
   new FuncOverload([listType(CelScalar.ANY)], CelScalar.INT, (x) =>
-    BigInt(x.value.length),
+    BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.INT, CelScalar.ANY)],
@@ -354,8 +354,8 @@ const inFunc = new Func(opc.IN, [
     [CelScalar.ANY, listType(CelScalar.ANY)],
     CelScalar.BOOL,
     (x, y) => {
-      for (let i = 0; i < y.value.length; i++) {
-        if (equals(x, y.value[i])) {
+      for (let i = 0; i < y.size; i++) {
+        if (equals(x, y.get(i))) {
           return true;
         }
       }

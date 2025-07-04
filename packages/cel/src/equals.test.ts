@@ -14,13 +14,7 @@
 
 import { before, describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import {
-  CelList,
-  CelMap,
-  CelUint,
-  ProtoNull,
-  type CelVal,
-} from "./value/value.js";
+import { CelMap, CelUint, ProtoNull, type CelVal } from "./value/value.js";
 import { equals } from "./equals.js";
 import { getCelType } from "./value/type.js";
 import {
@@ -41,7 +35,6 @@ import {
   timestampFromMs,
 } from "@bufbuild/protobuf/wkt";
 import {
-  isReflectList,
   isReflectMap,
   isReflectMessage,
   reflect,
@@ -50,6 +43,7 @@ import { CEL_ADAPTER } from "./adapter/cel.js";
 import * as type from "./value/type.js";
 import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto2/test_all_types_pb.js";
 import { setEvalContext } from "./eval.js";
+import { celList, isCelList } from "./list.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -127,24 +121,8 @@ describe("equals()", () => {
         ),
       ],
       // Lists
-      [
-        new CelList([1, 2, 3], CEL_ADAPTER, type.LIST),
-        new CelList([1, 2, 3], CEL_ADAPTER, type.LIST),
-      ],
-      [
-        new CelList([1, 2n, CelUint.of(3n)], CEL_ADAPTER, type.LIST),
-        new CelList([1n, CelUint.of(2n), 3n], CEL_ADAPTER, type.LIST),
-      ],
-      [
-        reflect(
-          TestAllTypesSchema,
-          create(TestAllTypesSchema, { repeatedDouble: [1, 2, 3] }),
-        ).get(TestAllTypesSchema.field.repeatedDouble),
-        reflect(
-          TestAllTypesSchema,
-          create(TestAllTypesSchema, { repeatedDouble: [1, 2, 3] }),
-        ).get(TestAllTypesSchema.field.repeatedDouble),
-      ],
+      [celList([1, 2, 3]), celList([1, 2, 3])],
+      [celList([1, 2n, CelUint.of(3n)]), celList([1n, CelUint.of(2n), 3n])],
       // Maps
       [
         new CelMap(
@@ -226,8 +204,6 @@ function toTestString(value: unknown) {
     typeName = value.$typeName;
   } else if (isReflectMessage(value)) {
     typeName = `reflect(${value.desc.typeName})`;
-  } else if (isReflectList(value)) {
-    typeName = `list<${value.field()}>`;
   } else if (isReflectMap(value)) {
     typeName = `map<${value.field().mapKey}, ${value.field()}>`;
   } else if (value instanceof ProtoNull) {
@@ -245,12 +221,10 @@ function formatCelObject(value: object | null) {
       return "null";
     case value instanceof CelUint:
       return value.value.toString();
-    case isReflectList(value):
-      return `[${Array.from(value.values())
+    case isCelList(value):
+      return `[${Array.from(value)
         .map((e) => toTestString(e))
         .join(",")}]`;
-    case value instanceof CelList:
-      return `[${value.value.map((e) => toTestString(e)).join(",")}]`;
     case isReflectMap(value):
       return `{${Array.from(value.entries())
         .map((p) => p.map((e) => toTestString(e)).join(": "))

@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { isCelList } from "./list.js";
 import {
   type CelValueType,
   type TypeOf,
@@ -25,7 +26,6 @@ import {
   CelError,
   type Unwrapper,
   CelUint,
-  CelList,
   CelMap,
 } from "./value/value.js";
 import { isMessage } from "@bufbuild/protobuf";
@@ -168,7 +168,7 @@ function isOfType(
     if ("type" in type) {
       switch (type.type) {
         case "list":
-          return val instanceof CelList;
+          return isCelList(val);
         case "map":
           return val instanceof CelMap;
         default:

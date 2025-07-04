@@ -57,12 +57,10 @@ import * as type from "../value/type.js";
 import {
   CelError,
   CelErrors,
-  CelList,
   CelMap,
   CelObject,
   type CelResult,
   CelType,
-  CelUint,
   type CelVal,
   type CelValAdapter,
   coerceToBigInt,
@@ -76,6 +74,7 @@ import {
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 import { accessByName, getFields } from "../field.js";
+import { celList, isCelList } from "../list.js";
 
 type ProtoValue =
   | CelVal
@@ -168,24 +167,7 @@ export class ProtoValAdapter implements CelValAdapter {
       return new CelObject(native, this, this.getMetadata(native.desc).TYPE);
     }
     if (isReflectList(native)) {
-      const field = native.field();
-      let valType: CelType;
-      switch (field.listKind) {
-        case "scalar":
-          valType = getScalarType(field.scalar);
-          break;
-        case "enum":
-          valType = new CelType(field.enum.typeName);
-          break;
-        case "message":
-          valType = new CelType(field.message.typeName);
-          break;
-      }
-      return new CelList(
-        Array.from(native.values()).map((v) => this.celFromListElem(field, v)),
-        this,
-        new type.ListType(valType),
-      );
+      return celList(native);
     }
     if (isReflectMap(native)) {
       const field = native.field();
@@ -510,10 +492,10 @@ export class ProtoValAdapter implements CelValAdapter {
     field: DescField & { fieldKind: "list" },
     val: CelVal,
   ): ReflectList | CelError {
-    if (val instanceof CelList) {
+    if (isCelList(val)) {
       const result = reflectList(field);
-      for (const listItem of val.value) {
-        const celItem = val.adapter.toCel(listItem);
+      for (const listItem of val) {
+        const celItem = listItem as CelVal;
         if (celItem instanceof CelError) {
           return celItem;
         }
@@ -562,36 +544,6 @@ export class ProtoValAdapter implements CelValAdapter {
       return result;
     }
     throw new Error("not implemented.");
-  }
-
-  private celFromListElem(desc: DescField & { fieldKind: "list" }, v: unknown) {
-    if (v === undefined) {
-      return v;
-    }
-    switch (desc.listKind) {
-      case "enum":
-        return v;
-      case "message":
-        return this.toCel(v as ReflectMessage);
-      case "scalar":
-        return this.celFromScalar(desc.scalar, v);
-    }
-  }
-
-  private celFromScalar(type: ScalarType, v: unknown) {
-    switch (type) {
-      case ScalarType.UINT32:
-      case ScalarType.UINT64:
-      case ScalarType.FIXED32:
-      case ScalarType.FIXED64:
-        return new CelUint(BigInt(v as bigint));
-      case ScalarType.INT32:
-      case ScalarType.SINT32:
-      case ScalarType.SFIXED32:
-        return BigInt(v as number);
-      default:
-        return v;
-    }
   }
 }
 

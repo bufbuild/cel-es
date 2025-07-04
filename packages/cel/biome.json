@@ -22,7 +22,10 @@
       "src/equals.ts",
       "src/equals.test.ts",
       "src/field.ts",
-      "src/value/empty.ts"
+      "src/value/empty.ts",
+      "src/proto.ts",
+      "src/list.ts",
+      "src/list.test.ts"
     ]
   }
 }

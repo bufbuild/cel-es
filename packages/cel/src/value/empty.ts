@@ -14,7 +14,8 @@
 
 import { CEL_ADAPTER } from "../adapter/cel.js";
 import * as type from "./type.js";
-import { CelList, CelMap } from "./value.js";
+import { CelMap } from "./value.js";
+import { celList } from "../list.js";
 
-export const EMPTY_LIST = new CelList([], CEL_ADAPTER, type.LIST);
+export const EMPTY_LIST = celList([]);
 export const EMPTY_MAP = new CelMap(new Map(), CEL_ADAPTER, type.DYN_MAP);

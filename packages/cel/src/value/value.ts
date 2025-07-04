@@ -35,6 +35,7 @@ import type { UInt64Value } from "@bufbuild/protobuf/wkt";
 import type { Int64Value } from "@bufbuild/protobuf/wkt";
 import type { Duration } from "@bufbuild/protobuf/wkt";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { type CelList, isCelList } from "../list.js";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
@@ -183,10 +184,10 @@ export type CelVal =
   | ProtoNull
   | CelPrim
   | CelMsg
-  | CelList
   | CelMap
   | CelObject
-  | CelType;
+  | CelType
+  | CelList;
 
 export function isCelVal(val: unknown): val is CelVal {
   return (
@@ -194,7 +195,7 @@ export function isCelVal(val: unknown): val is CelVal {
     val instanceof ProtoNull ||
     isCelPrim(val) ||
     isCelMsg(val) ||
-    val instanceof CelList ||
+    isCelList(val) ||
     val instanceof CelMap ||
     val instanceof CelObject ||
     val instanceof CelType
@@ -209,12 +210,6 @@ export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
 }
-
-export interface IterAccess {
-  getItems(): CelResult[];
-}
-
-export type ListAccess = IterAccess;
 
 // proto3 has typed nulls.
 export class ProtoNull {
@@ -240,22 +235,6 @@ export class CelUint {
     }
   }
   constructor(public readonly value: bigint) {}
-}
-
-export class CelList implements ListAccess {
-  constructor(
-    public readonly value: readonly unknown[],
-    public readonly adapter: CelValAdapter,
-    public readonly type_: CelType,
-  ) {}
-
-  getItems(): CelResult[] {
-    const result: CelResult[] = [];
-    for (const item of this.value) {
-      result.push(this.adapter.toCel(item));
-    }
-    return result;
-  }
 }
 
 export class CelMap<K = unknown, V = unknown> {
