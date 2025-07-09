@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ScalarType, create, isMessage } from "@bufbuild/protobuf";
+import { ScalarType, isMessage } from "@bufbuild/protobuf";
 import { isReflectMessage, reflect } from "@bufbuild/protobuf/reflect";
 import {
   AnySchema,
@@ -23,10 +23,11 @@ import {
 } from "@bufbuild/protobuf/wkt";
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { getEvalContext, getMsgDesc } from "./eval.js";
-import { CelObject, type CelVal, ProtoNull } from "./value/value.js";
+import { CelObject, type CelVal } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
 import { isCelMap } from "./map.js";
 import { celUint } from "./uint.js";
+import { isNullMessage, nullMessage } from "./null.js";
 
 export function accessByIndex(
   obj: unknown,
@@ -83,10 +84,7 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
       case "message":
         return obj.isSet(field)
           ? (protoAdapter.toCel(obj.get(field)) as CelVal)
-          : new ProtoNull(
-              field.message.typeName,
-              create(field.message, {}) as CelVal,
-            );
+          : nullMessage(field.message);
       case "scalar":
         switch (field.scalar) {
           case ScalarType.UINT32:
@@ -182,8 +180,8 @@ export function getFields(obj: unknown): unknown[] {
 }
 
 function unwrapMessage(obj: unknown) {
-  if (obj instanceof ProtoNull) {
-    obj = obj.defaultValue;
+  if (isNullMessage(obj)) {
+    obj = obj.zero.message;
   }
   if (obj instanceof CelObject) {
     obj = obj.value;

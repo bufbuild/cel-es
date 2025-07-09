@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { isMessage } from "@bufbuild/protobuf";
-import { CelObject, CelType, ProtoNull } from "./value/value.js";
+import { CelObject, CelType } from "./value/value.js";
 import {
   isReflectMap,
   isReflectMessage,
@@ -26,6 +26,7 @@ import { isWrapper } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "./list.js";
 import { type CelMap, isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
+import { isNullMessage } from "./null.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -78,13 +79,12 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
       return isReflectMap(rhs) && equalsReflectMap(lhs, rhs);
   }
   // Proto Null
-  if (lhs instanceof ProtoNull) {
+  if (isNullMessage(lhs)) {
     return (
-      rhs === null ||
-      (rhs instanceof ProtoNull && lhs.messageTypeName === rhs.messageTypeName)
+      rhs === null || (isNullMessage(rhs) && lhs.typeName === rhs.typeName)
     );
   }
-  if (rhs instanceof ProtoNull && lhs === null) {
+  if (isNullMessage(rhs) && lhs === null) {
     return true;
   }
   if (lhs instanceof CelObject) {

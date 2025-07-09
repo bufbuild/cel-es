@@ -37,7 +37,6 @@ export {
   isCelVal,
   CelError,
   CelErrors,
-  ProtoNull,
   CelObject,
 } from "./value/value.js";
 export { getCelType } from "./value/type.js";
@@ -49,6 +48,7 @@ export { Func, FuncRegistry } from "./func.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
 export { type CelList, celList, isCelList, celListConcat } from "./list.js";
 export { type CelUint, celUint, isCelUint } from "./uint.js";
+export { type NullMessage, nullMessage } from "./null.js";
 
 export function createEnv(namespace: string, registry: Registry): CelEnv {
   const env = new CelEnv(namespace, registry);

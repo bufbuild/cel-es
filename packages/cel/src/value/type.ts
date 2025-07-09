@@ -27,7 +27,6 @@ import {
 } from "@bufbuild/protobuf/wkt";
 
 import {
-  ProtoNull,
   CelObject,
   type CelVal,
   CelType,
@@ -37,6 +36,7 @@ import {
 import { isCelList } from "../list.js";
 import { isCelMap } from "../map.js";
 import { celUint, isCelUint } from "../uint.js";
+import { isNullMessage } from "../null.js";
 
 export const DYN = new CelType("dyn");
 export const NULL = new ConcreteType("null_type", null);
@@ -101,8 +101,8 @@ export function getCelType(val: CelVal): CelType {
     case "object":
       if (val === null) {
         return NULL;
-      } else if (val instanceof ProtoNull) {
-        return getCelType(val.defaultValue);
+      } else if (isNullMessage(val)) {
+        return new CelType(val.zero.desc.typeName);
       } else if (val instanceof Uint8Array) {
         return BYTES;
       } else if (isMessage(val)) {

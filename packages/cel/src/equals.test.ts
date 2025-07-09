@@ -14,7 +14,7 @@
 
 import { before, describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { ProtoNull, type CelVal } from "./value/value.js";
+import type { CelVal } from "./value/value.js";
 import { equals } from "./equals.js";
 import { getCelType } from "./value/type.js";
 import {
@@ -44,6 +44,7 @@ import { setEvalContext } from "./eval.js";
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
 import { celUint, isCelUint } from "./uint.js";
+import { isNullMessage, nullMessage } from "./null.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -97,7 +98,7 @@ describe("equals()", () => {
       ["str", create(StringValueSchema, { value: "str" })],
       // Nulls
       [null, null],
-      [null, new ProtoNull("Msg", null)],
+      [null, nullMessage(TestAllTypesSchema)],
       // Messages
       [
         create(TestAllTypesSchema, { singleInt32: 1 }),
@@ -198,8 +199,8 @@ function toTestString(value: unknown) {
     typeName = `reflect(${value.desc.typeName})`;
   } else if (isReflectMap(value)) {
     typeName = `map<${value.field().mapKey}, ${value.field()}>`;
-  } else if (value instanceof ProtoNull) {
-    typeName = `null_type<${value.messageTypeName}>`;
+  } else if (isNullMessage(value)) {
+    typeName = `null_type<${value.typeName}>`;
   } else {
     typeName = getCelType(value as CelVal).name;
   }
@@ -209,7 +210,7 @@ function toTestString(value: unknown) {
 function formatCelObject(value: object | null) {
   switch (true) {
     case value === null:
-    case value instanceof ProtoNull:
+    case isNullMessage(value):
       return "null";
     case isCelUint(value):
       return value.value.toString();
