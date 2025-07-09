@@ -37,7 +37,6 @@ export {
   isCelVal,
   CelError,
   CelErrors,
-  CelMap,
   CelUint,
   ProtoNull,
   CelObject,
@@ -48,6 +47,8 @@ export { CEL_ADAPTER } from "./adapter/cel.js";
 export { ObjectActivation } from "./activation.js";
 export { makeStringExtFuncRegistry } from "./ext/strings.js";
 export { Func, FuncRegistry } from "./func.js";
+export { type CelMap, celMap, isCelMap } from "./map.js";
+export { type CelList, celList, isCelList, celListConcat } from "./list.js";
 
 export function createEnv(namespace: string, registry: Registry): CelEnv {
   const env = new CelEnv(namespace, registry);

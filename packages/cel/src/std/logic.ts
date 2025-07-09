@@ -20,21 +20,9 @@ import {
 } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import {
-  type CelVal,
-  CelError,
-  CelErrors,
-  type CelMap,
-  isCelWrap,
-} from "../value/value.js";
+import { type CelVal, CelError, CelErrors, isCelWrap } from "../value/value.js";
 import { CEL_ADAPTER } from "../adapter/cel.js";
-import {
-  CelScalar,
-  listType,
-  mapType,
-  type CelMapValueType,
-  type TypeOf,
-} from "../type.js";
+import { CelScalar, listType, mapType } from "../type.js";
 import {
   DurationSchema,
   TimestampSchema,
@@ -42,6 +30,7 @@ import {
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 import { equals } from "../equals.js";
+import type { CelMap } from "../map.js";
 
 /**
  * This is not in the spec but is part of at least go,java, and cpp implementations.
@@ -321,32 +310,27 @@ const sizeFunc = new Func(olc.SIZE, [
   new FuncOverload(
     [mapType(CelScalar.INT, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.UINT, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.BOOL, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.STRING, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
 ]);
 
-function mapInOp(x: CelVal, y: CelMap<TypeOf<CelMapValueType["key"]>, CelVal>) {
-  for (const k of y.nativeKeyMap.keys()) {
-    if (equals(k, x)) {
-      return true;
-    }
-  }
-  return false;
+function mapInOp(x: CelVal, y: CelMap) {
+  return y.has(x as string);
 }
 
 const inFunc = new Func(opc.IN, [

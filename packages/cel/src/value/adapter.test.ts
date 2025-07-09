@@ -14,13 +14,12 @@
 
 import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { CEL_ADAPTER } from "../adapter/cel.js";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./empty.js";
 import { Namespace } from "./namespace.js";
-import { CelMap, CelUint, type CelVal } from "./value.js";
-import * as type from "./type.js";
+import { CelUint, type CelVal } from "./value.js";
 import { celList } from "../list.js";
+import { celMap } from "../map.js";
 
 void suite("adapter tests", () => {
   void test("main namespace", () => {
@@ -114,20 +113,15 @@ void suite("adapter tests", () => {
       ["b", 2n],
       ["c", 3],
     ]);
-    assert.deepEqual(
-      NATIVE_ADAPTER.toCel(testMap),
-      new CelMap(testMap, NATIVE_ADAPTER, type.DYN_MAP),
-    );
+    assert.deepEqual(NATIVE_ADAPTER.toCel(testMap), celMap(testMap));
     assert.deepEqual(
       NATIVE_ADAPTER.fromCel(
-        new CelMap(
-          new Map<CelVal, CelVal>([
+        celMap(
+          new Map<string, CelVal>([
             ["a", 1n],
-            ["b", new CelUint(2n)],
+            ["b", CelUint.of(2n)],
             ["c", 3],
           ]),
-          CEL_ADAPTER,
-          type.DYN_MAP,
         ),
       ),
       testMap,

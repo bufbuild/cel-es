@@ -13,8 +13,9 @@
 // limitations under the License.
 
 import type { DescMessage, MessageShape } from "@bufbuild/protobuf";
-import type { CelMap, CelType, CelUint, CelVal } from "./value/value.js";
+import type { CelType, CelUint, CelVal } from "./value/value.js";
 import type { CelList } from "./list.js";
+import type { CelMap } from "./map.js";
 
 /**
  * Types of CEL values.
@@ -110,7 +111,7 @@ export type TypeOf<T extends CelValueType> =
   T extends CelListValueType
   ? CelList :
   T extends CelMapValueType<infer K, infer V>
-  ? CelMap<TypeOf<K>, TypeOf<V>> :
+  ? CelMap :
   T extends DescMessage
   ? MessageShape<T> :
   T;

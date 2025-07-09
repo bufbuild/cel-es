@@ -14,7 +14,7 @@
 
 import { before, describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { CelMap, CelUint, ProtoNull, type CelVal } from "./value/value.js";
+import { CelUint, ProtoNull, type CelVal } from "./value/value.js";
 import { equals } from "./equals.js";
 import { getCelType } from "./value/type.js";
 import {
@@ -39,11 +39,10 @@ import {
   isReflectMessage,
   reflect,
 } from "@bufbuild/protobuf/reflect";
-import { CEL_ADAPTER } from "./adapter/cel.js";
-import * as type from "./value/type.js";
 import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto2/test_all_types_pb.js";
 import { setEvalContext } from "./eval.js";
 import { celList, isCelList } from "./list.js";
+import { celMap, isCelMap } from "./map.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -125,39 +124,31 @@ describe("equals()", () => {
       [celList([1, 2n, CelUint.of(3n)]), celList([1n, CelUint.of(2n), 3n])],
       // Maps
       [
-        new CelMap(
-          new Map([
-            [1, "1"],
-            [2, "2"],
-          ]),
-          CEL_ADAPTER,
-          type.DYN_MAP,
-        ),
-        new CelMap(
-          new Map([
-            [1, "1"],
-            [2, "2"],
-          ]),
-          CEL_ADAPTER,
-          type.DYN_MAP,
-        ),
-      ],
-      [
-        new CelMap(
+        celMap(
           new Map([
             [1n, "1"],
             [2n, "2"],
           ]),
-          CEL_ADAPTER,
-          type.DYN_MAP,
         ),
-        new CelMap(
+        celMap(
           new Map([
-            [1, "1"],
-            [2, "2"],
+            [CelUint.of(1n), "1"],
+            [CelUint.of(2n), "2"],
           ]),
-          CEL_ADAPTER,
-          type.DYN_MAP,
+        ),
+      ],
+      [
+        celMap(
+          new Map([
+            [1n, "1"],
+            [2n, "2"],
+          ]),
+        ),
+        celMap(
+          new Map([
+            [1n, "1"],
+            [2n, "2"],
+          ]),
         ),
       ],
       [
@@ -229,8 +220,8 @@ function formatCelObject(value: object | null) {
       return `{${Array.from(value.entries())
         .map((p) => p.map((e) => toTestString(e)).join(": "))
         .join(",")}}`;
-    case value instanceof CelMap:
-      return `{${Array.from(value.nativeKeyMap.entries())
+    case isCelMap(value):
+      return `{${Array.from(value.entries())
         .map((p) => p.map((e) => toTestString(e)).join(": "))
         .join(",")}}`;
     case isReflectMessage(value):

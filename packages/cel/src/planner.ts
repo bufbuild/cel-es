@@ -50,7 +50,6 @@ import { type CelValProvider } from "./value/provider.js";
 import * as type from "./value/type.js";
 import {
   CelError,
-  CelMap,
   CelObject,
   CelType,
   CelUint,
@@ -66,6 +65,7 @@ import {
   CelErrors,
 } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
+import { celMap, isCelMap } from "./map.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
@@ -659,8 +659,8 @@ export class EvalMap implements InterpretableCtor {
     if (this.keys.length === 0) {
       return EMPTY_MAP;
     }
-    const entries: Map<CelVal, CelVal> = new Map();
-    const firstKey = this.keys[0].eval(ctx);
+    const entries: Map<string | bigint | boolean | CelUint, CelVal> = new Map();
+    const firstKey = this.mapKeyOrError(this.keys[0].eval(ctx));
     if (firstKey instanceof CelError) {
       return firstKey;
     }
@@ -675,7 +675,7 @@ export class EvalMap implements InterpretableCtor {
     }
     entries.set(firstKey, firstVal);
     for (let i = 1; i < this.keys.length; i++) {
-      const key = this.keys[i].eval(ctx);
+      const key = this.mapKeyOrError(this.keys[i].eval(ctx));
       if (key instanceof CelError) {
         return key;
       }
@@ -696,7 +696,30 @@ export class EvalMap implements InterpretableCtor {
       }
       entries.set(key, val);
     }
-    return new CelMap(entries, CEL_ADAPTER, new type.MapType(keyType, valType));
+    return celMap(entries);
+  }
+
+  private mapKeyOrError(
+    key: unknown,
+  ): boolean | string | bigint | CelUint | CelError {
+    switch (typeof key) {
+      case "boolean":
+      case "bigint":
+      case "string":
+        return key;
+      case "object":
+        if (key instanceof CelUint) {
+          return key;
+        }
+        return CelErrors.unsupportedKeyType(this.id);
+      case "number":
+        if (Number.isInteger(key)) {
+          return BigInt(key);
+        }
+        return CelErrors.unsupportedKeyType(this.id);
+      default:
+        return CelErrors.unsupportedKeyType(this.id);
+    }
   }
 }
 
@@ -713,10 +736,6 @@ export class EvalFold implements Interpretable {
   ) {}
 
   eval(ctx: Activation): CelResult {
-    const foldRange = this.iterRange.eval(ctx);
-    if (foldRange instanceof CelError) {
-      return foldRange;
-    }
     const accuInit = this.accu.eval(ctx);
     if (accuInit instanceof CelError) {
       return accuInit;
@@ -732,8 +751,8 @@ export class EvalFold implements Interpretable {
     }
 
     let items: CelResult[] = [];
-    if (iterRange instanceof CelMap) {
-      items = iterRange.getItems();
+    if (isCelMap(iterRange)) {
+      items = Array.from(iterRange.keys()) as CelResult[];
     } else if (isCelList(iterRange)) {
       items = Array.from(iterRange) as CelResult[];
     } else {

@@ -19,7 +19,6 @@ import * as type from "../value/type.js";
 import {
   type CelVal,
   CelError,
-  CelMap,
   type CelValAdapter,
   CelObject,
   CelUint,
@@ -28,6 +27,7 @@ import {
 import { type CelResult, isCelResult } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 import { celList, isCelList } from "../list.js";
+import { celMap, isCelMap } from "../map.js";
 
 class NativeValAdapter implements CelValAdapter {
   unwrap(val: CelVal): CelVal {
@@ -65,7 +65,7 @@ class NativeValAdapter implements CelValAdapter {
           if (val.size === 0) {
             return EMPTY_MAP;
           }
-          return new CelMap(val, this, type.DYN_MAP);
+          return celMap(val);
         } else if (val.constructor.name === "Object") {
           if (Object.keys(val).length === 0) {
             return EMPTY_MAP;
@@ -81,24 +81,13 @@ class NativeValAdapter implements CelValAdapter {
   fromCel(cel: CelVal): unknown {
     if (isCelList(cel)) {
       return Array.from(cel).map((v) => this.fromCel(v as CelVal));
-    } else if (cel instanceof CelMap) {
-      if (cel.adapter === this) {
-        return cel.value;
-      }
-      const map = new Map();
-      cel.value.forEach((v, k) => {
-        const key = cel.adapter.toCel(k);
-        if (key instanceof CelError) {
-          return key;
-        }
-        const val = cel.adapter.toCel(v);
-        if (val instanceof CelError) {
-          return val;
-        }
-        map.set(this.fromCel(key), this.fromCel(val));
-        return undefined;
-      });
-      return map;
+    } else if (isCelMap(cel)) {
+      return new Map(
+        Array.from(cel.entries()).map(([k, v]) => [
+          this.fromCel(k),
+          this.fromCel(v as CelVal),
+        ]),
+      );
     } else if (cel instanceof CelObject) {
       if (cel.adapter === this) {
         return cel.value;

@@ -13,13 +13,7 @@
 // limitations under the License.
 
 import { isMessage } from "@bufbuild/protobuf";
-import {
-  CelMap,
-  CelObject,
-  CelType,
-  CelUint,
-  ProtoNull,
-} from "./value/value.js";
+import { CelObject, CelType, CelUint, ProtoNull } from "./value/value.js";
 import {
   isReflectMap,
   isReflectMessage,
@@ -30,6 +24,7 @@ import { getEvalContext, getMsgDesc } from "./eval.js";
 import { equals as equalsMessage } from "@bufbuild/protobuf";
 import { isWrapper } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "./list.js";
+import { type CelMap, isCelMap } from "./map.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -74,8 +69,8 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
       return rhs instanceof Uint8Array && equalsBytes(lhs, rhs);
     case isCelList(lhs):
       return isCelList(rhs) && equalsList(lhs, rhs);
-    case lhs instanceof CelMap:
-      return rhs instanceof CelMap && equalsMap(lhs, rhs);
+    case isCelMap(lhs):
+      return isCelMap(rhs) && equalsMap(lhs, rhs);
     case lhs instanceof CelType:
       return rhs instanceof CelType && lhs.name === rhs.name;
     case isReflectMap(lhs):
@@ -143,11 +138,11 @@ function equalsList(lhs: CelList, rhs: CelList): boolean {
 }
 
 function equalsMap(lhs: CelMap, rhs: CelMap): boolean {
-  if (lhs.value.size !== rhs.value.size) {
+  if (lhs.size !== rhs.size) {
     return false;
   }
-  for (const [k, v] of lhs.nativeKeyMap) {
-    if (!equals(v, rhs.nativeKeyMap.get(k))) {
+  for (const [k, v] of lhs) {
+    if (!equals(v, rhs.get(k))) {
       return false;
     }
   }
