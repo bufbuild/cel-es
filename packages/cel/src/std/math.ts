@@ -25,7 +25,6 @@ import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as type from "../value/type.js";
 import {
   CelError,
-  CelUint,
   newDuration,
   newTimestamp,
   CelErrors,
@@ -33,6 +32,7 @@ import {
 import { CelScalar, listType } from "../type.js";
 import { divisionByZero, moduloByZero, overflow } from "../errors.js";
 import { celListConcat } from "../list.js";
+import { celUint } from "../uint.js";
 
 const MAX_INT = 9223372036854775807n;
 // biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
@@ -126,11 +126,11 @@ const add = new Func(opc.ADD, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      const val = lhs.value.valueOf() + rhs.value.valueOf();
+      const val = lhs.value + rhs.value;
       if (isOverflowUint(val)) {
         throw overflow(opc.SUBTRACT, type.UINT);
       }
-      return new CelUint(val);
+      return celUint(val);
     },
   ),
   new FuncOverload(
@@ -196,11 +196,11 @@ const subtract = new Func(opc.SUBTRACT, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      const val = lhs.value.valueOf() - rhs.value.valueOf();
+      const val = lhs.value - rhs.value;
       if (isOverflowUint(val)) {
         throw overflow(opc.SUBTRACT, type.UINT);
       }
-      return new CelUint(val);
+      return celUint(val);
     },
   ),
   new FuncOverload(
@@ -251,11 +251,11 @@ const multiply = new Func(opc.MULTIPLY, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      const product = lhs.value.valueOf() * rhs.value.valueOf();
+      const product = lhs.value * rhs.value;
       if (isOverflowUint(product)) {
         throw overflow(opc.MULTIPLY, type.UINT);
       }
-      return new CelUint(product);
+      return celUint(product);
     },
   ),
   new FuncOverload(
@@ -288,10 +288,10 @@ const divide = new Func(opc.DIVIDE, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      if (rhs.value.valueOf() === 0n) {
+      if (rhs.value === 0n) {
         throw divisionByZero(type.UINT);
       }
-      return new CelUint(lhs.value.valueOf() / rhs.value.valueOf());
+      return celUint(lhs.value / rhs.value);
     },
   ),
 ]);
@@ -311,10 +311,10 @@ const modulo = new Func(opc.MODULO, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      if (rhs.value.valueOf() === 0n) {
+      if (rhs.value === 0n) {
         throw moduloByZero(type.UINT);
       }
-      return new CelUint(lhs.value.valueOf() % rhs.value.valueOf());
+      return celUint(lhs.value % rhs.value);
     },
   ),
 ]);

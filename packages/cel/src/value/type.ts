@@ -27,7 +27,6 @@ import {
 } from "@bufbuild/protobuf/wkt";
 
 import {
-  CelUint,
   ProtoNull,
   CelObject,
   type CelVal,
@@ -37,12 +36,13 @@ import {
 } from "./value.js";
 import { isCelList } from "../list.js";
 import { isCelMap } from "../map.js";
+import { celUint, isCelUint } from "../uint.js";
 
 export const DYN = new CelType("dyn");
 export const NULL = new ConcreteType("null_type", null);
 export const BOOL = new ConcreteType("bool", false);
 export const WRAP_BOOL = new WrapperType(BOOL);
-export const UINT = new ConcreteType("uint", new CelUint(0n));
+export const UINT = new ConcreteType("uint", celUint(0n));
 export const WRAP_UINT = new WrapperType(UINT);
 export const INT = new ConcreteType("int", 0n);
 export const WRAP_INT = new WrapperType(INT);
@@ -127,7 +127,7 @@ export function getCelType(val: CelVal): CelType {
         }
       } else if (isCelList(val)) {
         return LIST;
-      } else if (val instanceof CelUint) {
+      } else if (isCelUint(val)) {
         return UINT;
       } else if (isCelMap(val)) {
         return DYN_MAP;

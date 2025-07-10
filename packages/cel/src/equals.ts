@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { isMessage } from "@bufbuild/protobuf";
-import { CelObject, CelType, CelUint, ProtoNull } from "./value/value.js";
+import { CelObject, CelType, ProtoNull } from "./value/value.js";
 import {
   isReflectMap,
   isReflectMessage,
@@ -25,6 +25,7 @@ import { equals as equalsMessage } from "@bufbuild/protobuf";
 import { isWrapper } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "./list.js";
 import { type CelMap, isCelMap } from "./map.js";
+import { isCelUint } from "./uint.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -46,10 +47,10 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
     return true;
   }
   // Remaining scalars or scalars from Wrapper types
-  if (lhs instanceof CelUint || (isMessage(lhs) && isWrapper(lhs))) {
+  if (isCelUint(lhs) || (isMessage(lhs) && isWrapper(lhs))) {
     lhs = lhs.value;
   }
-  if (rhs instanceof CelUint || (isMessage(rhs) && isWrapper(rhs))) {
+  if (isCelUint(rhs) || (isMessage(rhs) && isWrapper(rhs))) {
     rhs = rhs.value;
   }
   // Do a simple check again for uint/wrapper types.

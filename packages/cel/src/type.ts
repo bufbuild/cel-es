@@ -13,9 +13,10 @@
 // limitations under the License.
 
 import type { DescMessage, MessageShape } from "@bufbuild/protobuf";
-import type { CelType, CelUint, CelVal } from "./value/value.js";
+import type { CelType, CelVal } from "./value/value.js";
 import type { CelList } from "./list.js";
 import type { CelMap } from "./map.js";
+import type { CelUint } from "./uint.js";
 
 /**
  * Types of CEL values.

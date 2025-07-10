@@ -37,13 +37,12 @@ import type { Duration } from "@bufbuild/protobuf/wkt";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "../list.js";
 import { type CelMap, isCelMap } from "../map.js";
+import { isCelUint, type CelUint } from "../uint.js";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
 export function isCelNum(val: unknown): val is CelNum {
-  return (
-    typeof val === "bigint" || val instanceof CelUint || typeof val === "number"
-  );
+  return typeof val === "bigint" || isCelUint(val) || typeof val === "number";
 }
 
 export function newTimestamp(
@@ -221,23 +220,6 @@ export class ProtoNull {
   ) {}
 }
 
-// TODO(tstamm) Object.prototype.valueOf()
-export class CelUint {
-  public static EMPTY: CelUint = new CelUint(BigInt(0));
-  public static ONE: CelUint = new CelUint(BigInt(1));
-  public static of(value: bigint): CelUint {
-    switch (value) {
-      case 0n:
-        return CelUint.EMPTY;
-      case 1n:
-        return CelUint.ONE;
-      default:
-        return new CelUint(value);
-    }
-  }
-  constructor(public readonly value: bigint) {}
-}
-
 export class CelObject {
   constructor(
     public readonly value: object,
@@ -346,7 +328,7 @@ export function coerceToBool(
     (typeof val === "boolean" && val === false) ||
     (typeof val === "number" && val === 0) ||
     (typeof val === "bigint" && val === 0n) ||
-    (val instanceof CelUint && val.value === 0n)
+    (isCelUint(val) && val.value === 0n)
   ) {
     return false;
   }
@@ -361,7 +343,7 @@ export function coerceToBigInt(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return 0n;
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (typeof val === "bigint") {
@@ -380,7 +362,7 @@ export function coerceToNumber(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return 0;
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (typeof val === "bigint") {
@@ -399,7 +381,7 @@ export function coerceToString(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return "";
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (typeof val === "string") {
@@ -416,7 +398,7 @@ export function coerceToBytes(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return new Uint8Array();
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (val instanceof Uint8Array) {

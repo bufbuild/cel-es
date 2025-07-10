@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { type DescField, ScalarType } from "@bufbuild/protobuf";
-import { CelUint } from "./value/value.js";
+import { celUint, isCelUint, type CelUint } from "./uint.js";
 
 export function celFromListElem(
   desc: DescField & { fieldKind: "list" },
@@ -66,7 +66,7 @@ function celFromScalar(type: ScalarType, v: unknown) {
     case ScalarType.UINT64:
     case ScalarType.FIXED32:
     case ScalarType.FIXED64:
-      return CelUint.of(BigInt(v as bigint));
+      return celUint(BigInt(v as bigint));
     case ScalarType.INT32:
     case ScalarType.SINT32:
     case ScalarType.SFIXED32:
@@ -77,7 +77,7 @@ function celFromScalar(type: ScalarType, v: unknown) {
 }
 
 export function scalarFromCel(type: ScalarType, v: unknown) {
-  if (v instanceof CelUint) {
+  if (isCelUint(v)) {
     v = v.value;
   }
   switch (type) {

@@ -25,10 +25,10 @@ import {
   type CelVal,
   CelError,
   type Unwrapper,
-  CelUint,
 } from "./value/value.js";
 import { isMessage } from "@bufbuild/protobuf";
 import { isCelMap } from "./map.js";
+import { isCelUint } from "./uint.js";
 
 export interface CallDispatch {
   dispatch(
@@ -184,7 +184,7 @@ function isOfType(
     case CelScalar.INT:
       return typeof val === "bigint";
     case CelScalar.UINT:
-      return val instanceof CelUint;
+      return isCelUint(val);
     case CelScalar.BOOL:
       return typeof val === "boolean";
     case CelScalar.DOUBLE:

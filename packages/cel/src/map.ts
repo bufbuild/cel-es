@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import { isReflectMap, type ReflectMap } from "@bufbuild/protobuf/reflect";
-import { CelUint } from "./value/value.js";
 import { celFromMapKey, celFromMapValue, mapKeyFromCel } from "./proto.js";
+import { isCelUint, type CelUint } from "./uint.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 
@@ -84,7 +84,7 @@ class NativeMap implements CelMap {
   }
 
   get(key: string | bigint | boolean | CelUint | number): unknown {
-    if (key instanceof CelUint) {
+    if (isCelUint(key)) {
       key = key.value;
     }
     // According to CEL equality all numerical types are
@@ -100,13 +100,13 @@ class NativeMap implements CelMap {
     if (value !== undefined) {
       return value;
     }
-    // For maps with CelUint keys we have to loop through all keys to check because
+    // For maps with CELUint keys we have to loop through all keys to check because
     // JS maps use SameValueZero algorithm which is the same as '===' for objects.
     //
     // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map#key_equality
     if (typeof key === "bigint") {
       for (const mapKey of this._map.keys()) {
-        if (!(mapKey instanceof CelUint)) {
+        if (!isCelUint(mapKey)) {
           continue;
         }
         if (mapKey.value === key) {

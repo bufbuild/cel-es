@@ -52,7 +52,6 @@ import {
   CelError,
   CelObject,
   CelType,
-  CelUint,
   coerceToBigInt,
   coerceToBool,
   coerceToBytes,
@@ -66,6 +65,7 @@ import {
 } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
+import { celUint, isCelUint, type CelUint } from "./uint.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
@@ -340,7 +340,7 @@ export class Planner {
       case "int64Value":
         return val.constantKind.value;
       case "uint64Value":
-        return CelUint.of(val.constantKind.value);
+        return celUint(val.constantKind.value);
       case "nullValue":
         return null;
       case undefined:
@@ -557,7 +557,7 @@ export class EvalObj implements InterpretableCtor {
           if (val instanceof CelError) {
             return val;
           }
-          return create(UInt64ValueSchema, { value: val.valueOf() });
+          return create(UInt64ValueSchema, { value: val });
         }
         case "google.protobuf.Int32Value":
         case "google.protobuf.Int64Value": {
@@ -565,7 +565,7 @@ export class EvalObj implements InterpretableCtor {
           if (val instanceof CelError) {
             return val;
           }
-          return create(Int64ValueSchema, { value: val.valueOf() });
+          return create(Int64ValueSchema, { value: val });
         }
         case "google.protobuf.FloatValue":
         case "google.protobuf.DoubleValue": {
@@ -708,7 +708,7 @@ export class EvalMap implements InterpretableCtor {
       case "string":
         return key;
       case "object":
-        if (key instanceof CelUint) {
+        if (isCelUint(key)) {
           return key;
         }
         return CelErrors.unsupportedKeyType(this.id);

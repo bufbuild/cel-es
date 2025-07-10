@@ -19,7 +19,8 @@ import { isMessage } from "@bufbuild/protobuf";
 import { DurationSchema } from "@bufbuild/protobuf/wkt";
 
 import { NATIVE_ADAPTER } from "../adapter/native.js";
-import { CelUint, newDuration } from "./value.js";
+import { newDuration } from "./value.js";
+import { celUint } from "../uint.js";
 
 void suite("scalar", () => {
   void test("bool", () => {
@@ -28,9 +29,7 @@ void suite("scalar", () => {
   });
 
   void test("uint", () => {
-    assert.equal(CelUint.EMPTY.value, 0n);
-    assert.equal(new CelUint(1n).value, 1n);
-    assert.equal(CelUint.ONE.value, 1n);
+    assert.equal(celUint(1n).value, 1n);
   });
 
   void test("duration", () => {

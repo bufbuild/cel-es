@@ -23,9 +23,10 @@ import {
 } from "@bufbuild/protobuf/wkt";
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { getEvalContext, getMsgDesc } from "./eval.js";
-import { CelObject, CelUint, type CelVal, ProtoNull } from "./value/value.js";
+import { CelObject, type CelVal, ProtoNull } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
 import { isCelMap } from "./map.js";
+import { celUint } from "./uint.js";
 
 export function accessByIndex(
   obj: unknown,
@@ -92,7 +93,7 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
           case ScalarType.UINT64:
           case ScalarType.FIXED32:
           case ScalarType.FIXED64:
-            return new CelUint(BigInt(obj.get(field)));
+            return celUint(BigInt(obj.get(field)));
           case ScalarType.INT32:
           case ScalarType.SINT32:
           case ScalarType.SFIXED32:

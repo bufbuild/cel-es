@@ -27,7 +27,8 @@
       "src/list.ts",
       "src/list.test.ts",
       "src/map.ts",
-      "src/map.test.ts"
+      "src/map.test.ts",
+      "src/uint.ts"
     ]
   }
 }
