@@ -18,7 +18,7 @@ import { celFromListElem } from "./proto.js";
 const privateSymbol = Symbol.for("@bufbuild/cel/list");
 
 /**
- * List is common abstraction for list types.
+ * List is common abstraction for lists.
  */
 export interface CelList extends Iterable<unknown> {
   /**

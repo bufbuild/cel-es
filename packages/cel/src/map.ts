@@ -19,7 +19,7 @@ import { celFromMapKey, celFromMapValue, mapKeyFromCel } from "./proto.js";
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 
 /**
- * A common abstraction for map types.
+ * A common abstraction for maps.
  */
 export interface CelMap
   extends ReadonlyMap<bigint | string | boolean | CelUint, unknown> {
