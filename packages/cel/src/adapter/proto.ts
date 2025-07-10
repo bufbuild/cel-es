@@ -231,7 +231,7 @@ export class ProtoValAdapter implements CelValAdapter {
         if (cval instanceof CelError) {
           return cval;
         }
-        return create(UInt64ValueSchema, { value: cval.valueOf() });
+        return create(UInt64ValueSchema, { value: cval });
       }
       case Int32ValueSchema.typeName: {
         const cval = coerceToNumber(id, val);
@@ -245,7 +245,7 @@ export class ProtoValAdapter implements CelValAdapter {
         if (cval instanceof CelError) {
           return cval;
         }
-        return create(Int64ValueSchema, { value: cval.valueOf() });
+        return create(Int64ValueSchema, { value: cval });
       }
       case FloatValueSchema.typeName: {
         const cval = coerceToNumber(id, val);

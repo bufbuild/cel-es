@@ -16,11 +16,12 @@ import { isMessage, toJson } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, FuncRegistry, Func } from "../func.js";
-import { type CelResult, CelError, CelUint, CelType } from "../value/value.js";
+import { type CelResult, CelError, CelType } from "../value/value.js";
 import { CelScalar, listType } from "../type.js";
 import { indexOutOfBounds, invalidArgument } from "../errors.js";
 import { type CelList, celList, isCelList } from "../list.js";
 import { type CelMap, isCelMap } from "../map.js";
+import { isCelUint } from "../uint.js";
 
 const charAt = new Func("charAt", [
   new FuncOverload(
@@ -338,7 +339,7 @@ export class Formatter {
         return val ? "1" : "0";
       case typeof val === "bigint":
         return val.toString(2);
-      case val instanceof CelUint:
+      case isCelUint(val):
         return val.value.toString(2);
       case val instanceof CelError:
         return val;
@@ -354,7 +355,7 @@ export class Formatter {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(8);
-      case val instanceof CelUint:
+      case isCelUint(val):
         return val.value.toString(8);
       case val instanceof CelError:
         return val;
@@ -367,7 +368,7 @@ export class Formatter {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(10);
-      case val instanceof CelUint:
+      case isCelUint(val):
         return val.value.toString(10);
       case typeof val === "number" && Number.isNaN(val):
         return "NaN";
@@ -394,7 +395,7 @@ export class Formatter {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(16);
-      case val instanceof CelUint:
+      case isCelUint(val):
         return val.value.toString(16);
       case typeof val === "string":
         const encoder = new TextEncoder();
@@ -478,7 +479,7 @@ export class Formatter {
             return "null";
           case val instanceof CelType:
             return val.name;
-          case val instanceof CelUint:
+          case isCelUint(val):
             return val.value.toString();
           case isMessage(val, TimestampSchema):
             return toJson(TimestampSchema, val);
@@ -514,7 +515,7 @@ export class Formatter {
             return "null";
           case val instanceof CelType:
             return val.name;
-          case val instanceof CelUint:
+          case isCelUint(val):
             return val.value.toString();
           case isMessage(val, TimestampSchema):
             return toJson(TimestampSchema, val);

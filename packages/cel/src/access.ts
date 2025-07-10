@@ -19,7 +19,6 @@ import { type RawResult, RawVal } from "./value/adapter.js";
 import type { Namespace } from "./value/namespace.js";
 import type { CelValProvider } from "./value/provider.js";
 import {
-  CelUint,
   type CelResult,
   type CelVal,
   CelError,
@@ -28,6 +27,7 @@ import {
 } from "./value/value.js";
 import { getCelType } from "./value/type.js";
 import { accessByIndex, accessByName, isSet } from "./field.js";
+import { isCelUint } from "./uint.js";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;
@@ -673,7 +673,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
         if (val instanceof EvalAttr) {
           return new EvalAccess(id, val, this, opt);
         }
-        if (val instanceof CelUint) {
+        if (isCelUint(val)) {
           return new IntAccess(id, val.value, val, opt);
         }
         break;

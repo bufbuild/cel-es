@@ -20,11 +20,11 @@ import {
   type TypeOf,
   type TupleTypeOf,
 } from "./type.js";
-import type { CelUint } from "./value/value.js";
 import type { Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { expectTypeOf } from "expect-type";
 import type { CelList } from "./list.js";
 import type { CelMap } from "./map.js";
+import type { CelUint } from "./uint.js";
 
 test("TypeOf", () => {
   expectTypeOf<TypeOf<CelScalar.INT>>().toEqualTypeOf<bigint>();

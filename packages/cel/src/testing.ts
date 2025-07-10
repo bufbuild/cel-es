@@ -17,7 +17,6 @@ import {
   CelObject,
   CelPlanner,
   CelType,
-  CelUint,
   makeStringExtFuncRegistry,
   ObjectActivation,
   ProtoNull,
@@ -46,6 +45,7 @@ import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { celList, isCelList } from "./list.js";
 import { celMap } from "./map.js";
+import { celUint, isCelUint, type CelUint } from "./uint.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -229,7 +229,7 @@ function celValueToValue(
   if (value instanceof Uint8Array) {
     return { kind: { case: "bytesValue", value: value } };
   }
-  if (value instanceof CelUint) {
+  if (isCelUint(value)) {
     return { kind: { case: "uint64Value", value: value.value } };
   }
   if (value instanceof CelType) {
@@ -284,7 +284,7 @@ function valueToCelValue(value: Value, registry: Registry): unknown {
     case "nullValue":
       return null;
     case "uint64Value":
-      return CelUint.of(value.kind.value);
+      return celUint(value.kind.value);
     case "listValue":
       return celList(
         value.kind.value.values.map((e) => valueToCelValue(e, registry)),

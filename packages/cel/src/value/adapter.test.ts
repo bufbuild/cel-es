@@ -17,9 +17,10 @@ import * as assert from "node:assert/strict";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./empty.js";
 import { Namespace } from "./namespace.js";
-import { CelUint, type CelVal } from "./value.js";
+import { type CelVal } from "./value.js";
 import { celList } from "../list.js";
 import { celMap } from "../map.js";
+import { celUint } from "../uint.js";
 
 void suite("adapter tests", () => {
   void test("main namespace", () => {
@@ -80,7 +81,7 @@ void suite("adapter tests", () => {
 
     assert.deepEqual(
       NATIVE_ADAPTER.toCel(9223372036854775808n),
-      new CelUint(9223372036854775808n),
+      celUint(9223372036854775808n),
     );
   });
 
@@ -98,10 +99,11 @@ void suite("adapter tests", () => {
 
     assert.deepEqual(NATIVE_ADAPTER.toCel([1, 2, 3]), celList([1, 2, 3]));
     assert.deepEqual(NATIVE_ADAPTER.fromCel(celList([1, 2, 3])), [1, 2, 3]);
-    assert.deepEqual(
-      NATIVE_ADAPTER.fromCel(celList([1n, new CelUint(2n), 3])),
-      [1n, 2n, 3],
-    );
+    assert.deepEqual(NATIVE_ADAPTER.fromCel(celList([1n, celUint(2n), 3])), [
+      1n,
+      2n,
+      3,
+    ]);
   });
 
   void test("map", () => {
@@ -119,7 +121,7 @@ void suite("adapter tests", () => {
         celMap(
           new Map<string, CelVal>([
             ["a", 1n],
-            ["b", CelUint.of(2n)],
+            ["b", celUint(2n)],
             ["c", 3],
           ]),
         ),

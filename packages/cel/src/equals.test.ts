@@ -14,7 +14,7 @@
 
 import { before, describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { CelUint, ProtoNull, type CelVal } from "./value/value.js";
+import { ProtoNull, type CelVal } from "./value/value.js";
 import { equals } from "./equals.js";
 import { getCelType } from "./value/type.js";
 import {
@@ -43,6 +43,7 @@ import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/prot
 import { setEvalContext } from "./eval.js";
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
+import { celUint, isCelUint } from "./uint.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -63,11 +64,11 @@ describe("equals()", () => {
       // Numerical
       [1.2, 1.2],
       [1n, 1n],
-      [CelUint.of(1n), CelUint.of(1n)],
+      [celUint(1n), celUint(1n)],
       // Numerical different types
       [1.0, 1n],
-      [1.0, CelUint.of(1n)],
-      [1n, CelUint.of(1n)],
+      [1.0, celUint(1n)],
+      [1n, celUint(1n)],
       // Time
       [timestampFromMs(200), timestampFromMs(200)],
       [
@@ -79,16 +80,16 @@ describe("equals()", () => {
       [1, create(Int64ValueSchema, { value: 1n })],
       [1n, create(Int32ValueSchema, { value: 1 })],
       [1n, create(Int32ValueSchema, { value: 1 })],
-      [CelUint.of(1n), create(Int64ValueSchema, { value: 1n })],
-      [CelUint.of(1n), create(Int64ValueSchema, { value: 1n })],
+      [celUint(1n), create(Int64ValueSchema, { value: 1n })],
+      [celUint(1n), create(Int64ValueSchema, { value: 1n })],
       [true, create(BoolValueSchema, { value: true })],
       [false, create(BoolValueSchema, { value: false })],
       [1, create(FloatValueSchema, { value: 1 })],
       [1, create(DoubleValueSchema, { value: 1 })],
       [1n, create(FloatValueSchema, { value: 1 })],
       [1n, create(DoubleValueSchema, { value: 1 })],
-      [CelUint.of(1n), create(FloatValueSchema, { value: 1 })],
-      [CelUint.of(1n), create(DoubleValueSchema, { value: 1 })],
+      [celUint(1n), create(FloatValueSchema, { value: 1 })],
+      [celUint(1n), create(DoubleValueSchema, { value: 1 })],
       [
         new Uint8Array([0]),
         create(BytesValueSchema, { value: new Uint8Array([0]) }),
@@ -121,7 +122,7 @@ describe("equals()", () => {
       ],
       // Lists
       [celList([1, 2, 3]), celList([1, 2, 3])],
-      [celList([1, 2n, CelUint.of(3n)]), celList([1n, CelUint.of(2n), 3n])],
+      [celList([1, 2n, celUint(3n)]), celList([1n, celUint(2n), 3n])],
       // Maps
       [
         celMap(
@@ -132,8 +133,8 @@ describe("equals()", () => {
         ),
         celMap(
           new Map([
-            [CelUint.of(1n), "1"],
-            [CelUint.of(2n), "2"],
+            [celUint(1n), "1"],
+            [celUint(2n), "2"],
           ]),
         ),
       ],
@@ -210,7 +211,7 @@ function formatCelObject(value: object | null) {
     case value === null:
     case value instanceof ProtoNull:
       return "null";
-    case value instanceof CelUint:
+    case isCelUint(value):
       return value.value.toString();
     case isCelList(value):
       return `[${Array.from(value)

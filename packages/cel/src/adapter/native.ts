@@ -21,13 +21,13 @@ import {
   CelError,
   type CelValAdapter,
   CelObject,
-  CelUint,
   CelErrors,
 } from "../value/value.js";
 import { type CelResult, isCelResult } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 import { celList, isCelList } from "../list.js";
 import { celMap, isCelMap } from "../map.js";
+import { celUint, isCelUint } from "../uint.js";
 
 class NativeValAdapter implements CelValAdapter {
   unwrap(val: CelVal): CelVal {
@@ -41,7 +41,7 @@ class NativeValAdapter implements CelValAdapter {
         if (!isOverflowInt(val)) {
           return val;
         } else if (!isOverflowUint(val)) {
-          return new CelUint(val);
+          return celUint(val);
         } else {
           return CelErrors.overflow(0, "bigint to cel", type.INT);
         }
@@ -102,7 +102,7 @@ class NativeValAdapter implements CelValAdapter {
         }
       }
       return obj;
-    } else if (cel instanceof CelUint) {
+    } else if (isCelUint(cel)) {
       return cel.value;
     }
     return cel;
