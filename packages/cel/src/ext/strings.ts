@@ -16,16 +16,11 @@ import { isMessage, toJson } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, FuncRegistry, Func } from "../func.js";
-import {
-  type CelResult,
-  CelError,
-  CelMap,
-  CelUint,
-  CelType,
-} from "../value/value.js";
+import { type CelResult, CelError, CelUint, CelType } from "../value/value.js";
 import { CelScalar, listType } from "../type.js";
 import { indexOutOfBounds, invalidArgument } from "../errors.js";
 import { type CelList, celList, isCelList } from "../list.js";
+import { type CelMap, isCelMap } from "../map.js";
 
 const charAt = new Func("charAt", [
   new FuncOverload(
@@ -441,15 +436,13 @@ export class Formatter {
   }
 
   public formatMap(val: CelMap): CelResult<string> {
-    const formatted = new Array<[string, string]>(val.value.size);
+    const formatted = new Array<[string, string]>(val.size);
     let i = 0;
-    for (const [rawKey, rawValue] of val.value) {
-      const key = val.adapter.toCel(rawKey);
+    for (const [key, value] of val) {
       const keyStr = this.formatRepl(key);
       if (keyStr instanceof CelError) {
         return keyStr;
       }
-      const value = val.adapter.toCel(rawValue);
       const valueStr = this.formatRepl(value);
       if (valueStr instanceof CelError) {
         return valueStr;
@@ -496,7 +489,7 @@ export class Formatter {
             return new TextDecoder().decode(val);
           case isCelList(val):
             return this.formatList(val);
-          case val instanceof CelMap:
+          case isCelMap(val):
             return this.formatMap(val);
           case val instanceof CelError:
             return val;
@@ -531,7 +524,7 @@ export class Formatter {
             return new TextDecoder().decode(val);
           case isCelList(val):
             return this.formatList(val);
-          case val instanceof CelMap:
+          case isCelMap(val):
             return this.formatMap(val);
           case val instanceof CelError:
             return val;

@@ -14,7 +14,6 @@
 
 import {
   CelError,
-  CelMap,
   CelObject,
   CelPlanner,
   CelType,
@@ -23,14 +22,13 @@ import {
   ObjectActivation,
   ProtoNull,
   type CelResult,
-  type CelVal,
+  isCelMap,
 } from "./index.js";
 import type {
   SimpleTest,
   SimpleTestFile,
   SimpleTestSection,
 } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
-import * as type from "./value/type.js";
 import {
   create,
   equals,
@@ -47,6 +45,7 @@ import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { celList, isCelList } from "./list.js";
+import { celMap } from "./map.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -246,12 +245,12 @@ function celValueToValue(
       },
     };
   }
-  if (value instanceof CelMap) {
+  if (isCelMap(value)) {
     return {
       kind: {
         case: "mapValue",
         value: {
-          entries: Array.from(value.nativeKeyMap.entries()).map((pair) => ({
+          entries: Array.from(value.entries()).map((pair) => ({
             key: celValueToValue(pair[0], registry),
             value: celValueToValue(pair[1], registry),
           })),
@@ -293,7 +292,7 @@ function valueToCelValue(value: Value, registry: Registry): unknown {
     case "objectValue":
       return anyUnpack(value.kind.value, registry);
     case "mapValue": {
-      const map = new Map<CelVal, unknown>();
+      const map = new Map<string | bigint | boolean | CelUint, unknown>();
       for (const entry of value.kind.value.entries) {
         if (entry.key === undefined || entry.value === undefined) {
           throw new Error("Invalid map entry");
@@ -303,7 +302,7 @@ function valueToCelValue(value: Value, registry: Registry): unknown {
           valueToCelValue(entry.value, registry),
         );
       }
-      return new CelMap(map, new ProtoValAdapter(registry), type.DYN_MAP);
+      return celMap(map);
     }
     case "typeValue":
       return new CelType(value.kind.value);

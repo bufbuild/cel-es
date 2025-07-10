@@ -23,14 +23,9 @@ import {
 } from "@bufbuild/protobuf/wkt";
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { getEvalContext, getMsgDesc } from "./eval.js";
-import {
-  CelMap,
-  CelObject,
-  CelUint,
-  type CelVal,
-  ProtoNull,
-} from "./value/value.js";
+import { CelObject, CelUint, type CelVal, ProtoNull } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
+import { isCelMap } from "./map.js";
 
 export function accessByIndex(
   obj: unknown,
@@ -39,14 +34,8 @@ export function accessByIndex(
   if (typeof obj !== "object" || obj === null) {
     return undefined;
   }
-  if (obj instanceof CelMap) {
-    let result = obj.nativeKeyMap.get(index);
-    if (result === undefined) {
-      if (typeof index === "number" && Number.isInteger(index)) {
-        result = obj.nativeKeyMap.get(BigInt(index));
-      }
-    }
-    return result;
+  if (isCelMap(obj)) {
+    return obj.get(index) as CelVal;
   }
   if (isCelList(obj)) {
     return obj.get(Number(index)) as CelVal;
@@ -61,8 +50,8 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
   if (typeof obj !== "object" || obj === null) {
     return undefined;
   }
-  if (obj instanceof CelMap) {
-    return obj.nativeKeyMap.get(name);
+  if (isCelMap(obj)) {
+    return obj.get(name) as CelVal;
   }
   // Object/Message
   obj = unwrapMessage(obj);
@@ -134,8 +123,8 @@ export function isSet(obj: unknown, name: string): boolean | undefined {
   if (typeof obj !== "object" || obj === null) {
     return false;
   }
-  if (obj instanceof CelMap) {
-    return obj.nativeKeyMap.has(name);
+  if (isCelMap(obj)) {
+    return obj.has(name);
   }
   // Object/Message
   obj = unwrapMessage(obj);
@@ -171,8 +160,8 @@ export function getFields(obj: unknown): unknown[] {
   if (typeof obj !== "object" || obj === null) {
     return [];
   }
-  if (obj instanceof CelMap) {
-    return Array.from(obj.nativeKeyMap.keys());
+  if (isCelMap(obj)) {
+    return Array.from(obj.keys());
   }
   obj = unwrapMessage(obj);
   if (isMessage(obj)) {

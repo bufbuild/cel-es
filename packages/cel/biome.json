@@ -25,7 +25,9 @@
       "src/value/empty.ts",
       "src/proto.ts",
       "src/list.ts",
-      "src/list.test.ts"
+      "src/list.test.ts",
+      "src/map.ts",
+      "src/map.test.ts"
     ]
   }
 }

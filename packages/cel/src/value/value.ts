@@ -36,6 +36,7 @@ import type { Int64Value } from "@bufbuild/protobuf/wkt";
 import type { Duration } from "@bufbuild/protobuf/wkt";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "../list.js";
+import { type CelMap, isCelMap } from "../map.js";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
@@ -196,7 +197,7 @@ export function isCelVal(val: unknown): val is CelVal {
     isCelPrim(val) ||
     isCelMsg(val) ||
     isCelList(val) ||
-    val instanceof CelMap ||
+    isCelMap(val) ||
     val instanceof CelObject ||
     val instanceof CelType
   );
@@ -235,45 +236,6 @@ export class CelUint {
     }
   }
   constructor(public readonly value: bigint) {}
-}
-
-export class CelMap<K = unknown, V = unknown> {
-  public readonly nativeKeyMap: ReadonlyMap<unknown, V>;
-
-  constructor(
-    public readonly value: ReadonlyMap<K, V>,
-    public readonly adapter: CelValAdapter,
-    public readonly type_: CelType,
-  ) {
-    const nativeKeys = new Map<unknown, V>();
-    for (const [key, value] of this.value) {
-      const celKey = this.adapter.toCel(key);
-      if (
-        typeof celKey === "string" ||
-        typeof celKey === "bigint" ||
-        celKey instanceof Uint8Array
-      ) {
-        nativeKeys.set(celKey, value);
-      } else if (isCelWrap(celKey) || celKey instanceof CelUint) {
-        nativeKeys.set(celKey.value, value);
-      } else if (typeof celKey === "number" && Number.isInteger(celKey)) {
-        nativeKeys.set(BigInt(celKey), value);
-      } else if (typeof celKey === "boolean") {
-        nativeKeys.set(celKey, value);
-      } else {
-        nativeKeys.set(key, value);
-      }
-    }
-    this.nativeKeyMap = nativeKeys;
-  }
-
-  getItems(): CelResult[] {
-    const result: CelResult[] = [];
-    for (const [key] of this.value) {
-      result.push(this.adapter.toCel(key));
-    }
-    return result;
-  }
 }
 
 export class CelObject {

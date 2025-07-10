@@ -32,6 +32,34 @@ export function celFromListElem(
   }
 }
 
+export function celFromMapKey(
+  desc: DescField & { fieldKind: "map" },
+  v: unknown,
+) {
+  return celFromScalar(desc.mapKey, v) as string | bigint | boolean | CelUint;
+}
+
+export function celFromMapValue(
+  desc: DescField & { fieldKind: "map" },
+  v: unknown,
+) {
+  switch (desc.mapKind) {
+    case "enum":
+      return BigInt(v as number);
+    case "message":
+      return v;
+    case "scalar":
+      return celFromScalar(desc.scalar, v);
+  }
+}
+
+export function mapKeyFromCel(
+  desc: DescField & { fieldKind: "map" },
+  v: unknown,
+) {
+  return scalarFromCel(desc.mapKey, v);
+}
+
 function celFromScalar(type: ScalarType, v: unknown) {
   switch (type) {
     case ScalarType.UINT32:
@@ -43,6 +71,36 @@ function celFromScalar(type: ScalarType, v: unknown) {
     case ScalarType.SINT32:
     case ScalarType.SFIXED32:
       return BigInt(v as number);
+    default:
+      return v;
+  }
+}
+
+export function scalarFromCel(type: ScalarType, v: unknown) {
+  if (v instanceof CelUint) {
+    v = v.value;
+  }
+  switch (type) {
+    case ScalarType.UINT32:
+    case ScalarType.FIXED32:
+    case ScalarType.INT32:
+    case ScalarType.SINT32:
+    case ScalarType.SFIXED32:
+    case ScalarType.FLOAT:
+    case ScalarType.DOUBLE:
+      if (typeof v === "bigint") {
+        return Number(v);
+      }
+      return v;
+    case ScalarType.UINT64:
+    case ScalarType.FIXED64:
+    case ScalarType.INT64:
+    case ScalarType.SINT64:
+    case ScalarType.SFIXED64:
+      if (typeof v === "number") {
+        return BigInt(v);
+      }
+      return v;
     default:
       return v;
   }

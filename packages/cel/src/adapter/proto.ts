@@ -57,7 +57,6 @@ import * as type from "../value/type.js";
 import {
   CelError,
   CelErrors,
-  CelMap,
   CelObject,
   type CelResult,
   CelType,
@@ -75,6 +74,7 @@ import {
 import { CEL_ADAPTER } from "./cel.js";
 import { accessByName, getFields } from "../field.js";
 import { celList, isCelList } from "../list.js";
+import { type CelMap, celMap, isCelMap } from "../map.js";
 
 type ProtoValue =
   | CelVal
@@ -170,24 +170,7 @@ export class ProtoValAdapter implements CelValAdapter {
       return celList(native);
     }
     if (isReflectMap(native)) {
-      const field = native.field();
-      let valType: CelType;
-      switch (field.mapKind) {
-        case "scalar":
-          valType = getScalarType(field.scalar);
-          break;
-        case "enum":
-          valType = new CelType(field.enum.typeName);
-          break;
-        case "message":
-          valType = new CelType(field.message.typeName);
-          break;
-      }
-      return new CelMap(
-        native,
-        this,
-        new type.MapType(getScalarType(field.mapKey), valType),
-      );
+      return celMap(native);
     }
     return CEL_ADAPTER.toCel(native);
   }
@@ -296,7 +279,7 @@ export class ProtoValAdapter implements CelValAdapter {
         break;
     }
 
-    if (val instanceof CelObject || val instanceof CelMap) {
+    if (val instanceof CelObject || isCelMap(val)) {
       return this.messageFromStruct(id, messageSchema, val);
     }
     if (val instanceof ProtoNull) {
@@ -526,7 +509,7 @@ export class ProtoValAdapter implements CelValAdapter {
     field: DescField & { fieldKind: "map" },
     val: CelVal,
   ): ReflectMap | CelError {
-    if (val instanceof CelMap || val instanceof CelObject) {
+    if (isCelMap(val) || val instanceof CelObject) {
       const result = reflectMap(field);
       const keys = getFields(val);
       for (const key of keys) {
@@ -660,33 +643,5 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
       default:
         return undefined;
     }
-  }
-}
-
-function getScalarType(K: ScalarType): CelType {
-  switch (K) {
-    case ScalarType.BOOL:
-      return type.BOOL;
-    case ScalarType.UINT32:
-    case ScalarType.UINT64:
-    case ScalarType.FIXED32:
-    case ScalarType.FIXED64:
-      return type.UINT;
-    case ScalarType.INT32:
-    case ScalarType.INT64:
-    case ScalarType.SINT32:
-    case ScalarType.SINT64:
-    case ScalarType.SFIXED32:
-    case ScalarType.SFIXED64:
-      return type.INT;
-    case ScalarType.FLOAT:
-    case ScalarType.DOUBLE:
-      return type.DOUBLE;
-    case ScalarType.STRING:
-      return type.STRING;
-    case ScalarType.BYTES:
-      return type.BYTES;
-    default:
-      throw new Error("not implemented.");
   }
 }
