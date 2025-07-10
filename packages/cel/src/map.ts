@@ -33,7 +33,7 @@ export interface CelMap
    * See https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#numbers
    * See https://github.com/google/cel-spec/wiki/proposal-210
    */
-  get(key: bigint | string | boolean | CelUint | number): unknown | undefined; 
+  get(key: bigint | string | boolean | CelUint | number): unknown | undefined;
 
   /**
    * Indicates if the map has the specified key.
@@ -43,7 +43,7 @@ export interface CelMap
    * See https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#numbers
    * See https://github.com/google/cel-spec/wiki/proposal-210
    */
-  has(key: bigint | string | boolean | CelUint | number): boolean; 
+  has(key: bigint | string | boolean | CelUint | number): boolean;
 }
 
 /**
