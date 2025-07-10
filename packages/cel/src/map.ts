@@ -100,7 +100,7 @@ class NativeMap implements CelMap {
     if (value !== undefined) {
       return value;
     }
-    // For maps with CELUint keys we have to loop through all keys to check because
+    // For maps with CelUint keys we have to loop through all keys to check because
     // JS maps use SameValueZero algorithm which is the same as '===' for objects.
     //
     // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map#key_equality
