@@ -18,31 +18,46 @@ import { celFromMapKey, celFromMapValue, mapKeyFromCel } from "./proto.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 
-type ReadonlyCelMap = ReadonlyMap<bigint | string | boolean | CelUint, unknown>;
-
 /**
  * A common abstraction for map types.
  */
-export interface CelMap extends ReadonlyCelMap {
+export interface CelMap
+  extends ReadonlyMap<bigint | string | boolean | CelUint, unknown> {
   [privateSymbol]: unknown;
 
   /**
    * Retrieves the item associated with the specified key, or undefined.
+   *
+   * Maps never contain entries with a double key, but they support access to int or uint keys with int, uint, or double values.
+   *
+   * See https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#numbers
+   * See https://github.com/google/cel-spec/wiki/proposal-210
    */
-  get(key: bigint | string | boolean | CelUint | number): unknown | undefined; // Same as the base Map except we also accept the number type
+  get(key: bigint | string | boolean | CelUint | number): unknown | undefined; 
 
   /**
    * Indicates if the map has the specified key.
+   *
+   * Maps never contain entries with a double key, but they support access to int or uint keys with int, uint, or double values.
+   *
+   * See https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#numbers
+   * See https://github.com/google/cel-spec/wiki/proposal-210
    */
-  has(key: bigint | string | boolean | CelUint | number): boolean; // Same as the base Map except we also accept the number type
+  has(key: bigint | string | boolean | CelUint | number): boolean; 
 }
 
 /**
  * Create a new map from a native map or a ReflectMap.
  */
-export function celMap(map: ReadonlyCelMap): CelMap;
+export function celMap(
+  map: ReadonlyMap<bigint | string | boolean | CelUint, unknown>,
+): CelMap;
 export function celMap(map: ReflectMap): CelMap;
-export function celMap(mapOrReflectMap: ReadonlyCelMap | ReflectMap): CelMap {
+export function celMap(
+  mapOrReflectMap:
+    | ReadonlyMap<bigint | string | boolean | CelUint, unknown>
+    | ReflectMap,
+): CelMap {
   if (isReflectMap(mapOrReflectMap)) {
     return new ProtoMap(mapOrReflectMap);
   }
@@ -69,8 +84,6 @@ class NativeMap implements CelMap {
   }
 
   get(key: string | bigint | boolean | CelUint | number): unknown {
-    // TODO(srikrsna): JS maps use `===` operator, perhaps valueOf can help here.
-    // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map#key_equality
     if (key instanceof CelUint) {
       key = key.value;
     }
@@ -82,11 +95,15 @@ class NativeMap implements CelMap {
       }
       key = BigInt(key);
     }
+    // Direct check for maps with string, boolean, and bigint keys.
     const value = this._map.get(key);
     if (value !== undefined) {
       return value;
     }
-
+    // For maps with CelUint keys we have to loop through all keys to check because
+    // JS maps use SameValueZero algorithm which is the same as '===' for objects.
+    //
+    // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map#key_equality
     if (typeof key === "bigint") {
       for (const mapKey of this._map.keys()) {
         if (!(mapKey instanceof CelUint)) {
@@ -108,7 +125,7 @@ class NativeMap implements CelMap {
     callback: (
       value: unknown,
       key: string | bigint | boolean | CelUint,
-      map: ReadonlyCelMap,
+      map: CelMap,
     ) => void,
     // biome-ignore lint/suspicious/noExplicitAny: Part of the Map interface.
     thisArg?: any,
@@ -157,7 +174,7 @@ class ProtoMap implements CelMap {
     callback: (
       value: unknown,
       key: string | bigint | boolean | CelUint,
-      map: ReadonlyCelMap,
+      map: CelMap,
     ) => void,
     // biome-ignore lint/suspicious/noExplicitAny: Part of the Map interface.
     thisArg?: any,

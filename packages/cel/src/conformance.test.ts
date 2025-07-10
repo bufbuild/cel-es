@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { describe } from "node:test";
+import { suite } from "node:test";
 import { createSimpleTestFileSkip, testSimpleTestFile } from "./testing.js";
 import { getSimpleTestFiles } from "@bufbuild/cel-spec/testdata/simple.js";
 import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
@@ -334,7 +334,7 @@ const shouldSkip = createSimpleTestFileSkip(files, [
   ["wrappers", "empty"],
 ]);
 
-describe("Conformance Tests", () => {
+void suite("Conformance Tests", () => {
   const typeRegistry = getTestRegistry();
   for (const file of files) {
     void testSimpleTestFile(file, typeRegistry, shouldSkip);
