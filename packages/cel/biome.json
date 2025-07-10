@@ -14,7 +14,21 @@
       "src/std/cast.ts",
       "src/std/logic.ts",
       "src/ext/strings.ts",
-      "src/func.ts"
+      "src/func.ts",
+      "src/eval.ts",
+      "src/value/adapter.ts",
+      "src/access.ts",
+      "src/testing.ts",
+      "src/equals.ts",
+      "src/equals.test.ts",
+      "src/field.ts",
+      "src/value/empty.ts",
+      "src/proto.ts",
+      "src/list.ts",
+      "src/list.test.ts",
+      "src/map.ts",
+      "src/map.test.ts",
+      "src/uint.ts"
     ]
   }
 }

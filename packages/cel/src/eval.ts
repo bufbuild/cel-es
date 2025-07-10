@@ -13,6 +13,8 @@
 // limitations under the License.
 
 import type { Registry } from "@bufbuild/protobuf";
+import type { Interpretable } from "./planner.js";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 /**
  * Context available in the evaluation phase.
@@ -45,4 +47,42 @@ export function getEvalContext(): EvalContext {
     throw new Error("cannot use `getEvalContext` outside of an evaluation");
   }
   return contextStack[contextStack.length - 1];
+}
+
+/**
+ * Returns an Interpretable that sets the context for the given call.
+ */
+export function withEvalContext(
+  context: EvalContext,
+  next: Interpretable,
+): Interpretable {
+  return {
+    id: -1, // This will never be used.
+    eval(ctx) {
+      const unset = setEvalContext(context);
+      try {
+        return next.eval(ctx);
+      } finally {
+        unset();
+      }
+    },
+  };
+}
+
+/**
+ * Returns a message descriptor with the matching type name
+ * from the evaluation context.
+ */
+export function getMsgDesc(typeName: string) {
+  switch (typeName) {
+    case TimestampSchema.typeName:
+      return TimestampSchema;
+    case DurationSchema.typeName:
+      return DurationSchema;
+  }
+  const schema = getEvalContext().registry.getMessage(typeName);
+  if (!schema) {
+    throw new Error(`Message ${typeName} not found in registry`);
+  }
+  return schema;
 }

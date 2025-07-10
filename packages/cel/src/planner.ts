@@ -44,17 +44,14 @@ import { CEL_ADAPTER } from "./adapter/cel.js";
 import { type CallDispatch, type Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { RawVal, type RawResult } from "./value/adapter.js";
-import { EMPTY_LIST, EMPTY_MAP, EMPTY_PROVIDER } from "./value/empty.js";
+import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
 import { Namespace } from "./value/namespace.js";
 import { type CelValProvider } from "./value/provider.js";
 import * as type from "./value/type.js";
 import {
   CelError,
-  CelList,
-  CelMap,
   CelObject,
   CelType,
-  CelUint,
   coerceToBigInt,
   coerceToBool,
   coerceToBytes,
@@ -66,12 +63,15 @@ import {
   type CelValAdapter,
   CelErrors,
 } from "./value/value.js";
+import { celList, isCelList } from "./list.js";
+import { celMap, isCelMap } from "./map.js";
+import { celUint, isCelUint, type CelUint } from "./uint.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
     private readonly functions: Dispatcher,
-    private readonly provider: CelValProvider = EMPTY_PROVIDER,
+    private readonly provider: CelValProvider,
     private readonly namespace: Namespace = Namespace.ROOT,
   ) {
     this.factory = new ConcreteAttributeFactory(this.provider, this.namespace);
@@ -340,7 +340,7 @@ export class Planner {
       case "int64Value":
         return val.constantKind.value;
       case "uint64Value":
-        return CelUint.of(val.constantKind.value);
+        return celUint(val.constantKind.value);
       case "nullValue":
         return null;
       case undefined:
@@ -557,7 +557,7 @@ export class EvalObj implements InterpretableCtor {
           if (val instanceof CelError) {
             return val;
           }
-          return create(UInt64ValueSchema, { value: val.valueOf() });
+          return create(UInt64ValueSchema, { value: val });
         }
         case "google.protobuf.Int32Value":
         case "google.protobuf.Int64Value": {
@@ -565,7 +565,7 @@ export class EvalObj implements InterpretableCtor {
           if (val instanceof CelError) {
             return val;
           }
-          return create(Int64ValueSchema, { value: val.valueOf() });
+          return create(Int64ValueSchema, { value: val });
         }
         case "google.protobuf.FloatValue":
         case "google.protobuf.DoubleValue": {
@@ -621,19 +621,15 @@ export class EvalList implements InterpretableCtor {
     if (first instanceof CelError) {
       return first;
     }
-    let elemType = type.getCelType(first);
     const elemVals: CelVal[] = [first];
     for (let i = 1; i < this.elems.length; i++) {
       const elemVal = this.elems[i].eval(ctx);
       if (elemVal instanceof CelError) {
         return elemVal;
       }
-      if (elemType !== type.DYN && type.getCelType(elemVal) !== elemType) {
-        elemType = type.DYN;
-      }
       elemVals.push(elemVal);
     }
-    return new CelList(elemVals, CEL_ADAPTER, new type.ListType(elemType));
+    return celList(elemVals);
   }
 
   type(): CelType {
@@ -663,8 +659,8 @@ export class EvalMap implements InterpretableCtor {
     if (this.keys.length === 0) {
       return EMPTY_MAP;
     }
-    const entries: Map<CelVal, CelVal> = new Map();
-    const firstKey = this.keys[0].eval(ctx);
+    const entries: Map<string | bigint | boolean | CelUint, CelVal> = new Map();
+    const firstKey = this.mapKeyOrError(this.keys[0].eval(ctx));
     if (firstKey instanceof CelError) {
       return firstKey;
     }
@@ -679,7 +675,7 @@ export class EvalMap implements InterpretableCtor {
     }
     entries.set(firstKey, firstVal);
     for (let i = 1; i < this.keys.length; i++) {
-      const key = this.keys[i].eval(ctx);
+      const key = this.mapKeyOrError(this.keys[i].eval(ctx));
       if (key instanceof CelError) {
         return key;
       }
@@ -700,7 +696,30 @@ export class EvalMap implements InterpretableCtor {
       }
       entries.set(key, val);
     }
-    return new CelMap(entries, CEL_ADAPTER, new type.MapType(keyType, valType));
+    return celMap(entries);
+  }
+
+  private mapKeyOrError(
+    key: unknown,
+  ): boolean | string | bigint | CelUint | CelError {
+    switch (typeof key) {
+      case "boolean":
+      case "bigint":
+      case "string":
+        return key;
+      case "object":
+        if (isCelUint(key)) {
+          return key;
+        }
+        return CelErrors.unsupportedKeyType(this.id);
+      case "number":
+        if (Number.isInteger(key)) {
+          return BigInt(key);
+        }
+        return CelErrors.unsupportedKeyType(this.id);
+      default:
+        return CelErrors.unsupportedKeyType(this.id);
+    }
   }
 }
 
@@ -717,10 +736,6 @@ export class EvalFold implements Interpretable {
   ) {}
 
   eval(ctx: Activation): CelResult {
-    const foldRange = this.iterRange.eval(ctx);
-    if (foldRange instanceof CelError) {
-      return foldRange;
-    }
     const accuInit = this.accu.eval(ctx);
     if (accuInit instanceof CelError) {
       return accuInit;
@@ -736,12 +751,10 @@ export class EvalFold implements Interpretable {
     }
 
     let items: CelResult[] = [];
-    if (
-      iterRange instanceof CelMap ||
-      iterRange instanceof CelObject ||
-      iterRange instanceof CelList
-    ) {
-      items = iterRange.getItems();
+    if (isCelMap(iterRange)) {
+      items = Array.from(iterRange.keys()) as CelResult[];
+    } else if (isCelList(iterRange)) {
+      items = Array.from(iterRange) as CelResult[];
     } else {
       return CelErrors.typeMismatch(this.id, "iterable", iterRange);
     }

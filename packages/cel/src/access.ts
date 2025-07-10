@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type Activation } from "./activation.js";
+import type { Activation } from "./activation.js";
 import { CEL_ADAPTER } from "./adapter/cel.js";
 import { EvalAttr, type Interpretable } from "./planner.js";
 import { type RawResult, RawVal } from "./value/adapter.js";
-import { Namespace } from "./value/namespace.js";
-import { type CelValProvider } from "./value/provider.js";
+import type { Namespace } from "./value/namespace.js";
+import type { CelValProvider } from "./value/provider.js";
 import {
-  CelUint,
   type CelResult,
   type CelVal,
   CelError,
@@ -27,6 +26,8 @@ import {
   CelErrors,
 } from "./value/value.js";
 import { getCelType } from "./value/type.js";
+import { accessByIndex, accessByName, isSet } from "./field.js";
+import { isCelUint } from "./uint.js";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;
@@ -83,7 +84,8 @@ function attrAccess<T = unknown>(
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
-  } else if (val instanceof CelError) {
+  }
+  if (val instanceof CelError) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
@@ -117,7 +119,8 @@ function attrAccessIfPresent<T = unknown>(
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
-  } else if (val instanceof CelError) {
+  }
+  if (val instanceof CelError) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
@@ -140,7 +143,8 @@ function applyAccesses<T = unknown>(
     const result = access.access(vars, cur) as RawResult<T>;
     if (result === undefined) {
       return undefined;
-    } else if (result instanceof CelError) {
+    }
+    if (result instanceof CelError) {
       return result;
     }
     cur = result;
@@ -248,12 +252,13 @@ class ConditionalAttr implements Attribute {
 
   resolve(vars: Activation): RawResult | undefined {
     const cond = this.unwrap.unwrap(this.cond.eval(vars)) as CelResult;
-    if (cond === true) {
-      return this.t.resolve(vars);
-    } else if (cond === false) {
-      return this.f.resolve(vars);
-    } else if (cond instanceof CelError) {
-      return cond;
+    switch (true) {
+      case cond === true:
+        return this.t.resolve(vars);
+      case cond === false:
+        return this.f.resolve(vars);
+      case cond instanceof CelError:
+        return cond;
     }
     return CelErrors.overloadNotFound(this.id, "_?_:_", [getCelType(cond)]);
   }
@@ -375,7 +380,7 @@ class StringAccess implements Access {
   }
 
   access<T>(_vars: Activation, obj: RawVal<T>): RawResult<T> | undefined {
-    const val = obj.adapter.accessByName(this.id, obj.value, this.name);
+    const val = accessByName(obj.value, this.name) as T | undefined;
     if (val === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.name);
     }
@@ -383,7 +388,11 @@ class StringAccess implements Access {
   }
 
   isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    return obj.adapter.isSetByName(this.id, obj.value, this.name);
+    const set = isSet(obj.value, this.name);
+    if (set === undefined) {
+      return CelErrors.fieldNotFound(this.id, this.name);
+    }
+    return set;
   }
 
   accessIfPresent(
@@ -391,12 +400,55 @@ class StringAccess implements Access {
     obj: RawVal,
     presenceOnly: boolean,
   ): RawResult | undefined {
-    const val = obj.adapter.accessByName(this.id, obj.value, this.name);
+    const val = accessByName(obj.value, this.name);
     // TODO(tstamm) obj.adapter.toCel(val) ?
     if (val === undefined && !this.optional && !presenceOnly) {
       return CelErrors.fieldNotFound(this.id, this.name);
     }
     return RawVal.if(obj.adapter, val);
+  }
+}
+
+class BoolAccess implements Access {
+  constructor(
+    public readonly id: number,
+    readonly index: boolean,
+    readonly optional: boolean,
+  ) {}
+
+  isOptional(): boolean {
+    return this.optional;
+  }
+
+  access(_vars: Activation, obj: RawVal): RawResult | undefined {
+    if (obj === undefined) {
+      return obj;
+    }
+    const raw = accessByIndex(obj.value, this.index);
+    if (raw === undefined && !this.optional) {
+      return CelErrors.fieldNotFound(this.id, this.index);
+    }
+    return RawVal.if(obj.adapter, raw);
+  }
+
+  isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
+    const raw = accessByIndex(obj.value, this.index);
+    if (raw === undefined && !this.optional) {
+      return CelErrors.fieldNotFound(this.id, this.index);
+    }
+    return true;
+  }
+
+  accessIfPresent(
+    _vars: Activation,
+    obj: RawVal,
+    _presenceOnly: boolean,
+  ): RawResult | undefined {
+    const raw = accessByIndex(obj.value, this.index);
+    if (raw === undefined && !this.optional) {
+      return CelErrors.fieldNotFound(this.id, this.index);
+    }
+    return RawVal.if(obj.adapter, raw);
   }
 }
 
@@ -416,7 +468,7 @@ class NumAccess implements Access {
     if (obj === undefined) {
       return obj;
     }
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
@@ -424,7 +476,7 @@ class NumAccess implements Access {
   }
 
   isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
@@ -436,7 +488,7 @@ class NumAccess implements Access {
     obj: RawVal,
     _presenceOnly: boolean,
   ): RawResult | undefined {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
@@ -456,7 +508,7 @@ class IntAccess implements Access {
     if (obj === undefined) {
       return obj;
     }
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
@@ -464,7 +516,7 @@ class IntAccess implements Access {
   }
 
   isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
@@ -476,7 +528,7 @@ class IntAccess implements Access {
     obj: RawVal,
     _presenceOnly: boolean,
   ): RawResult | undefined {
-    const raw = obj.adapter.accessByIndex(this.id, obj.value, this.index);
+    const raw = accessByIndex(obj.value, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
@@ -610,7 +662,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
   newAccess(id: number, val: unknown, opt: boolean): Access {
     switch (typeof val) {
       case "boolean":
-        return new NumAccess(id, val ? 1 : 0, val, opt);
+        return new BoolAccess(id, val, opt);
       case "number":
         return new NumAccess(id, val, val, opt);
       case "bigint":
@@ -621,9 +673,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
         if (val instanceof EvalAttr) {
           return new EvalAccess(id, val, this, opt);
         }
-        if (typeof val === "string") {
-          return new StringAccess(id, val, val, opt);
-        } else if (val instanceof CelUint) {
+        if (isCelUint(val)) {
           return new IntAccess(id, val.value, val, opt);
         }
         break;

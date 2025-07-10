@@ -17,7 +17,6 @@ import {
   type DescEnum,
   type DescField,
   type DescMessage,
-  equals,
   isMessage,
   type Message,
   type Registry,
@@ -53,18 +52,14 @@ import {
   type ScalarValue,
 } from "@bufbuild/protobuf/reflect";
 
-import { EMPTY_PROVIDER } from "../value/empty.js";
 import { type CelValProvider } from "../value/provider.js";
 import * as type from "../value/type.js";
 import {
   CelError,
   CelErrors,
-  CelList,
-  CelMap,
   CelObject,
   type CelResult,
   CelType,
-  CelUint,
   type CelVal,
   type CelValAdapter,
   coerceToBigInt,
@@ -75,9 +70,11 @@ import {
   isCelMsg,
   isCelWrap,
   ProtoNull,
-  type StructAccess,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
+import { accessByName, getFields } from "../field.js";
+import { celList, isCelList } from "../list.js";
+import { type CelMap, celMap, isCelMap } from "../map.js";
 
 type ProtoValue =
   | CelVal
@@ -120,88 +117,6 @@ export class ProtoValAdapter implements CelValAdapter {
       this.metadataCache.set(desc.typeName, metadata);
     }
     return metadata;
-  }
-
-  equals(lhs: ProtoValue, rhs: ProtoValue): CelResult<boolean> {
-    if (isReflectMap(lhs)) {
-      if (!isReflectMap(rhs)) {
-        return false;
-      }
-      if (lhs.size != rhs.size) {
-        return false;
-      }
-      for (const [key, val] of lhs) {
-        const rhsVal = rhs.get(key);
-        if (rhsVal == null) {
-          return false;
-        }
-        // Map values are either of type ReflectMessage or scalars.
-        if (!this.equals(val as ProtoValue, rhsVal as ProtoValue)) {
-          return false;
-        }
-      }
-      return true;
-    } else if (isReflectMap(rhs)) {
-      return false;
-    }
-    if (isReflectList(lhs)) {
-      if (!isReflectList(rhs)) {
-        return false;
-      }
-      if (lhs.size != rhs.size) {
-        return false;
-      }
-      for (let i = 0; i < lhs.size; i++) {
-        if (!this.equals(lhs.get(i) as ProtoValue, rhs.get(i) as ProtoValue)) {
-          return false;
-        }
-      }
-      return true;
-    } else if (isReflectList(rhs)) {
-      return false;
-    }
-    if (isProtoMsg(lhs)) {
-      lhs = reflect(this.getSchema(lhs.$typeName), lhs);
-    }
-    if (isProtoMsg(rhs)) {
-      rhs = reflect(this.getSchema(rhs.$typeName), rhs);
-    }
-    if (isReflectMessage(lhs)) {
-      if (!isReflectMessage(rhs)) {
-        return false;
-      }
-      if (lhs.desc.typeName !== rhs.desc.typeName) {
-        return false;
-      }
-      // equality following the CEL-spec
-      // see https://github.com/google/cel-spec/blob/v0.18.0/doc/langdef.md#protocol-buffers
-      // see https://github.com/bufbuild/protobuf-es/pull/1029
-      return equals(lhs.desc, lhs.message, rhs.message, {
-        registry: this.registry,
-        unpackAny: true,
-        unknown: true,
-        extensions: true,
-      });
-    } else if (isReflectMessage(rhs)) {
-      return false;
-    }
-    return CEL_ADAPTER.equals(lhs, rhs);
-  }
-
-  compare(lhs: ProtoValue, rhs: ProtoValue): CelResult<number> | undefined {
-    if (isProtoMsg(lhs) || isProtoMsg(rhs)) {
-      return undefined;
-    }
-    if (isReflectMessage(lhs) || isReflectMessage(rhs)) {
-      return undefined;
-    }
-    if (isReflectMap(lhs) || isReflectMap(rhs)) {
-      return undefined;
-    }
-    if (isReflectList(lhs) || isReflectList(rhs)) {
-      return undefined;
-    }
-    return CEL_ADAPTER.compare(lhs, rhs);
   }
 
   toCel(native: ProtoValue | ReflectMessage): CelResult {
@@ -252,44 +167,10 @@ export class ProtoValAdapter implements CelValAdapter {
       return new CelObject(native, this, this.getMetadata(native.desc).TYPE);
     }
     if (isReflectList(native)) {
-      const field = native.field();
-      let valType: CelType;
-      switch (field.listKind) {
-        case "scalar":
-          valType = getScalarType(field.scalar);
-          break;
-        case "enum":
-          valType = new CelType(field.enum.typeName);
-          break;
-        case "message":
-          valType = new CelType(field.message.typeName);
-          break;
-      }
-      return new CelList(
-        Array.from(native.values()).map((v) => this.celFromListElem(field, v)),
-        this,
-        new type.ListType(valType),
-      );
+      return celList(native);
     }
     if (isReflectMap(native)) {
-      const field = native.field();
-      let valType: CelType;
-      switch (field.mapKind) {
-        case "scalar":
-          valType = getScalarType(field.scalar);
-          break;
-        case "enum":
-          valType = new CelType(field.enum.typeName);
-          break;
-        case "message":
-          valType = new CelType(field.message.typeName);
-          break;
-      }
-      return new CelMap(
-        native,
-        this,
-        new type.MapType(getScalarType(field.mapKey), valType),
-      );
+      return celMap(native);
     }
     return CEL_ADAPTER.toCel(native);
   }
@@ -298,106 +179,12 @@ export class ProtoValAdapter implements CelValAdapter {
     return cel;
   }
 
-  isSetByName(
-    id: number,
-    obj: Message | ReflectMessage | CelVal,
-    name: string,
-  ): boolean | CelError {
-    if (isProtoMsg(obj)) {
-      obj = reflect(this.getSchema(obj.$typeName), obj);
-    }
-    if (isReflectMessage(obj)) {
-      const field = obj.desc.fields.find((f) => f.name === name);
-      if (!field) {
-        return CelErrors.fieldNotFound(id, name, obj.desc.toString());
-      }
-      return obj.isSet(field);
-    }
-    return CEL_ADAPTER.isSetByName(id, obj, name);
-  }
-
-  accessByName(
-    id: number,
-    obj: Message | ReflectMessage | CelVal,
-    name: string,
-  ):
-    | undefined
-    | ScalarValue
-    | ReflectMessage
-    | ReflectMap
-    | ReflectList
-    | CelVal
-    | CelError {
-    if (isProtoMsg(obj)) {
-      obj = reflect(this.getSchema(obj.$typeName), obj);
-    }
-    if (isReflectMessage(obj)) {
-      const field = obj.desc.fields.find((f) => f.name === name);
-      if (!field) {
-        return CelErrors.fieldNotFound(id, name, obj.desc.toString());
-      }
-      switch (field.fieldKind) {
-        case "enum":
-        case "list":
-        case "map":
-          return obj.get(field);
-        case "message":
-          return obj.isSet(field)
-            ? obj.get(field)
-            : this.getMetadata(field.message.typeName).NULL;
-        case "scalar":
-          switch (field.scalar) {
-            case ScalarType.UINT32:
-            case ScalarType.UINT64:
-            case ScalarType.FIXED32:
-            case ScalarType.FIXED64:
-              return new CelUint(BigInt(obj.get(field)));
-            case ScalarType.INT32:
-            case ScalarType.SINT32:
-            case ScalarType.SFIXED32:
-              return BigInt(obj.get(field));
-            default:
-              return obj.get(field);
-          }
-      }
-    }
-    return CEL_ADAPTER.accessByName(id, obj, name);
-  }
-
   private getSchema(messageTypeName: string): DescMessage {
     const schema = this.registry.getMessage(messageTypeName);
     if (!schema) {
       throw new Error(`Message ${messageTypeName} not found in registry`);
     }
     return schema;
-  }
-
-  getFields(value: object): string[] {
-    if (isReflectMessage(value)) {
-      return this.getMetadata(value.desc).FIELD_NAMES;
-    }
-    return CEL_ADAPTER.getFields(value);
-  }
-
-  accessByIndex(
-    id: number,
-    obj: ProtoValue,
-    index: number | bigint,
-  ): ProtoResult | undefined {
-    if (isProtoMsg(obj) || isReflectMessage(obj) || isReflectMap(obj)) {
-      return undefined;
-    }
-    if (isReflectList(obj)) {
-      const i = Number(index);
-      const v = this.celFromListElem(obj.field(), obj.get(i)) as
-        | ProtoValue
-        | undefined;
-      if (v === undefined) {
-        return CelErrors.indexOutOfBounds(Number(id), i, obj.size);
-      }
-      return this.toCel(v);
-    }
-    return CEL_ADAPTER.accessByIndex(id, obj, index);
   }
 
   reflectMessageFromCel(
@@ -444,7 +231,7 @@ export class ProtoValAdapter implements CelValAdapter {
         if (cval instanceof CelError) {
           return cval;
         }
-        return create(UInt64ValueSchema, { value: cval.valueOf() });
+        return create(UInt64ValueSchema, { value: cval });
       }
       case Int32ValueSchema.typeName: {
         const cval = coerceToNumber(id, val);
@@ -458,7 +245,7 @@ export class ProtoValAdapter implements CelValAdapter {
         if (cval instanceof CelError) {
           return cval;
         }
-        return create(Int64ValueSchema, { value: cval.valueOf() });
+        return create(Int64ValueSchema, { value: cval });
       }
       case FloatValueSchema.typeName: {
         const cval = coerceToNumber(id, val);
@@ -492,7 +279,7 @@ export class ProtoValAdapter implements CelValAdapter {
         break;
     }
 
-    if (val instanceof CelObject || val instanceof CelMap) {
+    if (val instanceof CelObject || isCelMap(val)) {
       return this.messageFromStruct(id, messageSchema, val);
     }
     if (val instanceof ProtoNull) {
@@ -563,18 +350,18 @@ export class ProtoValAdapter implements CelValAdapter {
   private messageFromStruct(
     id: number,
     messageSchema: DescMessage,
-    obj: StructAccess,
+    obj: CelObject | CelMap,
   ): ReflectMessage | CelError {
     const fields = this.getMetadata(messageSchema.typeName).FIELDS;
     const message = reflect(messageSchema);
-    const keys = obj.getFields();
+    const keys = getFields(obj);
     for (const key of keys) {
       const field = fields.get(key as string);
       if (!field) {
         return CelErrors.fieldNotFound(id, key, messageSchema.toString());
       }
       // TODO(tstamm) what does accessByName return? why don't we use the adapter?
-      const val = obj.accessByName(id, key);
+      const val = accessByName(obj, key as string);
       if (val === undefined) {
         continue;
       }
@@ -688,10 +475,10 @@ export class ProtoValAdapter implements CelValAdapter {
     field: DescField & { fieldKind: "list" },
     val: CelVal,
   ): ReflectList | CelError {
-    if (val instanceof CelList) {
+    if (isCelList(val)) {
       const result = reflectList(field);
-      for (const listItem of val.value) {
-        const celItem = val.adapter.toCel(listItem);
+      for (const listItem of val) {
+        const celItem = listItem as CelVal;
         if (celItem instanceof CelError) {
           return celItem;
         }
@@ -722,54 +509,24 @@ export class ProtoValAdapter implements CelValAdapter {
     field: DescField & { fieldKind: "map" },
     val: CelVal,
   ): ReflectMap | CelError {
-    if (val instanceof CelMap || val instanceof CelObject) {
+    if (isCelMap(val) || val instanceof CelObject) {
       const result = reflectMap(field);
-      const keys = val.getFields();
+      const keys = getFields(val);
       for (const key of keys) {
-        const fval = val.accessByName(id, key as string);
+        const fval = accessByName(val, key as string);
         if (fval === undefined) {
           continue;
         } else if (fval instanceof CelError) {
           return fval;
         }
         // TODO(tstamm) we don't actually convert anything here
-        const pkey = this.fromCel(key) as number | string;
+        const pkey = this.fromCel(key as CelVal) as number | string;
         const pval = this.fromCel(fval);
         result.set(pkey, pval);
       }
       return result;
     }
     throw new Error("not implemented.");
-  }
-
-  private celFromListElem(desc: DescField & { fieldKind: "list" }, v: unknown) {
-    if (v === undefined) {
-      return v;
-    }
-    switch (desc.listKind) {
-      case "enum":
-        return v;
-      case "message":
-        return this.toCel(v as ReflectMessage);
-      case "scalar":
-        return this.celFromScalar(desc.scalar, v);
-    }
-  }
-
-  private celFromScalar(type: ScalarType, v: unknown) {
-    switch (type) {
-      case ScalarType.UINT32:
-      case ScalarType.UINT64:
-      case ScalarType.FIXED32:
-      case ScalarType.FIXED64:
-        return new CelUint(BigInt(v as bigint));
-      case ScalarType.INT32:
-      case ScalarType.SINT32:
-      case ScalarType.SFIXED32:
-        return BigInt(v as number);
-      default:
-        return v;
-    }
   }
 }
 
@@ -827,10 +584,6 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
     typeName: string,
     obj: CelObject | CelMap,
   ): CelResult<ProtoValue> | undefined {
-    const result = EMPTY_PROVIDER.newValue(id, typeName, obj);
-    if (result !== undefined) {
-      return result;
-    }
     const messageSchema = this.adapter.registry.getMessage(typeName);
     if (messageSchema === undefined) {
       return undefined;
@@ -843,7 +596,7 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
   }
 
   findType(candidate: string): CelType | undefined {
-    const result = EMPTY_PROVIDER.findType(candidate);
+    const result = type.WK_PROTO_TYPES.get(candidate);
     if (result !== undefined) {
       return result;
     }
@@ -866,34 +619,29 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
         }
       }
     }
-    return EMPTY_PROVIDER.findIdent(id, ident);
-  }
-}
-
-function getScalarType(K: ScalarType): CelType {
-  switch (K) {
-    case ScalarType.BOOL:
-      return type.BOOL;
-    case ScalarType.UINT32:
-    case ScalarType.UINT64:
-    case ScalarType.FIXED32:
-    case ScalarType.FIXED64:
-      return type.UINT;
-    case ScalarType.INT32:
-    case ScalarType.INT64:
-    case ScalarType.SINT32:
-    case ScalarType.SINT64:
-    case ScalarType.SFIXED32:
-    case ScalarType.SFIXED64:
-      return type.INT;
-    case ScalarType.FLOAT:
-    case ScalarType.DOUBLE:
-      return type.DOUBLE;
-    case ScalarType.STRING:
-      return type.STRING;
-    case ScalarType.BYTES:
-      return type.BYTES;
-    default:
-      throw new Error("not implemented.");
+    switch (ident) {
+      case "int":
+        return type.INT;
+      case "uint":
+        return type.UINT;
+      case "double":
+        return type.DOUBLE;
+      case "bool":
+        return type.BOOL;
+      case "string":
+        return type.STRING;
+      case "bytes":
+        return type.BYTES;
+      case "list":
+        return type.LIST;
+      case "map":
+        return type.DYN_MAP;
+      case "null_type":
+        return type.NULL;
+      case "type":
+        return type.TYPE;
+      default:
+        return undefined;
+    }
   }
 }

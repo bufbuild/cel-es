@@ -20,23 +20,17 @@ import {
 } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import {
-  type CelVal,
-  CelError,
-  CelErrors,
-  type CelMap,
-  isCelWrap,
-} from "../value/value.js";
+import { type CelVal, CelError, CelErrors, isCelWrap } from "../value/value.js";
 import { CEL_ADAPTER } from "../adapter/cel.js";
+import { CelScalar, listType, mapType } from "../type.js";
 import {
-  CelScalar,
-  listType,
-  mapType,
-  type CelMapValueType,
-  type TypeOf,
-} from "../type.js";
-import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
-import { cannotCompare } from "../errors.js";
+  DurationSchema,
+  TimestampSchema,
+  type Duration,
+  type Timestamp,
+} from "@bufbuild/protobuf/wkt";
+import { equals } from "../equals.js";
+import type { CelMap } from "../map.js";
 
 /**
  * This is not in the spec but is part of at least go,java, and cpp implementations.
@@ -116,103 +110,101 @@ const or: CallDispatch = {
 };
 
 const eqFunc = new Func(opc.EQUALS, [
-  new FuncOverload(
-    [CelScalar.ANY, CelScalar.ANY],
-    CelScalar.BOOL,
-    (lhs, rhs) => {
-      const result = CEL_ADAPTER.equals(lhs, rhs);
-      if (result instanceof CelError) {
-        throw new Error(result.message);
-      }
-      return result;
-    },
-  ),
+  new FuncOverload([CelScalar.ANY, CelScalar.ANY], CelScalar.BOOL, equals),
 ]);
 
 const neFunc = new Func(opc.NOT_EQUALS, [
   new FuncOverload(
     [CelScalar.ANY, CelScalar.ANY],
     CelScalar.BOOL,
-    (lhs, rhs) => {
-      const eq = CEL_ADAPTER.equals(lhs, rhs);
-      if (eq instanceof CelError) {
-        throw new Error(eq.message);
-      }
-      return !eq;
-    },
+    (lhs, rhs) => !equals(lhs, rhs),
   ),
 ]);
 
-const ltOp = makeCompareOp((cmp) => cmp < 0);
+function ltOp<T>(lhs: T, rhs: T) {
+  return lhs < rhs;
+}
+// biome-ignore format: Easier to read it like a table
 const ltFunc = new Func(opc.LESS, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, ltOp),
+  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) < 0),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, ltOp),
-  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, ltOp),
   new FuncOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, ltOp),
-  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, ltOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, ltOp),
+  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, ltOp),
+  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < r.value),
+  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value < r),
+  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value < r.value),
+  // TODO investigate: ECMAScript relational operators support mixed bigint/number operands, 
+  // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
+  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) < r),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l < Number(r)),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < Number(r.value)),
+  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) < r),
+  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, (l, r) => compareDuration(l, r) < 0),
+  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) < 0),
 ]);
 
-const lteOp = makeCompareOp((cmp) => cmp <= 0);
+function lteOp<T>(lhs: T, rhs: T) {
+  return lhs <= rhs;
+}
+// biome-ignore format: Easier to read it like a table
 const leFunc = new Func(opc.LESS_EQUALS, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, lteOp),
+  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) <= 0),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, lteOp),
-  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, lteOp),
   new FuncOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, lteOp),
-  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, lteOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, lteOp),
+  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, lteOp),
+  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= r.value),
+  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value <= r),
+  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value <= r.value),
+  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) <= r),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l <= Number(r)),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= Number(r.value)),
+  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) <= r),
+  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, (l, r) => compareDuration(l, r) <= 0),
+  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) <= 0),
 ]);
 
-const gtOp = makeCompareOp((cmp) => cmp > 0);
+function gtOp<T>(lhs: T, rhs: T) {
+  return lhs > rhs;
+}
+// biome-ignore format: Easier to read it like a table
 const gtFunc = new Func(opc.GREATER, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, gtOp),
+  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) > 0),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, gtOp),
-  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, gtOp),
   new FuncOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, gtOp),
-  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, gtOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, gtOp),
+  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gtOp),
+  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > r.value),
+  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value > r),
+  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value > r.value),
+  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) > r),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l > Number(r)),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > Number(r.value)),
+  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) > r),
+  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, (l, r) => compareDuration(l, r) > 0),
+  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) > 0),
 ]);
 
-const gteOp = makeCompareOp((v) => v >= 0);
+function gteOp<T>(lhs: T, rhs: T) {
+  return lhs >= rhs;
+}
+// biome-ignore format: Easier to read it like a table
 const geFunc = new Func(opc.GREATER_EQUALS, [
   new FuncOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, gteOp),
+  new FuncOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) >= 0),
   new FuncOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, gteOp),
-  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, gteOp),
   new FuncOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, gteOp),
-  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, gteOp),
-  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, gteOp),
+  new FuncOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gteOp),
+  new FuncOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= r.value),
+  new FuncOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value >= r),
+  new FuncOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value >= r.value),
+  new FuncOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) >= r),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l >= Number(r)),
+  new FuncOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= Number(r.value)),
+  new FuncOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) >= r),
+  new FuncOverload([DurationSchema, DurationSchema], CelScalar.BOOL, (l, r) => compareDuration(l, r) >= 0),
+  new FuncOverload([TimestampSchema, TimestampSchema], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) >= 0),
 ]);
 
 const containsFunc = new Func(olc.CONTAINS, [
@@ -294,6 +286,7 @@ export function matchesString(x: string, y: string): boolean {
   const re = new RegExp(y, flags);
   return re.test(x);
 }
+
 const matchesFunc = new Func(olc.MATCHES, [
   new FuncOverload(
     [CelScalar.STRING, CelScalar.STRING],
@@ -312,47 +305,41 @@ const sizeFunc = new Func(olc.SIZE, [
   }),
   new FuncOverload([CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
   new FuncOverload([listType(CelScalar.ANY)], CelScalar.INT, (x) =>
-    BigInt(x.value.length),
+    BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.INT, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.UINT, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.BOOL, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
   new FuncOverload(
     [mapType(CelScalar.STRING, CelScalar.ANY)],
     CelScalar.INT,
-    (x) => BigInt(x.value.size),
+    (x) => BigInt(x.size),
   ),
 ]);
 
-function mapInOp(x: CelVal, y: CelMap<TypeOf<CelMapValueType["key"]>, CelVal>) {
-  const val = y.adapter.fromCel(x);
-  for (const [k, _] of y.value) {
-    if (y.adapter.equals(val, k)) {
-      return true;
-    }
-  }
-  return false;
+function mapInOp(x: CelVal, y: CelMap) {
+  return y.has(x as string);
 }
+
 const inFunc = new Func(opc.IN, [
   new FuncOverload(
     [CelScalar.ANY, listType(CelScalar.ANY)],
     CelScalar.BOOL,
     (x, y) => {
-      const val = y.adapter.fromCel(x);
-      for (let i = 0; i < y.value.length; i++) {
-        if (y.adapter.equals(val, y.value[i])) {
+      for (let i = 0; i < y.size; i++) {
+        if (equals(x, y.get(i))) {
           return true;
         }
       }
@@ -400,12 +387,31 @@ export function addLogic(funcs: FuncRegistry) {
   funcs.add(inFunc);
 }
 
-function makeCompareOp(compare: (cmp: number) => boolean) {
-  return (lhs: CelVal, rhs: CelVal) => {
-    const cmp = CEL_ADAPTER.compare(lhs, rhs);
-    if (cmp === undefined) {
-      throw cannotCompare(lhs, rhs);
+function compareDuration(lhs: Duration, rhs: Duration) {
+  const cmp = lhs.seconds - rhs.seconds;
+  if (cmp == 0n) {
+    return lhs.nanos - rhs.nanos;
+  }
+  return cmp < 0n ? -1 : 1;
+}
+
+function compareTimestamp(lhs: Timestamp, rhs: Timestamp) {
+  const cmp = lhs.seconds - rhs.seconds;
+  if (cmp == 0n) {
+    return lhs.nanos - rhs.nanos;
+  }
+  return cmp < 0n ? -1 : 1;
+}
+
+function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
+  const minLen = Math.min(lhs.length, rhs.length);
+  for (let i = 0; i < minLen; i++) {
+    if (lhs[i] < rhs[i]) {
+      return -1;
     }
-    return compare(cmp);
-  };
+    if (lhs[i] > rhs[i]) {
+      return 1;
+    }
+  }
+  return lhs.length - rhs.length;
 }

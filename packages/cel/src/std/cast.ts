@@ -21,12 +21,7 @@ import {
 
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as type from "../value/type.js";
-import {
-  CelError,
-  CelUint,
-  parseDuration,
-  type CelVal,
-} from "../value/value.js";
+import { CelError, parseDuration, type CelVal } from "../value/value.js";
 import {
   isOverflowInt,
   isOverflowIntNum,
@@ -35,6 +30,7 @@ import {
 } from "./math.js";
 import { CelScalar } from "../type.js";
 import { badStringBytes, badTimeStr, overflow } from "../errors.js";
+import { celUint } from "../uint.js";
 
 export const INT = "int";
 export const UINT = "uint";
@@ -50,7 +46,7 @@ export const DYN = "dyn";
 const intFunc = new Func(INT, [
   new FuncOverload([CelScalar.INT], CelScalar.INT, (x) => x),
   new FuncOverload([CelScalar.UINT], CelScalar.INT, (x) => {
-    const val = x.value.valueOf();
+    const val = x.value;
     if (isOverflowInt(val)) {
       throw overflow(INT, type.INT);
     }
@@ -91,20 +87,20 @@ const uintFunc = new Func(UINT, [
     if (isOverflowUint(x)) {
       throw overflow(UINT, type.UINT);
     }
-    return new CelUint(x);
+    return celUint(x);
   }),
   new FuncOverload([CelScalar.DOUBLE], CelScalar.UINT, (x) => {
     if (isOverflowUintNum(x)) {
       throw overflow(UINT, type.UINT);
     }
-    return new CelUint(BigInt(Math.trunc(x)));
+    return celUint(BigInt(Math.trunc(x)));
   }),
   new FuncOverload([CelScalar.STRING], CelScalar.UINT, (x) => {
     const val = BigInt(x);
     if (isOverflowUint(val)) {
       throw overflow(UINT, type.UINT);
     }
-    return new CelUint(val);
+    return celUint(val);
   }),
 ]);
 

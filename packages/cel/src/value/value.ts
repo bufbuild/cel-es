@@ -35,13 +35,14 @@ import type { UInt64Value } from "@bufbuild/protobuf/wkt";
 import type { Int64Value } from "@bufbuild/protobuf/wkt";
 import type { Duration } from "@bufbuild/protobuf/wkt";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
+import { type CelList, isCelList } from "../list.js";
+import { type CelMap, isCelMap } from "../map.js";
+import { isCelUint, type CelUint } from "../uint.js";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
 export function isCelNum(val: unknown): val is CelNum {
-  return (
-    typeof val === "bigint" || val instanceof CelUint || typeof val === "number"
-  );
+  return typeof val === "bigint" || isCelUint(val) || typeof val === "number";
 }
 
 export function newTimestamp(
@@ -183,10 +184,10 @@ export type CelVal =
   | ProtoNull
   | CelPrim
   | CelMsg
-  | CelList
   | CelMap
   | CelObject
-  | CelType;
+  | CelType
+  | CelList;
 
 export function isCelVal(val: unknown): val is CelVal {
   return (
@@ -194,8 +195,8 @@ export function isCelVal(val: unknown): val is CelVal {
     val instanceof ProtoNull ||
     isCelPrim(val) ||
     isCelMsg(val) ||
-    val instanceof CelList ||
-    val instanceof CelMap ||
+    isCelList(val) ||
+    isCelMap(val) ||
     val instanceof CelObject ||
     val instanceof CelType
   );
@@ -208,37 +209,7 @@ export interface Unwrapper<V = unknown> {
 export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
-
-  equals(lhs: V, rhs: V): CelResult<boolean>;
-  compare(lhs: V, rhs: V): CelResult<number> | undefined;
-
-  accessByName(id: number, obj: V, name: string): CelResult<V> | undefined;
-  isSetByName(id: number, obj: V, name: string): CelResult<boolean>;
-  accessByIndex(
-    id: number,
-    obj: V,
-    index: number | bigint,
-  ): CelResult<V> | undefined;
-  getFields(value: object): string[];
 }
-
-export interface IterAccess {
-  getItems(): CelResult[];
-}
-
-export interface IndexAccess {
-  accessByIndex(id: number, index: number | bigint): CelResult | undefined;
-}
-
-export interface FieldAccess<K> {
-  getFields(): K[];
-  accessByName(id: number, name: K): CelResult | undefined;
-}
-
-export type ListAccess = IterAccess & IndexAccess;
-export type StructAccess<K = unknown> = IterAccess &
-  FieldAccess<K> &
-  IndexAccess;
 
 // proto3 has typed nulls.
 export class ProtoNull {
@@ -249,110 +220,7 @@ export class ProtoNull {
   ) {}
 }
 
-// TODO(tstamm) Object.prototype.valueOf()
-export class CelUint {
-  public static EMPTY: CelUint = new CelUint(BigInt(0));
-  public static ONE: CelUint = new CelUint(BigInt(1));
-  public static of(value: bigint): CelUint {
-    switch (value) {
-      case 0n:
-        return CelUint.EMPTY;
-      case 1n:
-        return CelUint.ONE;
-      default:
-        return new CelUint(value);
-    }
-  }
-  constructor(public readonly value: bigint) {}
-}
-
-export class CelList implements ListAccess {
-  constructor(
-    public readonly value: readonly unknown[],
-    public readonly adapter: CelValAdapter,
-    public readonly type_: CelType,
-  ) {}
-
-  getItems(): CelResult[] {
-    const result: CelResult[] = [];
-    for (const item of this.value) {
-      result.push(this.adapter.toCel(item));
-    }
-    return result;
-  }
-
-  accessByIndex(id: number, index: number | bigint): CelResult {
-    const i = Number(index);
-    if (i < 0 || i >= this.value.length) {
-      return CelErrors.indexOutOfBounds(Number(id), i, this.value.length);
-    }
-    return this.adapter.toCel(this.value[i]);
-  }
-}
-
-export class CelMap<K = unknown, V = unknown> implements StructAccess<CelVal> {
-  public readonly nativeKeyMap: ReadonlyMap<unknown, V>;
-
-  constructor(
-    public readonly value: ReadonlyMap<K, V>,
-    public readonly adapter: CelValAdapter,
-    public readonly type_: CelType,
-  ) {
-    const nativeKeys = new Map<unknown, V>();
-    for (const [key, value] of this.value) {
-      const celKey = this.adapter.toCel(key);
-      if (typeof celKey === "string" || typeof celKey === "bigint") {
-        nativeKeys.set(celKey, value);
-      } else if (isCelWrap(celKey) || celKey instanceof CelUint) {
-        nativeKeys.set(celKey.value, value);
-      } else if (celKey instanceof Uint8Array) {
-        nativeKeys.set(celKey, value);
-      } else if (typeof celKey === "number" && Number.isInteger(celKey)) {
-        nativeKeys.set(BigInt(celKey), value);
-      } else if (typeof celKey === "boolean") {
-        nativeKeys.set(celKey ? 1n : 0n, value);
-      } else {
-        nativeKeys.set(key, value);
-      }
-    }
-    this.nativeKeyMap = nativeKeys;
-  }
-
-  getItems(): CelResult[] {
-    const result: CelResult[] = [];
-    for (const [key] of this.value) {
-      result.push(this.adapter.toCel(key));
-    }
-    return result;
-  }
-
-  accessByIndex(_id: number, index: number | bigint): CelResult | undefined {
-    let result = this.nativeKeyMap.get(index);
-    if (result === undefined) {
-      if (typeof index === "number" && Number.isInteger(index)) {
-        result = this.nativeKeyMap.get(BigInt(index));
-      }
-    }
-    if (result === undefined) {
-      return undefined;
-    }
-    return this.adapter.toCel(result);
-  }
-
-  isSetByName(_id: number, name: unknown): CelResult<boolean> {
-    return this.nativeKeyMap.has(name);
-  }
-
-  accessByName(_id: number, name: unknown): CelResult | undefined {
-    return this.adapter.toCel(this.nativeKeyMap.get(name));
-  }
-
-  getFields(): CelVal[] {
-    return [...this.value.keys()].map((k) => this.adapter.toCel(k) as CelVal);
-  }
-}
-
-export class CelObject implements StructAccess<unknown> {
+export class CelObject {
   constructor(
     public readonly value: object,
     public readonly adapter: CelValAdapter,
@@ -361,33 +229,6 @@ export class CelObject implements StructAccess<unknown> {
     if (isCelVal(value)) {
       throw new Error("Cannot wrap CelVal in CelObject");
     }
-  }
-
-  getItems(): CelResult[] {
-    return this.getFields().map((key) => this.adapter.toCel(key));
-  }
-
-  getFields(): string[] {
-    return this.adapter.getFields(this.value);
-  }
-
-  isSetByName(id: number, name: string): CelResult<boolean> {
-    return this.adapter.isSetByName(id, this.value, name);
-  }
-
-  accessByName(id: number, name: string): CelResult | undefined {
-    const result = this.adapter.accessByName(id, this.value, name);
-    if (result === undefined) {
-      return undefined;
-    }
-    return this.adapter.toCel(result);
-  }
-  accessByIndex(id: number, index: number | bigint): CelResult | undefined {
-    const result = this.adapter.accessByIndex(id, this.value, index);
-    if (result === undefined) {
-      return undefined;
-    }
-    return this.adapter.toCel(result);
   }
 }
 
@@ -429,16 +270,6 @@ export class CelType {
       return this.name === other.name;
     }
     return false;
-  }
-
-  compare(other: CelVal): number | undefined {
-    if (!(other instanceof CelType)) {
-      return undefined;
-    }
-    if (this.name === other.name) {
-      return 0;
-    }
-    return this.name < other.name ? -1 : 1;
   }
 }
 
@@ -497,7 +328,7 @@ export function coerceToBool(
     (typeof val === "boolean" && val === false) ||
     (typeof val === "number" && val === 0) ||
     (typeof val === "bigint" && val === 0n) ||
-    (val instanceof CelUint && val.value === 0n)
+    (isCelUint(val) && val.value === 0n)
   ) {
     return false;
   }
@@ -512,7 +343,7 @@ export function coerceToBigInt(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return 0n;
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (typeof val === "bigint") {
@@ -531,7 +362,7 @@ export function coerceToNumber(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return 0;
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (typeof val === "bigint") {
@@ -550,7 +381,7 @@ export function coerceToString(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return "";
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (typeof val === "string") {
@@ -567,7 +398,7 @@ export function coerceToBytes(
     return val;
   } else if (val === undefined || val === null || val instanceof ProtoNull) {
     return new Uint8Array();
-  } else if (isCelWrap(val) || val instanceof CelUint) {
+  } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
   }
   if (val instanceof Uint8Array) {

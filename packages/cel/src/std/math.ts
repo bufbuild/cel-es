@@ -25,14 +25,14 @@ import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as type from "../value/type.js";
 import {
   CelError,
-  CelList,
-  CelUint,
   newDuration,
   newTimestamp,
   CelErrors,
 } from "../value/value.js";
 import { CelScalar, listType } from "../type.js";
 import { divisionByZero, moduloByZero, overflow } from "../errors.js";
+import { celListConcat } from "../list.js";
+import { celUint } from "../uint.js";
 
 const MAX_INT = 9223372036854775807n;
 // biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
@@ -67,36 +67,6 @@ export function addMath(funcs: FuncRegistry) {
   funcs.add(divide);
   funcs.add(modulo);
   funcs.add(negate);
-}
-
-function addList(lhs: CelList, rhs: CelList) {
-  let listType = type.getCelType(lhs) as type.ListType;
-  let values = lhs.value.slice();
-  const argType = type.getCelType(rhs) as type.ListType;
-  if (
-    listType.elemType !== type.DYN &&
-    !listType.elemType.identical(argType.elemType)
-  ) {
-    listType = type.LIST;
-  }
-  const adapter = lhs.adapter;
-  if (adapter === rhs.adapter) {
-    values = values.concat(rhs.value);
-  } else {
-    // Convert to the same adapter.
-    for (const val of rhs.value) {
-      const celVal = rhs.adapter.toCel(val);
-      if (celVal instanceof CelError) {
-        throw new Error(celVal.message);
-      }
-      const converted = adapter.fromCel(celVal);
-      if (converted instanceof CelError) {
-        throw new Error(converted.message);
-      }
-      values.push(converted);
-    }
-  }
-  return new CelList(values, adapter, listType);
 }
 
 function addTimestamp(lhs: Timestamp, rhs: Timestamp | Duration) {
@@ -156,11 +126,11 @@ const add = new Func(opc.ADD, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      const val = lhs.value.valueOf() + rhs.value.valueOf();
+      const val = lhs.value + rhs.value;
       if (isOverflowUint(val)) {
         throw overflow(opc.SUBTRACT, type.UINT);
       }
-      return new CelUint(val);
+      return celUint(val);
     },
   ),
   new FuncOverload(
@@ -206,7 +176,7 @@ const add = new Func(opc.ADD, [
   new FuncOverload(
     [listType(CelScalar.ANY), listType(CelScalar.ANY)],
     listType(CelScalar.ANY),
-    addList,
+    celListConcat,
   ),
 ]);
 
@@ -226,11 +196,11 @@ const subtract = new Func(opc.SUBTRACT, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      const val = lhs.value.valueOf() - rhs.value.valueOf();
+      const val = lhs.value - rhs.value;
       if (isOverflowUint(val)) {
         throw overflow(opc.SUBTRACT, type.UINT);
       }
-      return new CelUint(val);
+      return celUint(val);
     },
   ),
   new FuncOverload(
@@ -281,11 +251,11 @@ const multiply = new Func(opc.MULTIPLY, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      const product = lhs.value.valueOf() * rhs.value.valueOf();
+      const product = lhs.value * rhs.value;
       if (isOverflowUint(product)) {
         throw overflow(opc.MULTIPLY, type.UINT);
       }
-      return new CelUint(product);
+      return celUint(product);
     },
   ),
   new FuncOverload(
@@ -318,10 +288,10 @@ const divide = new Func(opc.DIVIDE, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      if (rhs.value.valueOf() === 0n) {
+      if (rhs.value === 0n) {
         throw divisionByZero(type.UINT);
       }
-      return new CelUint(lhs.value.valueOf() / rhs.value.valueOf());
+      return celUint(lhs.value / rhs.value);
     },
   ),
 ]);
@@ -341,10 +311,10 @@ const modulo = new Func(opc.MODULO, [
     [CelScalar.UINT, CelScalar.UINT],
     CelScalar.UINT,
     (lhs, rhs) => {
-      if (rhs.value.valueOf() === 0n) {
+      if (rhs.value === 0n) {
         throw moduloByZero(type.UINT);
       }
-      return new CelUint(lhs.value.valueOf() % rhs.value.valueOf());
+      return celUint(lhs.value % rhs.value);
     },
   ),
 ]);

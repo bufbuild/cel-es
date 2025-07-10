@@ -27,22 +27,22 @@ import {
 } from "@bufbuild/protobuf/wkt";
 
 import {
-  CelUint,
   ProtoNull,
   CelObject,
   type CelVal,
   CelType,
   ConcreteType,
   WrapperType,
-  CelList,
-  CelMap,
 } from "./value.js";
+import { isCelList } from "../list.js";
+import { isCelMap } from "../map.js";
+import { celUint, isCelUint } from "../uint.js";
 
 export const DYN = new CelType("dyn");
 export const NULL = new ConcreteType("null_type", null);
 export const BOOL = new ConcreteType("bool", false);
 export const WRAP_BOOL = new WrapperType(BOOL);
-export const UINT = new ConcreteType("uint", new CelUint(0n));
+export const UINT = new ConcreteType("uint", celUint(0n));
 export const WRAP_UINT = new WrapperType(UINT);
 export const INT = new ConcreteType("int", 0n);
 export const WRAP_INT = new WrapperType(INT);
@@ -72,15 +72,6 @@ export class ListType extends CelType {
 }
 
 export const LIST = new ListType(DYN);
-export const LIST_UINT = new ListType(UINT);
-export const LIST_INT = new ListType(INT);
-export const LIST_DOUBLE = new ListType(DOUBLE);
-export const LIST_BOOL = new ListType(BOOL);
-export const LIST_STRING = new ListType(STRING);
-export const LIST_BYTES = new ListType(BYTES);
-export const LIST_TIMESTAMP = new ListType(TIMESTAMP);
-export const LIST_DURATION = new ListType(DURATION);
-export const LIST_TYPE = new ListType(TYPE);
 
 export class MapType extends CelType {
   constructor(
@@ -134,12 +125,12 @@ export function getCelType(val: CelVal): CelType {
         } else if (isMessage(val, BytesValueSchema)) {
           return WRAP_BYTES;
         }
-      } else if (val instanceof CelList) {
-        return val.type_;
-      } else if (val instanceof CelUint) {
+      } else if (isCelList(val)) {
+        return LIST;
+      } else if (isCelUint(val)) {
         return UINT;
-      } else if (val instanceof CelMap) {
-        return val.type_;
+      } else if (isCelMap(val)) {
+        return DYN_MAP;
       } else if (val instanceof CelObject) {
         return val.type_;
       } else if (val instanceof CelType) {

@@ -12,22 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { accessByName, getFields } from "../field.js";
 import { isOverflowInt, isOverflowUint } from "../std/math.js";
 import { EMPTY_LIST, EMPTY_MAP } from "../value/empty.js";
 import * as type from "../value/type.js";
 import {
   type CelVal,
-  isCelVal,
   CelError,
-  CelMap,
   type CelValAdapter,
-  CelList,
   CelObject,
-  CelUint,
   CelErrors,
 } from "../value/value.js";
 import { type CelResult, isCelResult } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
+import { celList, isCelList } from "../list.js";
+import { celMap, isCelMap } from "../map.js";
+import { celUint, isCelUint } from "../uint.js";
 
 class NativeValAdapter implements CelValAdapter {
   unwrap(val: CelVal): CelVal {
@@ -41,7 +41,7 @@ class NativeValAdapter implements CelValAdapter {
         if (!isOverflowInt(val)) {
           return val;
         } else if (!isOverflowUint(val)) {
-          return new CelUint(val);
+          return celUint(val);
         } else {
           return CelErrors.overflow(0, "bigint to cel", type.INT);
         }
@@ -60,12 +60,12 @@ class NativeValAdapter implements CelValAdapter {
           if (val.length === 0) {
             return EMPTY_LIST;
           }
-          return new CelList(val, this, type.LIST);
+          return celList(val);
         } else if (val instanceof Map) {
           if (val.size === 0) {
             return EMPTY_MAP;
           }
-          return new CelMap(val, this, type.DYN_MAP);
+          return celMap(val);
         } else if (val.constructor.name === "Object") {
           if (Object.keys(val).length === 0) {
             return EMPTY_MAP;
@@ -79,116 +79,33 @@ class NativeValAdapter implements CelValAdapter {
   }
 
   fromCel(cel: CelVal): unknown {
-    if (cel instanceof CelList) {
-      if (cel.adapter === this) {
-        return cel.value;
-      }
-      return cel.value.map((v) => {
-        const tmp = cel.adapter.toCel(v);
-        if (tmp instanceof CelError) {
-          return tmp;
-        }
-        return this.fromCel(tmp);
-      });
-    } else if (cel instanceof CelMap) {
-      if (cel.adapter === this) {
-        return cel.value;
-      }
-      const map = new Map();
-      cel.value.forEach((v, k) => {
-        const key = cel.adapter.toCel(k);
-        if (key instanceof CelError) {
-          return key;
-        }
-        const val = cel.adapter.toCel(v);
-        if (val instanceof CelError) {
-          return val;
-        }
-        map.set(this.fromCel(key), this.fromCel(val));
-        return undefined;
-      });
-      return map;
+    if (isCelList(cel)) {
+      return Array.from(cel).map((v) => this.fromCel(v as CelVal));
+    } else if (isCelMap(cel)) {
+      return new Map(
+        Array.from(cel.entries()).map(([k, v]) => [
+          this.fromCel(k),
+          this.fromCel(v as CelVal),
+        ]),
+      );
     } else if (cel instanceof CelObject) {
       if (cel.adapter === this) {
         return cel.value;
       }
       const obj: { [key: string]: unknown } = {};
-      for (const k of cel.getFields()) {
-        const val = cel.accessByName(0, k);
+      for (const k of getFields(cel)) {
+        const val = accessByName(cel, k as string);
         if (val instanceof CelError) {
           return val;
         } else if (val !== undefined) {
-          obj[k] = this.fromCel(val);
+          obj[k as string] = this.fromCel(val);
         }
       }
       return obj;
-    } else if (cel instanceof CelUint) {
+    } else if (isCelUint(cel)) {
       return cel.value;
     }
     return cel;
-  }
-
-  equals(lhs: unknown, rhs: unknown): boolean {
-    return lhs === rhs;
-  }
-
-  compare(lhs: unknown, rhs: unknown): number | undefined {
-    if (
-      (typeof lhs === "number" || typeof lhs === "bigint") &&
-      (typeof rhs === "number" || typeof rhs === "bigint")
-    ) {
-      if (typeof lhs !== typeof rhs) {
-        lhs = Number(lhs);
-        rhs = Number(rhs);
-      }
-      if (lhs === rhs) {
-        return 0;
-      }
-      return (lhs as number | bigint) < (rhs as number | bigint) ? -1 : 1;
-    } else if (
-      (typeof lhs === "string" && typeof rhs === "string") ||
-      (typeof lhs === "boolean" && typeof rhs === "boolean") ||
-      (lhs instanceof Uint8Array && rhs instanceof Uint8Array)
-    ) {
-      if (lhs === rhs) {
-        return 0;
-      }
-      return lhs < rhs ? -1 : 1;
-    }
-
-    return undefined;
-  }
-
-  getFields(value: object): string[] {
-    return Object.keys(value);
-  }
-
-  isSetByName(id: number, obj: unknown, name: string): boolean | CelError {
-    return this.accessByName(id, obj, name) !== undefined;
-  }
-
-  accessByName(id: number, obj: unknown, name: string) {
-    if (obj instanceof Map) {
-      return obj.get(name);
-    } else if (isCelVal(obj)) {
-      return CEL_ADAPTER.accessByName(id, obj, name);
-    } else if (obj instanceof Object) {
-      return obj[name as keyof typeof obj];
-    }
-    return undefined;
-  }
-
-  accessByIndex(id: number, obj: unknown, index: number | bigint) {
-    if (obj instanceof Array) {
-      return obj[Number(index)];
-    } else if (isCelVal(obj)) {
-      return CEL_ADAPTER.accessByIndex(id, obj, index);
-    } else if (obj instanceof Object) {
-      return obj[String(index) as keyof typeof obj];
-    } else if (obj instanceof Map) {
-      return obj.get(index);
-    }
-    return undefined;
   }
 }
 
