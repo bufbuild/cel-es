@@ -57,7 +57,7 @@ export function withEvalContext(
   next: Interpretable,
 ): Interpretable {
   return {
-    id: -1, // This will never be used.
+    id: next.id,
     eval(ctx) {
       const unset = setEvalContext(context);
       try {

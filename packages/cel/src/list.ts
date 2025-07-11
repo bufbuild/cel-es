@@ -42,8 +42,6 @@ export interface CelList extends Iterable<unknown> {
 /**
  * Create a new list from a native array or a ReflectList.
  */
-export function celList(array: readonly unknown[]): CelList;
-export function celList(reflectList: ReflectList): CelList;
 export function celList(
   arrayOrReflectList: readonly unknown[] | ReflectList,
 ): CelList {
