@@ -69,12 +69,12 @@ import {
   coerceToString,
   isCelMsg,
   isCelWrap,
-  ProtoNull,
 } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 import { accessByName, getFields } from "../field.js";
 import { celList, isCelList } from "../list.js";
 import { type CelMap, celMap, isCelMap } from "../map.js";
+import { isNullMessage, type NullMessage } from "../null.js";
 
 type ProtoValue =
   | CelVal
@@ -191,7 +191,7 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     messageSchema: DescMessage,
     val: CelResult,
-  ): ProtoNull | ReflectMessage | CelError {
+  ): NullMessage | ReflectMessage | CelError {
     const result = this.messageFromCel(id, messageSchema, val);
     return isMessage(result) ? reflect(messageSchema, result) : result;
   }
@@ -200,7 +200,7 @@ export class ProtoValAdapter implements CelValAdapter {
     id: number,
     messageSchema: DescMessage,
     val: CelResult,
-  ): ProtoNull | Message | ReflectMessage | CelError {
+  ): NullMessage | Message | ReflectMessage | CelError {
     if (val instanceof CelError) {
       return val;
     }
@@ -282,7 +282,7 @@ export class ProtoValAdapter implements CelValAdapter {
     if (val instanceof CelObject || isCelMap(val)) {
       return this.messageFromStruct(id, messageSchema, val);
     }
-    if (val instanceof ProtoNull) {
+    if (isNullMessage(val)) {
       return val;
     }
     throw new Error("not implemented.");
@@ -365,7 +365,7 @@ export class ProtoValAdapter implements CelValAdapter {
       if (val === undefined) {
         continue;
       }
-      if (val instanceof ProtoNull) {
+      if (isNullMessage(val)) {
         continue;
       }
       if (val instanceof CelError) {
@@ -376,7 +376,7 @@ export class ProtoValAdapter implements CelValAdapter {
         | ReflectMessage
         | ReflectList
         | ReflectMap
-        | ProtoNull
+        | NullMessage
         | CelError;
       switch (field.fieldKind) {
         case "enum":
@@ -398,7 +398,7 @@ export class ProtoValAdapter implements CelValAdapter {
       if (protoVal instanceof CelError) {
         return protoVal;
       }
-      if (protoVal instanceof ProtoNull) {
+      if (isNullMessage(protoVal)) {
         continue;
       }
       message.set(field, protoVal);
@@ -482,7 +482,7 @@ export class ProtoValAdapter implements CelValAdapter {
         if (celItem instanceof CelError) {
           return celItem;
         }
-        let protoItem: ScalarValue | ReflectMessage | ProtoNull | CelError;
+        let protoItem: ScalarValue | ReflectMessage | NullMessage | CelError;
         switch (field.listKind) {
           case "scalar":
             protoItem = this.scalarFromCel(id, field.scalar, celItem);
@@ -534,7 +534,6 @@ class ProtoMetadata {
   public readonly DEFAULT_PROTO: Message;
   public readonly DEFAULT_CEL: CelVal;
   public readonly TYPE: CelType;
-  NULL: ProtoNull;
 
   public readonly FIELDS: Map<string, DescField>;
   public readonly FIELD_NAMES: string[];
@@ -567,7 +566,6 @@ class ProtoMetadata {
       this.DEFAULT_CEL = new CelObject(this.DEFAULT_PROTO, adapter, this.TYPE);
     }
 
-    this.NULL = new ProtoNull(messageType.typeName, this.DEFAULT_CEL);
     this.FIELD_NAMES = messageType.fields.map((f) => f.name);
     this.FIELDS = new Map();
     for (const field of messageType.fields) {

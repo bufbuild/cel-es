@@ -19,7 +19,6 @@ import {
   CelType,
   makeStringExtFuncRegistry,
   ObjectActivation,
-  ProtoNull,
   type CelResult,
   isCelMap,
 } from "./index.js";
@@ -46,6 +45,7 @@ import { ProtoValAdapter } from "./adapter/proto.js";
 import { celList, isCelList } from "./list.js";
 import { celMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
+import { isNullMessage } from "./null.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -223,7 +223,7 @@ function celValueToValue(
     case "symbol":
       throw new Error(`unrecognised cel type: ${typeof value}`);
   }
-  if (value === null || value instanceof ProtoNull) {
+  if (value === null || isNullMessage(value)) {
     return { kind: { case: "nullValue", value: NullValue.NULL_VALUE } };
   }
   if (value instanceof Uint8Array) {

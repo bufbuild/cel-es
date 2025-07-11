@@ -38,6 +38,7 @@ import type { Timestamp } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "../list.js";
 import { type CelMap, isCelMap } from "../map.js";
 import { isCelUint, type CelUint } from "../uint.js";
+import { isNullMessage, type NullMessage } from "../null.js";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
@@ -181,7 +182,7 @@ export function isCelMsg(val: unknown): val is CelMsg {
 /** All types Cel understands natively */
 export type CelVal =
   | null
-  | ProtoNull
+  | NullMessage
   | CelPrim
   | CelMsg
   | CelMap
@@ -192,7 +193,7 @@ export type CelVal =
 export function isCelVal(val: unknown): val is CelVal {
   return (
     val === null ||
-    val instanceof ProtoNull ||
+    isNullMessage(val) ||
     isCelPrim(val) ||
     isCelMsg(val) ||
     isCelList(val) ||
@@ -209,15 +210,6 @@ export interface Unwrapper<V = unknown> {
 export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
-}
-
-// proto3 has typed nulls.
-export class ProtoNull {
-  constructor(
-    public readonly messageTypeName: string,
-    public readonly defaultValue: CelVal,
-    public readonly value: CelVal = null,
-  ) {}
 }
 
 export class CelObject {
@@ -341,7 +333,7 @@ export function coerceToBigInt(
 ): CelResult<bigint> {
   if (val instanceof CelError) {
     return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
+  } else if (val === undefined || val === null) {
     return 0n;
   } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
@@ -360,7 +352,7 @@ export function coerceToNumber(
 ): CelResult<number> {
   if (val instanceof CelError) {
     return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
+  } else if (val === undefined || val === null) {
     return 0;
   } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
@@ -379,7 +371,7 @@ export function coerceToString(
 ): CelResult<string> {
   if (val instanceof CelError) {
     return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
+  } else if (val === undefined || val === null) {
     return "";
   } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
@@ -396,7 +388,7 @@ export function coerceToBytes(
 ): CelResult<Uint8Array> {
   if (val instanceof CelError) {
     return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
+  } else if (val === undefined || val === null) {
     return new Uint8Array();
   } else if (isCelWrap(val) || isCelUint(val)) {
     val = val.value;
