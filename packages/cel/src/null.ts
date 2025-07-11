@@ -17,8 +17,6 @@ import { reflect, type ReflectMessage } from "@bufbuild/protobuf/reflect";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/null");
 
-// TODO(srikrsna): Do we need a WeakMap? DescMessages are global, and should not be GCed.
-// A regular map might suffice, unless weakmap removes keys irrespective of GC.
 const cache = new WeakMap<DescMessage, NullMessageImpl>();
 
 /**
