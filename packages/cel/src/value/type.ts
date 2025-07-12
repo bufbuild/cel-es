@@ -26,17 +26,12 @@ import {
   UInt64ValueSchema,
 } from "@bufbuild/protobuf/wkt";
 
-import {
-  CelObject,
-  type CelVal,
-  CelType,
-  ConcreteType,
-  WrapperType,
-} from "./value.js";
+import { type CelVal, CelType, ConcreteType, WrapperType } from "./value.js";
 import { isCelList } from "../list.js";
 import { isCelMap } from "../map.js";
 import { celUint, isCelUint } from "../uint.js";
 import { isNullMessage } from "../null.js";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
 export const DYN = new CelType("dyn");
 export const NULL = new ConcreteType("null_type", null);
@@ -131,10 +126,10 @@ export function getCelType(val: CelVal): CelType {
         return UINT;
       } else if (isCelMap(val)) {
         return DYN_MAP;
-      } else if (val instanceof CelObject) {
-        return val.type_;
       } else if (val instanceof CelType) {
         return new TypeType(val);
+      } else if (isReflectMessage(val)) {
+        return new CelType(val.desc.typeName);
       }
       break;
     default:

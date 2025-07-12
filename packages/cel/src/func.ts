@@ -29,6 +29,8 @@ import {
 import { isMessage } from "@bufbuild/protobuf";
 import { isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
+import { fromCel, toCel } from "./value.js";
 
 export interface CallDispatch {
   dispatch(
@@ -66,10 +68,12 @@ export class Func implements CallDispatch {
       }
       const checkedVals = [];
       for (let i = 0; i < vals.length; i++) {
-        if (!isOfType(vals[i], overload.parameters[i])) {
+        // TODO(srikrnsa): Remove this once code is updated to use `toCel` once.
+        const celValue = toCel(vals[i]);
+        if (!isOfType(celValue, overload.parameters[i])) {
           break;
         }
-        checkedVals.push(vals[i]);
+        checkedVals.push(fromCel(celValue));
       }
       if (checkedVals.length === vals.length) {
         try {
@@ -175,7 +179,7 @@ function isOfType(
           return false;
       }
     }
-    return isMessage(val, type);
+    return isMessage(val, type) || isReflectMessage(val, type);
   }
   // Must be a scalar
   switch (type) {

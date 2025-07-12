@@ -12,16 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { accessByName, getFields } from "../field.js";
 import { isOverflowInt, isOverflowUint } from "../std/math.js";
 import * as type from "../value/type.js";
-import {
-  type CelVal,
-  CelError,
-  type CelValAdapter,
-  CelObject,
-  CelErrors,
-} from "../value/value.js";
+import { type CelVal, type CelValAdapter, CelErrors } from "../value/value.js";
 import { type CelResult } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
 import { isCelList } from "../list.js";
@@ -58,20 +51,6 @@ class NativeValAdapter implements CelValAdapter {
           this.fromCel(v as CelVal),
         ]),
       );
-    } else if (cel instanceof CelObject) {
-      if (cel.adapter === this) {
-        return cel.value;
-      }
-      const obj: { [key: string]: unknown } = {};
-      for (const k of getFields(cel)) {
-        const val = accessByName(cel, k as string);
-        if (val instanceof CelError) {
-          return val;
-        } else if (val !== undefined) {
-          obj[k as string] = this.fromCel(val);
-        }
-      }
-      return obj;
     } else if (isCelUint(cel)) {
       return cel.value;
     }

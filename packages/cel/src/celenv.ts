@@ -37,12 +37,7 @@ import {
 import { OrderedDispatcher, type Dispatcher } from "./func.js";
 import { Planner, type Interpretable } from "./planner.js";
 import { STD_FUNCS } from "./std/std.js";
-import {
-  CelError,
-  CelObject,
-  isCelVal,
-  type CelResult,
-} from "./value/value.js";
+import { CelError, isCelVal, type CelResult } from "./value/value.js";
 import { Namespace } from "./value/namespace.js";
 import {
   isReflectList,
@@ -105,9 +100,6 @@ export class CelPlanner {
           let val = interpretable.eval(ctx);
           if (val instanceof CelError) {
             return val;
-          }
-          if (val instanceof CelObject) {
-            val = val.value as CelResult;
           }
           return fromCel(toCel(val as CelInput)) as CelResult;
         },

@@ -14,7 +14,6 @@
 
 import {
   CelError,
-  CelObject,
   CelPlanner,
   CelType,
   makeStringExtFuncRegistry,
@@ -40,7 +39,6 @@ import { parse } from "./parser.js";
 import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
-import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { celList, isCelList } from "./list.js";
 import { celMap } from "./map.js";
@@ -257,12 +255,6 @@ function celValueToValue(
         },
       },
     };
-  }
-  if (value instanceof CelObject) {
-    value = value.value;
-  }
-  if (isReflectMessage(value)) {
-    value = value.message;
   }
   if (isMessage(value)) {
     const desc = registry.getMessage(value.$typeName);
