@@ -14,18 +14,14 @@
 
 import { isCelList } from "./list.js";
 import {
-  type CelValueType,
-  type TypeOf,
-  type TupleTypeOf,
+  type CelType,
+  type CelOutputTuple,
   CelScalar,
+  type CelOutput,
+  isCelType,
 } from "./type.js";
 import { unwrapResults } from "./value/adapter.js";
-import {
-  type CelResult,
-  type CelVal,
-  CelError,
-  type Unwrapper,
-} from "./value/value.js";
+import { type CelResult, type CelVal, CelError } from "./value/value.js";
 import { isMessage } from "@bufbuild/protobuf";
 import { isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
@@ -33,11 +29,7 @@ import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { fromCel, toCel } from "./value.js";
 
 export interface CallDispatch {
-  dispatch(
-    id: number,
-    args: CelResult[],
-    unwrap: Unwrapper,
-  ): CelResult | undefined;
+  dispatch(id: number, args: CelResult[]): CelResult | undefined;
 }
 
 export interface Dispatcher {
@@ -47,18 +39,11 @@ export interface Dispatcher {
 export class Func implements CallDispatch {
   constructor(
     public readonly name: string,
-    public readonly overloads: FuncOverload<
-      readonly CelValueType[],
-      CelValueType
-    >[],
+    public readonly overloads: FuncOverload<readonly CelType[], CelType>[],
   ) {}
 
-  dispatch(
-    id: number,
-    args: CelResult[],
-    unwrap: Unwrapper,
-  ): CelResult | undefined {
-    const vals = unwrapResults(args, unwrap);
+  dispatch(id: number, args: CelResult[]): CelResult | undefined {
+    const vals = unwrapResults(args);
     if (vals instanceof CelError) {
       return vals;
     }
@@ -94,13 +79,13 @@ export class Func implements CallDispatch {
 }
 
 export class FuncOverload<
-  const P extends readonly CelValueType[],
-  const R extends CelValueType,
+  const P extends readonly CelType[],
+  const R extends CelType,
 > {
   constructor(
     public readonly parameters: P,
     public readonly result: R,
-    public readonly impl: (...args: TupleTypeOf<P>) => TypeOf<R>,
+    public readonly impl: (...args: CelOutputTuple<P>) => CelOutput<R>,
   ) {}
 }
 
@@ -164,42 +149,38 @@ export class OrderedDispatcher implements Dispatcher {
   }
 }
 
-function isOfType(
+function isOfType<T extends CelType>(
   val: unknown,
-  type: CelValueType,
-): val is TypeOf<CelValueType> {
-  if (typeof type === "object") {
-    if ("type" in type) {
-      switch (type.type) {
-        case "list":
-          return isCelList(val);
-        case "map":
-          return isCelMap(val);
-        default:
-          return false;
+  type: T,
+): val is CelOutput<T> {
+  switch (type.kind) {
+    case "list":
+      return isCelList(val);
+    case "map":
+      return isCelMap(val);
+    case "object":
+      return isMessage(val, type.desc) || isReflectMessage(val, type.desc);
+    case "type":
+      return isCelType(val);
+    case "scalar":
+      switch (type) {
+        case CelScalar.DYN:
+          return true;
+        case CelScalar.INT:
+          return typeof val === "bigint";
+        case CelScalar.UINT:
+          return isCelUint(val);
+        case CelScalar.BOOL:
+          return typeof val === "boolean";
+        case CelScalar.DOUBLE:
+          return typeof val === "number";
+        case CelScalar.NULL:
+          return val === null;
+        case CelScalar.STRING:
+          return typeof val === "string";
+        case CelScalar.BYTES:
+          return val instanceof Uint8Array;
       }
-    }
-    return isMessage(val, type) || isReflectMessage(val, type);
   }
-  // Must be a scalar
-  switch (type) {
-    case CelScalar.ANY:
-      return true;
-    case CelScalar.INT:
-      return typeof val === "bigint";
-    case CelScalar.UINT:
-      return isCelUint(val);
-    case CelScalar.BOOL:
-      return typeof val === "boolean";
-    case CelScalar.DOUBLE:
-      return typeof val === "number";
-    case CelScalar.NULL:
-      return val === null;
-    case CelScalar.STRING:
-      return typeof val === "string";
-    case CelScalar.BYTES:
-      return val instanceof Uint8Array;
-    default:
-      return false;
-  }
+  return false;
 }

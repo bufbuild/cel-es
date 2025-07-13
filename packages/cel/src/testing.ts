@@ -15,7 +15,6 @@
 import {
   CelError,
   CelPlanner,
-  CelType,
   makeStringExtFuncRegistry,
   ObjectActivation,
   type CelResult,
@@ -44,6 +43,8 @@ import { celList, isCelList } from "./list.js";
 import { celMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { isNullMessage } from "./null.js";
+import { CelScalar, isCelType, listType, mapType, objectType } from "./type.js";
+import { getMsgDesc } from "./eval.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -230,7 +231,7 @@ function celValueToValue(
   if (isCelUint(value)) {
     return { kind: { case: "uint64Value", value: value.value } };
   }
-  if (value instanceof CelType) {
+  if (isCelType(value)) {
     return { kind: { case: "typeValue", value: value.name } };
   }
   if (isCelList(value)) {
@@ -297,7 +298,7 @@ function valueToCelValue(value: Value, registry: Registry): unknown {
       return celMap(map);
     }
     case "typeValue":
-      return new CelType(value.kind.value);
+      return lookupType(value.kind.value);
     case "enumValue":
       return BigInt(value.kind.value.value);
     default:
@@ -339,4 +340,31 @@ function sortMapValue(value: MapValue) {
     }
     throw new Error(`invalid MapValue key: ${a.key?.kind.case}`);
   });
+}
+
+function lookupType(name: string) {
+  switch (name) {
+    case "int":
+      return CelScalar.INT;
+    case "uint":
+      return CelScalar.UINT;
+    case "double":
+      return CelScalar.DOUBLE;
+    case "bool":
+      return CelScalar.BOOL;
+    case "string":
+      return CelScalar.STRING;
+    case "bytes":
+      return CelScalar.BYTES;
+    case "list":
+      return listType(CelScalar.DYN);
+    case "map":
+      return mapType(CelScalar.DYN, CelScalar.DYN);
+    case "null_type":
+      return CelScalar.NULL;
+    case "type":
+      return CelScalar.TYPE;
+    default:
+      return objectType(getMsgDesc(name));
+  }
 }

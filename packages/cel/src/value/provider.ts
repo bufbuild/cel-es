@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type CelValAdapter, CelType, type CelResult } from "./value.js";
+import type { CelType } from "../type.js";
+import { type CelValAdapter, type CelResult } from "./value.js";
 
 export interface CelValProvider<V = any> {
   /** The adapter used to produce values from this provider. */

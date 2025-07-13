@@ -22,17 +22,22 @@ import {
 } from "@bufbuild/protobuf/reflect";
 
 import { type CelValProvider } from "../value/provider.js";
-import * as type from "../value/type.js";
 import {
   type CelResult,
-  CelType,
   type CelVal,
   type CelValAdapter,
   isCelMsg,
-  isCelWrap,
 } from "../value/value.js";
-import { CEL_ADAPTER } from "./cel.js";
 import { toCel } from "../value.js";
+import {
+  CelScalar,
+  DURATION,
+  listType,
+  mapType,
+  objectType,
+  TIMESTAMP,
+  type CelType,
+} from "../type.js";
 
 type ProtoValue =
   | CelVal
@@ -52,13 +57,6 @@ export function isProtoMsg(val: unknown): val is Message {
 export class ProtoValAdapter implements CelValAdapter {
   constructor(public readonly registry: Registry) {}
 
-  unwrap(val: ProtoValue): ProtoValue {
-    if (isCelWrap(val)) {
-      return CEL_ADAPTER.unwrap(val);
-    }
-    return val;
-  }
-
   toCel(native: ProtoValue | ReflectMessage): CelResult {
     return toCel(native);
   }
@@ -72,12 +70,43 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
   constructor(public adapter: ProtoValAdapter) {}
 
   findType(candidate: string): CelType | undefined {
-    const result = type.WK_PROTO_TYPES.get(candidate);
-    if (result !== undefined) {
-      return result;
+    switch (candidate) {
+      case "google.protobuf.Value":
+        return CelScalar.DYN;
+      case "google.protobuf.Struct":
+        return mapType(CelScalar.STRING, CelScalar.DYN);
+      case "google.protobuf.ListValue":
+        return listType(CelScalar.DYN);
+      case "google.protobuf.NullValue":
+        return CelScalar.NULL;
+      case "google.protobuf.BoolValue":
+        return CelScalar.BOOL;
+      case "google.protobuf.UInt32Value":
+        return CelScalar.UINT;
+      case "google.protobuf.UInt64Value":
+        return CelScalar.UINT;
+      case "google.protobuf.Int32Value":
+        return CelScalar.INT;
+      case "google.protobuf.Int64Value":
+        return CelScalar.INT;
+      case "google.protobuf.FloatValue":
+        return CelScalar.DOUBLE;
+      case "google.protobuf.DoubleValue":
+        return CelScalar.DOUBLE;
+      case "google.protobuf.StringValue":
+        return CelScalar.STRING;
+      case "google.protobuf.BytesValue":
+        return CelScalar.BYTES;
+      case "google.protobuf.Timestamp":
+        return TIMESTAMP;
+      case "google.protobuf.Duration":
+        return DURATION;
+      case "google.protobuf.Any":
+        return CelScalar.DYN;
     }
-    if (this.adapter.registry.getMessage(candidate) !== undefined) {
-      return new CelType(candidate);
+    const desc = this.adapter.registry.getMessage(candidate);
+    if (desc !== undefined) {
+      return objectType(desc);
     }
     return undefined;
   }
@@ -97,25 +126,25 @@ export class ProtoValProvider implements CelValProvider<ProtoValue> {
     }
     switch (ident) {
       case "int":
-        return type.INT;
+        return CelScalar.INT;
       case "uint":
-        return type.UINT;
+        return CelScalar.UINT;
       case "double":
-        return type.DOUBLE;
+        return CelScalar.DOUBLE;
       case "bool":
-        return type.BOOL;
+        return CelScalar.BOOL;
       case "string":
-        return type.STRING;
+        return CelScalar.STRING;
       case "bytes":
-        return type.BYTES;
+        return CelScalar.BYTES;
       case "list":
-        return type.LIST;
+        return listType(CelScalar.DYN);
       case "map":
-        return type.DYN_MAP;
+        return mapType(CelScalar.DYN, CelScalar.DYN);
       case "null_type":
-        return type.NULL;
+        return CelScalar.NULL;
       case "type":
-        return type.TYPE;
+        return CelScalar.TYPE;
       default:
         return undefined;
     }

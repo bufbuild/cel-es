@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import type { Any } from "@bufbuild/protobuf/wkt";
-import type * as type from "./value/type.js";
-import type { CelType, CelVal } from "./value/value.js";
+import type { CelVal } from "./value/value.js";
+import type { CelScalar, CelType } from "./type.js";
 
 export function invalidArgument(func: string, issue: string) {
   return new Error(`invalid argument to function ${func}: ${issue}`);
@@ -61,11 +61,11 @@ export function badDuration(_seconds: bigint, _nanos: number) {
 }
 
 export function badIndexAccess(type: CelType) {
-  return new Error(`index access not supported for ${type.fullname()}`);
+  return new Error(`index access not supported for ${type}`);
 }
 
-export function badStringAccess(typ: CelType) {
-  return new Error(`${typ.fullname()} cannot be accessed by string`);
+export function badStringAccess(type: CelType) {
+  return new Error(`${type} cannot be accessed by string`);
 }
 
 export function mapKeyConflict(key: CelVal) {
@@ -110,15 +110,18 @@ export function moduloByZero(type: NumType) {
 }
 
 export function overflow(op: string, type: CelType) {
-  return new Error(`${type.name} return error for overflow during ${op}`);
+  return new Error(`${type} return error for overflow during ${op}`);
 }
 
 export function overloadNotFound(name: string, types: CelType[]) {
   return new Error(
     `found no matching overload for '${name}' applied to '(${types
-      .map((x) => x.name)
+      .map((x) => x.toString())
       .join(", ")})'`,
   );
 }
 
-type NumType = typeof type.INT | typeof type.UINT | typeof type.DOUBLE;
+type NumType =
+  | typeof CelScalar.INT
+  | typeof CelScalar.UINT
+  | typeof CelScalar.DOUBLE;

@@ -12,19 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { celUint, isCelUint, type CelUint } from "./uint.js";
+import { celUint, isCelUint } from "./uint.js";
 import { celMap, isCelMap, type CelMap } from "./map.js";
 import { celList, isCelList, type CelList } from "./list.js";
-import { isNullMessage, type NullMessage } from "./null.js";
-import { CelType } from "./value/value.js";
+import { isNullMessage } from "./null.js";
 import {
   isReflectList,
   isReflectMap,
   isReflectMessage,
   reflect,
-  type ReflectList,
-  type ReflectMap,
-  type ReflectMessage,
   type ScalarValue,
 } from "@bufbuild/protobuf/reflect";
 import { isMessage, type Message } from "@bufbuild/protobuf";
@@ -43,51 +39,12 @@ import {
   type Struct,
   type Value,
 } from "@bufbuild/protobuf/wkt";
-
-/**
- * Represents any CEL value.
- *
- * This is not exported. This is the type that all internal functions
- * like `equals` expect and operate on.
- */
-export type CelValue =
-  | number // double
-  | bigint // int
-  | CelUint // uint
-  | string // string
-  | boolean // bool
-  | Uint8Array // bytes
-  | CelMap // map
-  | CelList // list
-  | null // null_type
-  | NullMessage // null_type
-  | CelType // type;
-  | ReflectMessage; // <typeName> | timestamp | duration
-
-/**
- * Values that can be converted to a CelValue.
- */
-export type CelInput =
-  | CelValue // It can match the exact type of the internal value.
-  | { [key: string]: CelInput } // map
-  | ReflectMap // map
-  | ReadonlyMap<string | bigint | boolean | CelUint, CelInput> // map
-  | readonly CelInput[] // list
-  | ReflectList // list
-  | Message; // <typeName>
-
-export type CelOutput =
-  | number // double
-  | bigint // int
-  | CelUint // uint
-  | string // string
-  | boolean // bool
-  | Uint8Array // bytes
-  | CelMap // map
-  | CelList // list
-  | null // null_type
-  | CelType // type;
-  | Message; // <typeName>
+import {
+  type CelInput,
+  type CelOutput,
+  type CelValue,
+  isCelType,
+} from "./type.js";
 
 /**
  * Converts a CelInput to a CelValue.
@@ -111,13 +68,13 @@ export function toCel(v: CelInput): CelValue {
     case isCelMap(v):
     case isCelUint(v):
     case isNullMessage(v):
-    case v instanceof CelType:
+    case isCelType(v):
       return v;
   }
   if (isArray(v) || isReflectList(v)) {
     return celList(v);
   }
-  if (v instanceof Map || isReflectMap(v)) {
+  if (isMap(v) || isReflectMap(v)) {
     return celMap(v);
   }
   if (isMessage(v)) {
@@ -163,7 +120,7 @@ export function fromCel(v: CelValue): CelOutput {
     case isCelList(v):
     case isCelMap(v):
     case isCelUint(v):
-    case v instanceof CelType:
+    case isCelType(v):
       return v;
   }
   let msg = v.message;
@@ -183,6 +140,10 @@ export function fromCel(v: CelValue): CelOutput {
 
 function isArray(v: unknown): v is readonly unknown[] {
   return Array.isArray(v);
+}
+
+function isMap(v: unknown): v is ReadonlyMap<unknown, unknown> {
+  return v instanceof Map;
 }
 
 function wktToCel(msg: Message) {

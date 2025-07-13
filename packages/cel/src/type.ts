@@ -12,117 +12,317 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { DescMessage, MessageShape } from "@bufbuild/protobuf";
-import type { CelType, CelVal } from "./value/value.js";
-import type { CelList } from "./list.js";
-import type { CelMap } from "./map.js";
-import type { CelUint } from "./uint.js";
+import type { DescMessage, Message, MessageShape } from "@bufbuild/protobuf";
+import { isCelList, type CelList } from "./list.js";
+import { isCelMap, type CelMap } from "./map.js";
+import { isCelUint, type CelUint } from "./uint.js";
+import { isNullMessage, type NullMessage } from "./null.js";
+import {
+  isReflectMessage,
+  type ReflectList,
+  type ReflectMap,
+  type ReflectMessage,
+} from "@bufbuild/protobuf/reflect";
+import { TimestampSchema, DurationSchema } from "@bufbuild/protobuf/wkt";
+
+const privateSymbol = Symbol.for("@bufbuild/cel/type");
 
 /**
  * Types of CEL values.
  *
  * Ref: https://github.com/google/cel-spec/blob/master/doc/langdef.md#values
  */
-export type CelValueType =
-  | CelScalar
-  | CelListValueType
-  | CelMapValueType
-  | DescMessage;
+export type CelType =
+  | CelListType
+  | CelMapType
+  | CelObjectType
+  | CelTypeType
+  | CelScalarType;
 
 /**
  * Scalar CEL value types.
  */
-export enum CelScalar {
-  INT,
-  UINT,
-  BOOL,
-  STRING,
-  BYTES,
-  DOUBLE,
-  NULL,
-  ANY,
-  TYPE,
-}
+// biome-ignore format: indented for readability
+export const CelScalar = {
+ INT:     celScalarType("int"),
+ UINT:    celScalarType("uint"),
+ BOOL:    celScalarType("bool"),
+ STRING:  celScalarType("string"),
+ BYTES:   celScalarType("bytes"),
+ DOUBLE:  celScalarType("double"),
+ NULL:    celScalarType("null_type"),
+ DYN:     celScalarType("dyn"),
+ TYPE:    celScalarType("type"),
+} as const;
+
+/**
+ * Represents a CEL scalar type.
+ */
+export type CelScalarType = (typeof CelScalar)[keyof typeof CelScalar];
 
 /**
  * Represents a CEL list type.
  */
-export interface CelListValueType<E extends CelValueType = CelValueType> {
-  readonly type: "list";
+export interface CelListType<E extends CelType = CelType>
+  extends celTypeShared {
+  readonly kind: "list";
   readonly element: E;
+  readonly name: "list";
 }
 
 /**
  * Represents a CEL map type.
  */
-export interface CelMapValueType<
-  K extends mapKeyValueTypes = mapKeyValueTypes,
-  V extends CelValueType = CelValueType,
-> {
-  readonly type: "map";
+export interface CelMapType<
+  K extends mapKeyType = mapKeyType,
+  V extends CelType = CelType,
+> extends celTypeShared {
+  readonly kind: "map";
   readonly key: K;
   readonly value: V;
+  readonly name: "map";
 }
 
 /**
- * Creates a new CelMapValueType.
+ * Represents a CEL type.
+ */
+export interface CelTypeType<T extends CelType = CelType>
+  extends celTypeShared {
+  readonly kind: "type";
+  readonly type: T;
+  readonly name: "type";
+}
+
+export interface CelObjectType<Desc extends DescMessage = DescMessage>
+  extends celTypeShared {
+  readonly kind: "object";
+  readonly desc: Desc;
+  readonly name: Desc["typeName"];
+}
+
+interface celTypeShared {
+  [privateSymbol]: unknown;
+  /**
+   * Runtime type name of the type. Used for equality check.
+   */
+  readonly name: string;
+  toString(): string;
+}
+
+/**
+ * Represents the CEL type google.protobuf.Timestamp.
+ */
+export const TIMESTAMP = objectType(TimestampSchema);
+
+/**
+ * Represents the CEL type google.protobuf.Duration.
+ */
+export const DURATION = objectType(DurationSchema);
+
+/**
+ * Creates a new CelMapType.
  */
 export function mapType<
-  const K extends CelMapValueType["key"],
-  const V extends CelValueType,
->(key: K, value: V): CelMapValueType<K, V> {
-  return { type: "map", key, value } as const;
+  const K extends CelMapType["key"],
+  const V extends CelType,
+>(key: K, value: V): CelMapType<K, V> {
+  return {
+    [privateSymbol]: {},
+    kind: "map",
+    key,
+    value,
+    name: "map",
+    toString() {
+      return `map(${key}, ${value})`;
+    },
+  };
 }
 
 /**
- * Creates a new CelListValueType.
+ * Creates a new CelListType.
  */
-export function listType<const E extends CelListValueType["element"]>(
+export function listType<const E extends CelListType["element"]>(
   element: E,
-): CelListValueType<E> {
-  return { type: "list", element } as const;
+): CelListType<E> {
+  return {
+    [privateSymbol]: {},
+    kind: "list",
+    element,
+    name: "list",
+    toString() {
+      return `list(${element})`;
+    },
+  };
 }
 
-type mapKeyValueTypes =
-  | CelScalar.INT
-  | CelScalar.UINT
-  | CelScalar.BOOL
-  | CelScalar.STRING;
+/**
+ * Creates a new CelTypeType
+ */
+export function typeType<const T extends CelType>(type: T): CelTypeType<T> {
+  return {
+    [privateSymbol]: {},
+    kind: "type",
+    type,
+    name: "type",
+    toString() {
+      return "type";
+    },
+  };
+}
+
+/**
+ * Creates a new CelObjectType.
+ */
+export function objectType<const Desc extends DescMessage>(
+  desc: Desc,
+): CelObjectType<Desc> {
+  return {
+    [privateSymbol]: {},
+    kind: "object",
+    desc,
+    name: desc.typeName,
+    toString() {
+      return desc.name;
+    },
+  };
+}
+
+function celScalarType<
+  const S extends
+    | "int"
+    | "uint"
+    | "bool"
+    | "string"
+    | "bytes"
+    | "double"
+    | "null_type"
+    | "dyn"
+    | "type",
+>(scalar: S) {
+  return {
+    [privateSymbol]: {},
+    kind: "scalar",
+    scalar,
+    name: scalar,
+    toString() {
+      return scalar;
+    },
+  } as const;
+}
+
+type mapKeyType =
+  | typeof CelScalar.INT
+  | typeof CelScalar.UINT
+  | typeof CelScalar.BOOL
+  | typeof CelScalar.STRING
+  | typeof CelScalar.DYN;
+
+/**
+ * Internal representation of CEL values according to their type.
+ */
+// biome-ignore format: Ternaries
+export type CelValue<T extends CelType = CelType> = 
+  T extends typeof CelScalar.DYN ? celValue : celValue<T>; // Avoids the infinite recursion.
 
 // biome-ignore format: Ternaries
-export type TypeOf<T extends CelValueType> =
-  T extends CelScalar.TYPE
-  ? CelType :
-  T extends CelScalar.ANY
-  ? CelVal :
-  T extends CelScalar.INT
-  ? bigint :
-  T extends CelScalar.UINT
-  ? CelUint :
-  T extends CelScalar.DOUBLE
-  ? number :
-  T extends CelScalar.BOOL
-  ? boolean :
-  T extends CelScalar.STRING
-  ? string :
-  T extends CelScalar.BYTES
-  ? Uint8Array :
-  T extends CelScalar.NULL
-  ? null :
-  T extends CelListValueType
-  ? CelList :
-  T extends CelMapValueType<infer K, infer V>
-  ? CelMap :
-  T extends DescMessage
-  ? MessageShape<T> :
-  T;
+type celValue<T extends CelType = CelType> = 
+    T extends typeof CelScalar.TYPE    ? CelType
+  : T extends typeof CelScalar.INT     ? bigint
+  : T extends typeof CelScalar.UINT    ? CelUint
+  : T extends typeof CelScalar.DOUBLE  ? number
+  : T extends typeof CelScalar.BOOL    ? boolean
+  : T extends typeof CelScalar.STRING  ? string
+  : T extends typeof CelScalar.BYTES   ? Uint8Array
+  : T extends typeof CelScalar.NULL    ? null | NullMessage
+  : T extends CelListType              ? CelList
+  : T extends CelMapType               ? CelMap
+  : T extends CelTypeType              ? CelType
+  : T extends CelObjectType            ? ReflectMessage
+  : never;
+
+/**
+ * Values that are accepted as CEL values.
+ */
+// biome-ignore format: Ternaries
+export type CelInput<T extends CelType = CelType> = 
+  T extends typeof CelScalar.DYN ? celInput : celInput<T>; // Avoids the infinite recursion.
 
 // biome-ignore format: Ternaries
-export type TupleTypeOf<T extends readonly CelValueType[]> =
+type celInput<T extends CelType = CelType> = 
+    T extends CelListType       ? CelList | readonly celInput[] | ReflectList
+  : T extends CelMapType        ? CelMap  | ReadonlyMap<celInput<mapKeyType>, celInput> | ReflectMap | { [key: string]: celInput } 
+  : T extends CelObjectType     ? ReflectMessage | Message
+  : celValue<T>;
+
+/**
+ * Outputs types of CEL values.
+ */
+// biome-ignore format: Ternaries
+export type CelOutput<T extends CelType = CelType> = 
+  T extends typeof CelScalar.DYN ? celOutput : celOutput<T>; // Avoids the infinite recursion.
+
+// biome-ignore format: Ternaries
+type celOutput<T extends CelType = CelType> = 
+    T extends typeof CelScalar.NULL     ? null
+  : T extends CelObjectType<infer Desc> ? MessageShape<Desc>
+  : celValue<T>;
+
+// biome-ignore format: Ternaries
+export type CelOutputTuple<T extends readonly CelType[]> =
   T extends readonly [
-    infer First extends CelValueType,
-    ...infer Rest extends CelValueType[],
+    infer First extends CelType,
+    ...infer Rest extends CelType[],
   ]
-    ? [TypeOf<First>, ...TupleTypeOf<Rest>]
-    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of TupleTypeOf<CelValueType[]>     
-    : CelValueType[] extends T ? any[] : [];
+    ? [CelOutput<First>, ...CelOutputTuple<Rest>]
+    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>     
+    : CelType[] extends T ? any[] : [];
+
+/**
+ * Get the CELType of a CelValue.
+ */
+export function celType(v: CelValue): CelType {
+  switch (typeof v) {
+    case "bigint":
+      return CelScalar.INT;
+    case "boolean":
+      return CelScalar.BOOL;
+    case "number":
+      return CelScalar.DOUBLE;
+    case "string":
+      return CelScalar.STRING;
+    case "object":
+      switch (true) {
+        case v === null:
+        case isNullMessage(v):
+          return CelScalar.NULL;
+        case v instanceof Uint8Array:
+          return CelScalar.BYTES;
+        case isReflectMessage(v):
+          return objectType(v.desc);
+        case isCelList(v):
+          return listType(CelScalar.DYN);
+        case isCelMap(v):
+          return mapType(CelScalar.DYN, CelScalar.DYN);
+        case isCelUint(v):
+          return CelScalar.UINT;
+        default:
+          // This can also be a case statement, but TS fails to
+          // narrow the type.
+          if (isObjectCelType(v)) {
+            return typeType(v);
+          }
+      }
+  }
+  throw new Error(`Not a CEL value: ${v}`);
+}
+
+/**
+ * Returns true if the given value is a CelType.
+ */
+export function isCelType(v: unknown): v is CelType {
+  return typeof v === "object" && v !== null && isObjectCelType(v);
+}
+
+export function isObjectCelType(v: NonNullable<object>): v is CelType {
+  return privateSymbol in v;
+}

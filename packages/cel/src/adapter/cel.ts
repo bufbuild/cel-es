@@ -16,7 +16,6 @@ import {
   type CelValAdapter,
   type CelResult,
   type CelVal,
-  isCelWrap,
 } from "../value/value.js";
 
 /** How CelVal are converted (noop), compared, and accessed. */
@@ -26,13 +25,6 @@ export class CelAdapter implements CelValAdapter<CelVal> {
   }
   fromCel(cel: CelResult) {
     return cel;
-  }
-
-  unwrap(val: CelVal): CelVal {
-    if (isCelWrap(val)) {
-      return val.value;
-    }
-    return val;
   }
 }
 

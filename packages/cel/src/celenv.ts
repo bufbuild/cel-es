@@ -45,7 +45,8 @@ import {
   isReflectMessage,
 } from "@bufbuild/protobuf/reflect";
 import { withEvalContext } from "./eval.js";
-import { toCel, fromCel, type CelInput } from "./value.js";
+import { toCel, fromCel } from "./value.js";
+import type { CelInput } from "./type.js";
 
 /**
  * A CEL parser interface

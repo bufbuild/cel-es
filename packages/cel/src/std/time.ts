@@ -13,13 +13,12 @@
 // limitations under the License.
 
 import {
-  DurationSchema,
   timestampDate,
   TimestampSchema,
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import { CelScalar } from "../type.js";
+import { CelScalar, TIMESTAMP, DURATION } from "../type.js";
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { toJson } from "@bufbuild/protobuf";
@@ -163,12 +162,12 @@ type TimeFunc = (date: Date) => number;
 
 const getFullYearFunc = new Func(olc.TIME_GET_FULL_YEAR, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getFullYear()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getFullYear()),
   ),
@@ -176,12 +175,12 @@ const getFullYearFunc = new Func(olc.TIME_GET_FULL_YEAR, [
 
 const getMonthFunc = new Func(olc.TIME_GET_MONTH, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getMonth()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getMonth()),
   ),
@@ -189,12 +188,12 @@ const getMonthFunc = new Func(olc.TIME_GET_MONTH, [
 
 const getDateFunc = new Func(olc.TIME_GET_DATE, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getDate()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getDate()),
   ),
@@ -202,12 +201,12 @@ const getDateFunc = new Func(olc.TIME_GET_DATE, [
 
 const getDayOfMonthFunc = new Func(olc.TIME_GET_DAY_OF_MONTH, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getDate() - 1),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getDate() - 1),
   ),
@@ -215,12 +214,12 @@ const getDayOfMonthFunc = new Func(olc.TIME_GET_DAY_OF_MONTH, [
 
 const getDayOfWeekFunc = new Func(olc.TIME_GET_DAY_OF_WEEK, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getDay()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getDay()),
   ),
@@ -228,12 +227,12 @@ const getDayOfWeekFunc = new Func(olc.TIME_GET_DAY_OF_WEEK, [
 
 const getDayOfYearFunc = new Func(olc.TIME_GET_DAY_OF_YEAR, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => getDayOfYear(d)),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => getDayOfYear(d)),
   ),
@@ -241,63 +240,59 @@ const getDayOfYearFunc = new Func(olc.TIME_GET_DAY_OF_YEAR, [
 
 const getSecondsFunc = new Func(olc.TIME_GET_SECONDS, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getSeconds()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getSeconds()),
   ),
-  new FuncOverload([DurationSchema], CelScalar.INT, (dur) => dur.seconds),
+  new FuncOverload([DURATION], CelScalar.INT, (dur) => dur.seconds),
 ]);
 
 const getMinutesFunc = new Func(olc.TIME_GET_MINUTES, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getMinutes()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getMinutes()),
   ),
-  new FuncOverload([DurationSchema], CelScalar.INT, (dur) => dur.seconds / 60n),
+  new FuncOverload([DURATION], CelScalar.INT, (dur) => dur.seconds / 60n),
 ]);
 
 const getHoursFunc = new Func(olc.TIME_GET_HOURS, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getHours()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getHours()),
   ),
-  new FuncOverload(
-    [DurationSchema],
-    CelScalar.INT,
-    (dur) => dur.seconds / 3600n,
-  ),
+  new FuncOverload([DURATION], CelScalar.INT, (dur) => dur.seconds / 3600n),
 ]);
 
 const getMillisecondsFunc = new Func(olc.TIME_GET_MILLISECONDS, [
   new FuncOverload(
-    [TimestampSchema],
+    [TIMESTAMP],
     CelScalar.INT,
     makeTimeOp((d) => d.getMilliseconds()),
   ),
   new FuncOverload(
-    [TimestampSchema, CelScalar.STRING],
+    [TIMESTAMP, CelScalar.STRING],
     CelScalar.INT,
     makeTimeOp((d) => d.getMilliseconds()),
   ),
   new FuncOverload(
-    [DurationSchema],
+    [DURATION],
     CelScalar.INT,
     (dur) => BigInt(dur.nanos) / 1000000n,
   ),

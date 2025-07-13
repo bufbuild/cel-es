@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isMessage, type Message, create } from "@bufbuild/protobuf";
+import { isMessage, create } from "@bufbuild/protobuf";
 
 import {
   AnySchema,
@@ -40,6 +40,7 @@ import { type CelMap, isCelMap } from "../map.js";
 import { isCelUint, type CelUint } from "../uint.js";
 import { isNullMessage, type NullMessage } from "../null.js";
 import type { ReflectMessage } from "@bufbuild/protobuf/reflect";
+import { isCelType, type CelType } from "../type.js";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
@@ -199,80 +200,13 @@ export function isCelVal(val: unknown): val is CelVal {
     isCelMsg(val) ||
     isCelList(val) ||
     isCelMap(val) ||
-    val instanceof CelType
+    isCelType(val)
   );
 }
 
-export interface Unwrapper<V = unknown> {
-  unwrap(val: V): V;
-}
-
-export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
+export interface CelValAdapter<V = unknown> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
-}
-
-/**
- * The base class for all Cel types.
- *
- * A type is also a value, and can be used as a value in expressions.
- *
- * Two types are equal if they have the same name, and identical if they have
- * the same fullname. For example, the type 'list(int)' is equal, but not
- * identical, to the type 'list(string)', as they both have the same name, 'list'.
- *
- * @abstract
- */
-export class CelType {
-  readonly fullname_: string | undefined;
-  constructor(
-    readonly name: string,
-    fullname?: string,
-  ) {
-    if (fullname !== undefined) {
-      this.fullname_ = fullname;
-    }
-  }
-
-  fullname(): string {
-    return this.fullname_ === undefined ? this.name : this.fullname_;
-  }
-
-  identical(other: CelVal): boolean {
-    if (other instanceof CelType) {
-      return this.name === other.name && this.fullname_ === other.fullname_;
-    }
-    return false;
-  }
-
-  equals(other: CelVal): boolean {
-    if (other instanceof CelType) {
-      return this.name === other.name;
-    }
-    return false;
-  }
-}
-
-export class NumType extends CelType {}
-
-export class ConcreteType extends CelType {
-  constructor(
-    name: string,
-    public readonly EMPTY: CelVal,
-  ) {
-    super(name);
-  }
-}
-
-export class WrapperType<_T extends Message> extends CelType {
-  constructor(public readonly wrapped: CelType) {
-    super(
-      "wrapper(" + wrapped.name + ")",
-      wrapped.fullname_ === undefined
-        ? undefined
-        : "wrapper(" + wrapped.fullname_ + ")",
-    );
-  }
 }
 
 export class CelError {
@@ -351,18 +285,6 @@ export class CelErrors {
   static badDuration(id: number, _seconds: bigint, _nanos: number): CelError {
     return new CelError(Number(id), "duration out of range");
   }
-  static badIndexAccess(id: number, type: CelType): CelError {
-    return new CelError(
-      Number(id),
-      `index access not supported for ${type.fullname()}`,
-    );
-  }
-  static badStringAccess(id: number, typ: CelType): CelError {
-    return new CelError(
-      Number(id),
-      `${typ.fullname()} cannot be accessed by string`,
-    );
-  }
   static mapKeyConflict(id: number, key: CelVal): CelError {
     return new CelError(id, `map key conflict: ${String(key)}`);
   }
@@ -396,12 +318,6 @@ export class CelErrors {
   }
   static unsupportedKeyType(id: number): CelError {
     return new CelError(id, `unsupported key type`);
-  }
-  static divisionByZero(id: number, type: NumType): CelError {
-    return new CelError(Number(id), `${type.name} divide by zero`);
-  }
-  static moduloByZero(id: number, type: NumType): CelError {
-    return new CelError(Number(id), `${type.name} modulus by zero`);
   }
 
   static overflow(id: number, op: string, type: CelType): CelError {
