@@ -51,7 +51,7 @@ export const parserTests = [
   },
   {
     expr: "a || b || c || d || e || f ",
-    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#,\n  b^#*expr.Expr_IdentExpr#,\n  c^#*expr.Expr_IdentExpr#,\n  d^#*expr.Expr_IdentExpr#,\n  e^#*expr.Expr_IdentExpr#,\n  f^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
+    ast: "_||_(\n  _||_(\n    _||_(\n      a^#*expr.Expr_IdentExpr#,\n      b^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    c^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  _||_(\n    _||_(\n      d^#*expr.Expr_IdentExpr#,\n      e^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    f^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
   },
   {
     expr: "a \u0026\u0026 b",
@@ -59,11 +59,11 @@ export const parserTests = [
   },
   {
     expr: "a \u0026\u0026 b \u0026\u0026 c \u0026\u0026 d \u0026\u0026 e \u0026\u0026 f \u0026\u0026 g",
-    ast: "_\u0026\u0026_(\n  a^#*expr.Expr_IdentExpr#,\n  b^#*expr.Expr_IdentExpr#,\n  c^#*expr.Expr_IdentExpr#,\n  d^#*expr.Expr_IdentExpr#,\n  e^#*expr.Expr_IdentExpr#,\n  f^#*expr.Expr_IdentExpr#,\n  g^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
+    ast: "_\u0026\u0026_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      a^#*expr.Expr_IdentExpr#,\n      b^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u0026\u0026_(\n      c^#*expr.Expr_IdentExpr#,\n      d^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      e^#*expr.Expr_IdentExpr#,\n      f^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    g^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
   },
   {
     expr: "a \u0026\u0026 b \u0026\u0026 c \u0026\u0026 d || e \u0026\u0026 f \u0026\u0026 g \u0026\u0026 h",
-    ast: "_||_(\n  _\u0026\u0026_(\n    a^#*expr.Expr_IdentExpr#,\n    b^#*expr.Expr_IdentExpr#,\n    c^#*expr.Expr_IdentExpr#,\n    d^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u0026\u0026_(\n    e^#*expr.Expr_IdentExpr#,\n    f^#*expr.Expr_IdentExpr#,\n    g^#*expr.Expr_IdentExpr#,\n    h^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+    ast: "_||_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      a^#*expr.Expr_IdentExpr#,\n      b^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u0026\u0026_(\n      c^#*expr.Expr_IdentExpr#,\n      d^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      e^#*expr.Expr_IdentExpr#,\n      f^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u0026\u0026_(\n      g^#*expr.Expr_IdentExpr#,\n      h^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
   },
   {
     expr: "a + b",

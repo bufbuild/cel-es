@@ -1855,7 +1855,6 @@ export function parse(
   }
   // Comment "comment"
   // = '//' [^\r\n]* NewLine
-  //
   function item44(
     text: string,
   ): runtime.Success<["//", string[], string[]]> | runtime.Failure {
