@@ -12,41 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isMessage, create } from "@bufbuild/protobuf";
+import { create } from "@bufbuild/protobuf";
 
-import {
-  AnySchema,
-  BoolValueSchema,
-  BytesValueSchema,
-  DoubleValueSchema,
-  DurationSchema,
-  Int64ValueSchema,
-  StringValueSchema,
-  TimestampSchema,
-  UInt64ValueSchema,
-} from "@bufbuild/protobuf/wkt";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import type { Any } from "@bufbuild/protobuf/wkt";
-import type { BytesValue } from "@bufbuild/protobuf/wkt";
-import type { StringValue } from "@bufbuild/protobuf/wkt";
-import type { BoolValue } from "@bufbuild/protobuf/wkt";
-import type { DoubleValue } from "@bufbuild/protobuf/wkt";
-import type { UInt64Value } from "@bufbuild/protobuf/wkt";
-import type { Int64Value } from "@bufbuild/protobuf/wkt";
 import type { Duration } from "@bufbuild/protobuf/wkt";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { type CelList, isCelList } from "../list.js";
-import { type CelMap, isCelMap } from "../map.js";
-import { isCelUint, type CelUint } from "../uint.js";
-import { isNullMessage, type NullMessage } from "../null.js";
-import type { ReflectMessage } from "@bufbuild/protobuf/reflect";
-import { isCelType, type CelType } from "../type.js";
-
-/** Cel Number types, which all existing on the same logical number line. */
-export type CelNum = bigint | CelUint | number;
-export function isCelNum(val: unknown): val is CelNum {
-  return typeof val === "bigint" || isCelUint(val) || typeof val === "number";
-}
+import { type CelType, type CelValue } from "../type.js";
 
 export function newTimestamp(
   id: number,
@@ -85,7 +58,6 @@ export function newDuration(
   if (totalNanos > 9223372036854775807n || totalNanos < -9223372036854775808n) {
     return CelErrors.badDuration(id, seconds, nanos);
   }
-
   return create(DurationSchema, { seconds: seconds, nanos: nanos });
 }
 
@@ -138,76 +110,8 @@ export function parseDuration(id: number, str: string): Duration | CelError {
   return newDuration(id, seconds, nanos);
 }
 
-/** Cel Primitive types, which are the basic types that can be stored in a CelVal.  */
-export type CelPrim = boolean | CelNum | string | Uint8Array;
-export function isCelPrim(val: unknown): val is CelPrim {
-  return (
-    typeof val === "boolean" ||
-    isCelNum(val) ||
-    typeof val === "string" ||
-    val instanceof Uint8Array
-  );
-}
-
-/** Protobuf wrappers for number types, which can be 'null'  */
-export type CelWrapNum = Int64Value | UInt64Value | DoubleValue;
-export function isCelWrapNum(val: unknown): val is CelWrapNum {
-  return (
-    isMessage(val, Int64ValueSchema) ||
-    isMessage(val, UInt64ValueSchema) ||
-    isMessage(val, DoubleValueSchema)
-  );
-}
-
-/** Protobuf wrappers for all primitive types, which can be 'null'  */
-export type CelWrap = BoolValue | CelWrapNum | StringValue | BytesValue;
-export function isCelWrap(val: unknown): val is CelWrap {
-  return (
-    isMessage(val, BoolValueSchema) ||
-    isCelWrapNum(val) ||
-    isMessage(val, StringValueSchema) ||
-    isMessage(val, BytesValueSchema)
-  );
-}
-
-/** All cel types that are also protobuf messages */
-export type CelMsg = CelWrap | Timestamp | Duration | Any;
-export function isCelMsg(val: unknown): val is CelMsg {
-  return (
-    isCelWrap(val) ||
-    isMessage(val, TimestampSchema) ||
-    isMessage(val, DurationSchema) ||
-    isMessage(val, AnySchema)
-  );
-}
-
 /** All types Cel understands natively */
-export type CelVal =
-  | null
-  | NullMessage
-  | CelPrim
-  | CelMsg
-  | CelMap
-  | ReflectMessage
-  | CelType
-  | CelList;
-
-export function isCelVal(val: unknown): val is CelVal {
-  return (
-    val === null ||
-    isNullMessage(val) ||
-    isCelPrim(val) ||
-    isCelMsg(val) ||
-    isCelList(val) ||
-    isCelMap(val) ||
-    isCelType(val)
-  );
-}
-
-export interface CelValAdapter<V = unknown> {
-  toCel(native: CelResult<V>): CelResult;
-  fromCel(cel: CelVal): CelResult<V>;
-}
+export type CelVal = CelValue;
 
 export class CelError {
   public additional?: CelError[];
@@ -225,10 +129,6 @@ export class CelError {
 }
 
 export type CelResult<T = CelVal> = T | CelError;
-
-export function isCelResult(val: unknown): val is CelResult {
-  return isCelVal(val) || val instanceof CelError;
-}
 
 export function coerceToValues(args: CelResult[]): CelResult<CelVal[]> {
   const errors: CelError[] = [];
