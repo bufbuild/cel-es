@@ -36,10 +36,8 @@ import { RawVal, type RawResult } from "./value/adapter.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
 import { Namespace } from "./value/namespace.js";
 import { type CelValProvider } from "./value/provider.js";
-import * as type from "./value/type.js";
 import {
   CelError,
-  CelType,
   coerceToValues,
   type CelResult,
   type CelVal,
@@ -49,8 +47,17 @@ import {
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
-import { toCel, type CelInput, type CelValue } from "./value.js";
+import { toCel } from "./value.js";
 import { celObject } from "./object.js";
+import {
+  CelScalar,
+  celType,
+  listType,
+  mapType,
+  type CelInput,
+  type CelType,
+  type CelValue,
+} from "./type.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
@@ -280,13 +287,7 @@ export class Planner {
     const tAttr = this.relativeAttr(t.id, t, false);
     const fAttr = this.relativeAttr(f.id, f, false);
     return new EvalAttr(
-      this.factory.createConditional(
-        id,
-        cond,
-        tAttr,
-        fAttr,
-        this.provider.adapter,
-      ),
+      this.factory.createConditional(id, cond, tAttr, fAttr),
       false,
     );
   }
@@ -472,7 +473,7 @@ export class EvalCall implements Interpretable {
       return CelErrors.funcNotFound(this.id, this.name);
     }
     const argVals = this.args.map((x) => x.eval(ctx));
-    const result = this.call.dispatch(this.id, argVals, this.adapter);
+    const result = this.call.dispatch(this.id, argVals);
     if (result !== undefined) {
       return result;
     }
@@ -484,7 +485,7 @@ export class EvalCall implements Interpretable {
     return CelErrors.overloadNotFound(
       this.id,
       this.name,
-      vals.map((x) => type.getCelType(x)),
+      vals.map((x) => celType(x as CelValue)),
     );
   }
 }
@@ -499,7 +500,7 @@ export class EvalObj implements InterpretableCtor {
     public provider: CelValProvider,
   ) {}
   type(): CelType {
-    return this.provider.findType(this.typeName) as CelType;
+    return this.provider.findType(this.typeName)!;
   }
   args(): Interpretable[] {
     return this.values;
@@ -554,7 +555,7 @@ export class EvalList implements InterpretableCtor {
   }
 
   type(): CelType {
-    return type.LIST;
+    return listType(CelScalar.DYN);
   }
   args(): Interpretable[] {
     return this.elems;
@@ -570,7 +571,7 @@ export class EvalMap implements InterpretableCtor {
   ) {}
 
   type(): CelType {
-    return type.DYN_MAP;
+    return mapType(CelScalar.DYN, CelScalar.DYN);
   }
   args(): Interpretable[] {
     return this.keys.concat(this.values);
@@ -589,8 +590,6 @@ export class EvalMap implements InterpretableCtor {
     if (firstVal instanceof CelError) {
       return firstVal;
     }
-    let keyType = type.getCelType(firstKey);
-    let valType = type.getCelType(firstVal);
     if (typeof firstKey === "number" && !Number.isInteger(firstKey)) {
       return CelErrors.unsupportedKeyType(this.id);
     }
@@ -600,15 +599,9 @@ export class EvalMap implements InterpretableCtor {
       if (key instanceof CelError) {
         return key;
       }
-      if (keyType !== type.DYN && type.getCelType(key) !== keyType) {
-        keyType = type.DYN;
-      }
       const val = this.values[i].eval(ctx);
       if (val instanceof CelError) {
         return val;
-      }
-      if (valType !== type.DYN && type.getCelType(val) !== valType) {
-        valType = type.DYN;
       }
       if (entries.has(key)) {
         return CelErrors.mapKeyConflict(this.id, key);

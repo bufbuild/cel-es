@@ -21,7 +21,7 @@ import {
   toJson,
 } from "@bufbuild/protobuf";
 import { isCelUint } from "./uint.js";
-import { toCel, type CelValue } from "./value.js";
+import { toCel } from "./value.js";
 import { getMsgDesc } from "./eval.js";
 import {
   isReflectMessage,
@@ -55,6 +55,7 @@ import {
 } from "@bufbuild/protobuf/wkt";
 import { isNullMessage } from "./null.js";
 import { base64Encode } from "@bufbuild/protobuf/wire";
+import { celType, type CelValue } from "./type.js";
 
 /**
  * Creates a new CelValue of the given type and with the given fields.
@@ -390,11 +391,6 @@ function unexpectedTypeError(
   actValue: CelValue,
 ) {
   return new Error(
-    `Expected ${expected} but got ${getCeltype(actValue)} for ${field.parent.typeName}.${field.name}`,
+    `Expected ${expected} but got ${celType(actValue)} for ${field.parent}.${field.name}`,
   );
-}
-
-function getCeltype(v: CelValue): string {
-  // TODO(srikrsna): Implement this function for better errors.
-  return typeof v;
 }

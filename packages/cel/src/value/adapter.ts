@@ -17,7 +17,6 @@ import {
   type CelVal,
   CelError,
   type CelValAdapter,
-  type Unwrapper,
   CelErrors,
 } from "./value.js";
 
@@ -55,10 +54,7 @@ export class RawVal<V = unknown> {
 
 export type RawResult<V = unknown> = CelResult<RawVal<V>>;
 
-export function unwrapResults<V = CelVal>(
-  args: CelResult<V>[],
-  unwrapper: Unwrapper,
-) {
+export function unwrapResults<V = CelVal>(args: CelResult<V>[]) {
   const errors: CelError[] = [];
   const vals: V[] = [];
   for (let i = 0; i < args.length; i++) {
@@ -66,8 +62,7 @@ export function unwrapResults<V = CelVal>(
     if (arg instanceof CelError) {
       errors.push(arg);
     } else {
-      // TODO(tstamm) fix types or investigate extracting into standalone fn
-      vals.push(unwrapper.unwrap(arg) as V);
+      vals.push(arg);
     }
   }
   if (errors.length > 0) {

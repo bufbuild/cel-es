@@ -22,12 +22,11 @@ import {
   type CelResult,
   type CelVal,
   CelError,
-  type Unwrapper,
   CelErrors,
 } from "./value/value.js";
-import { getCelType } from "./value/type.js";
 import { accessByIndex, accessByName, isSet } from "./field.js";
 import { isCelUint } from "./uint.js";
+import { celType, type CelValue } from "./type.js";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;
@@ -36,7 +35,6 @@ export interface AttributeFactory {
     cond: Interpretable,
     t: Attribute,
     f: Attribute,
-    unwrap: Unwrapper,
   ): Attribute;
   createMaybe(id: number, name: string): Attribute;
   createRelative(id: number, operand: Interpretable): Attribute;
@@ -222,7 +220,6 @@ class ConditionalAttr implements Attribute {
     readonly t: Attribute,
     readonly f: Attribute,
     readonly factory: AttributeFactory,
-    readonly unwrap: Unwrapper,
   ) {}
 
   isOptional(): boolean {
@@ -251,7 +248,7 @@ class ConditionalAttr implements Attribute {
   }
 
   resolve(vars: Activation): RawResult | undefined {
-    const cond = this.unwrap.unwrap(this.cond.eval(vars)) as CelResult;
+    const cond = this.cond.eval(vars);
     switch (true) {
       case cond === true:
         return this.t.resolve(vars);
@@ -260,7 +257,9 @@ class ConditionalAttr implements Attribute {
       case cond instanceof CelError:
         return cond;
     }
-    return CelErrors.overloadNotFound(this.id, "_?_:_", [getCelType(cond)]);
+    return CelErrors.overloadNotFound(this.id, "_?_:_", [
+      celType(cond as CelValue),
+    ]);
   }
 }
 
@@ -641,9 +640,8 @@ export class ConcreteAttributeFactory implements AttributeFactory {
     cond: Interpretable,
     t: Attribute,
     f: Attribute,
-    unwrap: Unwrapper,
   ): Attribute {
-    return new ConditionalAttr(id, cond, t, f, this, unwrap);
+    return new ConditionalAttr(id, cond, t, f, this);
   }
 
   createMaybe(id: number, name: string): Attribute {

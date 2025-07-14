@@ -14,9 +14,7 @@
 
 import { before, describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import type { CelVal } from "./value/value.js";
 import { equals } from "./equals.js";
-import { getCelType } from "./value/type.js";
 import {
   create,
   createRegistry,
@@ -45,6 +43,7 @@ import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
 import { celUint, isCelUint } from "./uint.js";
 import { isNullMessage, nullMessage } from "./null.js";
+import { celType, type CelValue } from "./type.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -202,7 +201,7 @@ function toTestString(value: unknown) {
   } else if (isNullMessage(value)) {
     typeName = `null_type<${value.typeName}>`;
   } else {
-    typeName = getCelType(value as CelVal).name;
+    typeName = celType(value as CelValue).name;
   }
   return `${typeName}(${str})`;
 }

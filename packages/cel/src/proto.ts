@@ -15,7 +15,7 @@
 import { ScalarType } from "@bufbuild/protobuf";
 import { celUint } from "./uint.js";
 import type { ScalarValue } from "@bufbuild/protobuf/reflect";
-import type { CelValue } from "./value.js";
+import type { CelValue } from "./type.js";
 
 /**
  * Converts a protobuf scalar value to a CEL value.

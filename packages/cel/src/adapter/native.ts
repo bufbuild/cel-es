@@ -13,19 +13,15 @@
 // limitations under the License.
 
 import { isOverflowInt, isOverflowUint } from "../std/math.js";
-import * as type from "../value/type.js";
 import { type CelVal, type CelValAdapter, CelErrors } from "../value/value.js";
 import { type CelResult } from "../value/value.js";
-import { CEL_ADAPTER } from "./cel.js";
 import { isCelList } from "../list.js";
 import { isCelMap } from "../map.js";
 import { celUint, isCelUint } from "../uint.js";
-import { toCel, type CelInput } from "../value.js";
+import { toCel } from "../value.js";
+import { CelScalar, type CelInput } from "../type.js";
 
 class NativeValAdapter implements CelValAdapter {
-  unwrap(val: CelVal): CelVal {
-    return CEL_ADAPTER.unwrap(val);
-  }
   toCel(val: unknown): CelResult {
     switch (typeof val) {
       case "bigint":
@@ -34,7 +30,7 @@ class NativeValAdapter implements CelValAdapter {
         } else if (!isOverflowUint(val)) {
           return celUint(val);
         } else {
-          return CelErrors.overflow(0, "bigint to cel", type.INT);
+          return CelErrors.overflow(0, "bigint to cel", CelScalar.INT);
         }
       default:
         return toCel(val as CelInput) as CelResult;
