@@ -1,0 +1,248 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import { celUint, isCelUint, type CelUint } from "./uint.js";
+import { celMap, isCelMap, type CelMap } from "./map.js";
+import { celList, isCelList, type CelList } from "./list.js";
+import { isNullMessage, type NullMessage } from "./null.js";
+import { CelType } from "./value/value.js";
+import {
+  isReflectList,
+  isReflectMap,
+  isReflectMessage,
+  reflect,
+  type ReflectList,
+  type ReflectMap,
+  type ReflectMessage,
+  type ScalarValue,
+} from "@bufbuild/protobuf/reflect";
+import { isMessage, type Message } from "@bufbuild/protobuf";
+import { getEvalContext, getMsgDesc } from "./eval.js";
+import {
+  AnySchema,
+  anyUnpack,
+  Int32ValueSchema,
+  isWrapper,
+  ListValueSchema,
+  StructSchema,
+  UInt32ValueSchema,
+  UInt64ValueSchema,
+  ValueSchema,
+  type ListValue,
+  type Struct,
+  type Value,
+} from "@bufbuild/protobuf/wkt";
+
+/**
+ * Represents any CEL value.
+ *
+ * This is not exported. This is the type that all internal functions
+ * like `equals` expect and operate on.
+ */
+export type CelValue =
+  | number // double
+  | bigint // int
+  | CelUint // uint
+  | string // string
+  | boolean // bool
+  | Uint8Array // bytes
+  | CelMap // map
+  | CelList // list
+  | null // null_type
+  | NullMessage // null_type
+  | CelType // type;
+  | ReflectMessage; // <typeName> | timestamp | duration
+
+/**
+ * Values that can be converted to a CelValue.
+ */
+export type CelInput =
+  | CelValue // It can match the exact type of the internal value.
+  | { [key: string]: CelInput } // map
+  | ReflectMap // map
+  | ReadonlyMap<string | bigint | boolean | CelUint, CelInput> // map
+  | readonly CelInput[] // list
+  | ReflectList // list
+  | Message; // <typeName>
+
+export type CelOutput =
+  | number // double
+  | bigint // int
+  | CelUint // uint
+  | string // string
+  | boolean // bool
+  | Uint8Array // bytes
+  | CelMap // map
+  | CelList // list
+  | null // null_type
+  | CelType // type;
+  | Message; // <typeName>
+
+/**
+ * Converts a CelInput to a CelValue.
+ */
+export function toCel(v: CelInput): CelValue {
+  switch (typeof v) {
+    case "bigint":
+    case "boolean":
+    case "number":
+    case "string":
+      return v;
+    case "object":
+      break;
+    default:
+      throw new Error(`unsupported input ${typeof v}`);
+  }
+  switch (true) {
+    case v === null:
+    case v instanceof Uint8Array:
+    case isCelList(v):
+    case isCelMap(v):
+    case isCelUint(v):
+    case isNullMessage(v):
+    case v instanceof CelType:
+      return v;
+  }
+  if (isArray(v) || isReflectList(v)) {
+    return celList(v);
+  }
+  if (v instanceof Map || isReflectMap(v)) {
+    return celMap(v);
+  }
+  if (isMessage(v)) {
+    const value = wktToCel(v);
+    if (value !== undefined) {
+      return value;
+    }
+    return reflect(getMsgDesc(v.$typeName), v);
+  }
+  if (isReflectMessage(v)) {
+    const value = wktToCel(v.message);
+    if (value !== undefined) {
+      return value;
+    }
+    return v;
+  }
+  if (v.constructor.name === "Object") {
+    return celMap(new Map(Object.entries(v)));
+  }
+  throw new Error(`Unsupported input ${v}`);
+}
+
+/**
+ * Converts a CelValue to a CelOutput.
+ */
+export function fromCel(v: CelValue): CelOutput {
+  switch (typeof v) {
+    case "bigint":
+    case "boolean":
+    case "number":
+    case "string":
+      return v;
+    case "object":
+      break;
+    default:
+      throw new Error(`unsupported CEL type ${typeof v}`);
+  }
+  switch (true) {
+    case v === null:
+    case isNullMessage(v):
+      return null;
+    case v instanceof Uint8Array:
+    case isCelList(v):
+    case isCelMap(v):
+    case isCelUint(v):
+    case v instanceof CelType:
+      return v;
+  }
+  let msg = v.message;
+  if (isMessage(msg, AnySchema)) {
+    const unpacked = anyUnpack(msg, getEvalContext().registry);
+    if (unpacked === undefined) {
+      throw new Error(`invalid Any or ${msg.typeUrl} not found in registry`);
+    }
+    const value = wktToCel(unpacked);
+    if (value !== undefined) {
+      return value;
+    }
+    msg = unpacked;
+  }
+  return msg;
+}
+
+function isArray(v: unknown): v is readonly unknown[] {
+  return Array.isArray(v);
+}
+
+function wktToCel(msg: Message) {
+  if (isWrapper(msg)) {
+    return unwrapWrapper(msg);
+  }
+  return jsonWrapperToCel(msg);
+}
+
+function unwrapWrapper(v: Message & { value: ScalarValue }) {
+  switch (v.$typeName) {
+    case Int32ValueSchema.typeName:
+      return BigInt(v.value as number);
+    case UInt32ValueSchema.typeName:
+      return celUint(BigInt(v.value as number));
+    case UInt64ValueSchema.typeName:
+      return celUint(v.value as bigint);
+  }
+  return v.value;
+}
+
+function jsonWrapperToCel(msg: Message) {
+  switch (true) {
+    case isMessage(msg, StructSchema):
+      return structToCel(msg);
+    case isMessage(msg, ValueSchema):
+      return valueToCel(msg);
+    case isMessage(msg, ListValueSchema):
+      return listValueToCel(msg);
+  }
+  return undefined;
+}
+
+function structToCel(s: Struct) {
+  const map = new Map<
+    string,
+    string | number | bigint | boolean | CelMap | CelList | null
+  >();
+  for (const [k, v] of Object.entries(s.fields)) {
+    map.set(k, valueToCel(v));
+  }
+  return celMap(map);
+}
+
+function valueToCel(v: Value) {
+  switch (v.kind.case) {
+    case "boolValue":
+    case "numberValue":
+    case "stringValue":
+      return v.kind.value;
+    case "nullValue":
+    case undefined:
+      return null;
+    case "structValue":
+      return structToCel(v.kind.value);
+    case "listValue":
+      return listValueToCel(v.kind.value);
+  }
+}
+
+function listValueToCel(l: ListValue) {
+  return celList(l.values);
+}

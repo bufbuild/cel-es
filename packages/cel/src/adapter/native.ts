@@ -14,7 +14,6 @@
 
 import { accessByName, getFields } from "../field.js";
 import { isOverflowInt, isOverflowUint } from "../std/math.js";
-import { EMPTY_LIST, EMPTY_MAP } from "../value/empty.js";
 import * as type from "../value/type.js";
 import {
   type CelVal,
@@ -23,11 +22,12 @@ import {
   CelObject,
   CelErrors,
 } from "../value/value.js";
-import { type CelResult, isCelResult } from "../value/value.js";
+import { type CelResult } from "../value/value.js";
 import { CEL_ADAPTER } from "./cel.js";
-import { celList, isCelList } from "../list.js";
-import { celMap, isCelMap } from "../map.js";
+import { isCelList } from "../list.js";
+import { isCelMap } from "../map.js";
 import { celUint, isCelUint } from "../uint.js";
+import { toCel, type CelInput } from "../value.js";
 
 class NativeValAdapter implements CelValAdapter {
   unwrap(val: CelVal): CelVal {
@@ -35,8 +35,6 @@ class NativeValAdapter implements CelValAdapter {
   }
   toCel(val: unknown): CelResult {
     switch (typeof val) {
-      case "boolean":
-        return val;
       case "bigint":
         if (!isOverflowInt(val)) {
           return val;
@@ -45,36 +43,8 @@ class NativeValAdapter implements CelValAdapter {
         } else {
           return CelErrors.overflow(0, "bigint to cel", type.INT);
         }
-      case "number":
-        return val;
-      case "string":
-        return val;
-      case "object":
-        if (val === null) {
-          return null;
-        } else if (isCelResult(val)) {
-          return val; // cel rep == native rep
-        } else if (val instanceof Uint8Array) {
-          return val;
-        } else if (Array.isArray(val)) {
-          if (val.length === 0) {
-            return EMPTY_LIST;
-          }
-          return celList(val);
-        } else if (val instanceof Map) {
-          if (val.size === 0) {
-            return EMPTY_MAP;
-          }
-          return celMap(val);
-        } else if (val.constructor.name === "Object") {
-          if (Object.keys(val).length === 0) {
-            return EMPTY_MAP;
-          }
-          return new CelObject(val, this, type.DYN_MAP);
-        }
-        throw new Error("Unsupported type: " + val.constructor.name);
       default:
-        throw new Error("Unsupported type: " + typeof val);
+        return toCel(val as CelInput) as CelResult;
     }
   }
 

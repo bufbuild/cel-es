@@ -50,10 +50,6 @@ export interface CelMap
  * Create a new map from a native map or a ReflectMap.
  */
 export function celMap(
-  map: ReadonlyMap<bigint | string | boolean | CelUint, unknown>,
-): CelMap;
-export function celMap(map: ReflectMap): CelMap;
-export function celMap(
   mapOrReflectMap:
     | ReadonlyMap<bigint | string | boolean | CelUint, unknown>
     | ReflectMap,

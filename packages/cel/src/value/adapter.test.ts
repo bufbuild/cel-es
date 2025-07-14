@@ -15,7 +15,6 @@
 import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { NATIVE_ADAPTER } from "../adapter/native.js";
-import { EMPTY_LIST, EMPTY_MAP } from "./empty.js";
 import { Namespace } from "./namespace.js";
 import { type CelVal } from "./value.js";
 import { celList } from "../list.js";
@@ -94,9 +93,6 @@ void suite("adapter tests", () => {
   });
 
   void test("list", () => {
-    assert.equal(NATIVE_ADAPTER.toCel([]), EMPTY_LIST);
-    assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_LIST), []);
-
     assert.deepEqual(NATIVE_ADAPTER.toCel([1, 2, 3]), celList([1, 2, 3]));
     assert.deepEqual(NATIVE_ADAPTER.fromCel(celList([1, 2, 3])), [1, 2, 3]);
     assert.deepEqual(NATIVE_ADAPTER.fromCel(celList([1n, celUint(2n), 3])), [
@@ -107,9 +103,6 @@ void suite("adapter tests", () => {
   });
 
   void test("map", () => {
-    assert.equal(NATIVE_ADAPTER.toCel(new Map()), EMPTY_MAP);
-    assert.deepEqual(NATIVE_ADAPTER.fromCel(EMPTY_MAP), new Map());
-
     const testMap = new Map<string, unknown>([
       ["a", 1n],
       ["b", 2n],
