@@ -12,24 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  type CelValAdapter,
-  CelType,
-  type CelResult,
-  CelObject,
-} from "./value.js";
-import type { CelMap } from "../map.js";
+import { type CelValAdapter, CelType, type CelResult } from "./value.js";
 
 export interface CelValProvider<V = any> {
   /** The adapter used to produce values from this provider. */
   readonly adapter: CelValAdapter<V>;
-
-  /** Create a new value of the given type, from the given obj. */
-  newValue(
-    id: number,
-    typeName: string,
-    obj: CelObject | CelMap,
-  ): CelResult<V> | undefined;
 
   findType(candidate: string): CelType | undefined;
   findIdent(id: number, ident: string): CelResult<V> | undefined;

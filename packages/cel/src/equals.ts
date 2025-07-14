@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { isMessage } from "@bufbuild/protobuf";
-import { CelObject, CelType } from "./value/value.js";
+import { CelType } from "./value/value.js";
 import {
   isReflectMap,
   isReflectMessage,
@@ -86,12 +86,6 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
   }
   if (isNullMessage(rhs) && lhs === null) {
     return true;
-  }
-  if (lhs instanceof CelObject) {
-    lhs = lhs.value;
-  }
-  if (rhs instanceof CelObject) {
-    rhs = rhs.value;
   }
   // Messages
   if (isMessage(lhs)) {

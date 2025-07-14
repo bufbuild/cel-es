@@ -37,7 +37,6 @@ export {
   isCelVal,
   CelError,
   CelErrors,
-  CelObject,
 } from "./value/value.js";
 export { getCelType } from "./value/type.js";
 export { NATIVE_ADAPTER } from "./adapter/native.js";

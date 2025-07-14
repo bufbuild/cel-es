@@ -23,7 +23,7 @@ import {
 } from "@bufbuild/protobuf/wkt";
 import { ProtoValAdapter } from "./adapter/proto.js";
 import { getEvalContext, getMsgDesc } from "./eval.js";
-import { CelObject, type CelVal } from "./value/value.js";
+import type { CelVal } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
 import { isCelMap } from "./map.js";
 import { celUint } from "./uint.js";
@@ -182,9 +182,6 @@ export function getFields(obj: unknown): unknown[] {
 function unwrapMessage(obj: unknown) {
   if (isNullMessage(obj)) {
     obj = obj.zero.message;
-  }
-  if (obj instanceof CelObject) {
-    obj = obj.value;
   }
   if (isMessage(obj, AnySchema)) {
     const any = anyUnpack(obj, getEvalContext().registry);

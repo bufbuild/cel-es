@@ -21,17 +21,6 @@ import type {
   Expr_CreateStruct,
   Expr_Select,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
-import { create } from "@bufbuild/protobuf";
-
-import {
-  AnySchema,
-  BoolValueSchema,
-  BytesValueSchema,
-  DoubleValueSchema,
-  Int64ValueSchema,
-  StringValueSchema,
-  UInt64ValueSchema,
-} from "@bufbuild/protobuf/wkt";
 
 import {
   ConcreteAttributeFactory,
@@ -50,13 +39,7 @@ import { type CelValProvider } from "./value/provider.js";
 import * as type from "./value/type.js";
 import {
   CelError,
-  CelObject,
   CelType,
-  coerceToBigInt,
-  coerceToBool,
-  coerceToBytes,
-  coerceToNumber,
-  coerceToString,
   coerceToValues,
   type CelResult,
   type CelVal,
@@ -66,6 +49,8 @@ import {
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
+import { toCel, type CelInput, type CelValue } from "./value.js";
+import { celObject } from "./object.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
@@ -524,85 +509,21 @@ export class EvalObj implements InterpretableCtor {
     if (vals instanceof CelError) {
       return vals;
     }
-    const obj: { [key: string]: CelVal } = {};
+    const obj = new Map<string, CelValue>();
     for (let i = 0; i < vals.length; i++) {
-      if (obj[this.fields[i]] !== undefined) {
+      if (obj.has(this.fields[i])) {
         return CelErrors.mapKeyConflict(this.id, this.fields[i]);
       }
-      obj[this.fields[i]] = vals[i];
+      obj.set(this.fields[i], toCel(vals[i] as CelInput));
     }
-    if (type.WK_PROTO_TYPES.has(this.typeName)) {
-      switch (this.typeName) {
-        case "google.protobuf.Any": {
-          const typeUrl = coerceToString(this.id, obj.type_url);
-          if (typeUrl instanceof CelError) {
-            return typeUrl;
-          }
-          const value = coerceToBytes(this.id, obj.value);
-          if (value instanceof CelError) {
-            return value;
-          }
-          return create(AnySchema, { typeUrl: typeUrl, value: value });
-        }
-        case "google.protobuf.BoolValue": {
-          const val = coerceToBool(this.id, obj.value);
-          if (val instanceof CelError) {
-            return val;
-          }
-          return create(BoolValueSchema, { value: val });
-        }
-        case "google.protobuf.UInt32Value":
-        case "google.protobuf.UInt64Value": {
-          const val = coerceToBigInt(this.id, obj.value);
-          if (val instanceof CelError) {
-            return val;
-          }
-          return create(UInt64ValueSchema, { value: val });
-        }
-        case "google.protobuf.Int32Value":
-        case "google.protobuf.Int64Value": {
-          const val = coerceToBigInt(this.id, obj.value);
-          if (val instanceof CelError) {
-            return val;
-          }
-          return create(Int64ValueSchema, { value: val });
-        }
-        case "google.protobuf.FloatValue":
-        case "google.protobuf.DoubleValue": {
-          const val = coerceToNumber(this.id, obj.value);
-          if (val instanceof CelError) {
-            return val;
-          }
-          return create(DoubleValueSchema, { value: val });
-        }
-        case "google.protobuf.StringValue": {
-          const val = coerceToString(this.id, obj.value);
-          if (val instanceof CelError) {
-            return val;
-          }
-          return create(StringValueSchema, { value: val });
-        }
-        case "google.protobuf.BytesValue": {
-          const val = coerceToBytes(this.id, obj.value);
-          if (val instanceof CelError) {
-            return val;
-          }
-          return create(BytesValueSchema, { value: val });
-        }
-        case "google.protobuf.Value": {
-          return null;
-        }
-        default:
-          throw new Error("not implemented: " + this.typeName);
+    try {
+      return celObject(this.typeName, obj) as CelResult;
+    } catch (ex) {
+      if (ex instanceof Error) {
+        ex = ex.message;
       }
+      return new CelError(this.id, `${ex}`);
     }
-
-    const celObj = new CelObject(obj, CEL_ADAPTER, new CelType(this.typeName));
-    const result = this.provider.newValue(this.id, this.typeName, celObj);
-    if (result === undefined) {
-      return CelErrors.typeNotFound(this.id, this.typeName);
-    }
-    return result;
   }
 }
 

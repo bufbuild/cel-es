@@ -39,6 +39,7 @@ import { type CelList, isCelList } from "../list.js";
 import { type CelMap, isCelMap } from "../map.js";
 import { isCelUint, type CelUint } from "../uint.js";
 import { isNullMessage, type NullMessage } from "../null.js";
+import type { ReflectMessage } from "@bufbuild/protobuf/reflect";
 
 /** Cel Number types, which all existing on the same logical number line. */
 export type CelNum = bigint | CelUint | number;
@@ -186,7 +187,7 @@ export type CelVal =
   | CelPrim
   | CelMsg
   | CelMap
-  | CelObject
+  | ReflectMessage
   | CelType
   | CelList;
 
@@ -198,7 +199,6 @@ export function isCelVal(val: unknown): val is CelVal {
     isCelMsg(val) ||
     isCelList(val) ||
     isCelMap(val) ||
-    val instanceof CelObject ||
     val instanceof CelType
   );
 }
@@ -210,18 +210,6 @@ export interface Unwrapper<V = unknown> {
 export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
   toCel(native: CelResult<V>): CelResult;
   fromCel(cel: CelVal): CelResult<V>;
-}
-
-export class CelObject {
-  constructor(
-    public readonly value: object,
-    public readonly adapter: CelValAdapter,
-    public readonly type_: CelType,
-  ) {
-    if (isCelVal(value)) {
-      throw new Error("Cannot wrap CelVal in CelObject");
-    }
-  }
 }
 
 /**
@@ -306,97 +294,6 @@ export type CelResult<T = CelVal> = T | CelError;
 
 export function isCelResult(val: unknown): val is CelResult {
   return isCelVal(val) || val instanceof CelError;
-}
-
-export function coerceToBool(
-  _id: number,
-  val: CelResult | undefined,
-): CelResult<boolean> {
-  if (val instanceof CelError) {
-    return val;
-  }
-  if (
-    val === undefined ||
-    (typeof val === "boolean" && val === false) ||
-    (typeof val === "number" && val === 0) ||
-    (typeof val === "bigint" && val === 0n) ||
-    (isCelUint(val) && val.value === 0n)
-  ) {
-    return false;
-  }
-  return true;
-}
-
-export function coerceToBigInt(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<bigint> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null) {
-    return 0n;
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (typeof val === "bigint") {
-    return val;
-  } else if (typeof val === "number") {
-    return BigInt(val);
-  }
-  return CelErrors.typeMismatch(id, "integer", val);
-}
-
-export function coerceToNumber(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<number> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null) {
-    return 0;
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (typeof val === "bigint") {
-    return Number(val);
-  } else if (typeof val === "number") {
-    return val;
-  }
-  return CelErrors.typeMismatch(id, "number", val);
-}
-
-export function coerceToString(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<string> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null) {
-    return "";
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (typeof val === "string") {
-    return val;
-  }
-  return CelErrors.typeMismatch(id, "string", val);
-}
-
-export function coerceToBytes(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<Uint8Array> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null) {
-    return new Uint8Array();
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (val instanceof Uint8Array) {
-    return val;
-  }
-  return CelErrors.typeMismatch(id, "bytes", val);
 }
 
 export function coerceToValues(args: CelResult[]): CelResult<CelVal[]> {

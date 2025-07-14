@@ -229,21 +229,6 @@ const shouldSkip = createSimpleTestFileSkip(files, [
   ["timestamps", "timestamp_selectors", "getMilliseconds"],
   ["timestamps", "timestamp_conversions", "type_comparison"],
   ["type_deductions", "legacy_nullable_types"],
-  ["wrappers", "bool"],
-  ["wrappers", "int32"],
-  ["wrappers", "int64"],
-  ["wrappers", "uint32"],
-  ["wrappers", "uint64"],
-  ["wrappers", "float"],
-  ["wrappers", "double"],
-  ["wrappers", "bytes"],
-  ["wrappers", "string"],
-  ["wrappers", "list_value"],
-  ["wrappers", "struct"],
-  ["wrappers", "field_mask"],
-  ["wrappers", "duration"],
-  ["wrappers", "timestamp"],
-  ["wrappers", "empty"],
 ]);
 
 void suite("Conformance Tests", () => {
