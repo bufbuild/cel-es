@@ -253,7 +253,7 @@ export function matchesString(x: string, y: string): boolean {
     }
   }
   // CEL use RE2 syntax which is a subset of Ecmascript RE except for
-  // the flags and the ability to change the flags mid sequence.
+  // the flags and the ability to change the flags mid-sequence.
   //
   // The conformance tests use flags at the very beginning of the sequence, which
   // is likely the most common place where this rare feature will be used.
@@ -261,7 +261,7 @@ export function matchesString(x: string, y: string): boolean {
   // Instead of importing an RE2 engine to be able to support this niche, we
   // can instead just check for the flags at the very beginning and apply them.
   //
-  // Unsupported flags and flags mid sequence will fail with to compile the regex.
+  // Unsupported flags and flags mid-sequence will fail with to compile the regex.
   //
   // Users can choose to override this function and provide an RE2 engine if they really
   // need to.

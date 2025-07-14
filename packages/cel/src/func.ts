@@ -19,9 +19,14 @@ import {
   CelScalar,
   type CelOutput,
   isCelType,
+  type CelValue,
 } from "./type.js";
-import { unwrapResults } from "./value/adapter.js";
-import { type CelResult, type CelVal, CelError } from "./value/value.js";
+import {
+  type CelResult,
+  type CelVal,
+  CelError,
+  CelErrors,
+} from "./value/value.js";
 import { isMessage } from "@bufbuild/protobuf";
 import { isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
@@ -183,4 +188,21 @@ function isOfType<T extends CelType>(
       }
   }
   return false;
+}
+
+function unwrapResults<V = CelValue>(args: CelResult<V>[]) {
+  const errors: CelError[] = [];
+  const vals: V[] = [];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg instanceof CelError) {
+      errors.push(arg);
+    } else {
+      vals.push(arg);
+    }
+  }
+  if (errors.length > 0) {
+    return CelErrors.merge(errors);
+  }
+  return vals;
 }

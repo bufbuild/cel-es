@@ -13,11 +13,8 @@
 // limitations under the License.
 
 import type { Activation } from "./activation.js";
-import { CEL_ADAPTER } from "./adapter/cel.js";
 import { EvalAttr, type Interpretable } from "./planner.js";
-import { type RawResult, RawVal } from "./value/adapter.js";
 import type { Namespace } from "./value/namespace.js";
-import type { CelValProvider } from "./value/provider.js";
 import {
   type CelResult,
   type CelVal,
@@ -26,7 +23,14 @@ import {
 } from "./value/value.js";
 import { accessByIndex, accessByName, isSet } from "./field.js";
 import { isCelUint } from "./uint.js";
-import { celType, type CelValue } from "./type.js";
+import {
+  CelScalar,
+  celType,
+  listType,
+  mapType,
+  type CelValue,
+} from "./type.js";
+import type { Registry } from "@bufbuild/protobuf";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;
@@ -42,28 +46,28 @@ export interface AttributeFactory {
 }
 
 // The access of a sub value.
-export interface Access<T = unknown> {
+export interface Access<T extends CelValue = CelValue> {
   // The expr id of the access.
   readonly id: number;
 
   // Performs the access on the provided object.
-  access(vars: Activation, obj: RawVal<T>): RawResult<T> | undefined;
+  access(vars: Activation, obj: T): CelResult<T> | undefined;
 
-  isPresent(_vars: Activation, obj: RawVal): CelResult<boolean>;
+  isPresent(_vars: Activation, obj: T): CelResult<boolean>;
 
   accessIfPresent(
     vars: Activation,
-    obj: RawVal<T>,
+    obj: T,
     presenceOnly: boolean,
-  ): RawResult<T> | undefined;
+  ): CelResult<T> | undefined;
 
   // If the access is optional.
   isOptional(): boolean;
 }
 
 // Attribute values can be additionally accessed.
-export interface Attribute<T = unknown> extends Access<T> {
-  resolve(vars: Activation): RawResult<T> | undefined;
+export interface Attribute<T extends CelValue = CelValue> extends Access<T> {
+  resolve(vars: Activation): CelResult<T> | undefined;
   addAccess(access: Access): void;
 }
 
@@ -73,12 +77,12 @@ export interface NamespacedAttribute extends Attribute {
   accesses(): Access[];
 }
 
-function attrAccess<T = unknown>(
+function attrAccess<T extends CelValue = CelValue>(
   factory: AttributeFactory,
   vars: Activation,
-  obj: RawVal<T>,
+  obj: T,
   accAttr: Attribute,
-): RawResult<T> | undefined {
+): CelResult<T> | undefined {
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
@@ -86,14 +90,14 @@ function attrAccess<T = unknown>(
   if (val instanceof CelError) {
     return val;
   }
-  const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
-  return access.access(vars, obj) as RawResult<T>;
+  const access = factory.newAccess(accAttr.id, val, accAttr.isOptional());
+  return access.access(vars, obj) as CelResult<T>;
 }
 
-function attrIsPresent<T = unknown>(
+function attrIsPresent<T extends CelValue = CelValue>(
   factory: AttributeFactory,
   vars: Activation,
-  obj: RawVal<T>,
+  obj: T,
   accAttr: Attribute,
 ): CelResult<boolean> {
   const val = accAttr.resolve(vars);
@@ -103,17 +107,17 @@ function attrIsPresent<T = unknown>(
   if (val instanceof CelError) {
     return val;
   }
-  const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
+  const access = factory.newAccess(accAttr.id, val, accAttr.isOptional());
   return access.isPresent(vars, obj);
 }
 
-function attrAccessIfPresent<T = unknown>(
+function attrAccessIfPresent<T extends CelValue = CelValue>(
   factory: AttributeFactory,
   vars: Activation,
-  obj: RawVal<T>,
+  obj: T,
   accAttr: Attribute,
   presenceOnly: boolean,
-): RawResult<T> | undefined {
+): CelResult<T> | undefined {
   const val = accAttr.resolve(vars);
   if (val === undefined) {
     return undefined;
@@ -121,24 +125,21 @@ function attrAccessIfPresent<T = unknown>(
   if (val instanceof CelError) {
     return val;
   }
-  const access = factory.newAccess(accAttr.id, val.value, accAttr.isOptional());
-  if (access instanceof CelError) {
-    return access;
-  }
-  return access.accessIfPresent(vars, obj, presenceOnly) as RawResult<T>;
+  const access = factory.newAccess(accAttr.id, val, accAttr.isOptional());
+  return access.accessIfPresent(vars, obj, presenceOnly) as CelResult<T>;
 }
 
-function applyAccesses<T = unknown>(
+function applyAccesses<T extends CelValue = CelValue>(
   vars: Activation,
-  obj: RawVal<T>,
+  obj: T,
   accesses: Access[],
-): RawResult<T> | undefined {
+): CelResult<T> | undefined {
   if (accesses.length === 0) {
     return obj;
   }
   let cur = obj;
   for (const access of accesses) {
-    const result = access.access(vars, cur) as RawResult<T>;
+    const result = access.access(vars, cur) as CelResult<T>;
     if (result === undefined) {
       return undefined;
     }
@@ -155,7 +156,7 @@ class AbsoluteAttr implements NamespacedAttribute {
     public readonly id: number,
     readonly nsNames: string[],
     public accesses_: Access[],
-    readonly provider: CelValProvider,
+    readonly registry: Registry,
     readonly factory: AttributeFactory,
   ) {
     if (nsNames.length === 0) {
@@ -179,23 +180,23 @@ class AbsoluteAttr implements NamespacedAttribute {
     return this.accesses_;
   }
 
-  access(vars: Activation, obj: RawVal): RawResult | undefined {
+  access(vars: Activation, obj: CelValue): CelResult | undefined {
     return attrAccess(this.factory, vars, obj, this);
   }
 
-  isPresent(vars: Activation, obj: RawVal): CelResult<boolean> {
+  isPresent(vars: Activation, obj: CelValue): CelResult<boolean> {
     return attrIsPresent(this.factory, vars, obj, this);
   }
 
   accessIfPresent(
     vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     presenceOnly: boolean,
-  ): RawResult | undefined {
+  ): CelResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
 
-  resolve(vars: Activation): RawResult | undefined {
+  resolve(vars: Activation): CelResult | undefined {
     for (const name of this.nsNames) {
       const raw = vars.resolve(name);
       if (raw !== undefined) {
@@ -204,12 +205,52 @@ class AbsoluteAttr implements NamespacedAttribute {
         }
         return applyAccesses(vars, raw, this.accesses_);
       }
-      const typ = this.provider.findIdent(this.id, name);
+      const typ = this.findIdent(name);
       if (typ !== undefined && this.accesses_.length === 0) {
-        return new RawVal(CEL_ADAPTER, typ);
+        return typ;
       }
     }
     return undefined;
+  }
+
+  private findIdent(ident: string) {
+    // Must be an enum
+    if (ident.indexOf(".") > 1) {
+      const lastDot = ident.lastIndexOf(".");
+      const enumName = ident.substring(0, lastDot);
+      const valueName = ident.substring(lastDot + 1);
+      const descEnum = this.registry.getEnum(enumName);
+      if (descEnum) {
+        const enumValue = descEnum.values.find((v) => v.name === valueName);
+        if (enumValue) {
+          return BigInt(enumValue.number);
+        }
+      }
+    }
+    switch (ident) {
+      case "int":
+        return CelScalar.INT;
+      case "uint":
+        return CelScalar.UINT;
+      case "double":
+        return CelScalar.DOUBLE;
+      case "bool":
+        return CelScalar.BOOL;
+      case "string":
+        return CelScalar.STRING;
+      case "bytes":
+        return CelScalar.BYTES;
+      case "list":
+        return listType(CelScalar.DYN);
+      case "map":
+        return mapType(CelScalar.DYN, CelScalar.DYN);
+      case "null_type":
+        return CelScalar.NULL;
+      case "type":
+        return CelScalar.TYPE;
+      default:
+        return undefined;
+    }
   }
 }
 
@@ -231,23 +272,23 @@ class ConditionalAttr implements Attribute {
     this.f.addAccess(access);
   }
 
-  access(vars: Activation, obj: RawVal): RawResult | undefined {
+  access(vars: Activation, obj: CelValue): CelResult | undefined {
     return attrAccess(this.factory, vars, obj, this);
   }
 
-  isPresent(vars: Activation, obj: RawVal): CelResult<boolean> {
+  isPresent(vars: Activation, obj: CelValue): CelResult<boolean> {
     return attrIsPresent(this.factory, vars, obj, this);
   }
 
   accessIfPresent(
     vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     presenceOnly: boolean,
-  ): RawResult | undefined {
+  ): CelResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
 
-  resolve(vars: Activation): RawResult | undefined {
+  resolve(vars: Activation): CelResult | undefined {
     const cond = this.cond.eval(vars);
     switch (true) {
       case cond === true:
@@ -257,9 +298,7 @@ class ConditionalAttr implements Attribute {
       case cond instanceof CelError:
         return cond;
     }
-    return CelErrors.overloadNotFound(this.id, "_?_:_", [
-      celType(cond as CelValue),
-    ]);
+    return CelErrors.overloadNotFound(this.id, "_?_:_", [celType(cond)]);
   }
 }
 
@@ -267,7 +306,6 @@ class MaybeAttr implements Attribute {
   constructor(
     public readonly id: number,
     public readonly attrs: NamespacedAttribute[],
-    public readonly provider: CelValProvider,
     public readonly factory: AttributeFactory,
   ) {}
 
@@ -298,23 +336,23 @@ class MaybeAttr implements Attribute {
     }
   }
 
-  access(vars: Activation, obj: RawVal): RawResult | undefined {
+  access(vars: Activation, obj: CelValue): CelResult | undefined {
     return attrAccess(this.factory, vars, obj, this);
   }
 
-  isPresent(vars: Activation, obj: RawVal): CelResult<boolean> {
+  isPresent(vars: Activation, obj: CelValue): CelResult<boolean> {
     return attrIsPresent(this.factory, vars, obj, this);
   }
 
   accessIfPresent(
     vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     presenceOnly: boolean,
-  ): RawResult | undefined {
+  ): CelResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
 
-  resolve(vars: Activation): RawResult | undefined {
+  resolve(vars: Activation): CelResult | undefined {
     for (const attr of this.attrs) {
       const val = attr.resolve(vars);
       if (val !== undefined) {
@@ -341,28 +379,28 @@ class RelativeAttr implements Attribute {
     this.accesses_.push(access);
   }
 
-  access(vars: Activation, obj: RawVal): RawResult | undefined {
+  access(vars: Activation, obj: CelValue): CelResult | undefined {
     return attrAccess(this.factory, vars, obj, this);
   }
 
-  isPresent(vars: Activation, obj: RawVal): CelResult<boolean> {
+  isPresent(vars: Activation, obj: CelValue): CelResult<boolean> {
     return attrIsPresent(this.factory, vars, obj, this);
   }
 
   accessIfPresent(
     vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     presenceOnly: boolean,
-  ): RawResult | undefined {
+  ): CelResult | undefined {
     return attrAccessIfPresent(this.factory, vars, obj, this, presenceOnly);
   }
 
-  resolve(vars: Activation): RawResult | undefined {
+  resolve(vars: Activation): CelResult | undefined {
     const v = this.operand.eval(vars);
     if (v instanceof CelError) {
       return v;
     }
-    return applyAccesses(vars, new RawVal(CEL_ADAPTER, v), this.accesses_);
+    return applyAccesses(vars, v, this.accesses_);
   }
 }
 
@@ -378,16 +416,16 @@ class StringAccess implements Access {
     return this.optional;
   }
 
-  access<T>(_vars: Activation, obj: RawVal<T>): RawResult<T> | undefined {
-    const val = accessByName(obj.value, this.name) as T | undefined;
+  access<T>(_vars: Activation, obj: CelValue): CelResult<T> | undefined {
+    const val = accessByName(obj, this.name) as T | undefined;
     if (val === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.name);
     }
-    return RawVal.if(obj.adapter, val);
+    return val;
   }
 
-  isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const set = isSet(obj.value, this.name);
+  isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
+    const set = isSet(obj, this.name);
     if (set === undefined) {
       return CelErrors.fieldNotFound(this.id, this.name);
     }
@@ -396,15 +434,14 @@ class StringAccess implements Access {
 
   accessIfPresent(
     _vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     presenceOnly: boolean,
-  ): RawResult | undefined {
-    const val = accessByName(obj.value, this.name);
-    // TODO(tstamm) obj.adapter.toCel(val) ?
+  ): CelResult | undefined {
+    const val = accessByName(obj, this.name);
     if (val === undefined && !this.optional && !presenceOnly) {
       return CelErrors.fieldNotFound(this.id, this.name);
     }
-    return RawVal.if(obj.adapter, val);
+    return val;
   }
 }
 
@@ -419,19 +456,19 @@ class BoolAccess implements Access {
     return this.optional;
   }
 
-  access(_vars: Activation, obj: RawVal): RawResult | undefined {
+  access(_vars: Activation, obj: CelValue): CelResult | undefined {
     if (obj === undefined) {
       return obj;
     }
-    const raw = accessByIndex(obj.value, this.index);
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.index);
     }
-    return RawVal.if(obj.adapter, raw);
+    return raw;
   }
 
-  isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = accessByIndex(obj.value, this.index);
+  isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.index);
     }
@@ -440,14 +477,14 @@ class BoolAccess implements Access {
 
   accessIfPresent(
     _vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     _presenceOnly: boolean,
-  ): RawResult | undefined {
-    const raw = accessByIndex(obj.value, this.index);
+  ): CelResult | undefined {
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.fieldNotFound(this.id, this.index);
     }
-    return RawVal.if(obj.adapter, raw);
+    return raw;
   }
 }
 
@@ -463,19 +500,19 @@ class NumAccess implements Access {
     return this.optional;
   }
 
-  access(_vars: Activation, obj: RawVal): RawResult | undefined {
+  access(_vars: Activation, obj: CelValue): CelResult | undefined {
     if (obj === undefined) {
       return obj;
     }
-    const raw = accessByIndex(obj.value, this.index);
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
-    return RawVal.if(obj.adapter, raw);
+    return raw;
   }
 
-  isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = accessByIndex(obj.value, this.index);
+  isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
@@ -484,14 +521,14 @@ class NumAccess implements Access {
 
   accessIfPresent(
     _vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     _presenceOnly: boolean,
-  ): RawResult | undefined {
-    const raw = accessByIndex(obj.value, this.index);
+  ): CelResult | undefined {
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, this.index, -1);
     }
-    return RawVal.if(obj.adapter, raw);
+    return raw;
   }
 }
 
@@ -503,19 +540,19 @@ class IntAccess implements Access {
     public readonly optional: boolean,
   ) {}
 
-  access(_vars: Activation, obj: RawVal): RawResult | undefined {
+  access(_vars: Activation, obj: unknown): CelResult | undefined {
     if (obj === undefined) {
       return obj;
     }
-    const raw = accessByIndex(obj.value, this.index);
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
-    return RawVal.if(obj.adapter, raw);
+    return raw;
   }
 
-  isPresent(_vars: Activation, obj: RawVal): CelResult<boolean> {
-    const raw = accessByIndex(obj.value, this.index);
+  isPresent(_vars: Activation, obj: unknown): CelResult<boolean> {
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
@@ -524,14 +561,14 @@ class IntAccess implements Access {
 
   accessIfPresent(
     _vars: Activation,
-    obj: RawVal,
+    obj: unknown,
     _presenceOnly: boolean,
-  ): RawResult | undefined {
-    const raw = accessByIndex(obj.value, this.index);
+  ): CelResult | undefined {
+    const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
     }
-    return RawVal.if(obj.adapter, raw);
+    return raw;
   }
 
   isOptional(): boolean {
@@ -539,7 +576,7 @@ class IntAccess implements Access {
   }
 }
 
-class ErrorAttr implements Attribute {
+export class ErrorAttr implements Attribute {
   constructor(
     public readonly id: number,
     public readonly error: CelError,
@@ -550,7 +587,7 @@ class ErrorAttr implements Attribute {
     // Do nothing
   }
 
-  resolve(_vars: Activation): RawResult | undefined {
+  resolve(_vars: Activation): CelResult | undefined {
     return this.error;
   }
 
@@ -558,19 +595,19 @@ class ErrorAttr implements Attribute {
     return this.opt;
   }
 
-  access(_vars: Activation, _obj: RawVal): RawResult | undefined {
+  access(_vars: Activation, _obj: CelValue): CelResult | undefined {
     return this.error;
   }
 
-  isPresent(_vars: Activation, _obj: RawVal): CelResult<boolean> {
+  isPresent(_vars: Activation, _obj: CelValue): CelResult<boolean> {
     return this.error;
   }
 
   accessIfPresent(
     _vars: Activation,
-    _obj: RawVal,
+    _obj: CelValue,
     _presenceOnly: boolean,
-  ): RawResult | undefined {
+  ): CelResult | undefined {
     return this.error;
   }
 }
@@ -583,7 +620,7 @@ class EvalAccess implements Access {
     readonly optional: boolean,
   ) {}
 
-  access(vars: Activation, obj: RawVal): RawResult | undefined {
+  access(vars: Activation, obj: CelValue): CelResult | undefined {
     if (obj === undefined) {
       return obj;
     }
@@ -595,7 +632,7 @@ class EvalAccess implements Access {
     return access.access(vars, obj);
   }
 
-  isPresent(vars: Activation, obj: RawVal): CelResult<boolean> {
+  isPresent(vars: Activation, obj: CelValue): CelResult<boolean> {
     if (obj === undefined) {
       return false;
     }
@@ -609,9 +646,9 @@ class EvalAccess implements Access {
 
   accessIfPresent(
     vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     presenceOnly: boolean,
-  ): RawResult | undefined {
+  ): CelResult | undefined {
     const key = this.key.eval(vars);
     if (key instanceof CelError) {
       return key;
@@ -627,12 +664,12 @@ class EvalAccess implements Access {
 
 export class ConcreteAttributeFactory implements AttributeFactory {
   constructor(
-    public provider: CelValProvider,
+    public registry: Registry,
     public container: Namespace,
   ) {}
 
   createAbsolute(id: number, names: string[]): NamespacedAttribute {
-    return new AbsoluteAttr(id, names, [], this.provider, this);
+    return new AbsoluteAttr(id, names, [], this.registry, this);
   }
 
   createConditional(
@@ -648,7 +685,6 @@ export class ConcreteAttributeFactory implements AttributeFactory {
     return new MaybeAttr(
       id,
       [this.createAbsolute(id, this.container.resolveCandidateNames(name))],
-      this.provider,
       this,
     );
   }

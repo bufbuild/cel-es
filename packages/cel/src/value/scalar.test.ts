@@ -18,20 +18,9 @@ import * as assert from "node:assert/strict";
 import { isMessage } from "@bufbuild/protobuf";
 import { DurationSchema } from "@bufbuild/protobuf/wkt";
 
-import { NATIVE_ADAPTER } from "../adapter/native.js";
 import { newDuration } from "./value.js";
-import { celUint } from "../uint.js";
 
 void suite("scalar", () => {
-  void test("bool", () => {
-    assert.equal(NATIVE_ADAPTER.toCel(true), true);
-    assert.equal(NATIVE_ADAPTER.toCel(false), false);
-  });
-
-  void test("uint", () => {
-    assert.equal(celUint(1n).value, 1n);
-  });
-
   void test("duration", () => {
     let actual = newDuration(0, 0n, -1);
     assert.ok(isMessage(actual, DurationSchema));

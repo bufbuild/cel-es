@@ -38,12 +38,18 @@ import { parse } from "./parser.js";
 import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
-import { ProtoValAdapter } from "./adapter/proto.js";
 import { celList, isCelList } from "./list.js";
 import { celMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { isNullMessage } from "./null.js";
-import { CelScalar, isCelType, listType, mapType, objectType } from "./type.js";
+import {
+  CelScalar,
+  isCelType,
+  listType,
+  mapType,
+  objectType,
+  type CelInput,
+} from "./type.js";
 import { getMsgDesc } from "./eval.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
@@ -148,14 +154,14 @@ function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
   planner.addFuncs(STRINGS_EXT_FUNCS);
   const parsed = parse(testCase.expr);
   const plan = planner.plan(parsed);
-  const bindings: Record<string, unknown> = {};
+  const bindings: Record<string, CelInput | undefined> = {};
   for (const [k, v] of Object.entries(testCase.bindings)) {
     if (v.kind.case !== "value") {
       throw new Error(`unimplemented binding conversion: ${v.kind.case}`);
     }
     bindings[k] = valueToCelValue(v.kind.value, registry);
   }
-  const ctx = new ObjectActivation(bindings, new ProtoValAdapter(registry));
+  const ctx = new ObjectActivation(bindings);
   const result = plan.eval(ctx);
   switch (testCase.resultMatcher.case) {
     case "value":
@@ -272,7 +278,10 @@ function celValueToValue(
   throw new Error(`unrecognised cel type: ${value}`);
 }
 
-function valueToCelValue(value: Value, registry: Registry): unknown {
+function valueToCelValue(
+  value: Value,
+  registry: Registry,
+): CelInput | undefined {
   switch (value.kind.case) {
     case "nullValue":
       return null;

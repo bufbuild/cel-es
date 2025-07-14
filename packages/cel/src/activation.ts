@@ -12,50 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { NATIVE_ADAPTER } from "./adapter/native.js";
-import { type RawResult, RawVal } from "./value/adapter.js";
-import { type CelValAdapter } from "./value/value.js";
+import { CelError, type CelResult } from "./value/value.js";
+import type { CelInput } from "./type.js";
+import { toCel } from "./value.js";
 
 export interface Activation {
-  resolve(name: string): RawResult | undefined;
-}
-
-export class EmptyActivation implements Activation {
-  resolve(_: string): RawResult | undefined {
-    return undefined;
-  }
-}
-
-export class MapActivation implements Activation {
-  constructor(
-    private map: Map<string, unknown>,
-    private readonly adapter = NATIVE_ADAPTER,
-  ) {}
-
-  resolve(name: string): RawResult | undefined {
-    return RawVal.if(this.adapter, this.map.get(name));
-  }
+  resolve(name: string): CelResult | undefined;
 }
 
 export class ObjectActivation implements Activation {
   constructor(
-    private readonly data: object,
-    private readonly adapter: CelValAdapter,
+    private readonly data: Record<string, CelInput | CelError | undefined>,
   ) {}
 
-  resolve(name: string): RawResult | undefined {
-    return RawVal.if(this.adapter, this.data[name as keyof typeof this.data]);
+  resolve(name: string): CelResult | undefined {
+    const value = this.data[name];
+    if (value === undefined) {
+      return undefined;
+    }
+    if (value instanceof CelError) {
+      return value;
+    }
+    return toCel(value);
   }
 }
 
 export class VarActivation implements Activation {
   constructor(
     public readonly name: string,
-    public value: RawResult,
+    public value: CelResult,
     public readonly parent: Activation,
   ) {}
 
-  resolve(name: string): RawResult | undefined {
+  resolve(name: string): CelResult | undefined {
     if (name === this.name) {
       return this.value;
     }

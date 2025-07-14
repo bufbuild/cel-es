@@ -27,21 +27,18 @@ import {
   type Access,
   type Attribute,
   type AttributeFactory,
+  ErrorAttr,
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
-import { CEL_ADAPTER } from "./adapter/cel.js";
 import { type CallDispatch, type Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
-import { RawVal, type RawResult } from "./value/adapter.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
 import { Namespace } from "./value/namespace.js";
-import { type CelValProvider } from "./value/provider.js";
 import {
   CelError,
   coerceToValues,
   type CelResult,
   type CelVal,
-  type CelValAdapter,
   CelErrors,
 } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
@@ -49,24 +46,17 @@ import { celMap, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { toCel } from "./value.js";
 import { celObject } from "./object.js";
-import {
-  CelScalar,
-  celType,
-  listType,
-  mapType,
-  type CelInput,
-  type CelType,
-  type CelValue,
-} from "./type.js";
+import { celType, type CelInput, type CelValue } from "./type.js";
+import type { Registry } from "@bufbuild/protobuf";
 
 export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
     private readonly functions: Dispatcher,
-    private readonly provider: CelValProvider,
+    private readonly registry: Registry,
     private readonly namespace: Namespace = Namespace.ROOT,
   ) {
-    this.factory = new ConcreteAttributeFactory(this.provider, this.namespace);
+    this.factory = new ConcreteAttributeFactory(this.registry, this.namespace);
   }
 
   public plan(expr: Expr): Interpretable {
@@ -132,8 +122,8 @@ export class Planner {
     const operand = this.plan(expr.operand);
     const attr = this.relativeAttr(id, operand, false);
     const acc = this.factory.newAccess(id, expr.field, false);
-    if (acc instanceof CelError) {
-      throw new Error(`invalid select: ${acc.message}`);
+    if (acc instanceof ErrorAttr) {
+      throw new Error(`invalid select: ${acc.error.message}`);
     }
     if (expr.testOnly) {
       return new EvalHas(id, attr, acc, expr.field);
@@ -172,7 +162,7 @@ export class Planner {
       }
       values.push(this.plan(entry.value));
     }
-    return new EvalObj(id, typeName, keys, values, optionals, this.provider);
+    return new EvalObj(id, typeName, keys, values, optionals);
   }
 
   private planCreateStruct(id: number, expr: Expr_CreateStruct): Interpretable {
@@ -244,7 +234,6 @@ export class Planner {
               "",
               func,
               call.args.map((arg) => this.plan(arg)),
-              this.provider.adapter,
             );
           }
         }
@@ -272,7 +261,6 @@ export class Planner {
       "",
       this.functions.find(call.function),
       args,
-      this.provider.adapter,
     );
   }
 
@@ -345,12 +333,35 @@ export class Planner {
 
   private resolveType(name: string): string | undefined {
     for (const candidate of this.namespace.resolveCandidateNames(name)) {
-      const t = this.provider.findType(candidate);
-      if (t !== undefined) {
+      if (this.isKnownType(candidate)) {
         return candidate;
       }
     }
     return undefined;
+  }
+
+  private isKnownType(name: string): boolean {
+    switch (name) {
+      case "google.protobuf.Value":
+      case "google.protobuf.Struct":
+      case "google.protobuf.ListValue":
+      case "google.protobuf.NullValue":
+      case "google.protobuf.BoolValue":
+      case "google.protobuf.UInt32Value":
+      case "google.protobuf.UInt64Value":
+      case "google.protobuf.Int32Value":
+      case "google.protobuf.Int64Value":
+      case "google.protobuf.FloatValue":
+      case "google.protobuf.DoubleValue":
+      case "google.protobuf.StringValue":
+      case "google.protobuf.BytesValue":
+      case "google.protobuf.Timestamp":
+      case "google.protobuf.Duration":
+      case "google.protobuf.Any":
+        return true;
+      default:
+        return this.registry.getMessage(name) !== undefined;
+    }
   }
 }
 
@@ -359,14 +370,7 @@ export interface Interpretable {
   eval(ctx: Activation): CelResult;
 }
 
-export interface InterpretableCall extends Interpretable {
-  function(): string;
-  overloadId(): number;
-  args(): Interpretable[];
-}
-
 export interface InterpretableCtor extends Interpretable {
-  type(): CelType;
   args(): Interpretable[];
 }
 
@@ -418,19 +422,19 @@ export class EvalAttr implements Attribute, Interpretable {
   ) {
     this.id = attr.id;
   }
-  access(vars: Activation, obj: RawVal): RawResult | undefined {
+  access(vars: Activation, obj: CelValue): CelResult | undefined {
     return this.attr.access(vars, obj);
   }
 
-  isPresent(vars: Activation, obj: RawVal): CelResult<boolean> {
+  isPresent(vars: Activation, obj: CelValue): CelResult<boolean> {
     return this.attr.isPresent(vars, obj);
   }
 
   accessIfPresent(
     vars: Activation,
-    obj: RawVal,
+    obj: CelValue,
     presenceOnly: boolean,
-  ): RawResult | undefined {
+  ): CelResult | undefined {
     return this.attr.accessIfPresent(vars, obj, presenceOnly);
   }
 
@@ -445,11 +449,10 @@ export class EvalAttr implements Attribute, Interpretable {
     } else if (val instanceof CelError) {
       return val;
     }
-
-    return val.adapter.toCel(val.value);
+    return toCel(val);
   }
 
-  resolve(vars: Activation): RawResult<unknown> | undefined {
+  resolve(vars: Activation): CelResult | undefined {
     return this.attr.resolve(vars);
   }
 
@@ -465,7 +468,6 @@ export class EvalCall implements Interpretable {
     public readonly overload: string,
     private readonly call: CallDispatch | undefined,
     public readonly args: Interpretable[],
-    public readonly adapter: CelValAdapter,
   ) {}
 
   public eval(ctx: Activation): CelResult {
@@ -497,11 +499,7 @@ export class EvalObj implements InterpretableCtor {
     public fields: string[],
     public values: Interpretable[],
     public optionals: boolean[] | undefined,
-    public provider: CelValProvider,
   ) {}
-  type(): CelType {
-    return this.provider.findType(this.typeName)!;
-  }
   args(): Interpretable[] {
     return this.values;
   }
@@ -554,9 +552,6 @@ export class EvalList implements InterpretableCtor {
     return celList(elemVals);
   }
 
-  type(): CelType {
-    return listType(CelScalar.DYN);
-  }
   args(): Interpretable[] {
     return this.elems;
   }
@@ -570,9 +565,6 @@ export class EvalMap implements InterpretableCtor {
     _: boolean[] | undefined,
   ) {}
 
-  type(): CelType {
-    return mapType(CelScalar.DYN, CelScalar.DYN);
-  }
   args(): Interpretable[] {
     return this.keys.concat(this.values);
   }
@@ -654,11 +646,7 @@ export class EvalFold implements Interpretable {
     if (accuInit instanceof CelError) {
       return accuInit;
     }
-    const accuCtx = new VarActivation(
-      this.accuVar,
-      new RawVal(CEL_ADAPTER, accuInit),
-      ctx,
-    );
+    const accuCtx = new VarActivation(this.accuVar, accuInit, ctx);
     const iterRange = this.iterRange.eval(ctx);
     if (iterRange instanceof CelError) {
       return iterRange;
@@ -678,11 +666,7 @@ export class EvalFold implements Interpretable {
       if (item instanceof CelError) {
         return item;
       }
-      const iterCtx = new VarActivation(
-        this.iterVar,
-        new RawVal(CEL_ADAPTER, item),
-        accuCtx,
-      );
+      const iterCtx = new VarActivation(this.iterVar, item, accuCtx);
       const cond = this.cond.eval(iterCtx);
       if (cond instanceof CelError) {
         return cond;
@@ -691,7 +675,7 @@ export class EvalFold implements Interpretable {
         break;
       }
       // Update the result.
-      accuCtx.value = new RawVal(CEL_ADAPTER, this.step.eval(iterCtx));
+      accuCtx.value = this.step.eval(iterCtx);
     }
     // Compute the result
     return this.result.eval(accuCtx);
