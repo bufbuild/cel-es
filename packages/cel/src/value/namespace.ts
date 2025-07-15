@@ -14,7 +14,7 @@
 
 export class Namespace {
   private readonly _name: string;
-  private _aliases: Map<string, string>;
+  private readonly _aliases: Map<string, string>;
 
   constructor(name = "") {
     this._name = name;

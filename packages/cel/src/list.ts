@@ -12,8 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type ReflectList, isReflectList } from "@bufbuild/protobuf/reflect";
-import { celFromListElem } from "./proto.js";
+import {
+  type ReflectList,
+  type ReflectMessage,
+  type ScalarValue,
+  isReflectList,
+} from "@bufbuild/protobuf/reflect";
+import type { DescField } from "@bufbuild/protobuf";
+import { celFromScalar } from "./proto.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/list");
 
@@ -42,8 +48,6 @@ export interface CelList extends Iterable<unknown> {
 /**
  * Create a new list from a native array or a ReflectList.
  */
-export function celList(array: readonly unknown[]): CelList;
-export function celList(reflectList: ReflectList): CelList;
 export function celList(
   arrayOrReflectList: readonly unknown[] | ReflectList,
 ): CelList {
@@ -151,5 +155,16 @@ class ConcatList implements CelList {
 
   [Symbol.iterator]() {
     return this.values();
+  }
+}
+
+function celFromListElem(desc: DescField & { fieldKind: "list" }, v: unknown) {
+  switch (desc.listKind) {
+    case "enum":
+      return BigInt(v as number);
+    case "message":
+      return v as ReflectMessage;
+    case "scalar":
+      return celFromScalar(desc.scalar, v as ScalarValue);
   }
 }

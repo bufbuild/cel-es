@@ -14,12 +14,9 @@
 
 import {
   CelError,
-  CelObject,
   CelPlanner,
-  CelType,
   makeStringExtFuncRegistry,
   ObjectActivation,
-  ProtoNull,
   type CelResult,
   isCelMap,
 } from "./index.js";
@@ -41,11 +38,19 @@ import { parse } from "./parser.js";
 import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
-import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { ProtoValAdapter } from "./adapter/proto.js";
 import { celList, isCelList } from "./list.js";
 import { celMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
+import { isNullMessage } from "./null.js";
+import {
+  CelScalar,
+  isCelType,
+  listType,
+  mapType,
+  objectType,
+  type CelInput,
+} from "./type.js";
+import { getMsgDesc } from "./eval.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -149,14 +154,14 @@ function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
   planner.addFuncs(STRINGS_EXT_FUNCS);
   const parsed = parse(testCase.expr);
   const plan = planner.plan(parsed);
-  const bindings: Record<string, unknown> = {};
+  const bindings: Record<string, CelInput | undefined> = {};
   for (const [k, v] of Object.entries(testCase.bindings)) {
     if (v.kind.case !== "value") {
       throw new Error(`unimplemented binding conversion: ${v.kind.case}`);
     }
     bindings[k] = valueToCelValue(v.kind.value, registry);
   }
-  const ctx = new ObjectActivation(bindings, new ProtoValAdapter(registry));
+  const ctx = new ObjectActivation(bindings);
   const result = plan.eval(ctx);
   switch (testCase.resultMatcher.case) {
     case "value":
@@ -223,7 +228,7 @@ function celValueToValue(
     case "symbol":
       throw new Error(`unrecognised cel type: ${typeof value}`);
   }
-  if (value === null || value instanceof ProtoNull) {
+  if (value === null || isNullMessage(value)) {
     return { kind: { case: "nullValue", value: NullValue.NULL_VALUE } };
   }
   if (value instanceof Uint8Array) {
@@ -232,7 +237,7 @@ function celValueToValue(
   if (isCelUint(value)) {
     return { kind: { case: "uint64Value", value: value.value } };
   }
-  if (value instanceof CelType) {
+  if (isCelType(value)) {
     return { kind: { case: "typeValue", value: value.name } };
   }
   if (isCelList(value)) {
@@ -258,12 +263,6 @@ function celValueToValue(
       },
     };
   }
-  if (value instanceof CelObject) {
-    value = value.value;
-  }
-  if (isReflectMessage(value)) {
-    value = value.message;
-  }
   if (isMessage(value)) {
     const desc = registry.getMessage(value.$typeName);
     if (desc === undefined) {
@@ -279,7 +278,10 @@ function celValueToValue(
   throw new Error(`unrecognised cel type: ${value}`);
 }
 
-function valueToCelValue(value: Value, registry: Registry): unknown {
+function valueToCelValue(
+  value: Value,
+  registry: Registry,
+): CelInput | undefined {
   switch (value.kind.case) {
     case "nullValue":
       return null;
@@ -305,7 +307,7 @@ function valueToCelValue(value: Value, registry: Registry): unknown {
       return celMap(map);
     }
     case "typeValue":
-      return new CelType(value.kind.value);
+      return lookupType(value.kind.value);
     case "enumValue":
       return BigInt(value.kind.value.value);
     default:
@@ -347,4 +349,31 @@ function sortMapValue(value: MapValue) {
     }
     throw new Error(`invalid MapValue key: ${a.key?.kind.case}`);
   });
+}
+
+function lookupType(name: string) {
+  switch (name) {
+    case "int":
+      return CelScalar.INT;
+    case "uint":
+      return CelScalar.UINT;
+    case "double":
+      return CelScalar.DOUBLE;
+    case "bool":
+      return CelScalar.BOOL;
+    case "string":
+      return CelScalar.STRING;
+    case "bytes":
+      return CelScalar.BYTES;
+    case "list":
+      return listType(CelScalar.DYN);
+    case "map":
+      return mapType(CelScalar.DYN, CelScalar.DYN);
+    case "null_type":
+      return CelScalar.NULL;
+    case "type":
+      return CelScalar.TYPE;
+    default:
+      return objectType(getMsgDesc(name));
+  }
 }

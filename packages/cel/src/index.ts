@@ -32,23 +32,24 @@ export { type CelParser, CelPlanner, CelEnv } from "./celenv.js";
 export {
   type CelResult,
   type CelVal,
-  CelType,
-  isCelResult,
-  isCelVal,
   CelError,
   CelErrors,
-  ProtoNull,
-  CelObject,
 } from "./value/value.js";
-export { getCelType } from "./value/type.js";
-export { NATIVE_ADAPTER } from "./adapter/native.js";
-export { CEL_ADAPTER } from "./adapter/cel.js";
 export { ObjectActivation } from "./activation.js";
 export { makeStringExtFuncRegistry } from "./ext/strings.js";
 export { Func, FuncRegistry } from "./func.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
 export { type CelList, celList, isCelList, celListConcat } from "./list.js";
 export { type CelUint, celUint, isCelUint } from "./uint.js";
+export { type NullMessage, nullMessage } from "./null.js";
+export {
+  celType,
+  objectType,
+  CelScalar,
+  type CelType as CELType,
+  listType,
+  typeType,
+} from "./type.js";
 
 export function createEnv(namespace: string, registry: Registry): CelEnv {
   const env = new CelEnv(namespace, registry);

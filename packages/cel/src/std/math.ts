@@ -22,14 +22,8 @@ import {
 
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
-import * as type from "../value/type.js";
-import {
-  CelError,
-  newDuration,
-  newTimestamp,
-  CelErrors,
-} from "../value/value.js";
-import { CelScalar, listType } from "../type.js";
+import { CelError, newDuration, newTimestamp } from "../value/value.js";
+import { CelScalar, DURATION, listType, TIMESTAMP } from "../type.js";
 import { divisionByZero, moduloByZero, overflow } from "../errors.js";
 import { celListConcat } from "../list.js";
 import { celUint } from "../uint.js";
@@ -77,7 +71,7 @@ function addTimestamp(lhs: Timestamp, rhs: Timestamp | Duration) {
     nanos = nanos % 1000000000;
   }
   if (seconds > 253402300799 || seconds < -62135596800) {
-    throw overflow(opc.ADD, type.TIMESTAMP);
+    throw overflow(opc.ADD, TIMESTAMP);
   }
   return create(TimestampSchema, { seconds: seconds, nanos: nanos });
 }
@@ -90,7 +84,7 @@ function addDuration(lhs: Duration, rhs: Duration) {
     nanos = nanos % 1000000000;
   }
   if (seconds > 315576000000 || seconds < -315576000000) {
-    throw overflow(opc.ADD, type.DURATION);
+    throw overflow(opc.ADD, DURATION);
   }
   return create(DurationSchema, { seconds: seconds, nanos: nanos });
 }
@@ -117,7 +111,7 @@ const add = new Func(opc.ADD, [
     (lhs, rhs) => {
       const val = lhs + rhs;
       if (isOverflowInt(val)) {
-        throw overflow(opc.SUBTRACT, type.INT);
+        throw overflow(opc.SUBTRACT, CelScalar.INT);
       }
       return val;
     },
@@ -128,7 +122,7 @@ const add = new Func(opc.ADD, [
     (lhs, rhs) => {
       const val = lhs.value + rhs.value;
       if (isOverflowUint(val)) {
-        throw overflow(opc.SUBTRACT, type.UINT);
+        throw overflow(opc.SUBTRACT, CelScalar.UINT);
       }
       return celUint(val);
     },
@@ -153,29 +147,15 @@ const add = new Func(opc.ADD, [
       return val;
     },
   ),
-  new FuncOverload(
-    [TimestampSchema, TimestampSchema],
-    TimestampSchema,
-    addTimestamp,
+  new FuncOverload([TIMESTAMP, TIMESTAMP], TIMESTAMP, addTimestamp),
+  new FuncOverload([TIMESTAMP, DURATION], TIMESTAMP, addTimestamp),
+  new FuncOverload([DURATION, TIMESTAMP], TIMESTAMP, (lhs, rhs) =>
+    addTimestamp(rhs, lhs),
   ),
+  new FuncOverload([DURATION, DURATION], DURATION, addDuration),
   new FuncOverload(
-    [TimestampSchema, DurationSchema],
-    TimestampSchema,
-    addTimestamp,
-  ),
-  new FuncOverload(
-    [DurationSchema, TimestampSchema],
-    TimestampSchema,
-    (lhs, rhs) => addTimestamp(rhs, lhs),
-  ),
-  new FuncOverload(
-    [DurationSchema, DurationSchema],
-    DurationSchema,
-    addDuration,
-  ),
-  new FuncOverload(
-    [listType(CelScalar.ANY), listType(CelScalar.ANY)],
-    listType(CelScalar.ANY),
+    [listType(CelScalar.DYN), listType(CelScalar.DYN)],
+    listType(CelScalar.DYN),
     celListConcat,
   ),
 ]);
@@ -187,7 +167,7 @@ const subtract = new Func(opc.SUBTRACT, [
     (lhs, rhs) => {
       const val = lhs - rhs;
       if (isOverflowInt(val)) {
-        throw overflow(opc.SUBTRACT, type.INT);
+        throw overflow(opc.SUBTRACT, CelScalar.INT);
       }
       return val;
     },
@@ -198,7 +178,7 @@ const subtract = new Func(opc.SUBTRACT, [
     (lhs, rhs) => {
       const val = lhs.value - rhs.value;
       if (isOverflowUint(val)) {
-        throw overflow(opc.SUBTRACT, type.UINT);
+        throw overflow(opc.SUBTRACT, CelScalar.UINT);
       }
       return celUint(val);
     },
@@ -209,30 +189,22 @@ const subtract = new Func(opc.SUBTRACT, [
     (lhs, rhs) => lhs - rhs,
   ),
   new FuncOverload(
-    [TimestampSchema, TimestampSchema],
-    DurationSchema,
+    [TIMESTAMP, TIMESTAMP],
+    DURATION,
     subtractDurationOrTimestamp,
   ),
-  new FuncOverload(
-    [DurationSchema, DurationSchema],
-    DurationSchema,
-    subtractDurationOrTimestamp,
-  ),
-  new FuncOverload(
-    [TimestampSchema, DurationSchema],
-    TimestampSchema,
-    (lhs, rhs) => {
-      const errOrDuration = newTimestamp(
-        -1,
-        lhs.seconds - rhs.seconds,
-        lhs.nanos - rhs.nanos,
-      );
-      if (errOrDuration instanceof CelError) {
-        throw new Error(errOrDuration.message);
-      }
-      return errOrDuration;
-    },
-  ),
+  new FuncOverload([DURATION, DURATION], DURATION, subtractDurationOrTimestamp),
+  new FuncOverload([TIMESTAMP, DURATION], TIMESTAMP, (lhs, rhs) => {
+    const errOrDuration = newTimestamp(
+      -1,
+      lhs.seconds - rhs.seconds,
+      lhs.nanos - rhs.nanos,
+    );
+    if (errOrDuration instanceof CelError) {
+      throw new Error(errOrDuration.message);
+    }
+    return errOrDuration;
+  }),
 ]);
 
 const multiply = new Func(opc.MULTIPLY, [
@@ -242,7 +214,7 @@ const multiply = new Func(opc.MULTIPLY, [
     (lhs, rhs) => {
       const product = lhs * rhs;
       if (isOverflowInt(product)) {
-        throw overflow(opc.MULTIPLY, type.INT);
+        throw overflow(opc.MULTIPLY, CelScalar.INT);
       }
       return product;
     },
@@ -253,7 +225,7 @@ const multiply = new Func(opc.MULTIPLY, [
     (lhs, rhs) => {
       const product = lhs.value * rhs.value;
       if (isOverflowUint(product)) {
-        throw overflow(opc.MULTIPLY, type.UINT);
+        throw overflow(opc.MULTIPLY, CelScalar.UINT);
       }
       return celUint(product);
     },
@@ -271,10 +243,10 @@ const divide = new Func(opc.DIVIDE, [
     CelScalar.INT,
     (lhs, rhs) => {
       if (rhs === 0n) {
-        throw divisionByZero(type.INT);
+        throw divisionByZero(CelScalar.INT);
       }
       if (lhs === MIN_INT && rhs === -1n) {
-        throw overflow(opc.DIVIDE, type.INT);
+        throw overflow(opc.DIVIDE, CelScalar.INT);
       }
       return lhs / rhs;
     },
@@ -289,7 +261,7 @@ const divide = new Func(opc.DIVIDE, [
     CelScalar.UINT,
     (lhs, rhs) => {
       if (rhs.value === 0n) {
-        throw divisionByZero(type.UINT);
+        throw divisionByZero(CelScalar.UINT);
       }
       return celUint(lhs.value / rhs.value);
     },
@@ -302,7 +274,7 @@ const modulo = new Func(opc.MODULO, [
     CelScalar.INT,
     (lhs, rhs) => {
       if (rhs === 0n) {
-        throw new Error(CelErrors.moduloByZero(-1, type.INT).message);
+        throw moduloByZero(CelScalar.INT);
       }
       return lhs % rhs;
     },
@@ -312,7 +284,7 @@ const modulo = new Func(opc.MODULO, [
     CelScalar.UINT,
     (lhs, rhs) => {
       if (rhs.value === 0n) {
-        throw moduloByZero(type.UINT);
+        throw moduloByZero(CelScalar.UINT);
       }
       return celUint(lhs.value % rhs.value);
     },
@@ -323,7 +295,7 @@ const negate = new Func(opc.NEGATE, [
   new FuncOverload([CelScalar.INT], CelScalar.INT, (arg) => {
     const val = -arg;
     if (isOverflowInt(val)) {
-      throw new Error(CelErrors.overflow(-1, opc.NEGATE, type.INT).message);
+      throw overflow(opc.NEGATE, CelScalar.INT);
     }
     return val;
   }),

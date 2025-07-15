@@ -12,9 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isReflectMap, type ReflectMap } from "@bufbuild/protobuf/reflect";
-import { celFromMapKey, celFromMapValue, mapKeyFromCel } from "./proto.js";
+import {
+  isReflectMap,
+  type ReflectMap,
+  type ReflectMessage,
+  type ScalarValue,
+} from "@bufbuild/protobuf/reflect";
 import { isCelUint, type CelUint } from "./uint.js";
+import { type DescField, ScalarType } from "@bufbuild/protobuf";
+import { celFromScalar } from "./proto.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 
@@ -49,10 +55,6 @@ export interface CelMap
 /**
  * Create a new map from a native map or a ReflectMap.
  */
-export function celMap(
-  map: ReadonlyMap<bigint | string | boolean | CelUint, unknown>,
-): CelMap;
-export function celMap(map: ReflectMap): CelMap;
 export function celMap(
   mapOrReflectMap:
     | ReadonlyMap<bigint | string | boolean | CelUint, unknown>
@@ -211,5 +213,52 @@ class ProtoMap implements CelMap {
     [string | bigint | boolean | CelUint, unknown]
   > {
     return this.entries();
+  }
+}
+
+function mapKeyFromCel(desc: DescField & { fieldKind: "map" }, v: unknown) {
+  if (isCelUint(v)) {
+    v = v.value;
+  }
+  switch (desc.mapKey) {
+    case ScalarType.SINT32:
+    case ScalarType.INT32:
+    case ScalarType.FIXED32:
+    case ScalarType.UINT32:
+    case ScalarType.SFIXED32:
+      if (typeof v === "bigint") {
+        return Number(v);
+      }
+      return v;
+    case ScalarType.SINT64:
+    case ScalarType.INT64:
+    case ScalarType.FIXED64:
+    case ScalarType.UINT64:
+    case ScalarType.SFIXED64:
+      if (v === "number" && Number.isInteger(v)) {
+        return BigInt(v);
+      }
+      return v;
+    default:
+      return v;
+  }
+}
+
+function celFromMapKey(desc: DescField & { fieldKind: "map" }, v: unknown) {
+  return celFromScalar(desc.mapKey, v as ScalarValue) as
+    | string
+    | bigint
+    | boolean
+    | CelUint;
+}
+
+function celFromMapValue(desc: DescField & { fieldKind: "map" }, v: unknown) {
+  switch (desc.mapKind) {
+    case "enum":
+      return BigInt(v as number);
+    case "message":
+      return v as ReflectMessage;
+    case "scalar":
+      return celFromScalar(desc.scalar, v as ScalarValue);
   }
 }

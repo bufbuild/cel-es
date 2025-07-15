@@ -27,24 +27,14 @@ import type { Expr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { CheckedExprSchema } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import type { CheckedExpr } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import { ObjectActivation } from "./activation.js";
-import { CEL_ADAPTER } from "./adapter/cel.js";
-import { NATIVE_ADAPTER } from "./adapter/native.js";
-import {
-  isProtoMsg,
-  ProtoValAdapter,
-  ProtoValProvider,
-} from "./adapter/proto.js";
 import { OrderedDispatcher, type Dispatcher } from "./func.js";
 import { Planner, type Interpretable } from "./planner.js";
 import { STD_FUNCS } from "./std/std.js";
-import { CelError, isCelVal, type CelResult } from "./value/value.js";
+import { CelError, type CelResult } from "./value/value.js";
 import { Namespace } from "./value/namespace.js";
-import {
-  isReflectList,
-  isReflectMap,
-  isReflectMessage,
-} from "@bufbuild/protobuf/reflect";
 import { withEvalContext } from "./eval.js";
+import { toCel, fromCel } from "./value.js";
+import type { CelInput, CelValue } from "./type.js";
 
 /**
  * A CEL parser interface
@@ -62,19 +52,17 @@ export interface CelParser {
  * CelPlanners are responsible for planning CEL expressions into an Interpretable
  */
 export class CelPlanner {
-  private protoProvider: ProtoValProvider;
-  private dispatcher: OrderedDispatcher;
-  private planner: Planner;
+  private readonly dispatcher: OrderedDispatcher;
+  private readonly planner: Planner;
 
   public constructor(
     namespace: string | undefined = undefined,
-    registry: Registry = createRegistry(),
+    private registry: Registry = createRegistry(),
   ) {
-    this.protoProvider = new ProtoValProvider(new ProtoValAdapter(registry));
     this.dispatcher = new OrderedDispatcher([STD_FUNCS]);
     this.planner = new Planner(
       this.dispatcher,
-      this.protoProvider,
+      this.registry,
       namespace === undefined ? undefined : new Namespace(namespace),
     );
   }
@@ -82,7 +70,7 @@ export class CelPlanner {
   public plan(
     expr: Expr | ParsedExpr | CheckedExpr | undefined,
   ): Interpretable {
-    let maybeExpr: Expr | undefined = undefined;
+    let maybeExpr: Expr | undefined;
     if (isMessage(expr, CheckedExprSchema)) {
       maybeExpr = expr.expr;
     } else if (isMessage(expr, ParsedExprSchema)) {
@@ -90,9 +78,19 @@ export class CelPlanner {
     } else {
       maybeExpr = expr;
     }
+    const interpretable = this.planner.plan(maybeExpr ?? create(ExprSchema));
     return withEvalContext(
-      { registry: this.protoProvider.adapter.registry },
-      this.planner.plan(maybeExpr ?? create(ExprSchema)),
+      { registry: this.registry },
+      {
+        id: interpretable.id,
+        eval(ctx) {
+          let val = interpretable.eval(ctx);
+          if (val instanceof CelError) {
+            return val;
+          }
+          return fromCel(val) as CelValue;
+        },
+      },
     );
   }
 
@@ -101,11 +99,7 @@ export class CelPlanner {
   }
 
   public setProtoRegistry(registry: Registry): void {
-    this.protoProvider.adapter = new ProtoValAdapter(registry);
-  }
-
-  getAdapter(): ProtoValAdapter {
-    return this.protoProvider.adapter;
+    this.registry = registry;
   }
 }
 
@@ -119,7 +113,7 @@ export class CelPlanner {
  */
 export class CelEnv {
   public readonly data: Record<string, CelResult> = {};
-  private readonly ctx = new ObjectActivation(this.data, CEL_ADAPTER);
+  private readonly ctx = new ObjectActivation(this.data);
   private planner: CelPlanner;
   private parser: CelParser | undefined;
 
@@ -157,33 +151,16 @@ export class CelEnv {
    *
    * Passing `undefined` as a value removes any previous definition.
    */
-  public set(name: string, value: unknown): void {
+  public set(name: string, value: CelInput | undefined): void {
     if (value === undefined) {
       delete this.data[name];
-    } else if (isCelVal(value) || value instanceof CelError) {
-      this.data[name] = value;
-    } else if (
-      isProtoMsg(value) ||
-      isReflectMessage(value) ||
-      isReflectMap(value) ||
-      isReflectList(value)
-    ) {
-      this.data[name] = this.planner.getAdapter().toCel(value);
-    } else {
-      this.data[name] = NATIVE_ADAPTER.toCel(value);
+      return;
     }
+    this.data[name] = toCel(value);
   }
 
   public setParser(parser: CelParser): void {
     this.parser = parser;
-  }
-
-  public setPlanner(planner: CelPlanner): void {
-    this.planner = planner;
-  }
-
-  public setProtoRegistry(registry: Registry): void {
-    this.planner.setProtoRegistry(registry);
   }
 
   public addFuncs(funcs: Dispatcher): void {

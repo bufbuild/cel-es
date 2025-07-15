@@ -16,8 +16,8 @@ import { isMessage, toJson } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, FuncRegistry, Func } from "../func.js";
-import { type CelResult, CelError, CelType } from "../value/value.js";
-import { CelScalar, listType } from "../type.js";
+import { type CelResult, CelError } from "../value/value.js";
+import { CelScalar, isCelType, listType } from "../type.js";
 import { indexOutOfBounds, invalidArgument } from "../errors.js";
 import { type CelList, celList, isCelList } from "../list.js";
 import { type CelMap, isCelMap } from "../map.js";
@@ -229,9 +229,9 @@ function joinOp(list: CelList, sep = "") {
 }
 
 const join = new Func("join", [
-  new FuncOverload([listType(CelScalar.ANY)], CelScalar.STRING, joinOp),
+  new FuncOverload([listType(CelScalar.DYN)], CelScalar.STRING, joinOp),
   new FuncOverload(
-    [listType(CelScalar.ANY), CelScalar.STRING],
+    [listType(CelScalar.DYN), CelScalar.STRING],
     CelScalar.STRING,
     joinOp,
   ),
@@ -477,7 +477,7 @@ export class Formatter {
         switch (true) {
           case val === null:
             return "null";
-          case val instanceof CelType:
+          case isCelType(val):
             return val.name;
           case isCelUint(val):
             return val.value.toString();
@@ -513,7 +513,7 @@ export class Formatter {
         switch (true) {
           case val === null:
             return "null";
-          case val instanceof CelType:
+          case isCelType(val):
             return val.name;
           case isCelUint(val):
             return val.value.toString();
@@ -624,7 +624,7 @@ export const DEFAULT_FORMATTER = new Formatter();
 export function makeStringFormatFunc(formatter: Formatter) {
   return new Func("format", [
     new FuncOverload(
-      [CelScalar.STRING, listType(CelScalar.ANY)],
+      [CelScalar.STRING, listType(CelScalar.DYN)],
       CelScalar.STRING,
       (format, args) => {
         return formatter.format(format, args);

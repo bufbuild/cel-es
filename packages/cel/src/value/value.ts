@@ -12,38 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isMessage, type Message, create } from "@bufbuild/protobuf";
+import { create } from "@bufbuild/protobuf";
 
-import {
-  AnySchema,
-  BoolValueSchema,
-  BytesValueSchema,
-  DoubleValueSchema,
-  DurationSchema,
-  Int64ValueSchema,
-  StringValueSchema,
-  TimestampSchema,
-  UInt64ValueSchema,
-} from "@bufbuild/protobuf/wkt";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import type { Any } from "@bufbuild/protobuf/wkt";
-import type { BytesValue } from "@bufbuild/protobuf/wkt";
-import type { StringValue } from "@bufbuild/protobuf/wkt";
-import type { BoolValue } from "@bufbuild/protobuf/wkt";
-import type { DoubleValue } from "@bufbuild/protobuf/wkt";
-import type { UInt64Value } from "@bufbuild/protobuf/wkt";
-import type { Int64Value } from "@bufbuild/protobuf/wkt";
 import type { Duration } from "@bufbuild/protobuf/wkt";
 import type { Timestamp } from "@bufbuild/protobuf/wkt";
-import { type CelList, isCelList } from "../list.js";
-import { type CelMap, isCelMap } from "../map.js";
-import { isCelUint, type CelUint } from "../uint.js";
-
-/** Cel Number types, which all existing on the same logical number line. */
-export type CelNum = bigint | CelUint | number;
-export function isCelNum(val: unknown): val is CelNum {
-  return typeof val === "bigint" || isCelUint(val) || typeof val === "number";
-}
+import { type CelType, type CelValue } from "../type.js";
 
 export function newTimestamp(
   id: number,
@@ -82,7 +58,6 @@ export function newDuration(
   if (totalNanos > 9223372036854775807n || totalNanos < -9223372036854775808n) {
     return CelErrors.badDuration(id, seconds, nanos);
   }
-
   return create(DurationSchema, { seconds: seconds, nanos: nanos });
 }
 
@@ -135,165 +110,8 @@ export function parseDuration(id: number, str: string): Duration | CelError {
   return newDuration(id, seconds, nanos);
 }
 
-/** Cel Primitive types, which are the basic types that can be stored in a CelVal.  */
-export type CelPrim = boolean | CelNum | string | Uint8Array;
-export function isCelPrim(val: unknown): val is CelPrim {
-  return (
-    typeof val === "boolean" ||
-    isCelNum(val) ||
-    typeof val === "string" ||
-    val instanceof Uint8Array
-  );
-}
-
-/** Protobuf wrappers for number types, which can be 'null'  */
-export type CelWrapNum = Int64Value | UInt64Value | DoubleValue;
-export function isCelWrapNum(val: unknown): val is CelWrapNum {
-  return (
-    isMessage(val, Int64ValueSchema) ||
-    isMessage(val, UInt64ValueSchema) ||
-    isMessage(val, DoubleValueSchema)
-  );
-}
-
-/** Protobuf wrappers for all primitive types, which can be 'null'  */
-export type CelWrap = BoolValue | CelWrapNum | StringValue | BytesValue;
-export function isCelWrap(val: unknown): val is CelWrap {
-  return (
-    isMessage(val, BoolValueSchema) ||
-    isCelWrapNum(val) ||
-    isMessage(val, StringValueSchema) ||
-    isMessage(val, BytesValueSchema)
-  );
-}
-
-/** All cel types that are also protobuf messages */
-export type CelMsg = CelWrap | Timestamp | Duration | Any;
-export function isCelMsg(val: unknown): val is CelMsg {
-  return (
-    isCelWrap(val) ||
-    isMessage(val, TimestampSchema) ||
-    isMessage(val, DurationSchema) ||
-    isMessage(val, AnySchema)
-  );
-}
-
 /** All types Cel understands natively */
-export type CelVal =
-  | null
-  | ProtoNull
-  | CelPrim
-  | CelMsg
-  | CelMap
-  | CelObject
-  | CelType
-  | CelList;
-
-export function isCelVal(val: unknown): val is CelVal {
-  return (
-    val === null ||
-    val instanceof ProtoNull ||
-    isCelPrim(val) ||
-    isCelMsg(val) ||
-    isCelList(val) ||
-    isCelMap(val) ||
-    val instanceof CelObject ||
-    val instanceof CelType
-  );
-}
-
-export interface Unwrapper<V = unknown> {
-  unwrap(val: V): V;
-}
-
-export interface CelValAdapter<V = unknown> extends Unwrapper<V> {
-  toCel(native: CelResult<V>): CelResult;
-  fromCel(cel: CelVal): CelResult<V>;
-}
-
-// proto3 has typed nulls.
-export class ProtoNull {
-  constructor(
-    public readonly messageTypeName: string,
-    public readonly defaultValue: CelVal,
-    public readonly value: CelVal = null,
-  ) {}
-}
-
-export class CelObject {
-  constructor(
-    public readonly value: object,
-    public readonly adapter: CelValAdapter,
-    public readonly type_: CelType,
-  ) {
-    if (isCelVal(value)) {
-      throw new Error("Cannot wrap CelVal in CelObject");
-    }
-  }
-}
-
-/**
- * The base class for all Cel types.
- *
- * A type is also a value, and can be used as a value in expressions.
- *
- * Two types are equal if they have the same name, and identical if they have
- * the same fullname. For example, the type 'list(int)' is equal, but not
- * identical, to the type 'list(string)', as they both have the same name, 'list'.
- *
- * @abstract
- */
-export class CelType {
-  readonly fullname_: string | undefined;
-  constructor(
-    readonly name: string,
-    fullname?: string,
-  ) {
-    if (fullname !== undefined) {
-      this.fullname_ = fullname;
-    }
-  }
-
-  fullname(): string {
-    return this.fullname_ === undefined ? this.name : this.fullname_;
-  }
-
-  identical(other: CelVal): boolean {
-    if (other instanceof CelType) {
-      return this.name === other.name && this.fullname_ === other.fullname_;
-    }
-    return false;
-  }
-
-  equals(other: CelVal): boolean {
-    if (other instanceof CelType) {
-      return this.name === other.name;
-    }
-    return false;
-  }
-}
-
-export class NumType extends CelType {}
-
-export class ConcreteType extends CelType {
-  constructor(
-    name: string,
-    public readonly EMPTY: CelVal,
-  ) {
-    super(name);
-  }
-}
-
-export class WrapperType<_T extends Message> extends CelType {
-  constructor(public readonly wrapped: CelType) {
-    super(
-      "wrapper(" + wrapped.name + ")",
-      wrapped.fullname_ === undefined
-        ? undefined
-        : "wrapper(" + wrapped.fullname_ + ")",
-    );
-  }
-}
+export type CelVal = CelValue;
 
 export class CelError {
   public additional?: CelError[];
@@ -311,101 +129,6 @@ export class CelError {
 }
 
 export type CelResult<T = CelVal> = T | CelError;
-
-export function isCelResult(val: unknown): val is CelResult {
-  return isCelVal(val) || val instanceof CelError;
-}
-
-export function coerceToBool(
-  _id: number,
-  val: CelResult | undefined,
-): CelResult<boolean> {
-  if (val instanceof CelError) {
-    return val;
-  }
-  if (
-    val === undefined ||
-    (typeof val === "boolean" && val === false) ||
-    (typeof val === "number" && val === 0) ||
-    (typeof val === "bigint" && val === 0n) ||
-    (isCelUint(val) && val.value === 0n)
-  ) {
-    return false;
-  }
-  return true;
-}
-
-export function coerceToBigInt(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<bigint> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
-    return 0n;
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (typeof val === "bigint") {
-    return val;
-  } else if (typeof val === "number") {
-    return BigInt(val);
-  }
-  return CelErrors.typeMismatch(id, "integer", val);
-}
-
-export function coerceToNumber(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<number> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
-    return 0;
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (typeof val === "bigint") {
-    return Number(val);
-  } else if (typeof val === "number") {
-    return val;
-  }
-  return CelErrors.typeMismatch(id, "number", val);
-}
-
-export function coerceToString(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<string> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
-    return "";
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (typeof val === "string") {
-    return val;
-  }
-  return CelErrors.typeMismatch(id, "string", val);
-}
-
-export function coerceToBytes(
-  id: number,
-  val: CelResult | undefined,
-): CelResult<Uint8Array> {
-  if (val instanceof CelError) {
-    return val;
-  } else if (val === undefined || val === null || val instanceof ProtoNull) {
-    return new Uint8Array();
-  } else if (isCelWrap(val) || isCelUint(val)) {
-    val = val.value;
-  }
-  if (val instanceof Uint8Array) {
-    return val;
-  }
-  return CelErrors.typeMismatch(id, "bytes", val);
-}
 
 export function coerceToValues(args: CelResult[]): CelResult<CelVal[]> {
   const errors: CelError[] = [];
@@ -462,18 +185,6 @@ export class CelErrors {
   static badDuration(id: number, _seconds: bigint, _nanos: number): CelError {
     return new CelError(Number(id), "duration out of range");
   }
-  static badIndexAccess(id: number, type: CelType): CelError {
-    return new CelError(
-      Number(id),
-      `index access not supported for ${type.fullname()}`,
-    );
-  }
-  static badStringAccess(id: number, typ: CelType): CelError {
-    return new CelError(
-      Number(id),
-      `${typ.fullname()} cannot be accessed by string`,
-    );
-  }
   static mapKeyConflict(id: number, key: CelVal): CelError {
     return new CelError(id, `map key conflict: ${String(key)}`);
   }
@@ -507,12 +218,6 @@ export class CelErrors {
   }
   static unsupportedKeyType(id: number): CelError {
     return new CelError(id, `unsupported key type`);
-  }
-  static divisionByZero(id: number, type: NumType): CelError {
-    return new CelError(Number(id), `${type.name} divide by zero`);
-  }
-  static moduloByZero(id: number, type: NumType): CelError {
-    return new CelError(Number(id), `${type.name} modulus by zero`);
   }
 
   static overflow(id: number, op: string, type: CelType): CelError {

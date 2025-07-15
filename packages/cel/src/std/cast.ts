@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { create, fromJson, toJson } from "@bufbuild/protobuf";
+import { create, fromJson, isMessage, toJson } from "@bufbuild/protobuf";
 import {
   DurationSchema,
   timestampFromMs,
@@ -20,62 +20,68 @@ import {
 } from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
-import * as type from "../value/type.js";
-import { CelError, parseDuration, type CelVal } from "../value/value.js";
+import { CelError, parseDuration } from "../value/value.js";
 import {
   isOverflowInt,
   isOverflowIntNum,
   isOverflowUint,
   isOverflowUintNum,
 } from "./math.js";
-import { CelScalar } from "../type.js";
+import {
+  CelScalar,
+  TIMESTAMP as TIMESTAMP_TYPE,
+  DURATION as DURATION_TYPE,
+  celType,
+  objectType,
+} from "../type.js";
 import { badStringBytes, badTimeStr, overflow } from "../errors.js";
 import { celUint } from "../uint.js";
+import { getMsgDesc } from "../eval.js";
 
-export const INT = "int";
-export const UINT = "uint";
-export const DOUBLE = "double";
-export const BOOL = "bool";
-export const STRING = "string";
-export const BYTES = "bytes";
-export const TIMESTAMP = "timestamp";
-export const DURATION = "duration";
-export const TYPE = "type";
-export const DYN = "dyn";
+const INT = "int";
+const UINT = "uint";
+const DOUBLE = "double";
+const BOOL = "bool";
+const STRING = "string";
+const BYTES = "bytes";
+const TIMESTAMP = "timestamp";
+const DURATION = "duration";
+const TYPE = "type";
+const DYN = "dyn";
 
 const intFunc = new Func(INT, [
   new FuncOverload([CelScalar.INT], CelScalar.INT, (x) => x),
   new FuncOverload([CelScalar.UINT], CelScalar.INT, (x) => {
     const val = x.value;
     if (isOverflowInt(val)) {
-      throw overflow(INT, type.INT);
+      throw overflow(INT, CelScalar.INT);
     }
     return x.value;
   }),
   new FuncOverload([CelScalar.DOUBLE], CelScalar.INT, (x) => {
     if (isOverflowIntNum(x)) {
-      throw overflow(INT, type.INT);
+      throw overflow(INT, CelScalar.INT);
     }
     return BigInt(Math.trunc(x));
   }),
   new FuncOverload([CelScalar.STRING], CelScalar.INT, (x) => {
     const val = BigInt(x);
     if (isOverflowInt(val)) {
-      throw overflow(INT, type.INT);
+      throw overflow(INT, CelScalar.INT);
     }
     return val;
   }),
-  new FuncOverload([TimestampSchema], CelScalar.INT, (x) => {
+  new FuncOverload([TIMESTAMP_TYPE], CelScalar.INT, (x) => {
     const val = x.seconds;
     if (isOverflowInt(val)) {
-      throw overflow(INT, type.INT);
+      throw overflow(INT, CelScalar.INT);
     }
     return BigInt(val);
   }),
-  new FuncOverload([DurationSchema], CelScalar.INT, (x) => {
+  new FuncOverload([DURATION_TYPE], CelScalar.INT, (x) => {
     const val = x.seconds;
     if (isOverflowInt(val)) {
-      throw overflow(INT, type.INT);
+      throw overflow(INT, CelScalar.INT);
     }
     return BigInt(val);
   }),
@@ -85,20 +91,20 @@ const uintFunc = new Func(UINT, [
   new FuncOverload([CelScalar.UINT], CelScalar.UINT, (x) => x),
   new FuncOverload([CelScalar.INT], CelScalar.UINT, (x) => {
     if (isOverflowUint(x)) {
-      throw overflow(UINT, type.UINT);
+      throw overflow(UINT, CelScalar.UINT);
     }
     return celUint(x);
   }),
   new FuncOverload([CelScalar.DOUBLE], CelScalar.UINT, (x) => {
     if (isOverflowUintNum(x)) {
-      throw overflow(UINT, type.UINT);
+      throw overflow(UINT, CelScalar.UINT);
     }
     return celUint(BigInt(Math.trunc(x)));
   }),
   new FuncOverload([CelScalar.STRING], CelScalar.UINT, (x) => {
     const val = BigInt(x);
     if (isOverflowUint(val)) {
-      throw overflow(UINT, type.UINT);
+      throw overflow(UINT, CelScalar.UINT);
     }
     return celUint(val);
   }),
@@ -156,50 +162,53 @@ const stringFunc = new Func(STRING, [
       throw badStringBytes(String(e));
     }
   }),
-  new FuncOverload([TimestampSchema], CelScalar.STRING, (x) =>
+  new FuncOverload([TIMESTAMP_TYPE], CelScalar.STRING, (x) =>
     toJson(TimestampSchema, x),
   ),
-  new FuncOverload([DurationSchema], CelScalar.STRING, (x) =>
+  new FuncOverload([DURATION_TYPE], CelScalar.STRING, (x) =>
     toJson(DurationSchema, x),
   ),
 ]);
 
 const timestampFunc = new Func(TIMESTAMP, [
-  new FuncOverload([TimestampSchema], TimestampSchema, (x) => x),
-  new FuncOverload([CelScalar.STRING], TimestampSchema, (x) => {
+  new FuncOverload([TIMESTAMP_TYPE], TIMESTAMP_TYPE, (x) => x),
+  new FuncOverload([CelScalar.STRING], TIMESTAMP_TYPE, (x) => {
     try {
       return fromJson(TimestampSchema, x);
     } catch (e) {
       throw badTimeStr(String(e));
     }
   }),
-  new FuncOverload([CelScalar.INT], TimestampSchema, (x) =>
+  new FuncOverload([CelScalar.INT], TIMESTAMP_TYPE, (x) =>
     timestampFromMs(Number(x)),
   ),
 ]);
 
 const durationFunc = new Func(DURATION, [
-  new FuncOverload([DurationSchema], DurationSchema, (x) => x),
-  new FuncOverload([CelScalar.STRING], DurationSchema, (x) => {
+  new FuncOverload([DURATION_TYPE], DURATION_TYPE, (x) => x),
+  new FuncOverload([CelScalar.STRING], DURATION_TYPE, (x) => {
     const result = parseDuration(-1, x);
     if (result instanceof CelError) {
       throw new Error(result.message);
     }
     return result;
   }),
-  new FuncOverload([CelScalar.INT], DurationSchema, (x) =>
+  new FuncOverload([CelScalar.INT], DURATION_TYPE, (x) =>
     create(DurationSchema, { seconds: x }),
   ),
 ]);
 
 const typeFunc = new Func(TYPE, [
-  new FuncOverload([CelScalar.ANY], CelScalar.TYPE, (x) =>
-    type.getCelType(x as CelVal),
-  ),
+  new FuncOverload([CelScalar.DYN], CelScalar.TYPE, (v) => {
+    if (isMessage(v)) {
+      return objectType(getMsgDesc(v.$typeName));
+    }
+    return celType(v);
+  }),
 ]);
 
 const dynFunc = new Func(DYN, [
-  new FuncOverload([CelScalar.ANY], CelScalar.ANY, (x) => x),
+  new FuncOverload([CelScalar.DYN], CelScalar.DYN, (x) => x),
 ]);
 
 export function addCasts(funcs: FuncRegistry) {

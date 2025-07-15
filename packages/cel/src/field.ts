@@ -12,21 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ScalarType, create, isMessage } from "@bufbuild/protobuf";
-import { isReflectMessage, reflect } from "@bufbuild/protobuf/reflect";
 import {
-  AnySchema,
-  DurationSchema,
-  TimestampSchema,
-  anyUnpack,
-  isWrapper,
-} from "@bufbuild/protobuf/wkt";
-import { ProtoValAdapter } from "./adapter/proto.js";
+  isReflectMessage,
+  reflect,
+  type ReflectMessage,
+} from "@bufbuild/protobuf/reflect";
+import { AnySchema, anyUnpack, type Any } from "@bufbuild/protobuf/wkt";
 import { getEvalContext, getMsgDesc } from "./eval.js";
-import { CelObject, type CelVal, ProtoNull } from "./value/value.js";
+import type { CelVal } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
-import { isCelMap } from "./map.js";
-import { celUint } from "./uint.js";
+import { celMap, isCelMap } from "./map.js";
+import { isNullMessage, nullMessage } from "./null.js";
+import { celFromScalar } from "./proto.js";
 
 export function accessByIndex(
   obj: unknown,
@@ -54,63 +51,25 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
   if (isCelMap(obj)) {
     return obj.get(name) as CelVal;
   }
-  // Object/Message
+  // Message
   obj = unwrapMessage(obj);
-  if (isMessage(obj)) {
-    if (
-      isWrapper(obj) ||
-      isMessage(obj, TimestampSchema) ||
-      isMessage(obj, DurationSchema)
-    ) {
-      return undefined;
-    }
-    obj = reflect(getMsgDesc(obj.$typeName), obj);
-  }
   if (isReflectMessage(obj)) {
     const field = obj.desc.fields.find((f) => f.name === name);
     if (!field) {
       return undefined;
     }
-    // TODO(srikrsna): Remove usage once we update map/list/object types.
-    const protoAdapter = new ProtoValAdapter(getEvalContext().registry);
     switch (field.fieldKind) {
       case "enum":
         return BigInt(obj.get(field));
       case "list":
         return celList(obj.get(field));
       case "map":
-        return protoAdapter.toCel(obj.get(field)) as CelVal;
+        return celMap(obj.get(field)) as CelVal;
       case "message":
-        return obj.isSet(field)
-          ? (protoAdapter.toCel(obj.get(field)) as CelVal)
-          : new ProtoNull(
-              field.message.typeName,
-              create(field.message, {}) as CelVal,
-            );
+        return obj.isSet(field) ? obj.get(field) : nullMessage(field.message);
       case "scalar":
-        switch (field.scalar) {
-          case ScalarType.UINT32:
-          case ScalarType.UINT64:
-          case ScalarType.FIXED32:
-          case ScalarType.FIXED64:
-            return celUint(BigInt(obj.get(field)));
-          case ScalarType.INT32:
-          case ScalarType.SINT32:
-          case ScalarType.SFIXED32:
-            return BigInt(obj.get(field));
-          default:
-            return obj.get(field);
-        }
+        return celFromScalar(field.scalar, obj.get(field));
     }
-  }
-  // TODO(srikrsna): This is only used in converting a user object to message, we can remove this once we change that
-  if (
-    typeof obj === "object" &&
-    obj != null &&
-    obj.constructor.name === "Object" &&
-    name in obj
-  ) {
-    return obj[name as keyof typeof obj];
   }
   return undefined;
 }
@@ -127,18 +86,8 @@ export function isSet(obj: unknown, name: string): boolean | undefined {
   if (isCelMap(obj)) {
     return obj.has(name);
   }
-  // Object/Message
+  // Message
   obj = unwrapMessage(obj);
-  if (isMessage(obj)) {
-    if (
-      isWrapper(obj) ||
-      isMessage(obj, TimestampSchema) ||
-      isMessage(obj, DurationSchema)
-    ) {
-      return false;
-    }
-    obj = reflect(getMsgDesc(obj.$typeName), obj);
-  }
   if (isReflectMessage(obj)) {
     const field = obj.desc.fields.find((f) => f.name === name);
     if (!field) {
@@ -146,54 +95,23 @@ export function isSet(obj: unknown, name: string): boolean | undefined {
     }
     return obj.isSet(field);
   }
-  // TODO(srikrsna): This is only used in converting a user object to message, we can remove this once we change that
-  if (
-    typeof obj === "object" &&
-    obj != null &&
-    obj.constructor.name === "Object"
-  ) {
-    return obj[name as keyof typeof obj] !== undefined;
-  }
   return false;
 }
 
-export function getFields(obj: unknown): unknown[] {
-  if (typeof obj !== "object" || obj === null) {
-    return [];
-  }
-  if (isCelMap(obj)) {
-    return Array.from(obj.keys());
-  }
-  obj = unwrapMessage(obj);
-  if (isMessage(obj)) {
-    if (
-      isWrapper(obj) ||
-      isMessage(obj, TimestampSchema) ||
-      isMessage(obj, DurationSchema)
-    ) {
-      return [];
-    }
-    obj = reflect(getMsgDesc(obj.$typeName), obj);
-  }
-  if (isReflectMessage(obj)) {
-    return obj.desc.fields.map((f) => f.name);
-  }
-  return Object.keys(obj as object);
-}
-
 function unwrapMessage(obj: unknown) {
-  if (obj instanceof ProtoNull) {
-    obj = obj.defaultValue;
+  if (isNullMessage(obj)) {
+    return obj.zero;
   }
-  if (obj instanceof CelObject) {
-    obj = obj.value;
-  }
-  if (isMessage(obj, AnySchema)) {
-    const any = anyUnpack(obj, getEvalContext().registry);
+  if (isReflectAny(obj)) {
+    const any = anyUnpack(obj.message, getEvalContext().registry);
     if (any === undefined) {
-      throw new Error(`Message with typeurl: ${obj.typeUrl} not found`);
+      throw new Error(`Message with typeurl: ${obj.message.typeUrl} not found`);
     }
-    obj = any;
+    return reflect(getMsgDesc(any.$typeName), any);
   }
   return obj;
+}
+
+function isReflectAny(obj: unknown): obj is ReflectMessage & { message: Any } {
+  return isReflectMessage(obj, AnySchema);
 }

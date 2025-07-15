@@ -13,7 +13,6 @@
 // limitations under the License.
 
 import { isMessage } from "@bufbuild/protobuf";
-import { CelObject, CelType, ProtoNull } from "./value/value.js";
 import {
   isReflectMap,
   isReflectMessage,
@@ -26,6 +25,8 @@ import { isWrapper } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "./list.js";
 import { type CelMap, isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
+import { isNullMessage } from "./null.js";
+import { isCelType } from "./type.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -36,7 +37,7 @@ import { isCelUint } from "./uint.js";
  * - Wrapped scalars (e.g. `google.protobuf.StringValue`) are unwrapped before comparison.
  * - `google.protobuf.Any` is unpacked before comparison.
  * - Lists are equal if lengths match and each element matches the corresponding element in the other one.
- * - Maps are equal if both the have the same set of keys and corresponding values.
+ * - Maps are equal if both of them have the same set of keys and corresponding values.
  * - If the types don't match it returns false.
  *
  * Ref: https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#equality
@@ -72,26 +73,19 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
       return isCelList(rhs) && equalsList(lhs, rhs);
     case isCelMap(lhs):
       return isCelMap(rhs) && equalsMap(lhs, rhs);
-    case lhs instanceof CelType:
-      return rhs instanceof CelType && lhs.name === rhs.name;
+    case isCelType(lhs):
+      return isCelType(rhs) && lhs.name === rhs.name;
     case isReflectMap(lhs):
       return isReflectMap(rhs) && equalsReflectMap(lhs, rhs);
   }
   // Proto Null
-  if (lhs instanceof ProtoNull) {
+  if (isNullMessage(lhs)) {
     return (
-      rhs === null ||
-      (rhs instanceof ProtoNull && lhs.messageTypeName === rhs.messageTypeName)
+      rhs === null || (isNullMessage(rhs) && lhs.typeName === rhs.typeName)
     );
   }
-  if (rhs instanceof ProtoNull && lhs === null) {
+  if (isNullMessage(rhs) && lhs === null) {
     return true;
-  }
-  if (lhs instanceof CelObject) {
-    lhs = lhs.value;
-  }
-  if (rhs instanceof CelObject) {
-    rhs = rhs.value;
   }
   // Messages
   if (isMessage(lhs)) {
