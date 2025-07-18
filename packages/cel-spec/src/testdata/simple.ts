@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { testdataJson } from "../testdata-json.js";
-import { fromJson } from "@bufbuild/protobuf";
+import { fromJson, type JsonObject } from "@bufbuild/protobuf";
 import { SimpleTestFileSchema } from "../gen/cel/expr/conformance/test/simple_pb.js";
 import type { SimpleTestFile } from "../gen/cel/expr/conformance/test/simple_pb.js";
 import { getTestRegistry } from "./registry.js";
@@ -26,7 +26,37 @@ export function getSimpleTestFiles(): SimpleTestFile[] {
   const files: SimpleTestFile[] = [];
   const registry = getTestRegistry();
   for (const json of testdataJson) {
-    files.push(fromJson(SimpleTestFileSchema, json, { registry }));
+    files.push(
+      fromJson(SimpleTestFileSchema, json as JsonObject, { registry }),
+    );
   }
   return files;
 }
+
+export type SimpleNameTuples = file extends infer F extends {
+  readonly name: string;
+}
+  ? F extends F
+    ? [F["name"]] | SectionNameTuples<F>
+    : never
+  : never;
+
+type SectionNameTuples<F> = F extends {
+  readonly name: infer FN;
+  readonly section: readonly (infer S extends { readonly name: string })[];
+}
+  ? S extends S
+    ? [FN, S["name"]] | TestNameTuples<FN, S>
+    : never
+  : never;
+
+type TestNameTuples<FN, S> = S extends {
+  readonly name: infer SN;
+  readonly test: readonly { readonly name: infer TN }[];
+}
+  ? TN extends TN
+    ? [FN, SN, TN]
+    : never
+  : never;
+
+type file = (typeof testdataJson)[number];
