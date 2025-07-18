@@ -44,4 +44,4 @@ const REGRESSION_TEST = fromJson(SimpleTestFileSchema, {
   ],
 });
 
-void testSimpleTestFile(REGRESSION_TEST, createRegistry());
+testSimpleTestFile(REGRESSION_TEST, createRegistry());
