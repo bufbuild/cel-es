@@ -29,6 +29,7 @@ import {
   listType,
   mapType,
   type CelValue,
+  objectType,
 } from "./type.js";
 import type { Registry } from "@bufbuild/protobuf";
 
@@ -214,6 +215,10 @@ class AbsoluteAttr implements NamespacedAttribute {
   }
 
   private findIdent(ident: string) {
+    const desc = this.registry.getMessage(ident);
+    if (desc) {
+      return objectType(desc);
+    }
     // Must be an enum
     if (ident.indexOf(".") > 1) {
       const lastDot = ident.lastIndexOf(".");

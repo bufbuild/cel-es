@@ -15,12 +15,7 @@
 import { before, describe, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { equals } from "./equals.js";
-import {
-  create,
-  createRegistry,
-  isMessage,
-  toJsonString,
-} from "@bufbuild/protobuf";
+import { create, isMessage, toJsonString } from "@bufbuild/protobuf";
 import {
   BoolValueSchema,
   BytesValueSchema,
@@ -44,6 +39,7 @@ import { celMap, isCelMap } from "./map.js";
 import { celUint, isCelUint } from "./uint.js";
 import { isNullMessage, nullMessage } from "./null.js";
 import { celType, type CelValue } from "./type.js";
+import { createRegistryWithWKT } from "./registry.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -51,7 +47,7 @@ import { celType, type CelValue } from "./type.js";
 describe("equals()", () => {
   before(() =>
     setEvalContext({
-      registry: createRegistry(TestAllTypesSchema),
+      registry: createRegistryWithWKT(TestAllTypesSchema),
     }),
   );
   describe("must be true", () => {
