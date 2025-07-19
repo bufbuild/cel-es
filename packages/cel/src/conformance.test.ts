@@ -70,9 +70,6 @@ const failures = createTestFilter([
     "format",
     "scientific notation formatting clause in a string variable",
   ],
-  ["timestamps", "duration_conversions", "type_comparison"],
-  ["timestamps", "timestamp_selectors", "getMilliseconds"],
-  ["timestamps", "timestamp_conversions", "type_comparison"],
 ]);
 
 describe("Conformance Tests", () => {

@@ -12,15 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { createRegistry, type Registry } from "@bufbuild/protobuf";
+import type { Registry } from "@bufbuild/protobuf";
 import type { Interpretable } from "./planner.js";
-import {
-  DurationSchema,
-  TimestampSchema,
-  AnySchema,
-  file_google_protobuf_wrappers,
-  file_google_protobuf_struct,
-} from "@bufbuild/protobuf/wkt";
 
 /**
  * Context available in the evaluation phase.
@@ -75,23 +68,11 @@ export function withEvalContext(
   };
 }
 
-const wktRegistry = createRegistry(
-  TimestampSchema,
-  DurationSchema,
-  AnySchema,
-  file_google_protobuf_wrappers,
-  file_google_protobuf_struct,
-);
-
 /**
  * Returns a message descriptor with the matching type name
  * from the evaluation context.
  */
 export function getMsgDesc(typeName: string) {
-  const wkt = wktRegistry.getMessage(typeName);
-  if (wkt !== undefined) {
-    return wkt;
-  }
   const schema = getEvalContext().registry.getMessage(typeName);
   if (!schema) {
     throw new Error(`Message ${typeName} not found in registry`);

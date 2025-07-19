@@ -12,12 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  createRegistry,
-  type Registry,
-  isMessage,
-  create,
-} from "@bufbuild/protobuf";
+import { type Registry, isMessage, create } from "@bufbuild/protobuf";
 import {
   ExprSchema,
   ParsedExprSchema,
@@ -35,6 +30,7 @@ import { Namespace } from "./value/namespace.js";
 import { withEvalContext } from "./eval.js";
 import { toCel, fromCel } from "./value.js";
 import type { CelInput, CelValue } from "./type.js";
+import { createRegistryWithWKT } from "./registry.js";
 
 /**
  * A CEL parser interface
@@ -54,11 +50,15 @@ export interface CelParser {
 export class CelPlanner {
   private readonly dispatcher: OrderedDispatcher;
   private readonly planner: Planner;
+  private readonly registry: Registry;
 
   public constructor(
     namespace: string | undefined = undefined,
-    private registry: Registry = createRegistry(),
+    registry?: Registry,
   ) {
+    this.registry = registry
+      ? createRegistryWithWKT(registry)
+      : createRegistryWithWKT();
     this.dispatcher = new OrderedDispatcher([STD_FUNCS]);
     this.planner = new Planner(
       this.dispatcher,
@@ -101,10 +101,6 @@ export class CelPlanner {
   public addFuncs(funcs: Dispatcher): void {
     this.dispatcher.add(funcs);
   }
-
-  public setProtoRegistry(registry: Registry): void {
-    this.registry = registry;
-  }
 }
 
 /**
@@ -123,7 +119,7 @@ export class CelEnv {
 
   public constructor(
     namespace: string | undefined = undefined,
-    registry: Registry = createRegistry(),
+    registry?: Registry,
   ) {
     this.planner = new CelPlanner(namespace, registry);
   }
