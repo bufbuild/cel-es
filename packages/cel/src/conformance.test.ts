@@ -62,14 +62,6 @@ const failures = createTestFilter([
   ["proto2_ext"],
   ["proto3", "empty_field", "nested_message"],
   ["proto3", "quoted_fields"],
-  ["string_ext", "format", "scientific notation formatting clause"],
-  ["string_ext", "format", "default precision for scientific notation"],
-  ["string_ext", "format", "dyntype support for scientific notation"],
-  [
-    "string_ext",
-    "format",
-    "scientific notation formatting clause in a string variable",
-  ],
 ]);
 
 describe("Conformance Tests", () => {
