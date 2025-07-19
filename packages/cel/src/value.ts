@@ -21,6 +21,7 @@ import {
   isReflectMap,
   isReflectMessage,
   reflect,
+  type ReflectMessage,
   type ScalarValue,
 } from "@bufbuild/protobuf/reflect";
 import { isMessage, type Message } from "@bufbuild/protobuf";
@@ -85,11 +86,7 @@ export function toCel(v: CelInput): CelValue {
     return reflect(getMsgDesc(v.$typeName), v);
   }
   if (isReflectMessage(v)) {
-    const value = wktToCel(v.message);
-    if (value !== undefined) {
-      return value;
-    }
-    return v;
+    return reflectMsgToCel(v);
   }
   if (v.constructor.name === "Object") {
     return celMap(new Map(Object.entries(v)));
@@ -136,6 +133,14 @@ export function fromCel(v: CelValue): CelOutput {
     msg = unpacked;
   }
   return msg;
+}
+
+export function reflectMsgToCel(v: ReflectMessage) {
+  const value = wktToCel(v.message);
+  if (value !== undefined) {
+    return value;
+  }
+  return v;
 }
 
 function isArray(v: unknown): v is readonly unknown[] {

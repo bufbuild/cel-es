@@ -105,13 +105,11 @@ type TestFilterFn = (
  * Creates a TestFilterFn that returns true for tests that match the given list.
  */
 export function createTestFilter(list: SimpleNameTuples[]): TestFilterFn {
-  const filter = new Set<string>()
+  const filter = new Set<string>();
   for (const testCase of list) {
     const name = testCase.join("/");
-    if(filter.has(name)) {
-      throw new Error(
-          `Invalid filter list: duplicate: "${name}"`,
-      );
+    if (filter.has(name)) {
+      throw new Error(`Invalid filter list: duplicate: "${name}"`);
     }
     filter.add(name);
   }

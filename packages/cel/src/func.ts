@@ -69,13 +69,7 @@ export class Func implements CallDispatch {
         try {
           return overload.impl(...checkedVals) as CelVal;
         } catch (ex) {
-          if (ex instanceof CelError) {
-            return ex;
-          }
-          if (ex instanceof Error) {
-            ex = ex.message;
-          }
-          return new CelError(id, `${ex}`);
+          return CelError.from(ex);
         }
       }
     }

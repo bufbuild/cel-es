@@ -126,6 +126,19 @@ export class CelError {
     }
     this.additional.push(additional);
   }
+
+  /**
+   * Creates a CEL error from a value.
+   */
+  static from(e: unknown, id: number = -1): CelError {
+    if (e instanceof CelError) {
+      return e;
+    }
+    if (e instanceof Error) {
+      return new CelError(id, e.message);
+    }
+    return new CelError(id, `${e}`);
+  }
 }
 
 export type CelResult<T = CelVal> = T | CelError;

@@ -56,6 +56,7 @@ import {
 import { isNullMessage } from "./null.js";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { celType, type CelValue } from "./type.js";
+import { INT32_MAX, INT32_MIN, UINT32_MAX } from "@bufbuild/protobuf/wire";
 
 /**
  * Creates a new CelValue of the given type and with the given fields.
@@ -72,9 +73,6 @@ export function celObject(
     const field = desc.fields.find((f) => f.name === k);
     if (field === undefined) {
       throw new Error(`Unknown field ${k} for ${typeName}`);
-    }
-    if (v === null || isNullMessage(v)) {
-      continue;
     }
     setMsgField(msg, field, v);
   }
@@ -103,7 +101,10 @@ function setMsgField(msg: ReflectMessage, field: DescField, v: CelValue) {
       msg.set(field, enumFromCel(field, v as CelValue));
       return;
     case "message":
-      msg.set(field, msgFromCel(field, v));
+      const msgVal = msgFromCel(field, v);
+      if (msgVal !== null) {
+        msg.set(field, msgVal);
+      }
       return;
   }
   msg.set(field, scalarFromCel(field, field.scalar, v));
@@ -148,21 +149,13 @@ function enumFromCel(field: DescField, v: CelValue) {
   if (typeof v !== "bigint") {
     throw unexpectedTypeError(field, "int", v);
   }
-  return Number(v);
+  return intToInt32(v);
 }
 
 function msgFromCel(
   field: DescField & { message: DescMessage },
   v: CelValue,
-): ReflectMessage {
-  if (isWrapperDesc(field.message)) {
-    const msg = reflect(field.message, undefined, false);
-    msg.set(
-      field.message.fields[0],
-      scalarFromCel(field.message.fields[0], field.message.fields[0].scalar, v),
-    );
-    return msg;
-  }
+): ReflectMessage | null {
   switch (field.message.typeName) {
     case AnySchema.typeName:
       if (isReflectMessage(v, AnySchema)) {
@@ -181,6 +174,17 @@ function msgFromCel(
         throw unexpectedTypeError(field, "list", v);
       }
       return reflect(ListValueSchema, listValueFromCel(v));
+  }
+  if (v === null || isNullMessage(v)) {
+    return null;
+  }
+  if (isWrapperDesc(field.message)) {
+    const msg = reflect(field.message, undefined, false);
+    msg.set(
+      field.message.fields[0],
+      scalarFromCel(field.message.fields[0], field.message.fields[0].scalar, v),
+    );
+    return msg;
   }
   if (!isReflectMessage(v, field.message)) {
     throw unexpectedTypeError(field, field.message.typeName, v);
@@ -345,13 +349,17 @@ function scalarFromCel(field: DescField, type: ScalarType, v: CelValue) {
   switch (type) {
     case ScalarType.UINT32:
     case ScalarType.FIXED32:
+      if (typeof v !== "bigint") {
+        throw unexpectedTypeError(field, "int", v);
+      }
+      return intToUint32(v);
     case ScalarType.INT32:
     case ScalarType.SINT32:
     case ScalarType.SFIXED32:
       if (typeof v !== "bigint") {
         throw unexpectedTypeError(field, "int", v);
       }
-      return Number(v);
+      return intToInt32(v);
     case ScalarType.UINT64:
     case ScalarType.FIXED64:
     case ScalarType.INT64:
@@ -362,6 +370,10 @@ function scalarFromCel(field: DescField, type: ScalarType, v: CelValue) {
       }
       return v;
     case ScalarType.FLOAT:
+      if (typeof v !== "number") {
+        throw unexpectedTypeError(field, "double", v);
+      }
+      return Math.fround(v);
     case ScalarType.DOUBLE:
       if (typeof v !== "number") {
         throw unexpectedTypeError(field, "double", v);
@@ -393,4 +405,18 @@ function unexpectedTypeError(
   return new Error(
     `Expected ${expected} but got ${celType(actValue)} for ${field.parent}.${field.name}`,
   );
+}
+
+function intToInt32(v: bigint) {
+  if (v < INT32_MIN || v > INT32_MAX) {
+    throw new Error("int32 out of range");
+  }
+  return Number(v);
+}
+
+function intToUint32(v: bigint) {
+  if (v < 0 || v > UINT32_MAX) {
+    throw new Error("uint32 out of range");
+  }
+  return Number(v);
 }
