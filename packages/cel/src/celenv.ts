@@ -84,11 +84,15 @@ export class CelPlanner {
       {
         id: interpretable.id,
         eval(ctx) {
-          let val = interpretable.eval(ctx);
-          if (val instanceof CelError) {
-            return val;
+          try {
+            let val = interpretable.eval(ctx);
+            if (val instanceof CelError) {
+              return val;
+            }
+            return fromCel(val) as CelValue;
+          } catch (ex) {
+            return CelError.from(ex, interpretable.id);
           }
-          return fromCel(val) as CelValue;
         },
       },
     );

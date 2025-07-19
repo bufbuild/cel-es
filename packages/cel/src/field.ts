@@ -17,13 +17,21 @@ import {
   reflect,
   type ReflectMessage,
 } from "@bufbuild/protobuf/reflect";
-import { AnySchema, anyUnpack, type Any } from "@bufbuild/protobuf/wkt";
+import {
+  AnySchema,
+  anyUnpack,
+  ListValueSchema,
+  StructSchema,
+  type Any,
+} from "@bufbuild/protobuf/wkt";
 import { getEvalContext, getMsgDesc } from "./eval.js";
 import type { CelVal } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
 import { isNullMessage, nullMessage } from "./null.js";
 import { celFromScalar } from "./proto.js";
+import { reflectMsgToCel } from "./value.js";
+import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
 
 export function accessByIndex(
   obj: unknown,
@@ -53,25 +61,34 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
   }
   // Message
   obj = unwrapMessage(obj);
-  if (isReflectMessage(obj)) {
-    const field = obj.desc.fields.find((f) => f.name === name);
-    if (!field) {
-      return undefined;
-    }
-    switch (field.fieldKind) {
-      case "enum":
-        return BigInt(obj.get(field));
-      case "list":
-        return celList(obj.get(field));
-      case "map":
-        return celMap(obj.get(field)) as CelVal;
-      case "message":
-        return obj.isSet(field) ? obj.get(field) : nullMessage(field.message);
-      case "scalar":
-        return celFromScalar(field.scalar, obj.get(field));
-    }
+  if (!isReflectMessage(obj)) {
+    return undefined;
   }
-  return undefined;
+  const field = obj.desc.fields.find((f) => f.name === name);
+  if (!field) {
+    return undefined;
+  }
+  switch (field.fieldKind) {
+    case "enum":
+      return BigInt(obj.get(field));
+    case "list":
+      return celList(obj.get(field));
+    case "map":
+      return celMap(obj.get(field)) as CelVal;
+    case "scalar":
+      return celFromScalar(field.scalar, obj.get(field));
+    case "message":
+      if (obj.isSet(field)) {
+        return reflectMsgToCel(obj.get(field));
+      }
+      switch (field.message.typeName) {
+        case StructSchema.typeName:
+          return EMPTY_MAP;
+        case ListValueSchema.typeName:
+          return EMPTY_LIST;
+      }
+      return nullMessage(field.message);
+  }
 }
 
 /**
