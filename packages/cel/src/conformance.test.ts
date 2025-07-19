@@ -43,14 +43,6 @@ const failures = createTestFilter([
   ["proto2_ext"],
   ["proto3", "empty_field", "nested_message"],
   ["proto3", "quoted_fields"],
-  ["string_ext", "format", "scientific notation formatting clause"],
-  ["string_ext", "format", "default precision for scientific notation"],
-  ["string_ext", "format", "dyntype support for scientific notation"],
-  [
-    "string_ext",
-    "format",
-    "scientific notation formatting clause in a string variable",
-  ],
   // Enums began as Ints but were changed to have types and reverted back again: https://github.com/google/cel-spec/pull/321
   ["enums", "strong_proto2", "literal_global"],
   ["enums", "strong_proto2", "literal_nested"],
