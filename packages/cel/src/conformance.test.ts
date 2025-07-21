@@ -36,12 +36,10 @@ const failures = createTestFilter([
   ["encoders_ext", "decode", "hello_without_padding"],
   ["encoders_ext", "round_trip", "hello"],
   ["fields", "quoted_map_fields"],
-  ["proto2", "empty_field", "nested_message"],
   ["proto2", "quoted_fields"],
   ["proto2", "extensions_get"],
   ["proto2", "extensions_has"],
   ["proto2_ext"],
-  ["proto3", "empty_field", "nested_message"],
   ["proto3", "quoted_fields"],
   // Enums began as Ints but were changed to have types and reverted back again: https://github.com/google/cel-spec/pull/321
   ["enums", "strong_proto2", "literal_global"],

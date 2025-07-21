@@ -53,7 +53,6 @@ import {
   type Struct,
   type Value,
 } from "@bufbuild/protobuf/wkt";
-import { isNullMessage } from "./null.js";
 import { base64Encode } from "@bufbuild/protobuf/wire";
 import { celType, type CelValue } from "./type.js";
 import { INT32_MAX, INT32_MIN, UINT32_MAX } from "@bufbuild/protobuf/wire";
@@ -175,7 +174,7 @@ function msgFromCel(
       }
       return reflect(ListValueSchema, listValueFromCel(v));
   }
-  if (v === null || isNullMessage(v)) {
+  if (v === null) {
     return null;
   }
   if (isWrapperDesc(field.message)) {
@@ -224,7 +223,6 @@ function anyFromCel(v: CelValue): Any {
             create(BytesValueSchema, { value: v }),
           );
         case v == null:
-        case isNullMessage(v):
           return anyPack(
             ValueSchema,
             create(ValueSchema, {
@@ -293,7 +291,6 @@ function valueFromCel(v: CelValue): Value {
           value.kind = { case: "stringValue", value: base64Encode(v) };
           break;
         case v == null:
-        case isNullMessage(v):
           value.kind = { case: "nullValue", value: NullValue.NULL_VALUE };
           break;
         case isCelList(v):

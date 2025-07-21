@@ -25,7 +25,6 @@ import { isWrapper } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "./list.js";
 import { type CelMap, isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
-import { isNullMessage } from "./null.js";
 import { isCelType } from "./type.js";
 
 /**
@@ -77,15 +76,6 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
       return isCelType(rhs) && lhs.name === rhs.name;
     case isReflectMap(lhs):
       return isReflectMap(rhs) && equalsReflectMap(lhs, rhs);
-  }
-  // Proto Null
-  if (isNullMessage(lhs)) {
-    return (
-      rhs === null || (isNullMessage(rhs) && lhs.typeName === rhs.typeName)
-    );
-  }
-  if (isNullMessage(rhs) && lhs === null) {
-    return true;
   }
   // Messages
   if (isMessage(lhs)) {
