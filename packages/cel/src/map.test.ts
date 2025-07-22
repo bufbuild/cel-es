@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { describe, test } from "node:test";
+import { suite, test } from "node:test";
 import { type CelMap, celMap } from "./map.js";
 import * as assert from "node:assert/strict";
 import type { DescField } from "@bufbuild/protobuf";
@@ -20,8 +20,8 @@ import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/prot
 import { reflectMap } from "@bufbuild/protobuf/reflect";
 import { celUint } from "./uint.js";
 
-describe("celMap()", () => {
-  describe("get by number if the value is same", () => {
+void suite("celMap()", () => {
+  void suite("get by number if the value is same", () => {
     function assertNumberAccess(map: CelMap) {
       assert.strictEqual(map.get(1), "str");
       assert.strictEqual(map.get(1.0), "str");
@@ -32,16 +32,16 @@ describe("celMap()", () => {
       assert.strictEqual(map.has(1n), true);
       assert.strictEqual(map.has(celUint(1n)), true);
     }
-    describe("Native", () => {
-      test("map of int", () => {
+    void suite("Native", () => {
+      void test("map of int", () => {
         assertNumberAccess(celMap(new Map([[1n, "str"]])));
       });
-      test("map of uint", () => {
+      void test("map of uint", () => {
         assertNumberAccess(celMap(new Map([[celUint(1n), "str"]])));
       });
     });
-    describe("Proto", () => {
-      test("map of int", () => {
+    void suite("Proto", () => {
+      void test("map of int", () => {
         assertNumberAccess(
           celMap(
             reflectMap(
@@ -53,7 +53,7 @@ describe("celMap()", () => {
           ),
         );
       });
-      test("map of uint", () => {
+      void test("map of uint", () => {
         assertNumberAccess(
           celMap(
             reflectMap(

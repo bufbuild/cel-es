@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { describe, test } from "node:test";
+import { suite, test } from "node:test";
 import { celListConcat, celList } from "./list.js";
 import * as assert from "node:assert/strict";
 
-describe("ConcatList", () => {
-  describe("empty lists", () => {
-    test("Multiple empty lists", () => {
+void suite("ConcatList", () => {
+  void suite("empty lists", () => {
+    void test("Multiple empty lists", () => {
       const list = celListConcat(celList([]), celList([]));
       assert.deepEqual(list.size, 0);
       assert.deepEqual(Array.from(list), []);
     });
-    test("Empty in the middle", () => {
+    void test("Empty in the middle", () => {
       const list = celListConcat(
         celList([1, 2, 3]),
         celList([]),

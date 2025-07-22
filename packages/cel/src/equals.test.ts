@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { before, describe, test } from "node:test";
+import { before, suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { equals } from "./equals.js";
 import { create } from "@bufbuild/protobuf";
@@ -28,13 +28,13 @@ import { createRegistryWithWKT } from "./registry.js";
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
  */
-describe("equals()", () => {
+void suite("equals()", () => {
   before(() =>
     setEvalContext({
       registry: createRegistryWithWKT(TestAllTypesSchema),
     }),
   );
-  describe("must be true", () => {
+  void suite("must be true", () => {
     const pairs = [
       // Scalars
       ["str", "str"],
@@ -99,7 +99,7 @@ describe("equals()", () => {
       testEq(lhs, rhs, true);
     }
   });
-  describe("must be false", () => {
+  void suite("must be false", () => {
     const pairs = [[NaN, NaN]] as const;
     for (const [lhs, rhs] of pairs) {
       testEq(lhs, rhs, false);
@@ -108,10 +108,10 @@ describe("equals()", () => {
 });
 
 function testEq(lhs: CelValue, rhs: CelValue, expected: boolean) {
-  test(`${celType(lhs)} ${expected ? "==" : "!="} ${celType(rhs)}`, () => {
+  void test(`${celType(lhs)} ${expected ? "==" : "!="} ${celType(rhs)}`, () => {
     assert.strictEqual(equals(lhs, rhs), expected);
   });
-  test(`${celType(rhs)} ${expected ? "==" : "!="} ${celType(lhs)}`, () => {
+  void test(`${celType(rhs)} ${expected ? "==" : "!="} ${celType(lhs)}`, () => {
     assert.strictEqual(equals(rhs, lhs), expected);
   });
 }
