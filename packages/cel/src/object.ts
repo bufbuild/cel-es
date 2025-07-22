@@ -21,7 +21,7 @@ import {
   toJson,
 } from "@bufbuild/protobuf";
 import { isCelUint } from "./uint.js";
-import { toCel } from "./value.js";
+import { reflectMsgToCel } from "./value.js";
 import { getMsgDesc } from "./eval.js";
 import {
   isReflectMessage,
@@ -75,7 +75,7 @@ export function celObject(
     }
     setMsgField(msg, field, v);
   }
-  return toCel(msg);
+  return reflectMsgToCel(msg);
 }
 
 function setMsgField(msg: ReflectMessage, field: DescField, v: CelValue) {

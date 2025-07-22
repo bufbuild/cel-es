@@ -110,9 +110,6 @@ export function parseDuration(id: number, str: string): Duration | CelError {
   return newDuration(id, seconds, nanos);
 }
 
-/** All types Cel understands natively */
-export type CelVal = CelValue;
-
 export class CelError {
   public additional?: CelError[];
   constructor(
@@ -141,9 +138,9 @@ export class CelError {
   }
 }
 
-export type CelResult<T = CelVal> = T | CelError;
+export type CelResult<T = CelValue> = T | CelError;
 
-export function coerceToValues(args: CelResult[]): CelResult<CelVal[]> {
+export function coerceToValues(args: CelResult[]): CelResult<CelValue[]> {
   const errors: CelError[] = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
@@ -154,7 +151,7 @@ export function coerceToValues(args: CelResult[]): CelResult<CelVal[]> {
   if (errors.length > 0) {
     return CelErrors.merge(errors);
   }
-  return args as CelVal[];
+  return args as CelValue[];
 }
 
 export class CelErrors {
@@ -198,7 +195,7 @@ export class CelErrors {
   static badDuration(id: number, _seconds: bigint, _nanos: number): CelError {
     return new CelError(Number(id), "duration out of range");
   }
-  static mapKeyConflict(id: number, key: CelVal): CelError {
+  static mapKeyConflict(id: number, key: CelValue): CelError {
     return new CelError(id, `map key conflict: ${String(key)}`);
   }
   static funcNotFound(id: number, func: string): CelError {

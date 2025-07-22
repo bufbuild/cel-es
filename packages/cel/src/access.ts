@@ -15,12 +15,7 @@
 import type { Activation } from "./activation.js";
 import { EvalAttr, type Interpretable } from "./planner.js";
 import type { Namespace } from "./value/namespace.js";
-import {
-  type CelResult,
-  type CelVal,
-  CelError,
-  CelErrors,
-} from "./value/value.js";
+import { type CelResult, CelError, CelErrors } from "./value/value.js";
 import { accessByIndex, accessByName, isSet } from "./field.js";
 import { isCelUint } from "./uint.js";
 import {
@@ -43,7 +38,7 @@ export interface AttributeFactory {
   ): Attribute;
   createMaybe(id: number, name: string): Attribute;
   createRelative(id: number, operand: Interpretable): Attribute;
-  newAccess(id: number, val: unknown, opt: boolean): Access;
+  newAccess(id: number, val: CelValue | EvalAttr, opt: boolean): Access;
 }
 
 // The access of a sub value.
@@ -413,7 +408,7 @@ class StringAccess implements Access {
   constructor(
     public readonly id: number,
     readonly name: string,
-    readonly celVal: CelVal,
+    readonly celVal: CelValue,
     readonly optional: boolean,
   ) {}
 
@@ -497,7 +492,7 @@ class NumAccess implements Access {
   constructor(
     public readonly id: number,
     readonly index: number,
-    readonly celVal: CelVal,
+    readonly celVal: CelValue,
     readonly optional: boolean,
   ) {}
 
@@ -541,11 +536,11 @@ class IntAccess implements Access {
   constructor(
     public readonly id: number,
     public readonly index: bigint,
-    public readonly celVal: CelVal,
+    public readonly celVal: CelValue,
     public readonly optional: boolean,
   ) {}
 
-  access(_vars: Activation, obj: unknown): CelResult | undefined {
+  access(_vars: Activation, obj: CelValue): CelResult | undefined {
     if (obj === undefined) {
       return obj;
     }
@@ -556,7 +551,7 @@ class IntAccess implements Access {
     return raw;
   }
 
-  isPresent(_vars: Activation, obj: unknown): CelResult<boolean> {
+  isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
       return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
@@ -566,7 +561,7 @@ class IntAccess implements Access {
 
   accessIfPresent(
     _vars: Activation,
-    obj: unknown,
+    obj: CelValue,
     _presenceOnly: boolean,
   ): CelResult | undefined {
     const raw = accessByIndex(obj, this.index);
@@ -698,7 +693,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
     return new RelativeAttr(id, operand, [], this);
   }
 
-  newAccess(id: number, val: unknown, opt: boolean): Access {
+  newAccess(id: number, val: CelValue | EvalAttr, opt: boolean): Access {
     switch (typeof val) {
       case "boolean":
         return new BoolAccess(id, val, opt);

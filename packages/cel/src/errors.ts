@@ -13,8 +13,7 @@
 // limitations under the License.
 
 import type { Any } from "@bufbuild/protobuf/wkt";
-import type { CelVal } from "./value/value.js";
-import type { CelScalar, CelType } from "./type.js";
+import type { CelScalar, CelType, CelValue } from "./type.js";
 
 export function invalidArgument(func: string, issue: string) {
   return new Error(`invalid argument to function ${func}: ${issue}`);
@@ -68,7 +67,7 @@ export function badStringAccess(type: CelType) {
   return new Error(`${type} cannot be accessed by string`);
 }
 
-export function mapKeyConflict(key: CelVal) {
+export function mapKeyConflict(key: CelValue) {
   return new Error(`map key conflict: ${String(key)}`);
 }
 

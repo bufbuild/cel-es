@@ -12,20 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isMessage } from "@bufbuild/protobuf";
-import {
-  isReflectMap,
-  isReflectMessage,
-  reflect,
-  type ReflectMap,
-} from "@bufbuild/protobuf/reflect";
-import { getEvalContext, getMsgDesc } from "./eval.js";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
+import { getEvalContext } from "./eval.js";
 import { equals as equalsMessage } from "@bufbuild/protobuf";
-import { isWrapper } from "@bufbuild/protobuf/wkt";
 import { type CelList, isCelList } from "./list.js";
 import { type CelMap, isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
-import { isCelType } from "./type.js";
+import { isCelType, type CelValue } from "./type.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -33,7 +26,6 @@ import { isCelType } from "./type.js";
  * - Numeric values (`int`, `uint`, and `double`) are compared across types.
  * - `NaN` does not equal `NaN`.
  * - Other scalar values (`bool`, `string`, `bytes`, and `type`) are only equal if type and value are identical.
- * - Wrapped scalars (e.g. `google.protobuf.StringValue`) are unwrapped before comparison.
  * - `google.protobuf.Any` is unpacked before comparison.
  * - Lists are equal if lengths match and each element matches the corresponding element in the other one.
  * - Maps are equal if both of them have the same set of keys and corresponding values.
@@ -41,21 +33,16 @@ import { isCelType } from "./type.js";
  *
  * Ref: https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#equality
  */
-export function equals(lhs: unknown, rhs: unknown): boolean {
+export function equals(lhs: CelValue, rhs: CelValue): boolean {
   // Fast path for Int, Double, Bool, and String types.
   if (lhs === rhs) {
     return true;
   }
-  // Remaining scalars or scalars from Wrapper types
-  if (isCelUint(lhs) || (isMessage(lhs) && isWrapper(lhs))) {
+  if (isCelUint(lhs)) {
     lhs = lhs.value;
   }
-  if (isCelUint(rhs) || (isMessage(rhs) && isWrapper(rhs))) {
+  if (isCelUint(rhs)) {
     rhs = rhs.value;
-  }
-  // Do a simple check again for uint/wrapper types.
-  if (lhs === rhs) {
-    return true;
   }
   // Check for scalars that are of different type and unwrapped values
   if (
@@ -74,24 +61,8 @@ export function equals(lhs: unknown, rhs: unknown): boolean {
       return isCelMap(rhs) && equalsMap(lhs, rhs);
     case isCelType(lhs):
       return isCelType(rhs) && lhs.name === rhs.name;
-    case isReflectMap(lhs):
-      return isReflectMap(rhs) && equalsReflectMap(lhs, rhs);
   }
   // Messages
-  if (isMessage(lhs)) {
-    if (isWrapper(lhs)) {
-      lhs = lhs.value;
-    } else {
-      lhs = reflect(getMsgDesc(lhs.$typeName), lhs);
-    }
-  }
-  if (isMessage(rhs)) {
-    if (isWrapper(rhs)) {
-      rhs = rhs.value;
-    } else {
-      rhs = reflect(getMsgDesc(rhs.$typeName), rhs);
-    }
-  }
   if (isReflectMessage(lhs)) {
     if (!isReflectMessage(rhs)) {
       return false;
@@ -115,7 +86,7 @@ function equalsList(lhs: CelList, rhs: CelList): boolean {
     return false;
   }
   for (let i = 0; i < lhs.size; i++) {
-    if (!equals(lhs.get(i), rhs.get(i))) {
+    if (!equals(lhs.get(i) as CelValue, rhs.get(i) as CelValue)) {
       return false;
     }
   }
@@ -127,7 +98,8 @@ function equalsMap(lhs: CelMap, rhs: CelMap): boolean {
     return false;
   }
   for (const [k, v] of lhs) {
-    if (!equals(v, rhs.get(k))) {
+    const rv = rhs.get(k);
+    if (rv === undefined || !equals(v, rv)) {
       return false;
     }
   }
@@ -140,23 +112,6 @@ function equalsBytes(lhs: Uint8Array, rhs: Uint8Array): boolean {
   }
   for (let i = 0; i < lhs.length; i++) {
     if (lhs[i] !== rhs[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function equalsReflectMap(lhs: ReflectMap, rhs: ReflectMap) {
-  if (lhs.size != rhs.size) {
-    return false;
-  }
-  for (const [key, val] of lhs) {
-    const rhsVal = rhs.get(key);
-    if (rhsVal == null) {
-      return false;
-    }
-    // Map values are either of type ReflectMessage or scalars.
-    if (!equals(val, rhsVal)) {
       return false;
     }
   }

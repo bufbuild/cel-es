@@ -12,40 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { isReflectMessage, reflect } from "@bufbuild/protobuf/reflect";
 import {
-  isReflectMessage,
-  reflect,
-  type ReflectMessage,
-} from "@bufbuild/protobuf/reflect";
-import {
-  AnySchema,
-  anyUnpack,
   isWrapperDesc,
   ListValueSchema,
   StructSchema,
   ValueSchema,
-  type Any,
 } from "@bufbuild/protobuf/wkt";
-import { getEvalContext, getMsgDesc } from "./eval.js";
-import type { CelVal } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
 import { celFromScalar } from "./proto.js";
-import { reflectMsgToCel } from "./value.js";
+import { reflectMsgToCel, unwrapAny } from "./value.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
+import type { CelValue } from "./type.js";
 
 export function accessByIndex(
-  obj: unknown,
+  obj: CelValue,
   index: number | bigint | boolean,
-): CelVal | undefined {
+): CelValue | undefined {
   if (typeof obj !== "object" || obj === null) {
     return undefined;
   }
   if (isCelMap(obj)) {
-    return obj.get(index) as CelVal;
+    return obj.get(index);
   }
   if (isCelList(obj)) {
-    return obj.get(Number(index)) as CelVal;
+    return obj.get(Number(index));
   }
   return undefined;
 }
@@ -53,15 +45,18 @@ export function accessByIndex(
 /**
  * Access fields on Maps and Message by name.
  */
-export function accessByName(obj: unknown, name: string): CelVal | undefined {
+export function accessByName(
+  obj: CelValue,
+  name: string,
+): CelValue | undefined {
   if (typeof obj !== "object" || obj === null) {
     return undefined;
   }
   if (isCelMap(obj)) {
-    return obj.get(name) as CelVal;
+    return obj.get(name);
   }
   // Message
-  obj = unwrapMessage(obj);
+  obj = unwrapAny(obj);
   if (!isReflectMessage(obj)) {
     return undefined;
   }
@@ -75,7 +70,7 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
     case "list":
       return celList(obj.get(field));
     case "map":
-      return celMap(obj.get(field)) as CelVal;
+      return celMap(obj.get(field));
     case "scalar":
       return celFromScalar(field.scalar, obj.get(field));
     case "message":
@@ -102,7 +97,7 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
  *
  * It returns undefined if the field name is not valid.
  */
-export function isSet(obj: unknown, name: string): boolean | undefined {
+export function isSet(obj: CelValue, name: string): boolean | undefined {
   if (typeof obj !== "object" || obj === null) {
     return false;
   }
@@ -110,7 +105,7 @@ export function isSet(obj: unknown, name: string): boolean | undefined {
     return obj.has(name);
   }
   // Message
-  obj = unwrapMessage(obj);
+  obj = unwrapAny(obj);
   if (isReflectMessage(obj)) {
     const field = obj.desc.fields.find((f) => f.name === name);
     if (!field) {
@@ -119,19 +114,4 @@ export function isSet(obj: unknown, name: string): boolean | undefined {
     return obj.isSet(field);
   }
   return false;
-}
-
-function unwrapMessage(obj: unknown) {
-  if (isReflectAny(obj)) {
-    const any = anyUnpack(obj.message, getEvalContext().registry);
-    if (any === undefined) {
-      throw new Error(`Message with typeurl: ${obj.message.typeUrl} not found`);
-    }
-    return reflect(getMsgDesc(any.$typeName), any);
-  }
-  return obj;
-}
-
-function isReflectAny(obj: unknown): obj is ReflectMessage & { message: Any } {
-  return isReflectMessage(obj, AnySchema);
 }

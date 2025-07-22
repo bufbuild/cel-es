@@ -15,23 +15,17 @@
 import { isCelList } from "./list.js";
 import {
   type CelType,
-  type CelOutputTuple,
+  type CelValueTuple,
   CelScalar,
-  type CelOutput,
   isCelType,
   type CelValue,
+  type CelInput,
 } from "./type.js";
-import {
-  type CelResult,
-  type CelVal,
-  CelError,
-  CelErrors,
-} from "./value/value.js";
-import { isMessage } from "@bufbuild/protobuf";
+import { type CelResult, CelError, CelErrors } from "./value/value.js";
 import { isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { fromCel, toCel } from "./value.js";
+import { unwrapAny, toCel } from "./value.js";
 
 export interface CallDispatch {
   dispatch(id: number, args: CelResult[]): CelResult | undefined;
@@ -58,16 +52,15 @@ export class Func implements CallDispatch {
       }
       const checkedVals = [];
       for (let i = 0; i < vals.length; i++) {
-        // TODO(srikrnsa): Remove this once code is updated to use `toCel` once.
-        const celValue = toCel(vals[i]);
+        const celValue = unwrapAny(vals[i]);
         if (!isOfType(celValue, overload.parameters[i])) {
           break;
         }
-        checkedVals.push(fromCel(celValue));
+        checkedVals.push(celValue);
       }
       if (checkedVals.length === vals.length) {
         try {
-          return overload.impl(...checkedVals) as CelVal;
+          return toCel(overload.impl(...checkedVals));
         } catch (ex) {
           return CelError.from(ex);
         }
@@ -84,7 +77,7 @@ export class FuncOverload<
   constructor(
     public readonly parameters: P,
     public readonly result: R,
-    public readonly impl: (...args: CelOutputTuple<P>) => CelOutput<R>,
+    public readonly impl: (...args: CelValueTuple<P>) => CelInput<R>,
   ) {}
 }
 
@@ -149,16 +142,16 @@ export class OrderedDispatcher implements Dispatcher {
 }
 
 function isOfType<T extends CelType>(
-  val: unknown,
+  val: CelValue,
   type: T,
-): val is CelOutput<T> {
+): val is CelValue<T> {
   switch (type.kind) {
     case "list":
       return isCelList(val);
     case "map":
       return isCelMap(val);
     case "object":
-      return isMessage(val, type.desc) || isReflectMessage(val, type.desc);
+      return isReflectMessage(val, type.desc);
     case "type":
       return isCelType(val);
     case "scalar":

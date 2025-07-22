@@ -12,16 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isMessage, toJson } from "@bufbuild/protobuf";
-import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import { toJson } from "@bufbuild/protobuf";
+import {
+  DurationSchema,
+  TimestampSchema,
+  type Duration,
+  type Timestamp,
+} from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, FuncRegistry, Func } from "../func.js";
-import { type CelResult, CelError } from "../value/value.js";
-import { CelScalar, isCelType, listType } from "../type.js";
+import { CelScalar, isCelType, listType, type CelValue } from "../type.js";
 import { indexOutOfBounds, invalidArgument } from "../errors.js";
 import { type CelList, celList, isCelList } from "../list.js";
 import { type CelMap, isCelMap } from "../map.js";
 import { isCelUint } from "../uint.js";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
 const charAt = new Func("charAt", [
   new FuncOverload(
@@ -263,7 +268,7 @@ const quote = new Func("strings.quote", [
 ]);
 
 export class Formatter {
-  public formatFloatString(val: string): CelResult<string> {
+  public formatFloatString(val: string) {
     switch (val) {
       case "Infinity":
       case "-Infinity":
@@ -274,10 +279,7 @@ export class Formatter {
     }
   }
 
-  public formatFloating(
-    val: unknown,
-    precision: number | undefined,
-  ): CelResult<string> {
+  public formatFloating(val: CelValue, precision: number | undefined) {
     switch (true) {
       case typeof val === "number":
         if (Number.isNaN(val)) {
@@ -295,8 +297,6 @@ export class Formatter {
         return val.toFixed(precision);
       case typeof val === "string":
         return this.formatFloatString(val);
-      case val instanceof CelError:
-        return val;
       default:
         throw invalidArgument(
           "format",
@@ -305,10 +305,7 @@ export class Formatter {
     }
   }
 
-  public formatExponent(
-    val: unknown,
-    precision: number | undefined,
-  ): CelResult<string> {
+  public formatExponent(val: CelValue, precision: number | undefined) {
     switch (true) {
       case typeof val === "number":
         if (Number.isNaN(val)) {
@@ -331,8 +328,6 @@ export class Formatter {
         return str;
       case typeof val === "string":
         return this.formatFloatString(val);
-      case val instanceof CelError:
-        return val;
       default:
         throw invalidArgument(
           "format",
@@ -341,7 +336,7 @@ export class Formatter {
     }
   }
 
-  public formatBinary(val: unknown): CelResult<string> {
+  public formatBinary(val: CelValue) {
     switch (true) {
       case typeof val === "boolean":
         return val ? "1" : "0";
@@ -349,8 +344,6 @@ export class Formatter {
         return val.toString(2);
       case isCelUint(val):
         return val.value.toString(2);
-      case val instanceof CelError:
-        return val;
       default:
         throw invalidArgument(
           "format",
@@ -359,20 +352,18 @@ export class Formatter {
     }
   }
 
-  public formatOctal(val: unknown): CelResult<string> {
+  public formatOctal(val: CelValue) {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(8);
       case isCelUint(val):
         return val.value.toString(8);
-      case val instanceof CelError:
-        return val;
       default:
         throw invalidArgument("format", "invalid integer value");
     }
   }
 
-  public formatDecimal(val: unknown): CelResult<string> {
+  public formatDecimal(val: CelValue) {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(10);
@@ -384,14 +375,12 @@ export class Formatter {
         return "Infinity";
       case val === -Infinity:
         return "-Infinity";
-      case val instanceof CelError:
-        return val;
       default:
         throw invalidArgument("format", "invalid integer value");
     }
   }
 
-  public formatHexBytes(val: Uint8Array): string {
+  public formatHexBytes(val: Uint8Array) {
     let result = "";
     for (let i = 0; i < val.length; i++) {
       result += val[i].toString(16).padStart(2, "0");
@@ -399,7 +388,7 @@ export class Formatter {
     return result;
   }
 
-  public formatHex(val: unknown): CelResult<string> {
+  public formatHex(val: CelValue) {
     switch (true) {
       case typeof val === "bigint":
         return val.toString(16);
@@ -410,8 +399,6 @@ export class Formatter {
         return this.formatHexBytes(encoder.encode(val));
       case val instanceof Uint8Array:
         return this.formatHexBytes(val);
-      case val instanceof CelError:
-        return val;
       default:
         throw invalidArgument(
           "format",
@@ -420,7 +407,7 @@ export class Formatter {
     }
   }
 
-  public formatHeX(val: unknown): CelResult<string> {
+  public formatHeX(val: CelValue) {
     const result = this.formatHex(val);
     if (typeof result !== "string") {
       return result;
@@ -428,35 +415,23 @@ export class Formatter {
     return result.toUpperCase();
   }
 
-  public formatList(val: CelList): CelResult<string> {
+  public formatList(val: CelList) {
     let result = "[";
     for (let i = 0; i < val.size; i++) {
       if (i > 0) {
         result += ", ";
       }
-      const item = this.formatRepl(val.get(i));
-      if (item instanceof CelError) {
-        return item;
-      }
-      result += item;
+      result += this.formatRepl(val.get(i) as CelValue);
     }
     result += "]";
     return result;
   }
 
-  public formatMap(val: CelMap): CelResult<string> {
+  public formatMap(val: CelMap) {
     const formatted = new Array<[string, string]>(val.size);
     let i = 0;
     for (const [key, value] of val) {
-      const keyStr = this.formatRepl(key);
-      if (keyStr instanceof CelError) {
-        return keyStr;
-      }
-      const valueStr = this.formatRepl(value);
-      if (valueStr instanceof CelError) {
-        return valueStr;
-      }
-      formatted[i] = [keyStr, valueStr];
+      formatted[i] = [this.formatRepl(key), this.formatRepl(value)];
       i++;
     }
     let result = "{";
@@ -471,43 +446,11 @@ export class Formatter {
     return result;
   }
 
-  public formatRepl(val: unknown): CelResult<string> {
-    switch (typeof val) {
-      case "boolean":
-        return val ? "true" : "false";
-      case "bigint":
-        return DEFAULT_FORMATTER.formatDecimal(val);
-      case "number":
-        return DEFAULT_FORMATTER.formatFloating(val, undefined);
-      case "string":
-        return val;
-      case "object":
-        switch (true) {
-          case val === null:
-            return "null";
-          case isCelType(val):
-            return val.name;
-          case isCelUint(val):
-            return val.value.toString();
-          case isMessage(val, TimestampSchema):
-            return toJson(TimestampSchema, val);
-          case isMessage(val, DurationSchema):
-            return toJson(DurationSchema, val);
-          case val instanceof Uint8Array:
-            // escape non-printable characters
-            return new TextDecoder().decode(val);
-          case isCelList(val):
-            return this.formatList(val);
-          case isCelMap(val):
-            return this.formatMap(val);
-          case val instanceof CelError:
-            return val;
-        }
-    }
-    throw invalidArgument("format", "invalid value");
+  public formatRepl(val: CelValue) {
+    return this.formatString(val);
   }
 
-  public formatString(val: unknown): CelResult<string> {
+  public formatString(val: CelValue) {
     switch (typeof val) {
       case "boolean":
         return val ? "true" : "false";
@@ -525,24 +468,22 @@ export class Formatter {
             return val.name;
           case isCelUint(val):
             return val.value.toString();
-          case isMessage(val, TimestampSchema):
-            return toJson(TimestampSchema, val);
-          case isMessage(val, DurationSchema):
-            return toJson(DurationSchema, val);
+          case isReflectMessage(val, TimestampSchema):
+            return toJson(TimestampSchema, val.message as Timestamp);
+          case isReflectMessage(val, DurationSchema):
+            return toJson(DurationSchema, val.message as Duration);
           case val instanceof Uint8Array:
             return new TextDecoder().decode(val);
           case isCelList(val):
             return this.formatList(val);
           case isCelMap(val):
             return this.formatMap(val);
-          case val instanceof CelError:
-            return val;
         }
     }
     throw invalidArgument("format", "invalid string value");
   }
 
-  public format(format: string, args: CelList): string {
+  public format(format: string, args: CelList) {
     let result = "";
     let i = 0;
     let j = 0;
@@ -579,11 +520,11 @@ export class Formatter {
         c = format.charAt(i);
         i++;
       }
-      if (j >= args.size) {
+      const val = args.get(j++);
+      if (val === undefined) {
         throw invalidArgument("format", "too few arguments for format string");
       }
-      const val = args.get(j++);
-      let str: CelResult<string> = "";
+      let str: string;
       switch (c) {
         case "e":
           str = this.formatExponent(val, precision);
@@ -614,9 +555,6 @@ export class Formatter {
             "format",
             `could not parse formatting clause: unrecognized formatting clause: ${c}`,
           );
-      }
-      if (str instanceof CelError) {
-        throw CelError;
       }
       result += str;
     }
