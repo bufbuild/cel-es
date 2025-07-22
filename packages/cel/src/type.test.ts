@@ -35,7 +35,7 @@ import type {
 } from "@bufbuild/protobuf/reflect";
 import type { Message } from "@bufbuild/protobuf";
 
-test("CelTupleValue", () => {
+void test("CelTupleValue", () => {
   expectTypeOf<
     CelValueTuple<[typeof CelScalar.STRING, typeof CelScalar.INT]>
   >().toEqualTypeOf<[string, bigint]>();
@@ -44,7 +44,7 @@ test("CelTupleValue", () => {
   >();
 });
 
-test("CelValue", () => {
+void test("CelValue", () => {
   expectTypeOf<CelValue<typeof CelScalar.INT>>().toEqualTypeOf<bigint>();
   expectTypeOf<CelValue<typeof CelScalar.STRING>>().toEqualTypeOf<string>();
   expectTypeOf<CelValue<typeof CelScalar.BOOL>>().toEqualTypeOf<boolean>();
@@ -77,7 +77,7 @@ test("CelValue", () => {
   expectTypeOf<CelValue>().toEqualTypeOf<AllTypes>();
 });
 
-test("CelValue", () => {
+void test("CelValue", () => {
   expectTypeOf<CelInput<typeof CelScalar.INT>>().toEqualTypeOf<bigint>();
   expectTypeOf<CelInput<typeof CelScalar.STRING>>().toEqualTypeOf<string>();
   expectTypeOf<CelInput<typeof CelScalar.BOOL>>().toEqualTypeOf<boolean>();

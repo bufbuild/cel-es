@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { describe } from "node:test";
+import { suite } from "node:test";
 import { createTestFilter, testSimpleTestFile } from "./testing.js";
 import { getSimpleTestFiles } from "@bufbuild/cel-spec/testdata/simple.js";
 import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
@@ -263,7 +263,7 @@ const failures = createTestFilter([
   ["optionals", "optionals", "map_optional_entry_has"],
 ]);
 
-describe("Conformance Tests", () => {
+void suite("Conformance Tests", () => {
   const typeRegistry = getTestRegistry();
   for (const file of files) {
     testSimpleTestFile(file, typeRegistry, failures);

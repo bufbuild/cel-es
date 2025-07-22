@@ -32,7 +32,7 @@ import {
   type Registry,
 } from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
-import { describe, test } from "node:test";
+import { suite, test } from "node:test";
 import { parse } from "./parser.js";
 import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
@@ -61,14 +61,14 @@ export function testSimpleTestFile(
   failureFn?: TestFilterFn,
 ) {
   const fileFail = failureFn?.(simpleTestFile);
-  describe(name(simpleTestFile), () => {
+  void suite(name(simpleTestFile), () => {
     for (const section of simpleTestFile.section) {
       const sectionFail = fileFail || failureFn?.(simpleTestFile, section);
-      describe(name(section), (t) => {
+      void suite(name(section), (t) => {
         for (const simpleTest of section.test) {
           const fail =
             sectionFail || failureFn?.(simpleTestFile, section, simpleTest);
-          test(name(simpleTest), (t) => {
+          void test(name(simpleTest), (t) => {
             // Just run like a regular test if we don't expect a failure.
             if (fail !== true) {
               runSimpleTestCase(simpleTest, registry);
