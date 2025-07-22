@@ -320,7 +320,15 @@ export class Formatter {
         if (val === -Infinity) {
           return "-Infinity";
         }
-        return val.toExponential(precision);
+        let str = val.toExponential(precision);
+        // toExponential returns 1 or 2 digits after the `+`.
+        // CEL spec mandates 2. So we insert a 0 if we find only
+        // one character after '+'.
+        const plusIdx = str.lastIndexOf("+");
+        if (plusIdx === str.length - 2) {
+          str = `${str.substring(0, plusIdx + 1)}0${str.substring(plusIdx + 1)}`;
+        }
+        return str;
       case typeof val === "string":
         return this.formatFloatString(val);
       case val instanceof CelError:
