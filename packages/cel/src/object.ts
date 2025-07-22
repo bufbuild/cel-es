@@ -97,7 +97,7 @@ function setMsgField(msg: ReflectMessage, field: DescField, v: CelValue) {
       msg.set(field, map);
       return;
     case "enum":
-      msg.set(field, enumFromCel(field, v as CelValue));
+      msg.set(field, enumFromCel(field, v));
       return;
     case "message":
       const msgVal = msgFromCel(field, v);
@@ -114,13 +114,13 @@ function copyList(list: ReflectList, cList: CelList) {
   for (const v of cList) {
     switch (field.listKind) {
       case "enum":
-        list.add(enumFromCel(field, v as CelValue));
+        list.add(enumFromCel(field, v));
         break;
       case "message":
-        list.add(msgFromCel(field, v as CelValue));
+        list.add(msgFromCel(field, v));
         break;
       case "scalar":
-        list.add(scalarFromCel(field, field.scalar, v as CelValue));
+        list.add(scalarFromCel(field, field.scalar, v));
         break;
     }
   }
@@ -132,13 +132,13 @@ function copyMap(map: ReflectMap, cMap: CelMap) {
     const key = scalarFromCel(field, field.mapKey, k);
     switch (field.mapKind) {
       case "enum":
-        map.set(key, enumFromCel(field, v as CelValue));
+        map.set(key, enumFromCel(field, v));
         break;
       case "scalar":
-        map.set(key, scalarFromCel(field, field.scalar, v as CelValue));
+        map.set(key, scalarFromCel(field, field.scalar, v));
         break;
       case "message":
-        map.set(key, msgFromCel(field, v as CelValue));
+        map.set(key, msgFromCel(field, v));
         break;
     }
   }
@@ -321,7 +321,7 @@ function valueFromCel(v: CelValue): Value {
 function listValueFromCel(list: CelList): ListValue {
   const listValue = create(ListValueSchema);
   for (const v of list) {
-    listValue.values.push(valueFromCel(v as CelValue));
+    listValue.values.push(valueFromCel(v));
   }
   return listValue;
 }
@@ -334,7 +334,7 @@ function structFromCel(map: CelMap): Struct {
         `Invalid key type: ${typeof k} for google.protobuf.Struct, expected string`,
       );
     }
-    struct.fields[k] = valueFromCel(v as CelValue);
+    struct.fields[k] = valueFromCel(v);
   }
   return struct;
 }

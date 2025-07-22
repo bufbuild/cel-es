@@ -29,7 +29,7 @@ import { CelError, type CelResult } from "./value/value.js";
 import { Namespace } from "./value/namespace.js";
 import { withEvalContext } from "./eval.js";
 import { toCel, unwrapAny } from "./value.js";
-import type { CelInput, CelValue } from "./type.js";
+import type { CelInput } from "./type.js";
 import { createRegistryWithWKT } from "./registry.js";
 
 /**
@@ -89,7 +89,7 @@ export class CelPlanner {
             if (val instanceof CelError) {
               return val;
             }
-            return unwrapAny(val) as CelValue;
+            return unwrapAny(val);
           } catch (ex) {
             return CelError.from(ex, interpretable.id);
           }

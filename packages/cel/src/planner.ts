@@ -486,7 +486,7 @@ export class EvalCall implements Interpretable {
     return CelErrors.overloadNotFound(
       this.id,
       this.name,
-      vals.map((x) => celType(x as CelValue)),
+      vals.map((x) => celType(x)),
     );
   }
 }
