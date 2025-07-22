@@ -90,6 +90,9 @@ export function toCel(v: CelInput): CelValue {
 
 /**
  * Unwraps the given value if it is an Any.
+ *
+ * If the Any represents a Wrapper type or google.protobuf.Value/Struct/ListValue, it also converts them
+ * to their corresponding CelValue.
  */
 export function unwrapAny(v: CelValue): CelValue {
   if (!isReflectAny(v)) {
