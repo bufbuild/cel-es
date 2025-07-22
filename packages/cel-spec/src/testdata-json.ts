@@ -13,9 +13,8 @@
 // limitations under the License.
 
 // Generated from github.com/google/cel-spec v0.24.0 by scripts/fetch-testdata.js
-import type { JsonObject } from "@bufbuild/protobuf";
 
-export const testdataJson: JsonObject[] = [
+export const testdataJson = [
   {
     "name": "basic",
     "description": "Basic conformance tests that all implementations should pass.",
@@ -22345,4 +22344,4 @@ export const testdataJson: JsonObject[] = [
       }
     ]
   }
-];
+] as const;

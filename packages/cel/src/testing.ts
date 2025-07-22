@@ -33,7 +33,7 @@ import {
   type Registry,
 } from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
-import { test } from "node:test";
+import { describe, test } from "node:test";
 import { parse } from "./parser.js";
 import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
@@ -51,27 +51,39 @@ import {
   type CelInput,
 } from "./type.js";
 import { getMsgDesc } from "./eval.js";
+import type { SimpleNameTuples } from "@bufbuild/cel-spec/testdata/simple.js";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
-export async function testSimpleTestFile(
+export function testSimpleTestFile(
   simpleTestFile: SimpleTestFile,
   registry: Registry,
-  shouldSkip?: (
-    file: SimpleTestFile,
-    section?: SimpleTestSection,
-    test?: SimpleTest,
-  ) => boolean,
+  failureFn?: TestFilterFn,
 ) {
-  const skip = shouldSkip?.(simpleTestFile);
-  await test(name(simpleTestFile), { skip }, async () => {
+  const fileFail = failureFn?.(simpleTestFile);
+  describe(name(simpleTestFile), () => {
     for (const section of simpleTestFile.section) {
-      const skip = shouldSkip?.(simpleTestFile, section);
-      await test(name(section), { skip }, async (t) => {
+      const sectionFail = fileFail || failureFn?.(simpleTestFile, section);
+      describe(name(section), (t) => {
         for (const simpleTest of section.test) {
-          const skip = shouldSkip?.(simpleTestFile, section, simpleTest);
-          await t.test(name(simpleTest), { skip }, () => {
-            runSimpleTestCase(simpleTest, registry);
+          const fail =
+            sectionFail || failureFn?.(simpleTestFile, section, simpleTest);
+          test(name(simpleTest), (t) => {
+            // Just run like a regular test if we don't expect a failure.
+            if (fail !== true) {
+              runSimpleTestCase(simpleTest, registry);
+              return;
+            }
+            try {
+              runSimpleTestCase(simpleTest, registry);
+            } catch (ex) {
+              // We got a failure as expected lets mark the test as todo.
+              t.todo(`TODO ${ex}`);
+              return;
+            }
+            assert.fail(
+              `Expected [${name(simpleTestFile)}, ${name(section)}, ${name(simpleTest)}] to fail but it succeeded.`,
+            );
           });
         }
       });
@@ -79,66 +91,33 @@ export async function testSimpleTestFile(
   });
 }
 
-type SkipList = (
-  | [fileName: string]
-  | [fileName: string, sectionName: string]
-  | [fileName: string, sectionName: string, testName: string]
-)[];
+type TestFilterFn = (
+  file: SimpleTestFile,
+  section?: SimpleTestSection,
+  test?: SimpleTest,
+) => boolean;
 
-export function createSimpleTestFileSkip(
-  files: SimpleTestFile[],
-  skipList: SkipList,
-) {
-  // validate that skip list only contains elements that exist
-  for (const l of skipList) {
-    const file = files.find((f) => f.name === l[0]);
-    if (file === undefined) {
-      throw new Error(`Invalid skip list: file "${l[0]}" not found`);
+/**
+ * Creates a TestFilterFn that returns true for tests that match the given list.
+ */
+export function createTestFilter(list: SimpleNameTuples[]): TestFilterFn {
+  const filter = new Set<string>();
+  for (const testCase of list) {
+    const name = testCase.join("/");
+    if (filter.has(name)) {
+      throw new Error(`Invalid filter list: duplicate: "${name}"`);
     }
-    if (l.length > 1) {
-      const section = file.section.find((s) => s.name === l[1]);
-      if (section === undefined) {
-        throw new Error(
-          `Invalid skip list: section "${l[1]}" not found in file "${l[0]}"`,
-        );
-      }
-      if (l.length > 2) {
-        const test = section.test.find((t) => t.name === l[2]);
-        if (test === undefined) {
-          throw new Error(
-            `Invalid skip list: test "${l[2]}" not found in section "${l[1]}" of file "${l[0]}"`,
-          );
-        }
-      }
-    }
+    filter.add(name);
   }
-  // validate that skip list does not contain duplicates
-  for (const [wantIndex, l] of skipList.entries()) {
-    const foundIndex = skipList.findIndex(
-      (m) => m.length === l.length && l.every((n, index) => n === m[index]),
-    );
-    if (wantIndex !== foundIndex) {
-      throw new Error(
-        `Invalid skip list: duplicate skip: "${l.join(`" / "`)}"`,
-      );
-    }
-  }
-  return function shouldSkip(
-    file: SimpleTestFile,
-    section?: SimpleTestSection,
-    test?: SimpleTest,
-  ): boolean {
-    const got = [file.name];
+  return (file, section, test): boolean => {
+    let got = file.name;
     if (section !== undefined) {
-      got.push(section.name);
+      got += `/${section.name}`;
       if (test !== undefined) {
-        got.push(test.name);
+        got += `/${test.name}`;
       }
     }
-    const found = skipList.find(
-      (s) => s.length === got.length && got.every((n, index) => n === s[index]),
-    );
-    return found !== undefined;
+    return filter.has(got);
   };
 }
 
@@ -175,16 +154,7 @@ function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
       assert.equal(result, true);
       break;
     case "typedResult":
-      // We don't support type checks yet, we can only assert the value and ignore the type
-      // check for now.
-      if (testCase.resultMatcher.value.result) {
-        assertResultEqual(
-          registry,
-          result,
-          testCase.resultMatcher.value.result,
-        );
-      }
-      break;
+      assert.fail("Doesn't yet support types");
     default:
       throw new Error(
         `Unsupported result case: ${testCase.resultMatcher.case}`,
