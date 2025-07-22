@@ -44,7 +44,7 @@ The table below maps JS types to CEL types.
 | boolean, BoolValue | bool | boolean |
 | null | null_type | null |
 | CelType | type | CelType |
-| Timestamp, RelfectMessage | timestamp | ReflectMessage |
+| Timestamp, ReflectMessage | timestamp | ReflectMessage |
 | Duration, ReflectMessage | duration | ReflectMessage |
-| Message, ReflectMessage, Any | <typeName> | ReflectMessage |
+| Message, ReflectMessage, Any | \<typeName> | ReflectMessage |
 | google.protobuf.Value and friends | double/bool/string/list/map/null | number/boolean/string/CelList/CelMap |
