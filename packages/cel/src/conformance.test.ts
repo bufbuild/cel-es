@@ -51,9 +51,6 @@ const failures = createTestFilter([
     "format",
     "scientific notation formatting clause in a string variable",
   ],
-  ["timestamps", "duration_conversions", "type_comparison"],
-  ["timestamps", "timestamp_selectors", "getMilliseconds"],
-  ["timestamps", "timestamp_conversions", "type_comparison"],
   // Enums began as Ints but were changed to have types and reverted back again: https://github.com/google/cel-spec/pull/321
   ["enums", "strong_proto2", "literal_global"],
   ["enums", "strong_proto2", "literal_nested"],

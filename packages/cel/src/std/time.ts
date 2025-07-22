@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  timestampDate,
-  TimestampSchema,
-  type Timestamp,
-} from "@bufbuild/protobuf/wkt";
+import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
 
 import { CelScalar, TIMESTAMP, DURATION } from "../type.js";
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
@@ -46,7 +42,11 @@ function getDayOfYear(date: Date): number {
 
 function makeTimeOp(t: TimeFunc) {
   return (ts: Timestamp, tz?: string) => {
-    let val = timestampDate(ts);
+    // TODO(srikrsna): Use `timestampDate` from @bufbuild/protobuf, once
+    // it is updated to use Math.round instead of Math.ceil.
+    let val = new Date(
+      Number(ts.seconds) * 1000 + Math.round(ts.nanos / 1000000),
+    );
     if (tz !== undefined) {
       // Timezone can either be Fixed or IANA or "UTC".
       // We first check for the fixed offset case.
