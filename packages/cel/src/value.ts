@@ -35,16 +35,12 @@ import {
   UInt32ValueSchema,
   UInt64ValueSchema,
   ValueSchema,
+  type Any,
   type ListValue,
   type Struct,
   type Value,
 } from "@bufbuild/protobuf/wkt";
-import {
-  type CelInput,
-  type CelOutput,
-  type CelValue,
-  isCelType,
-} from "./type.js";
+import { type CelInput, type CelValue, isCelType } from "./type.js";
 
 /**
  * Converts a CelInput to a CelValue.
@@ -93,25 +89,26 @@ export function toCel(v: CelInput): CelValue {
 }
 
 /**
- * Converts a CelValue to a CelOutput.
+ * Unwraps the given value if it is an Any.
+ *
+ * If the Any represents a Wrapper type or google.protobuf.Value/Struct/ListValue, it also converts them
+ * to their corresponding CelValue.
  */
-export function fromCel(v: CelValue): CelOutput {
-  if (!isReflectMessage(v)) {
+export function unwrapAny(v: CelValue): CelValue {
+  if (!isReflectAny(v)) {
     return v;
   }
-  let msg = v.message;
-  if (isMessage(msg, AnySchema)) {
-    const unpacked = anyUnpack(msg, getEvalContext().registry);
-    if (unpacked === undefined) {
-      throw new Error(`invalid Any or ${msg.typeUrl} not found in registry`);
-    }
-    const value = wktToCel(unpacked);
-    if (value !== undefined) {
-      return value;
-    }
-    msg = unpacked;
+  const unpacked = anyUnpack(v.message, getEvalContext().registry);
+  if (unpacked === undefined) {
+    throw new Error(
+      `invalid Any or ${v.message.typeUrl} not found in registry`,
+    );
   }
-  return msg;
+  const value = wktToCel(unpacked);
+  if (value !== undefined) {
+    return value;
+  }
+  return reflect(getMsgDesc(unpacked.$typeName), unpacked);
 }
 
 export function reflectMsgToCel(v: ReflectMessage) {
@@ -120,6 +117,10 @@ export function reflectMsgToCel(v: ReflectMessage) {
     return value;
   }
   return v;
+}
+
+function isReflectAny(v: CelValue): v is ReflectMessage & { message: Any } {
+  return isReflectMessage(v, AnySchema);
 }
 
 function isArray(v: unknown): v is readonly unknown[] {

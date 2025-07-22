@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
+import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 
-import { CelScalar, TIMESTAMP, DURATION } from "../type.js";
+import { CelScalar, TIMESTAMP, DURATION, type CelValue } from "../type.js";
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { toJson } from "@bufbuild/protobuf";
@@ -41,7 +41,8 @@ function getDayOfYear(date: Date): number {
 }
 
 function makeTimeOp(t: TimeFunc) {
-  return (ts: Timestamp, tz?: string) => {
+  return (msg: CelValue<typeof TIMESTAMP>, tz?: string) => {
+    const ts = msg.message;
     // TODO(srikrsna): Use `timestampDate` from @bufbuild/protobuf, once
     // it is updated to use Math.round instead of Math.ceil.
     let val = new Date(
@@ -249,7 +250,7 @@ const getSecondsFunc = new Func(olc.TIME_GET_SECONDS, [
     CelScalar.INT,
     makeTimeOp((d) => d.getSeconds()),
   ),
-  new FuncOverload([DURATION], CelScalar.INT, (dur) => dur.seconds),
+  new FuncOverload([DURATION], CelScalar.INT, (dur) => dur.message.seconds),
 ]);
 
 const getMinutesFunc = new Func(olc.TIME_GET_MINUTES, [
@@ -263,7 +264,11 @@ const getMinutesFunc = new Func(olc.TIME_GET_MINUTES, [
     CelScalar.INT,
     makeTimeOp((d) => d.getMinutes()),
   ),
-  new FuncOverload([DURATION], CelScalar.INT, (dur) => dur.seconds / 60n),
+  new FuncOverload(
+    [DURATION],
+    CelScalar.INT,
+    (dur) => dur.message.seconds / 60n,
+  ),
 ]);
 
 const getHoursFunc = new Func(olc.TIME_GET_HOURS, [
@@ -277,7 +282,11 @@ const getHoursFunc = new Func(olc.TIME_GET_HOURS, [
     CelScalar.INT,
     makeTimeOp((d) => d.getHours()),
   ),
-  new FuncOverload([DURATION], CelScalar.INT, (dur) => dur.seconds / 3600n),
+  new FuncOverload(
+    [DURATION],
+    CelScalar.INT,
+    (dur) => dur.message.seconds / 3600n,
+  ),
 ]);
 
 const getMillisecondsFunc = new Func(olc.TIME_GET_MILLISECONDS, [
@@ -294,6 +303,6 @@ const getMillisecondsFunc = new Func(olc.TIME_GET_MILLISECONDS, [
   new FuncOverload(
     [DURATION],
     CelScalar.INT,
-    (dur) => BigInt(dur.nanos) / 1000000n,
+    (dur) => BigInt(dur.message.nanos) / 1000000n,
   ),
 ]);

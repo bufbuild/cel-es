@@ -28,7 +28,6 @@ import type {
 import {
   create,
   equals,
-  isMessage,
   type MessageInitShape,
   type Registry,
 } from "@bufbuild/protobuf";
@@ -48,9 +47,11 @@ import {
   mapType,
   objectType,
   type CelInput,
+  type CelValue,
 } from "./type.js";
 import { getMsgDesc } from "./eval.js";
 import type { SimpleNameTuples } from "@bufbuild/cel-spec/testdata/simple.js";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
 const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 
@@ -180,7 +181,7 @@ function assertResultEqual(
 }
 
 function celValueToValue(
-  value: unknown,
+  value: CelValue,
   registry: Registry,
 ): MessageInitShape<typeof ValueSchema> {
   switch (typeof value) {
@@ -232,25 +233,18 @@ function celValueToValue(
       },
     };
   }
-  if (isMessage(value)) {
-    const desc = registry.getMessage(value.$typeName);
-    if (desc === undefined) {
-      throw new Error(`unrecognized message ${value.$typeName}`);
-    }
+  if (isReflectMessage(value)) {
     return {
       kind: {
         case: "objectValue",
-        value: anyPack(desc, value),
+        value: anyPack(value.desc, value.message),
       },
     };
   }
   throw new Error(`unrecognised cel type: ${value}`);
 }
 
-function valueToCelValue(
-  value: Value,
-  registry: Registry,
-): CelInput | undefined {
+function valueToCelValue(value: Value, registry: Registry): CelInput {
   switch (value.kind.case) {
     case "nullValue":
       return null;
@@ -261,9 +255,13 @@ function valueToCelValue(
         value.kind.value.values.map((e) => valueToCelValue(e, registry)),
       );
     case "objectValue":
-      return anyUnpack(value.kind.value, registry);
+      const unpacked = anyUnpack(value.kind.value, registry);
+      if (unpacked === undefined) {
+        throw new Error(`Unknownd object: ${value.kind.value.typeUrl}`);
+      }
+      return unpacked;
     case "mapValue": {
-      const map = new Map<string | bigint | boolean | CelUint, unknown>();
+      const map = new Map<string | bigint | boolean | CelUint, CelInput>();
       for (const entry of value.kind.value.entries) {
         if (entry.key === undefined || entry.value === undefined) {
           throw new Error("Invalid map entry");
@@ -279,6 +277,8 @@ function valueToCelValue(
       return lookupType(value.kind.value);
     case "enumValue":
       return BigInt(value.kind.value.value);
+    case undefined:
+      throw new Error("Unexpected undefined value");
     default:
       return value.kind.value;
   }

@@ -72,14 +72,14 @@ const intFunc = new Func(INT, [
     return val;
   }),
   new FuncOverload([TIMESTAMP_TYPE], CelScalar.INT, (x) => {
-    const val = x.seconds;
+    const val = x.message.seconds;
     if (isOverflowInt(val)) {
       throw overflow(INT, CelScalar.INT);
     }
     return BigInt(val);
   }),
   new FuncOverload([DURATION_TYPE], CelScalar.INT, (x) => {
-    const val = x.seconds;
+    const val = x.message.seconds;
     if (isOverflowInt(val)) {
       throw overflow(INT, CelScalar.INT);
     }
@@ -163,10 +163,10 @@ const stringFunc = new Func(STRING, [
     }
   }),
   new FuncOverload([TIMESTAMP_TYPE], CelScalar.STRING, (x) =>
-    toJson(TimestampSchema, x),
+    toJson(TimestampSchema, x.message),
   ),
   new FuncOverload([DURATION_TYPE], CelScalar.STRING, (x) =>
-    toJson(DurationSchema, x),
+    toJson(DurationSchema, x.message),
   ),
 ]);
 

@@ -31,7 +31,6 @@ import { STRINGS_EXT_FUNCS } from "./ext/strings.js";
 export { type CelParser, CelPlanner, CelEnv } from "./celenv.js";
 export {
   type CelResult,
-  type CelVal,
   CelError,
   CelErrors,
 } from "./value/value.js";
@@ -45,7 +44,9 @@ export {
   celType,
   objectType,
   CelScalar,
-  type CelType as CELType,
+  type CelType,
+  type CelValue,
+  type CelInput,
   listType,
   typeType,
 } from "./type.js";

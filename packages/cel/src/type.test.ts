@@ -17,10 +17,9 @@ import {
   CelScalar,
   listType,
   mapType,
-  type CelOutputTuple,
+  type CelValueTuple,
   type CelValue,
   type CelType,
-  type CelOutput,
   type CelInput,
   objectType,
 } from "./type.js";
@@ -38,9 +37,9 @@ import type { Message } from "@bufbuild/protobuf";
 
 test("CelTupleValue", () => {
   expectTypeOf<
-    CelOutputTuple<[typeof CelScalar.STRING, typeof CelScalar.INT]>
+    CelValueTuple<[typeof CelScalar.STRING, typeof CelScalar.INT]>
   >().toEqualTypeOf<[string, bigint]>();
-  expectTypeOf<CelOutputTuple<[typeof CelScalar.STRING]>>().toEqualTypeOf<
+  expectTypeOf<CelValueTuple<[typeof CelScalar.STRING]>>().toEqualTypeOf<
     [string]
   >();
 });
@@ -60,7 +59,9 @@ test("CelValue", () => {
   const map = mapType(CelScalar.STRING, CelScalar.STRING);
   expectTypeOf<CelValue<typeof map>>().toEqualTypeOf<CelMap>();
   const object = objectType(TimestampSchema);
-  expectTypeOf<CelValue<typeof object>>().toEqualTypeOf<ReflectMessage>();
+  expectTypeOf<CelValue<typeof object>>().toEqualTypeOf<
+    ReflectMessage & { message: Timestamp }
+  >();
   type AllTypes =
     | number // double
     | bigint // int
@@ -123,35 +124,4 @@ test("CelValue", () => {
     | ReflectMessage
     | Message;
   expectTypeOf<CelInput>().toEqualTypeOf<AllTypes>();
-});
-
-test("CelOutput", () => {
-  expectTypeOf<CelOutput<typeof CelScalar.INT>>().toEqualTypeOf<bigint>();
-  expectTypeOf<CelOutput<typeof CelScalar.STRING>>().toEqualTypeOf<string>();
-  expectTypeOf<CelOutput<typeof CelScalar.BOOL>>().toEqualTypeOf<boolean>();
-  expectTypeOf<CelOutput<typeof CelScalar.DOUBLE>>().toEqualTypeOf<number>();
-  expectTypeOf<CelOutput<typeof CelScalar.UINT>>().toEqualTypeOf<CelUint>();
-  expectTypeOf<CelOutput<typeof CelScalar.BYTES>>().toEqualTypeOf<Uint8Array>();
-  expectTypeOf<CelOutput<typeof CelScalar.NULL>>().toEqualTypeOf<null>();
-  expectTypeOf<CelOutput<typeof CelScalar.INT>>().toEqualTypeOf<bigint>();
-  expectTypeOf<CelOutput<typeof CelScalar.DYN>>().toEqualTypeOf<CelOutput>();
-  const list = listType(CelScalar.BOOL);
-  expectTypeOf<CelOutput<typeof list>>().toEqualTypeOf<CelList>();
-  const map = mapType(CelScalar.STRING, CelScalar.STRING);
-  expectTypeOf<CelOutput<typeof map>>().toEqualTypeOf<CelMap>();
-  const object = objectType(TimestampSchema);
-  expectTypeOf<CelOutput<typeof object>>().toEqualTypeOf<Timestamp>();
-  type AllTypes =
-    | number // double
-    | bigint // int
-    | CelUint // uint
-    | string // string
-    | boolean // bool
-    | Uint8Array // bytes
-    | CelMap // map
-    | CelList // list
-    | null // null_type
-    | CelType // type;
-    | Message; // <typeName> | timestamp | duration
-  expectTypeOf<CelOutput>().toEqualTypeOf<AllTypes>();
 });

@@ -13,17 +13,18 @@
 // limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
-import {
-  DurationSchema,
-  TimestampSchema,
-  type Duration,
-  type Timestamp,
-} from "@bufbuild/protobuf/wkt";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import { CelError, newDuration, newTimestamp } from "../value/value.js";
-import { CelScalar, DURATION, listType, TIMESTAMP } from "../type.js";
+import {
+  CelScalar,
+  DURATION,
+  listType,
+  TIMESTAMP,
+  type CelValue,
+} from "../type.js";
 import { divisionByZero, moduloByZero, overflow } from "../errors.js";
 import { celListConcat } from "../list.js";
 import { celUint } from "../uint.js";
@@ -63,9 +64,12 @@ export function addMath(funcs: FuncRegistry) {
   funcs.add(negate);
 }
 
-function addTimestamp(lhs: Timestamp, rhs: Timestamp | Duration) {
-  let seconds = lhs.seconds + rhs.seconds;
-  let nanos = lhs.nanos + rhs.nanos;
+function addTimestamp(
+  lhs: CelValue<typeof TIMESTAMP>,
+  rhs: CelValue<typeof TIMESTAMP> | CelValue<typeof DURATION>,
+) {
+  let seconds = lhs.message.seconds + rhs.message.seconds;
+  let nanos = lhs.message.nanos + rhs.message.nanos;
   if (nanos > 999999999) {
     seconds += BigInt(Math.floor(nanos / 1000000000));
     nanos = nanos % 1000000000;
@@ -76,9 +80,12 @@ function addTimestamp(lhs: Timestamp, rhs: Timestamp | Duration) {
   return create(TimestampSchema, { seconds: seconds, nanos: nanos });
 }
 
-function addDuration(lhs: Duration, rhs: Duration) {
-  let seconds = lhs.seconds + rhs.seconds;
-  let nanos = lhs.nanos + rhs.nanos;
+function addDuration(
+  lhs: CelValue<typeof DURATION>,
+  rhs: CelValue<typeof DURATION>,
+) {
+  let seconds = lhs.message.seconds + rhs.message.seconds;
+  let nanos = lhs.message.nanos + rhs.message.nanos;
   if (nanos > 999999999) {
     seconds += BigInt(Math.floor(nanos / 1000000000));
     nanos = nanos % 1000000000;
@@ -89,14 +96,13 @@ function addDuration(lhs: Duration, rhs: Duration) {
   return create(DurationSchema, { seconds: seconds, nanos: nanos });
 }
 
-function subtractDurationOrTimestamp<T extends Timestamp | Duration>(
-  lhs: T,
-  rhs: T,
-) {
+function subtractDurationOrTimestamp<
+  T extends CelValue<typeof TIMESTAMP> | CelValue<typeof DURATION>,
+>(lhs: T, rhs: T) {
   const errOrDuration = newDuration(
     -1,
-    lhs.seconds - rhs.seconds,
-    lhs.nanos - rhs.nanos,
+    lhs.message.seconds - rhs.message.seconds,
+    lhs.message.nanos - rhs.message.nanos,
   );
   if (errOrDuration instanceof CelError) {
     throw new Error(errOrDuration.message);
@@ -197,8 +203,8 @@ const subtract = new Func(opc.SUBTRACT, [
   new FuncOverload([TIMESTAMP, DURATION], TIMESTAMP, (lhs, rhs) => {
     const errOrDuration = newTimestamp(
       -1,
-      lhs.seconds - rhs.seconds,
-      lhs.nanos - rhs.nanos,
+      lhs.message.seconds - rhs.message.seconds,
+      lhs.message.nanos - rhs.message.nanos,
     );
     if (errOrDuration instanceof CelError) {
       throw new Error(errOrDuration.message);

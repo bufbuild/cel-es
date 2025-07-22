@@ -20,14 +20,15 @@ import {
 } from "@bufbuild/protobuf/reflect";
 import type { DescField } from "@bufbuild/protobuf";
 import { celFromScalar } from "./proto.js";
-import { reflectMsgToCel } from "./value.js";
+import { reflectMsgToCel, toCel } from "./value.js";
+import type { CelInput, CelValue } from "./type.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/list");
 
 /**
  * List is common abstraction for lists.
  */
-export interface CelList extends Iterable<unknown> {
+export interface CelList extends Iterable<CelValue> {
   /**
    * The size of the list.
    */
@@ -36,10 +37,10 @@ export interface CelList extends Iterable<unknown> {
    * Retrieves the item at the specified index, or undefined if the index
    * is out of range.
    */
-  get(index: number): unknown;
+  get(index: number): CelValue | undefined;
 
-  [Symbol.iterator](): IterableIterator<unknown>;
-  values(): IterableIterator<unknown>;
+  [Symbol.iterator](): IterableIterator<CelValue>;
+  values(): IterableIterator<CelValue>;
   /**
    * To prevent external implementations.
    */
@@ -50,7 +51,7 @@ export interface CelList extends Iterable<unknown> {
  * Create a new list from a native array or a ReflectList.
  */
 export function celList(
-  arrayOrReflectList: readonly unknown[] | ReflectList,
+  arrayOrReflectList: readonly CelInput[] | ReflectList,
 ): CelList {
   if (isReflectList(arrayOrReflectList)) {
     return new RepeatedFieldList(arrayOrReflectList as ReflectList);
@@ -75,21 +76,23 @@ export function isCelList(v: unknown): v is CelList {
 
 class ArrayList implements CelList {
   [privateSymbol] = {};
-  constructor(private readonly _array: readonly unknown[]) {}
+  constructor(private readonly _array: readonly CelInput[]) {}
   get size(): number {
     return this._array.length;
   }
-  get(index: number): unknown {
+  get(index: number) {
     if (index < 0 || index >= this.size) {
       return undefined;
     }
-    return this._array[index];
+    return toCel(this._array[index]);
   }
-  values(): IterableIterator<unknown> {
-    return this._array.values();
+  *values() {
+    for (const element of this._array.values()) {
+      yield toCel(element);
+    }
   }
-  [Symbol.iterator](): IterableIterator<unknown> {
-    return this._array.values();
+  [Symbol.iterator]() {
+    return this.values();
   }
 }
 
@@ -101,7 +104,7 @@ class RepeatedFieldList implements CelList {
     return this._list.size;
   }
 
-  get(index: number): unknown {
+  get(index: number) {
     const val = this._list.get(index);
     if (val === undefined) {
       return undefined;
@@ -135,7 +138,7 @@ class ConcatList implements CelList {
     return this._size;
   }
 
-  get(index: number): unknown {
+  get(index: number) {
     if (index < 0 || index >= this.size) {
       return undefined;
     }

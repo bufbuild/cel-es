@@ -21,7 +21,8 @@ import {
 import { isCelUint, type CelUint } from "./uint.js";
 import { type DescField, ScalarType } from "@bufbuild/protobuf";
 import { celFromScalar } from "./proto.js";
-import { reflectMsgToCel } from "./value.js";
+import { reflectMsgToCel, toCel } from "./value.js";
+import type { CelInput, CelValue } from "./type.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 
@@ -29,7 +30,7 @@ const privateSymbol = Symbol.for("@bufbuild/cel/map");
  * A common abstraction for maps.
  */
 export interface CelMap
-  extends ReadonlyMap<bigint | string | boolean | CelUint, unknown> {
+  extends ReadonlyMap<bigint | string | boolean | CelUint, CelValue> {
   [privateSymbol]: unknown;
 
   /**
@@ -40,7 +41,7 @@ export interface CelMap
    * See https://github.com/google/cel-spec/blob/v0.24.0/doc/langdef.md#numbers
    * See https://github.com/google/cel-spec/wiki/proposal-210
    */
-  get(key: bigint | string | boolean | CelUint | number): unknown | undefined;
+  get(key: bigint | string | boolean | CelUint | number): CelValue | undefined;
 
   /**
    * Indicates if the map has the specified key.
@@ -58,7 +59,7 @@ export interface CelMap
  */
 export function celMap(
   mapOrReflectMap:
-    | ReadonlyMap<bigint | string | boolean | CelUint, unknown>
+    | ReadonlyMap<bigint | string | boolean | CelUint, CelInput>
     | ReflectMap,
 ): CelMap {
   if (isReflectMap(mapOrReflectMap)) {
@@ -79,14 +80,14 @@ class NativeMap implements CelMap {
   constructor(
     private readonly _map: ReadonlyMap<
       bigint | string | boolean | CelUint,
-      unknown
+      CelInput
     >,
   ) {}
   get size(): number {
     return this._map.size;
   }
 
-  get(key: string | bigint | boolean | CelUint | number): unknown {
+  get(key: string | bigint | boolean | CelUint | number) {
     if (isCelUint(key)) {
       key = key.value;
     }
@@ -101,7 +102,7 @@ class NativeMap implements CelMap {
     // Direct check for maps with string, boolean, and bigint keys.
     const value = this._map.get(key);
     if (value !== undefined) {
-      return value;
+      return toCel(value);
     }
     // For maps with CelUint keys we have to loop through all keys to check because
     // JS maps use SameValueZero algorithm which is the same as '===' for objects.
@@ -113,7 +114,7 @@ class NativeMap implements CelMap {
           continue;
         }
         if (mapKey.value === key) {
-          return this._map.get(mapKey);
+          return toCel(this._map.get(mapKey) as CelInput);
         }
       }
     }
@@ -126,7 +127,7 @@ class NativeMap implements CelMap {
 
   forEach(
     callback: (
-      value: unknown,
+      value: CelValue,
       key: string | bigint | boolean | CelUint,
       map: CelMap,
     ) => void,
@@ -134,22 +135,27 @@ class NativeMap implements CelMap {
     thisArg?: any,
   ): void {
     this._map.forEach((value, key, _) =>
-      callback.call(thisArg, value, key, this),
+      callback.call(thisArg, toCel(value), key, this),
     );
   }
 
-  entries(): MapIterator<[string | bigint | boolean | CelUint, unknown]> {
-    return this._map.entries();
+  *entries(): MapIterator<[string | bigint | boolean | CelUint, CelValue]> {
+    for (const [key, value] of this._map.entries()) {
+      yield [key, toCel(value)];
+    }
   }
+
   keys(): MapIterator<string | bigint | boolean | CelUint> {
     return this._map.keys();
   }
-  values(): MapIterator<unknown> {
-    return this._map.values();
+
+  *values(): MapIterator<CelValue> {
+    for (const value of this._map.values()) {
+      yield toCel(value);
+    }
   }
-  [Symbol.iterator](): MapIterator<
-    [string | bigint | boolean | CelUint, unknown]
-  > {
+
+  [Symbol.iterator]() {
     return this.entries();
   }
 }
@@ -161,7 +167,7 @@ class ProtoMap implements CelMap {
     return this._map.size;
   }
 
-  get(key: string | bigint | boolean | CelUint | number): unknown {
+  get(key: string | bigint | boolean | CelUint | number) {
     const value = this._map.get(mapKeyFromCel(this._map.field(), key));
     if (value === undefined) {
       return undefined;
@@ -175,7 +181,7 @@ class ProtoMap implements CelMap {
 
   forEach(
     callback: (
-      value: unknown,
+      value: CelValue,
       key: string | bigint | boolean | CelUint,
       map: CelMap,
     ) => void,
@@ -192,7 +198,7 @@ class ProtoMap implements CelMap {
     );
   }
 
-  *entries(): MapIterator<[string | bigint | boolean | CelUint, unknown]> {
+  *entries(): MapIterator<[string | bigint | boolean | CelUint, CelValue]> {
     for (const [key, value] of this._map.entries()) {
       yield [
         celFromMapKey(this._map.field(), key),
@@ -205,14 +211,12 @@ class ProtoMap implements CelMap {
       yield celFromMapKey(this._map.field(), key);
     }
   }
-  *values(): MapIterator<unknown> {
+  *values(): MapIterator<CelValue> {
     for (const value of this._map.keys()) {
       yield celFromMapValue(this._map.field(), value);
     }
   }
-  [Symbol.iterator](): MapIterator<
-    [string | bigint | boolean | CelUint, unknown]
-  > {
+  [Symbol.iterator]() {
     return this.entries();
   }
 }

@@ -225,18 +225,18 @@ export type CelValue<T extends CelType = CelType> =
 
 // biome-ignore format: Ternaries
 type celValue<T extends CelType = CelType> = 
-    T extends typeof CelScalar.TYPE    ? CelType
-  : T extends typeof CelScalar.INT     ? bigint
-  : T extends typeof CelScalar.UINT    ? CelUint
-  : T extends typeof CelScalar.DOUBLE  ? number
-  : T extends typeof CelScalar.BOOL    ? boolean
-  : T extends typeof CelScalar.STRING  ? string
-  : T extends typeof CelScalar.BYTES   ? Uint8Array
-  : T extends typeof CelScalar.NULL    ? null
-  : T extends CelListType              ? CelList
-  : T extends CelMapType               ? CelMap
-  : T extends CelTypeType              ? CelType
-  : T extends CelObjectType            ? ReflectMessage
+    T extends typeof CelScalar.TYPE       ? CelType
+  : T extends typeof CelScalar.INT        ? bigint
+  : T extends typeof CelScalar.UINT       ? CelUint
+  : T extends typeof CelScalar.DOUBLE     ? number
+  : T extends typeof CelScalar.BOOL       ? boolean
+  : T extends typeof CelScalar.STRING     ? string
+  : T extends typeof CelScalar.BYTES      ? Uint8Array
+  : T extends typeof CelScalar.NULL       ? null
+  : T extends CelListType                 ? CelList
+  : T extends CelMapType                  ? CelMap
+  : T extends CelTypeType                 ? CelType
+  : T extends CelObjectType<infer Desc>   ? Message extends MessageShape<Desc> ? ReflectMessage : ReflectMessage & { message: MessageShape<Desc> }
   : never;
 
 /**
@@ -253,25 +253,13 @@ type celInput<T extends CelType = CelType> =
   : T extends CelObjectType     ? ReflectMessage | Message
   : celValue<T>;
 
-/**
- * Outputs types of CEL values.
- */
 // biome-ignore format: Ternaries
-export type CelOutput<T extends CelType = CelType> = 
-  T extends typeof CelScalar.DYN ? celOutput : celOutput<T>; // Avoids the infinite recursion.
-
-// biome-ignore format: Ternaries
-type celOutput<T extends CelType = CelType> = 
-    T extends CelObjectType<infer Desc> ? MessageShape<Desc>
-  : celValue<T>;
-
-// biome-ignore format: Ternaries
-export type CelOutputTuple<T extends readonly CelType[]> =
+export type CelValueTuple<T extends readonly CelType[]> =
   T extends readonly [
     infer First extends CelType,
     ...infer Rest extends CelType[],
   ]
-    ? [CelOutput<First>, ...CelOutputTuple<Rest>]
+    ? [CelValue<First>, ...CelValueTuple<Rest>]
     // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>     
     : CelType[] extends T ? any[] : [];
 

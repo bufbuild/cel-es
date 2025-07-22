@@ -38,7 +38,6 @@ import {
   CelError,
   coerceToValues,
   type CelResult,
-  type CelVal,
   CelErrors,
 } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
@@ -301,7 +300,7 @@ export class Planner {
     return attr;
   }
 
-  private constVal(val: Constant): CelVal {
+  private constVal(val: Constant): CelValue {
     switch (val.constantKind.case) {
       case "stringValue":
         return val.constantKind.value;
@@ -407,7 +406,7 @@ export class EvalError implements Interpretable {
 export class EvalConst implements Interpretable {
   constructor(
     public readonly id: number,
-    public readonly value: CelVal,
+    public readonly value: CelValue,
   ) {}
   eval(_ctx: Activation): CelResult {
     return this.value;
@@ -487,7 +486,7 @@ export class EvalCall implements Interpretable {
     return CelErrors.overloadNotFound(
       this.id,
       this.name,
-      vals.map((x) => celType(x as CelValue)),
+      vals.map((x) => celType(x)),
     );
   }
 }
@@ -541,7 +540,7 @@ export class EvalList implements InterpretableCtor {
     if (first instanceof CelError) {
       return first;
     }
-    const elemVals: CelVal[] = [first];
+    const elemVals: CelValue[] = [first];
     for (let i = 1; i < this.elems.length; i++) {
       const elemVal = this.elems[i].eval(ctx);
       if (elemVal instanceof CelError) {
@@ -573,7 +572,8 @@ export class EvalMap implements InterpretableCtor {
     if (this.keys.length === 0) {
       return EMPTY_MAP;
     }
-    const entries: Map<string | bigint | boolean | CelUint, CelVal> = new Map();
+    const entries: Map<string | bigint | boolean | CelUint, CelValue> =
+      new Map();
     const firstKey = this.mapKeyOrError(this.keys[0].eval(ctx));
     if (firstKey instanceof CelError) {
       return firstKey;

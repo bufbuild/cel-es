@@ -27,9 +27,8 @@ import {
   listType,
   mapType,
   TIMESTAMP,
-  type CelOutput,
+  type CelValue,
 } from "../type.js";
-import type { Duration, Timestamp } from "@bufbuild/protobuf/wkt";
 import { equals } from "../equals.js";
 import type { CelMap } from "../map.js";
 
@@ -322,7 +321,7 @@ const sizeFunc = new Func(olc.SIZE, [
   ),
 ]);
 
-function mapInOp(x: CelOutput, y: CelMap) {
+function mapInOp(x: CelValue, y: CelMap) {
   return y.has(x as string);
 }
 
@@ -331,8 +330,8 @@ const inFunc = new Func(opc.IN, [
     [CelScalar.DYN, listType(CelScalar.DYN)],
     CelScalar.BOOL,
     (x, y) => {
-      for (let i = 0; i < y.size; i++) {
-        if (equals(x, y.get(i))) {
+      for (const v of y) {
+        if (equals(x, v)) {
           return true;
         }
       }
@@ -380,18 +379,24 @@ export function addLogic(funcs: FuncRegistry) {
   funcs.add(inFunc);
 }
 
-function compareDuration(lhs: Duration, rhs: Duration) {
-  const cmp = lhs.seconds - rhs.seconds;
+function compareDuration(
+  lhs: CelValue<typeof DURATION>,
+  rhs: CelValue<typeof DURATION>,
+) {
+  const cmp = lhs.message.seconds - rhs.message.seconds;
   if (cmp == 0n) {
-    return lhs.nanos - rhs.nanos;
+    return lhs.message.nanos - rhs.message.nanos;
   }
   return cmp < 0n ? -1 : 1;
 }
 
-function compareTimestamp(lhs: Timestamp, rhs: Timestamp) {
-  const cmp = lhs.seconds - rhs.seconds;
+function compareTimestamp(
+  lhs: CelValue<typeof TIMESTAMP>,
+  rhs: CelValue<typeof TIMESTAMP>,
+) {
+  const cmp = lhs.message.seconds - rhs.message.seconds;
   if (cmp == 0n) {
-    return lhs.nanos - rhs.nanos;
+    return lhs.message.nanos - rhs.message.nanos;
   }
   return cmp < 0n ? -1 : 1;
 }
