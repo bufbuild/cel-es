@@ -15,7 +15,6 @@
 import { celUint, isCelUint } from "./uint.js";
 import { celMap, isCelMap, type CelMap } from "./map.js";
 import { celList, isCelList, type CelList } from "./list.js";
-import { isNullMessage } from "./null.js";
 import {
   isReflectList,
   isReflectMap,
@@ -68,7 +67,6 @@ export function toCel(v: CelInput): CelValue {
     case isCelList(v):
     case isCelMap(v):
     case isCelUint(v):
-    case isNullMessage(v):
     case isCelType(v):
       return v;
   }
@@ -98,27 +96,8 @@ export function toCel(v: CelInput): CelValue {
  * Converts a CelValue to a CelOutput.
  */
 export function fromCel(v: CelValue): CelOutput {
-  switch (typeof v) {
-    case "bigint":
-    case "boolean":
-    case "number":
-    case "string":
-      return v;
-    case "object":
-      break;
-    default:
-      throw new Error(`unsupported CEL type ${typeof v}`);
-  }
-  switch (true) {
-    case v === null:
-    case isNullMessage(v):
-      return null;
-    case v instanceof Uint8Array:
-    case isCelList(v):
-    case isCelMap(v):
-    case isCelUint(v):
-    case isCelType(v):
-      return v;
+  if (!isReflectMessage(v)) {
+    return v;
   }
   let msg = v.message;
   if (isMessage(msg, AnySchema)) {

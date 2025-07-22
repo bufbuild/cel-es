@@ -20,15 +20,16 @@ import {
 import {
   AnySchema,
   anyUnpack,
+  isWrapperDesc,
   ListValueSchema,
   StructSchema,
+  ValueSchema,
   type Any,
 } from "@bufbuild/protobuf/wkt";
 import { getEvalContext, getMsgDesc } from "./eval.js";
 import type { CelVal } from "./value/value.js";
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
-import { isNullMessage, nullMessage } from "./null.js";
 import { celFromScalar } from "./proto.js";
 import { reflectMsgToCel } from "./value.js";
 import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
@@ -81,13 +82,18 @@ export function accessByName(obj: unknown, name: string): CelVal | undefined {
       if (obj.isSet(field)) {
         return reflectMsgToCel(obj.get(field));
       }
+      if (isWrapperDesc(field.message)) {
+        return null;
+      }
       switch (field.message.typeName) {
         case StructSchema.typeName:
           return EMPTY_MAP;
         case ListValueSchema.typeName:
           return EMPTY_LIST;
+        case ValueSchema.typeName:
+          return null;
       }
-      return nullMessage(field.message);
+      return reflect(field.message);
   }
 }
 
@@ -116,9 +122,6 @@ export function isSet(obj: unknown, name: string): boolean | undefined {
 }
 
 function unwrapMessage(obj: unknown) {
-  if (isNullMessage(obj)) {
-    return obj.zero;
-  }
   if (isReflectAny(obj)) {
     const any = anyUnpack(obj.message, getEvalContext().registry);
     if (any === undefined) {

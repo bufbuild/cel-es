@@ -16,7 +16,6 @@ import type { DescMessage, Message, MessageShape } from "@bufbuild/protobuf";
 import { isCelList, type CelList } from "./list.js";
 import { isCelMap, type CelMap } from "./map.js";
 import { isCelUint, type CelUint } from "./uint.js";
-import { isNullMessage, type NullMessage } from "./null.js";
 import {
   isReflectMessage,
   type ReflectList,
@@ -233,7 +232,7 @@ type celValue<T extends CelType = CelType> =
   : T extends typeof CelScalar.BOOL    ? boolean
   : T extends typeof CelScalar.STRING  ? string
   : T extends typeof CelScalar.BYTES   ? Uint8Array
-  : T extends typeof CelScalar.NULL    ? null | NullMessage
+  : T extends typeof CelScalar.NULL    ? null
   : T extends CelListType              ? CelList
   : T extends CelMapType               ? CelMap
   : T extends CelTypeType              ? CelType
@@ -263,8 +262,7 @@ export type CelOutput<T extends CelType = CelType> =
 
 // biome-ignore format: Ternaries
 type celOutput<T extends CelType = CelType> = 
-    T extends typeof CelScalar.NULL     ? null
-  : T extends CelObjectType<infer Desc> ? MessageShape<Desc>
+    T extends CelObjectType<infer Desc> ? MessageShape<Desc>
   : celValue<T>;
 
 // biome-ignore format: Ternaries
@@ -293,7 +291,6 @@ export function celType(v: CelValue): CelType {
     case "object":
       switch (true) {
         case v === null:
-        case isNullMessage(v):
           return CelScalar.NULL;
         case v instanceof Uint8Array:
           return CelScalar.BYTES;

@@ -37,7 +37,6 @@ import { setEvalContext } from "./eval.js";
 import { celList, isCelList } from "./list.js";
 import { celMap, isCelMap } from "./map.js";
 import { celUint, isCelUint } from "./uint.js";
-import { isNullMessage, nullMessage } from "./null.js";
 import { celType, type CelValue } from "./type.js";
 import { createRegistryWithWKT } from "./registry.js";
 
@@ -93,7 +92,6 @@ describe("equals()", () => {
       ["str", create(StringValueSchema, { value: "str" })],
       // Nulls
       [null, null],
-      [null, nullMessage(TestAllTypesSchema)],
       // Messages
       [
         create(TestAllTypesSchema, { singleInt32: 1 }),
@@ -194,8 +192,6 @@ function toTestString(value: unknown) {
     typeName = `reflect(${value.desc.typeName})`;
   } else if (isReflectMap(value)) {
     typeName = `map<${value.field().mapKey}, ${value.field()}>`;
-  } else if (isNullMessage(value)) {
-    typeName = `null_type<${value.typeName}>`;
   } else {
     typeName = celType(value as CelValue).name;
   }
@@ -205,7 +201,6 @@ function toTestString(value: unknown) {
 function formatCelObject(value: object | null) {
   switch (true) {
     case value === null:
-    case isNullMessage(value):
       return "null";
     case isCelUint(value):
       return value.value.toString();

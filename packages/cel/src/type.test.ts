@@ -29,7 +29,6 @@ import { expectTypeOf } from "expect-type";
 import type { CelList } from "./list.js";
 import type { CelMap } from "./map.js";
 import type { CelUint } from "./uint.js";
-import type { NullMessage } from "./null.js";
 import type {
   ReflectList,
   ReflectMap,
@@ -53,9 +52,7 @@ test("CelValue", () => {
   expectTypeOf<CelValue<typeof CelScalar.DOUBLE>>().toEqualTypeOf<number>();
   expectTypeOf<CelValue<typeof CelScalar.UINT>>().toEqualTypeOf<CelUint>();
   expectTypeOf<CelValue<typeof CelScalar.BYTES>>().toEqualTypeOf<Uint8Array>();
-  expectTypeOf<
-    CelValue<typeof CelScalar.NULL>
-  >().toEqualTypeOf<null | NullMessage>();
+  expectTypeOf<CelValue<typeof CelScalar.NULL>>().toEqualTypeOf<null>();
   expectTypeOf<CelValue<typeof CelScalar.INT>>().toEqualTypeOf<bigint>();
   expectTypeOf<CelValue<typeof CelScalar.DYN>>().toEqualTypeOf<CelValue>();
   const list = listType(CelScalar.BOOL);
@@ -74,7 +71,6 @@ test("CelValue", () => {
     | CelMap // map
     | CelList // list
     | null // null_type
-    | NullMessage // null_type
     | CelType // type;
     | ReflectMessage; // <typeName> | timestamp | duration
   expectTypeOf<CelValue>().toEqualTypeOf<AllTypes>();
@@ -87,9 +83,7 @@ test("CelValue", () => {
   expectTypeOf<CelInput<typeof CelScalar.DOUBLE>>().toEqualTypeOf<number>();
   expectTypeOf<CelInput<typeof CelScalar.UINT>>().toEqualTypeOf<CelUint>();
   expectTypeOf<CelInput<typeof CelScalar.BYTES>>().toEqualTypeOf<Uint8Array>();
-  expectTypeOf<
-    CelInput<typeof CelScalar.NULL>
-  >().toEqualTypeOf<null | NullMessage>();
+  expectTypeOf<CelInput<typeof CelScalar.NULL>>().toEqualTypeOf<null>();
   expectTypeOf<CelInput<typeof CelScalar.INT>>().toEqualTypeOf<bigint>();
   expectTypeOf<CelInput<typeof CelScalar.DYN>>().toEqualTypeOf<CelInput>();
   const list = listType(CelScalar.BOOL);
@@ -124,7 +118,6 @@ test("CelValue", () => {
     | readonly CelInput[]
     | ReflectList
     | null // null_type
-    | NullMessage // null_type
     | CelType // type;
     // <typeName> | timestamp | duration
     | ReflectMessage

@@ -41,7 +41,6 @@ import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
 import { celList, isCelList } from "./list.js";
 import { celMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
-import { isNullMessage } from "./null.js";
 import {
   CelScalar,
   isCelType,
@@ -198,7 +197,7 @@ function celValueToValue(
     case "symbol":
       throw new Error(`unrecognised cel type: ${typeof value}`);
   }
-  if (value === null || isNullMessage(value)) {
+  if (value === null) {
     return { kind: { case: "nullValue", value: NullValue.NULL_VALUE } };
   }
   if (value instanceof Uint8Array) {
