@@ -58,21 +58,17 @@ const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
 export function testSimpleTestFile(
   simpleTestFile: SimpleTestFile,
   registry: Registry,
-  skipFn?: TestFilterFn,
   failureFn?: TestFilterFn,
 ) {
-  const skip = skipFn?.(simpleTestFile);
   const fileFail = failureFn?.(simpleTestFile);
-  describe(name(simpleTestFile), { skip }, () => {
+  describe(name(simpleTestFile), () => {
     for (const section of simpleTestFile.section) {
-      const skip = skipFn?.(simpleTestFile, section);
       const sectionFail = fileFail || failureFn?.(simpleTestFile, section);
-      describe(name(section), { skip }, (t) => {
+      describe(name(section), (t) => {
         for (const simpleTest of section.test) {
-          const skip = skipFn?.(simpleTestFile, section, simpleTest);
           const fail =
             sectionFail || failureFn?.(simpleTestFile, section, simpleTest);
-          test(name(simpleTest), { skip }, (t) => {
+          test(name(simpleTest), (t) => {
             // Just run like a regular test if we don't expect a failure.
             if (fail !== true) {
               runSimpleTestCase(simpleTest, registry);
