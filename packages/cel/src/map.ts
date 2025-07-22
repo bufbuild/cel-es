@@ -21,6 +21,7 @@ import {
 import { isCelUint, type CelUint } from "./uint.js";
 import { type DescField, ScalarType } from "@bufbuild/protobuf";
 import { celFromScalar } from "./proto.js";
+import { reflectMsgToCel } from "./value.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 
@@ -257,7 +258,7 @@ function celFromMapValue(desc: DescField & { fieldKind: "map" }, v: unknown) {
     case "enum":
       return BigInt(v as number);
     case "message":
-      return v as ReflectMessage;
+      return reflectMsgToCel(v as ReflectMessage);
     case "scalar":
       return celFromScalar(desc.scalar, v as ScalarValue);
   }

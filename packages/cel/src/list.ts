@@ -20,6 +20,7 @@ import {
 } from "@bufbuild/protobuf/reflect";
 import type { DescField } from "@bufbuild/protobuf";
 import { celFromScalar } from "./proto.js";
+import { reflectMsgToCel } from "./value.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/list");
 
@@ -163,7 +164,7 @@ function celFromListElem(desc: DescField & { fieldKind: "list" }, v: unknown) {
     case "enum":
       return BigInt(v as number);
     case "message":
-      return v as ReflectMessage;
+      return reflectMsgToCel(v as ReflectMessage);
     case "scalar":
       return celFromScalar(desc.scalar, v as ScalarValue);
   }
