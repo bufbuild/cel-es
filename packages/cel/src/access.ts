@@ -14,8 +14,8 @@
 
 import type { Activation } from "./activation.js";
 import { EvalAttr, type Interpretable } from "./planner.js";
-import type { Namespace } from "./value/namespace.js";
-import { type CelResult, CelError, CelErrors } from "./value/value.js";
+import type { Namespace } from "./namespace.js";
+import { type CelResult, CelError } from "./error.js";
 import { accessByIndex, accessByName, isSet } from "./field.js";
 import { isCelUint } from "./uint.js";
 import {
@@ -298,7 +298,10 @@ class ConditionalAttr implements Attribute {
       case cond instanceof CelError:
         return cond;
     }
-    return CelErrors.overloadNotFound(this.id, "_?_:_", [celType(cond)]);
+    return new CelError(
+      this.id,
+      `found no matching overload for _?_:_ applied to '(${celType(cond).name})'`,
+    );
   }
 }
 
@@ -419,7 +422,7 @@ class StringAccess implements Access {
   access<T>(_vars: Activation, obj: CelValue): CelResult<T> | undefined {
     const val = accessByName(obj, this.name) as T | undefined;
     if (val === undefined && !this.optional) {
-      return CelErrors.fieldNotFound(this.id, this.name);
+      return fieldNotFound(this.id, this.name);
     }
     return val;
   }
@@ -427,7 +430,7 @@ class StringAccess implements Access {
   isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
     const set = isSet(obj, this.name);
     if (set === undefined) {
-      return CelErrors.fieldNotFound(this.id, this.name);
+      return fieldNotFound(this.id, this.name);
     }
     return set;
   }
@@ -439,7 +442,7 @@ class StringAccess implements Access {
   ): CelResult | undefined {
     const val = accessByName(obj, this.name);
     if (val === undefined && !this.optional && !presenceOnly) {
-      return CelErrors.fieldNotFound(this.id, this.name);
+      return fieldNotFound(this.id, this.name);
     }
     return val;
   }
@@ -462,7 +465,7 @@ class BoolAccess implements Access {
     }
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.fieldNotFound(this.id, this.index);
+      return fieldNotFound(this.id, this.index);
     }
     return raw;
   }
@@ -470,7 +473,7 @@ class BoolAccess implements Access {
   isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.fieldNotFound(this.id, this.index);
+      return fieldNotFound(this.id, this.index);
     }
     return true;
   }
@@ -482,7 +485,7 @@ class BoolAccess implements Access {
   ): CelResult | undefined {
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.fieldNotFound(this.id, this.index);
+      return fieldNotFound(this.id, this.index);
     }
     return raw;
   }
@@ -506,7 +509,7 @@ class NumAccess implements Access {
     }
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.indexOutOfBounds(this.id, this.index, -1);
+      return indexOutOfBounds(this.id, this.index, -1);
     }
     return raw;
   }
@@ -514,7 +517,7 @@ class NumAccess implements Access {
   isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.indexOutOfBounds(this.id, this.index, -1);
+      return indexOutOfBounds(this.id, this.index, -1);
     }
     return true;
   }
@@ -526,7 +529,7 @@ class NumAccess implements Access {
   ): CelResult | undefined {
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.indexOutOfBounds(this.id, this.index, -1);
+      return indexOutOfBounds(this.id, this.index, -1);
     }
     return raw;
   }
@@ -546,7 +549,7 @@ class IntAccess implements Access {
     }
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
+      return indexOutOfBounds(this.id, Number(this.index), -1);
     }
     return raw;
   }
@@ -554,7 +557,7 @@ class IntAccess implements Access {
   isPresent(_vars: Activation, obj: CelValue): CelResult<boolean> {
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
+      return indexOutOfBounds(this.id, Number(this.index), -1);
     }
     return true;
   }
@@ -566,7 +569,7 @@ class IntAccess implements Access {
   ): CelResult | undefined {
     const raw = accessByIndex(obj, this.index);
     if (raw === undefined && !this.optional) {
-      return CelErrors.indexOutOfBounds(this.id, Number(this.index), -1);
+      return indexOutOfBounds(this.id, Number(this.index), -1);
     }
     return raw;
   }
@@ -714,6 +717,14 @@ export class ConcreteAttributeFactory implements AttributeFactory {
       default:
         break;
     }
-    return new ErrorAttr(id, CelErrors.unsupportedKeyType(id), opt);
+    return new ErrorAttr(id, new CelError(id, "unsupported key type"), opt);
   }
+}
+
+function fieldNotFound(id: number, name: unknown): CelError {
+  return new CelError(id, `field not found: ${String(name)}`);
+}
+
+function indexOutOfBounds(id: number, index: number, length: number): CelError {
+  return new CelError(id, `index ${index} out of bounds [0, ${length})`);
 }

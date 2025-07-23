@@ -172,3 +172,5 @@ function celFromListElem(desc: DescField & { fieldKind: "list" }, v: unknown) {
       return celFromScalar(desc.scalar, v as ScalarValue);
   }
 }
+
+export const EMPTY_LIST = celList([]);

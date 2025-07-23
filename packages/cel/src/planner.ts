@@ -30,18 +30,12 @@ import {
   ErrorAttr,
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
-import { type CallDispatch, type Dispatcher } from "./func.js";
+import type { CallDispatch, Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
-import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
-import { Namespace } from "./value/namespace.js";
-import {
-  CelError,
-  coerceToValues,
-  type CelResult,
-  CelErrors,
-} from "./value/value.js";
-import { celList, isCelList } from "./list.js";
-import { celMap, isCelMap } from "./map.js";
+import { Namespace } from "./namespace.js";
+import { CelError, type CelResult } from "./error.js";
+import { celList, EMPTY_LIST, isCelList } from "./list.js";
+import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { toCel } from "./value.js";
 import { celObject } from "./object.js";
@@ -79,7 +73,7 @@ export class Planner {
       case "comprehensionExpr":
         return this.planComprehension(id, expr.exprKind.value);
       default:
-        return new EvalError(id, "invalid expression");
+        return new EvalErr(id, "invalid expression");
     }
   }
 
@@ -134,7 +128,7 @@ export class Planner {
   private planCreateObj(id: number, expr: Expr_CreateStruct): Interpretable {
     const typeName = this.resolveType(expr.messageName);
     if (typeName === undefined) {
-      return new EvalError(id, "unknown type: " + expr.messageName);
+      return new EvalErr(id, "unknown type: " + expr.messageName);
     }
     let optionals: boolean[] | undefined = undefined;
     const keys: string[] = [];
@@ -189,7 +183,7 @@ export class Planner {
           break;
       }
       if (entry.value === undefined) {
-        return new EvalError(id, "map entry missing value");
+        return new EvalErr(id, "map entry missing value");
       }
       values.push(this.plan(entry.value));
     }
@@ -385,14 +379,15 @@ export class EvalHas implements Interpretable {
     const raw = this.attr.resolve(ctx);
     if (raw === undefined) {
       return false;
-    } else if (raw instanceof CelError) {
+    }
+    if (raw instanceof CelError) {
       return raw;
     }
     return this.access.isPresent(ctx, raw);
   }
 }
 
-export class EvalError implements Interpretable {
+export class EvalErr implements Interpretable {
   constructor(
     public readonly id: number,
     private readonly msg: string,
@@ -444,8 +439,9 @@ export class EvalAttr implements Attribute, Interpretable {
   eval(ctx: Activation) {
     const val = this.attr.resolve(ctx);
     if (val === undefined) {
-      return CelErrors.unresolvedAttr(this.id);
-    } else if (val instanceof CelError) {
+      return new CelError(this.id, "unresolved attribute");
+    }
+    if (val instanceof CelError) {
       return val;
     }
     return toCel(val);
@@ -471,7 +467,7 @@ export class EvalCall implements Interpretable {
 
   public eval(ctx: Activation): CelResult {
     if (this.call === undefined) {
-      return CelErrors.funcNotFound(this.id, this.name);
+      return new CelError(this.id, `unbound function: ${this.name}`);
     }
     const argVals = this.args.map((x) => x.eval(ctx));
     const result = this.call.dispatch(this.id, argVals);
@@ -483,10 +479,12 @@ export class EvalCall implements Interpretable {
     if (vals instanceof CelError) {
       return vals;
     }
-    return CelErrors.overloadNotFound(
+    return new CelError(
       this.id,
-      this.name,
-      vals.map((x) => celType(x)),
+      `found no matching overload for '${this.name}' applied to '(${vals
+        .map((x) => celType(x))
+        .map((x) => x.name)
+        .join(", ")})'`,
     );
   }
 }
@@ -510,7 +508,7 @@ export class EvalObj implements InterpretableCtor {
     const obj = new Map<string, CelValue>();
     for (let i = 0; i < vals.length; i++) {
       if (obj.has(this.fields[i])) {
-        return CelErrors.mapKeyConflict(this.id, this.fields[i]);
+        return new CelError(this.id, `map key conflict: ${this.fields[i]}`);
       }
       obj.set(this.fields[i], toCel(vals[i] as CelInput));
     }
@@ -583,7 +581,7 @@ export class EvalMap implements InterpretableCtor {
       return firstVal;
     }
     if (typeof firstKey === "number" && !Number.isInteger(firstKey)) {
-      return CelErrors.unsupportedKeyType(this.id);
+      return unsupportedKeyType(this.id);
     }
     entries.set(firstKey, firstVal);
     for (let i = 1; i < this.keys.length; i++) {
@@ -596,9 +594,10 @@ export class EvalMap implements InterpretableCtor {
         return val;
       }
       if (entries.has(key)) {
-        return CelErrors.mapKeyConflict(this.id, key);
-      } else if (typeof key === "number" && !Number.isInteger(key)) {
-        return CelErrors.unsupportedKeyType(this.id);
+        return new CelError(this.id, `map key conflict: ${key}`);
+      }
+      if (typeof key === "number" && !Number.isInteger(key)) {
+        return unsupportedKeyType(this.id);
       }
       entries.set(key, val);
     }
@@ -617,14 +616,14 @@ export class EvalMap implements InterpretableCtor {
         if (isCelUint(key)) {
           return key;
         }
-        return CelErrors.unsupportedKeyType(this.id);
+        return unsupportedKeyType(this.id);
       case "number":
         if (Number.isInteger(key)) {
           return BigInt(key);
         }
-        return CelErrors.unsupportedKeyType(this.id);
+        return unsupportedKeyType(this.id);
       default:
-        return CelErrors.unsupportedKeyType(this.id);
+        return unsupportedKeyType(this.id);
     }
   }
 }
@@ -658,7 +657,10 @@ export class EvalFold implements Interpretable {
     } else if (isCelList(iterRange)) {
       items = Array.from(iterRange) as CelResult[];
     } else {
-      return CelErrors.typeMismatch(this.id, "iterable", iterRange);
+      return new CelError(
+        this.id,
+        `type mismatch: iterable vs ${celType(iterRange)}`,
+      );
     }
 
     // Fold the items.
@@ -702,4 +704,22 @@ function toQualifiedName(expr: Expr): string | undefined {
     default:
       return undefined;
   }
+}
+
+function unsupportedKeyType(id: number): CelError {
+  return new CelError(id, `unsupported key type`);
+}
+
+function coerceToValues(args: CelResult[]): CelResult<CelValue[]> {
+  const errors: CelError[] = [];
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg instanceof CelError) {
+      errors.push(arg);
+    }
+  }
+  if (errors.length > 0) {
+    return CelError.merge(errors);
+  }
+  return args as CelValue[];
 }

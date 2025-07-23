@@ -76,16 +76,15 @@ export default class Builder {
       args[0].exprKind?.case === "selectExpr"
     ) {
       return this.expandHasMacro(offset, args[0]);
-    } else {
-      return this.nextExpr(offset, {
-        case: "callExpr",
-        value: {
-          $typeName: "cel.expr.Expr.Call",
-          function: functionName,
-          args,
-        },
-      });
     }
+    return this.nextExpr(offset, {
+      case: "callExpr",
+      value: {
+        $typeName: "cel.expr.Expr.Call",
+        function: functionName,
+        args,
+      },
+    });
   }
 
   newMemberCallExpr(
@@ -130,20 +129,23 @@ export default class Builder {
   }
 
   newBytesExpr(offset: number, sequence: (string | number[])[]): Expr {
+    const chunks: (Uint8Array | number[])[] = [];
+    let totalSize = 0;
+    for (const rawChunk of sequence) {
+      const chunk =
+        typeof rawChunk === "string" ? encoder.encode(rawChunk) : rawChunk;
+      chunks.push(chunk);
+      totalSize += chunk.length;
+    }
+    const value = new Uint8Array(totalSize);
+    let chunkOffset = 0;
+    for (const chunk of chunks) {
+      value.set(chunk, chunkOffset);
+      chunkOffset += chunk.length;
+    }
     return this.newConstExpr(offset, {
       case: "bytesValue",
-      value: new Uint8Array(
-        sequence.reduce<number[]>(
-          (bytes: number[], chunk: string | number[]) => {
-            if (typeof chunk === "string") {
-              return [...bytes, ...encoder.encode(chunk)];
-            }
-
-            return [...bytes, ...chunk];
-          },
-          [],
-        ),
-      ),
+      value,
     });
   }
 
@@ -459,7 +461,8 @@ export default class Builder {
                 call.exprKind.value.args[1],
               );
           }
-        } else if (callExpr.args.length === 3 && callExpr.function == "map") {
+        }
+        if (callExpr.args.length === 3 && callExpr.function == "map") {
           return this.expandMapFilterMacro(
             offset,
             call.exprKind.value.target,
@@ -487,7 +490,7 @@ export default class Builder {
   newStructExpr(
     offset: number,
     entries: Expr_CreateStruct_Entry[],
-    messageName: string = "",
+    messageName = "",
   ): Expr {
     return this.nextExpr(offset, {
       case: "structExpr",

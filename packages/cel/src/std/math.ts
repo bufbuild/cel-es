@@ -17,17 +17,18 @@ import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
-import { CelError, newDuration, newTimestamp } from "../value/value.js";
 import {
   CelScalar,
   DURATION,
   listType,
   TIMESTAMP,
+  type CelType,
   type CelValue,
 } from "../type.js";
-import { divisionByZero, moduloByZero, overflow } from "../errors.js";
 import { celListConcat } from "../list.js";
 import { celUint } from "../uint.js";
+import { createDuration } from "../duration.js";
+import { createTimestamp } from "../timestamp.js";
 
 const MAX_INT = 9223372036854775807n;
 // biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
@@ -99,15 +100,10 @@ function addDuration(
 function subtractDurationOrTimestamp<
   T extends CelValue<typeof TIMESTAMP> | CelValue<typeof DURATION>,
 >(lhs: T, rhs: T) {
-  const errOrDuration = newDuration(
-    -1,
+  return createDuration(
     lhs.message.seconds - rhs.message.seconds,
     lhs.message.nanos - rhs.message.nanos,
   );
-  if (errOrDuration instanceof CelError) {
-    throw new Error(errOrDuration.message);
-  }
-  return errOrDuration;
 }
 
 const add = new Func(opc.ADD, [
@@ -200,17 +196,12 @@ const subtract = new Func(opc.SUBTRACT, [
     subtractDurationOrTimestamp,
   ),
   new FuncOverload([DURATION, DURATION], DURATION, subtractDurationOrTimestamp),
-  new FuncOverload([TIMESTAMP, DURATION], TIMESTAMP, (lhs, rhs) => {
-    const errOrDuration = newTimestamp(
-      -1,
+  new FuncOverload([TIMESTAMP, DURATION], TIMESTAMP, (lhs, rhs) =>
+    createTimestamp(
       lhs.message.seconds - rhs.message.seconds,
       lhs.message.nanos - rhs.message.nanos,
-    );
-    if (errOrDuration instanceof CelError) {
-      throw new Error(errOrDuration.message);
-    }
-    return errOrDuration;
-  }),
+    ),
+  ),
 ]);
 
 const multiply = new Func(opc.MULTIPLY, [
@@ -307,3 +298,20 @@ const negate = new Func(opc.NEGATE, [
   }),
   new FuncOverload([CelScalar.DOUBLE], CelScalar.DOUBLE, (arg) => -arg),
 ]);
+
+function overflow(op: string, type: CelType) {
+  return new Error(`${type.name} return error for overflow during ${op}`);
+}
+
+function divisionByZero(type: NumType) {
+  return new Error(`${type.name} divide by zero`);
+}
+
+function moduloByZero(type: NumType) {
+  return new Error(`${type.name} modulus by zero`);
+}
+
+type NumType =
+  | typeof CelScalar.INT
+  | typeof CelScalar.UINT
+  | typeof CelScalar.DOUBLE;

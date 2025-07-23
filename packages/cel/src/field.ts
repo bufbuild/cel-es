@@ -19,11 +19,10 @@ import {
   StructSchema,
   ValueSchema,
 } from "@bufbuild/protobuf/wkt";
-import { celList, isCelList } from "./list.js";
-import { celMap, isCelMap } from "./map.js";
+import { celList, EMPTY_LIST, isCelList } from "./list.js";
+import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
 import { celFromScalar } from "./proto.js";
 import { reflectMsgToCel, unwrapAny } from "./value.js";
-import { EMPTY_LIST, EMPTY_MAP } from "./value/empty.js";
 import type { CelValue } from "./type.js";
 
 export function accessByIndex(
