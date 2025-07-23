@@ -15,7 +15,12 @@
 import type { Activation } from "./activation.js";
 import { EvalAttr, type Interpretable } from "./planner.js";
 import type { Namespace } from "./namespace.js";
-import { type CelResult, CelError } from "./error.js";
+import {
+  type CelResult,
+  type CelError,
+  isCelError,
+  celError,
+} from "./error.js";
 import { accessByIndex, accessByName, isSet } from "./field.js";
 import { isCelUint } from "./uint.js";
 import {
@@ -83,7 +88,7 @@ function attrAccess<T extends CelValue = CelValue>(
   if (val === undefined) {
     return undefined;
   }
-  if (val instanceof CelError) {
+  if (isCelError(val)) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val, accAttr.isOptional());
@@ -100,7 +105,7 @@ function attrIsPresent<T extends CelValue = CelValue>(
   if (val === undefined) {
     return false;
   }
-  if (val instanceof CelError) {
+  if (isCelError(val)) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val, accAttr.isOptional());
@@ -118,7 +123,7 @@ function attrAccessIfPresent<T extends CelValue = CelValue>(
   if (val === undefined) {
     return undefined;
   }
-  if (val instanceof CelError) {
+  if (isCelError(val)) {
     return val;
   }
   const access = factory.newAccess(accAttr.id, val, accAttr.isOptional());
@@ -139,7 +144,7 @@ function applyAccesses<T extends CelValue = CelValue>(
     if (result === undefined) {
       return undefined;
     }
-    if (result instanceof CelError) {
+    if (isCelError(result)) {
       return result;
     }
     cur = result;
@@ -196,7 +201,7 @@ class AbsoluteAttr implements NamespacedAttribute {
     for (const name of this.nsNames) {
       const raw = vars.resolve(name);
       if (raw !== undefined) {
-        if (raw instanceof CelError) {
+        if (isCelError(raw)) {
           return raw;
         }
         return applyAccesses(vars, raw, this.accesses_);
@@ -295,12 +300,12 @@ class ConditionalAttr implements Attribute {
         return this.t.resolve(vars);
       case cond === false:
         return this.f.resolve(vars);
-      case cond instanceof CelError:
+      case isCelError(cond):
         return cond;
     }
-    return new CelError(
-      this.id,
+    return celError(
       `found no matching overload for _?_:_ applied to '(${celType(cond).name})'`,
+      this.id,
     );
   }
 }
@@ -400,7 +405,7 @@ class RelativeAttr implements Attribute {
 
   resolve(vars: Activation): CelResult | undefined {
     const v = this.operand.eval(vars);
-    if (v instanceof CelError) {
+    if (isCelError(v)) {
       return v;
     }
     return applyAccesses(vars, v, this.accesses_);
@@ -628,7 +633,7 @@ class EvalAccess implements Access {
       return obj;
     }
     const key = this.key.eval(vars);
-    if (key instanceof CelError) {
+    if (isCelError(key)) {
       return key;
     }
     const access = this.factory.newAccess(this.id, key, this.optional);
@@ -640,7 +645,7 @@ class EvalAccess implements Access {
       return false;
     }
     const key = this.key.eval(vars);
-    if (key instanceof CelError) {
+    if (isCelError(key)) {
       return key;
     }
     const access = this.factory.newAccess(this.id, key, this.optional);
@@ -653,7 +658,7 @@ class EvalAccess implements Access {
     presenceOnly: boolean,
   ): CelResult | undefined {
     const key = this.key.eval(vars);
-    if (key instanceof CelError) {
+    if (isCelError(key)) {
       return key;
     }
     const access = this.factory.newAccess(this.id, key, this.optional);
@@ -717,14 +722,14 @@ export class ConcreteAttributeFactory implements AttributeFactory {
       default:
         break;
     }
-    return new ErrorAttr(id, new CelError(id, "unsupported key type"), opt);
+    return new ErrorAttr(id, celError("unsupported key type", id), opt);
   }
 }
 
 function fieldNotFound(id: number, name: unknown): CelError {
-  return new CelError(id, `field not found: ${String(name)}`);
+  return celError(`field not found: ${String(name)}`, id);
 }
 
 function indexOutOfBounds(id: number, index: number, length: number): CelError {
-  return new CelError(id, `index ${index} out of bounds [0, ${length})`);
+  return celError(`index ${index} out of bounds [0, ${length})`, id);
 }

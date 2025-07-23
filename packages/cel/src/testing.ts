@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CelError, type CelResult, isCelMap, plan } from "./index.js";
+import { type CelResult, isCelMap, plan } from "./index.js";
 import { STRINGS_EXT_FUNCS } from "./ext/strings/index.js";
 import type {
   SimpleTest,
@@ -47,6 +47,7 @@ import { getMsgDesc } from "./eval.js";
 import type { SimpleNameTuples } from "@bufbuild/cel-spec/testdata/simple.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { celEnv } from "./env.js";
+import { isCelError } from "./error.js";
 
 export function testSimpleTestFile(
   simpleTestFile: SimpleTestFile,
@@ -143,7 +144,7 @@ function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
       break;
     case "evalError":
     case "anyEvalErrors":
-      assert.ok(result instanceof CelError);
+      assert.ok(isCelError(result));
       break;
     case undefined:
       assert.equal(result, true);
@@ -162,7 +163,7 @@ function assertResultEqual(
   result: CelResult,
   value: Value,
 ) {
-  if (result instanceof CelError) {
+  if (isCelError(result)) {
     assert.deepEqual(result, value);
   } else {
     const actual = create(ValueSchema, celValueToValue(result, registry));

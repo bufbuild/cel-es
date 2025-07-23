@@ -21,7 +21,13 @@ import {
   type CelValue,
   type CelInput,
 } from "./type.js";
-import { type CelResult, CelError } from "./error.js";
+import {
+  type CelResult,
+  type CelError,
+  isCelError,
+  celErrorMerge,
+  celError,
+} from "./error.js";
 import { isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
@@ -113,7 +119,7 @@ class Func implements CelFunc {
 
   dispatch(id: number, args: CelResult[]): CelResult | undefined {
     const vals = unwrapResults(args);
-    if (vals instanceof CelError) {
+    if (isCelError(vals)) {
       return vals;
     }
     for (const overload of this._overloads) {
@@ -134,7 +140,7 @@ class Func implements CelFunc {
       try {
         return toCel(overload.impl(...checkedVals));
       } catch (ex) {
-        return CelError.from(ex, id);
+        return celError(ex, id);
       }
     }
     return undefined;
@@ -274,14 +280,14 @@ function unwrapResults<V = CelValue>(args: CelResult<V>[]) {
   const vals: V[] = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg instanceof CelError) {
+    if (isCelError(arg)) {
       errors.push(arg);
     } else {
       vals.push(arg);
     }
   }
   if (errors.length > 0) {
-    return CelError.merge(errors);
+    return celErrorMerge(errors[0], ...errors.slice(1));
   }
   return vals;
 }
