@@ -8,25 +8,22 @@ An implementation of [Common Expression Language (CEL)][cel] for ECMAScript.
 
 ## Example
 
-Let's create a CEL environment, and define the variable `name`:
+Let's evaluate a CEL expression that has the variable `name` and uses the strings extension functions:
 
 ```ts
-import { createEnv } from "@bufbuild/cel";
-import { createRegistry } from "@bufbuild/protobuf";
+import { run} from "@bufbuild/cel";
+import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
 
-const env = createEnv("", createRegistry());
-env.set("name", "tacocat");
+run(
+  `name.startsWith('taco')`,
+  {name: "tacocat"},
+  {funcs: STRINGS_EXT_FUNCS },
+); // true
 ```
 
-That's it. The environment is ready to be used for parsing and evaluation.
+That's it!
 
-To parse and evaluate an expression, call `run`:
-
-```ts
-env.run(`
-  name.startsWith('taco')
-`); // true
-```
+For an example of creating resusable evaluator and more, refer to the [example.ts](/packages/example/src/example.ts).
 
 
 ## Packages

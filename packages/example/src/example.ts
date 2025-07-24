@@ -12,14 +12,71 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { createEnv } from "@bufbuild/cel";
-import { createRegistry } from "@bufbuild/protobuf";
+import {
+  celEnv,
+  CelScalar,
+  Func,
+  FuncOverload,
+  parse,
+  plan,
+  run,
+} from "@bufbuild/cel";
+import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
 
-const env = createEnv("", createRegistry());
-env.set("name", "tacocat");
+// Run a CEL expression:
 
-const result = env.run(`
-  name.startsWith('taco')
-`);
-
+let result = run(`1 == 1`);
 console.log(result); // true
+
+// Use a variable:
+
+result = run(`firstName == 'john'`, { firstName: "john" });
+console.log(result); // true
+
+// Lazy variable:
+
+let counter = 0;
+result = run(`count == count`, {
+  get count() {
+    return counter++;
+  },
+});
+console.log(result); // false
+
+// Use strings extension functions:
+
+result = run(`name.startsWith('taco')`, { name: "tacocat" });
+console.log(result); // true
+
+// Provide a new function:
+
+const similar = new Func("similar", [
+  new FuncOverload(
+    // Parameter types.
+    [CelScalar.STRING, CelScalar.STRING],
+    // Return type.
+    CelScalar.BOOL,
+    (a, b) => a.toLowerCase() == b.toLowerCase(),
+  ),
+]);
+result = run(
+  `name.similar('TacoCat')`,
+  { name: "tacocat" },
+  {
+    funcs: [similar],
+  },
+);
+console.log(result); // true
+
+// Split into individual steps:
+
+const env = celEnv({ funcs: [...STRINGS_EXT_FUNCS, similar] });
+const evaluate = plan(
+  env,
+  parse(`name.startsWith('taco') && name.similar('tacocat')`),
+);
+
+for (const name of ["tacocat", "tacodog"]) {
+  result = evaluate({ name });
+  console.log(result); // true, false
+}

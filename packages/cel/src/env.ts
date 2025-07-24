@@ -1,0 +1,91 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import type { Registry } from "@bufbuild/protobuf";
+import { createRegistryWithWKT } from "./registry.js";
+import {
+  FuncRegistry,
+  OrderedDispatcher,
+  type Dispatcher,
+  type Func,
+} from "./func.js";
+import { STD_FUNCS } from "./std/std.js";
+import { Namespace } from "./namespace.js";
+
+const privateSymbol = Symbol.for("@bufbuild/cel/env");
+
+export interface CelEnv {
+  [privateSymbol]: unknown;
+  /**
+   * Namespace of the environment.
+   */
+  readonly namespace: Namespace | undefined;
+  /**
+   * The protobuf registry to use.
+   */
+  readonly registry: Registry;
+  /**
+   * The dispatcher to use.
+   */
+  readonly dispatcher: Dispatcher;
+}
+
+export interface CelEnvOptions {
+  /**
+   * Namespace of the environment.
+   */
+  namespace?: string;
+  /**
+   * The protobuf registry to use.
+   */
+  registry?: Registry;
+  /**
+   * Additional functions to add.
+   *
+   * All functions must be uniue. This can be used to override any std function.
+   */
+  funcs?: Func[];
+}
+
+/**
+ * Creates a new CelEnv.
+ */
+export function celEnv(options?: CelEnvOptions): CelEnv {
+  return new _CelEnv(
+    options?.namespace ? new Namespace(options?.namespace) : undefined,
+    options?.registry
+      ? createRegistryWithWKT(options.registry)
+      : createRegistryWithWKT(),
+    new OrderedDispatcher([new FuncRegistry(options?.funcs), STD_FUNCS]),
+  );
+}
+
+class _CelEnv implements CelEnv {
+  [privateSymbol] = {};
+  constructor(
+    private readonly _namespace: Namespace | undefined,
+    private readonly _registry: Registry,
+    private readonly _dispatcher: Dispatcher,
+  ) {}
+
+  get namespace() {
+    return this._namespace;
+  }
+  get registry() {
+    return this._registry;
+  }
+  get dispatcher() {
+    return this._dispatcher;
+  }
+}
