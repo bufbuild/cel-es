@@ -27,6 +27,9 @@ import { isCelUint } from "./uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { unwrapAny, toCel } from "./value.js";
 
+const privateFuncSymbol = Symbol.for("@bufbuild/cel/func");
+const privateOverloadSymbol = Symbol.for("@bufbuild/cel/overload");
+
 export interface CallDispatch {
   dispatch(id: number, args: CelResult[]): CelResult | undefined;
 }
@@ -35,18 +38,85 @@ export interface Dispatcher {
   find(name: string): CallDispatch | undefined;
 }
 
-export class Func implements CallDispatch {
+/**
+ * A CEL function definition.
+ */
+export interface CelFunc extends CallDispatch {
+  [privateFuncSymbol]: unknown;
+  /**
+   * Name of the function.
+   */
+  readonly name: string;
+  /**
+   * All the overloads of this function.
+   */
+  readonly overloads: CelOverload<readonly CelType[], CelType>[];
+}
+
+/**
+ * Creates a new CelFunc.
+ */
+export function celFunc(
+  name: string,
+  overloads: CelOverload<readonly CelType[], CelType>[],
+): CelFunc {
+  return new Func(name, overloads);
+}
+
+/**
+ * A CEL function overload.
+ */
+export interface CelOverload<P extends readonly CelType[], R extends CelType> {
+  [privateOverloadSymbol]: unknown;
+  /**
+   * Array of parameter types.
+   */
+  readonly parameters: P;
+  /**
+   * The result type.
+   */
+  readonly result: R;
+  /**
+   * Implementation for this overload.
+   */
+  readonly impl: (...args: CelValueTuple<P>) => CelInput<R>;
+}
+
+/**
+ * Creates a new CelOverload.
+ */
+export function celOverload<
+  const P extends readonly CelType[],
+  const R extends CelType,
+>(
+  parameters: P,
+  result: R,
+  impl: (...args: CelValueTuple<P>) => CelInput<R>,
+): CelOverload<P, R> {
+  return new FuncOverload(parameters, result, impl);
+}
+
+class Func implements CelFunc {
+  [privateFuncSymbol] = {};
   constructor(
-    public readonly name: string,
-    public readonly overloads: FuncOverload<readonly CelType[], CelType>[],
+    private readonly _name: string,
+    private readonly _overloads: CelOverload<readonly CelType[], CelType>[],
   ) {}
+
+  get name() {
+    return this._name;
+  }
+
+  get overloads() {
+    return this._overloads;
+  }
 
   dispatch(id: number, args: CelResult[]): CelResult | undefined {
     const vals = unwrapResults(args);
     if (vals instanceof CelError) {
       return vals;
     }
-    for (const overload of this.overloads) {
+    for (const overload of this._overloads) {
       if (overload.parameters.length !== vals.length) {
         continue;
       }
@@ -71,15 +141,25 @@ export class Func implements CallDispatch {
   }
 }
 
-export class FuncOverload<
-  const P extends readonly CelType[],
-  const R extends CelType,
-> {
+class FuncOverload<const P extends readonly CelType[], const R extends CelType>
+  implements CelOverload<P, R>
+{
+  [privateOverloadSymbol] = {};
   constructor(
-    public readonly parameters: P,
-    public readonly result: R,
-    public readonly impl: (...args: CelValueTuple<P>) => CelInput<R>,
+    private readonly _parameters: P,
+    private readonly _result: R,
+    private readonly _impl: (...args: CelValueTuple<P>) => CelInput<R>,
   ) {}
+
+  get parameters() {
+    return this._parameters;
+  }
+  get result() {
+    return this._result;
+  }
+  get impl() {
+    return this._impl;
+  }
 }
 
 /**
@@ -88,7 +168,7 @@ export class FuncOverload<
 export class FuncRegistry implements Dispatcher {
   private functions = new Map<string, CallDispatch>();
 
-  constructor(funcs?: Func[]) {
+  constructor(funcs?: CelFunc[]) {
     funcs && this.add(funcs);
   }
 
@@ -97,13 +177,13 @@ export class FuncRegistry implements Dispatcher {
    *
    * Throws an error if the function with the same name is already added.
    */
-  add(func: Func): void;
-  add(funcs: Func[]): void;
+  add(func: CelFunc): void;
+  add(funcs: CelFunc[]): void;
   /**
    * Adds a function by name and the call.
    */
   add(name: string, call: CallDispatch): void;
-  add(nameOrFunc: Func | Func[] | string, call?: CallDispatch) {
+  add(nameOrFunc: CelFunc | CelFunc[] | string, call?: CallDispatch) {
     if (typeof nameOrFunc !== "string") {
       if (Array.isArray(nameOrFunc)) {
         for (const func of nameOrFunc) {

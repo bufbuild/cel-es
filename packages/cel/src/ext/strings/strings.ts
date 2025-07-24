@@ -20,15 +20,15 @@ import {
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import { FuncOverload, Func } from "../../func.js";
+import { celOverload, celFunc } from "../../func.js";
 import { CelScalar, isCelType, listType, type CelValue } from "../../type.js";
 import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
 import { isCelUint } from "../../uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
-const charAt = new Func("charAt", [
-  new FuncOverload(
+const charAt = celFunc("charAt", [
+  celOverload(
     [CelScalar.STRING, CelScalar.INT],
     CelScalar.STRING,
     (str, index) => {
@@ -41,13 +41,13 @@ const charAt = new Func("charAt", [
   ),
 ]);
 
-const indexOf = new Func("indexOf", [
-  new FuncOverload(
+const indexOf = celFunc("indexOf", [
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.INT,
     (str, substr) => BigInt(str.indexOf(substr)),
   ),
-  new FuncOverload(
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
     CelScalar.INT,
     (str, substr, startN) => {
@@ -60,13 +60,13 @@ const indexOf = new Func("indexOf", [
   ),
 ]);
 
-const lastIndexOf = new Func("lastIndexOf", [
-  new FuncOverload(
+const lastIndexOf = celFunc("lastIndexOf", [
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.INT,
     (str, substr) => BigInt(str.lastIndexOf(substr)),
   ),
-  new FuncOverload(
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
     CelScalar.INT,
     (str, substr, startN) => {
@@ -79,8 +79,8 @@ const lastIndexOf = new Func("lastIndexOf", [
   ),
 ]);
 
-const lowerAscii = new Func("lowerAscii", [
-  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+const lowerAscii = celFunc("lowerAscii", [
+  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     // Only lower case ascii characters.
     let result = "";
     for (let i = 0; i < str.length; i++) {
@@ -95,8 +95,8 @@ const lowerAscii = new Func("lowerAscii", [
   }),
 ]);
 
-const upperAscii = new Func("upperAscii", [
-  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+const upperAscii = celFunc("upperAscii", [
+  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     let result = "";
     for (let i = 0; i < str.length; i++) {
       const c = str.charCodeAt(i);
@@ -127,13 +127,13 @@ function replaceOp(str: string, substr: string, repl: string, num: number) {
   return result;
 }
 
-const replace = new Func("replace", [
-  new FuncOverload(
+const replace = celFunc("replace", [
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING],
     CelScalar.STRING,
     (str, substr, repl) => replaceOp(str, substr, repl, str.length),
   ),
-  new FuncOverload(
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
     CelScalar.STRING,
     (str, substr, repl, num) => replaceOp(str, substr, repl, Number(num)),
@@ -147,13 +147,13 @@ function splitOp(str: string, sep: string, num?: number) {
   return celList(str.split(sep, num));
 }
 
-const split = new Func("split", [
-  new FuncOverload(
+const split = celFunc("split", [
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING],
     listType(CelScalar.STRING),
     splitOp,
   ),
-  new FuncOverload(
+  celOverload(
     [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
     listType(CelScalar.STRING),
     (str, sep, num) => splitOp(str, sep, Number(num)),
@@ -182,13 +182,9 @@ function substringOp(str: string, start: bigint, end?: bigint) {
   return str.substring(Number(start), Number(end));
 }
 
-const substring = new Func("substring", [
-  new FuncOverload(
-    [CelScalar.STRING, CelScalar.INT],
-    CelScalar.STRING,
-    substringOp,
-  ),
-  new FuncOverload(
+const substring = celFunc("substring", [
+  celOverload([CelScalar.STRING, CelScalar.INT], CelScalar.STRING, substringOp),
+  celOverload(
     [CelScalar.STRING, CelScalar.INT, CelScalar.INT],
     CelScalar.STRING,
     substringOp,
@@ -202,8 +198,8 @@ const WHITE_SPACE = new Set([
   0x2028, 0x2029, 0x202f, 0x205f, 0x3000,
 ]);
 
-const trim = new Func("trim", [
-  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+const trim = celFunc("trim", [
+  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     // Trim using the unicode white space definition.
     let start = 0;
     let end = str.length - 1;
@@ -232,9 +228,9 @@ function joinOp(list: CelList, sep = "") {
   return result;
 }
 
-const join = new Func("join", [
-  new FuncOverload([listType(CelScalar.DYN)], CelScalar.STRING, joinOp),
-  new FuncOverload(
+const join = celFunc("join", [
+  celOverload([listType(CelScalar.DYN)], CelScalar.STRING, joinOp),
+  celOverload(
     [listType(CelScalar.DYN), CelScalar.STRING],
     CelScalar.STRING,
     joinOp,
@@ -254,8 +250,8 @@ const QUOTE_MAP: Map<number, string> = new Map([
   [0x5c, "\\\\"],
 ]);
 
-const quote = new Func("strings.quote", [
-  new FuncOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+const quote = celFunc("strings.quote", [
+  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
     let result = '"';
     for (let i = 0; i < str.length; i++) {
       const c = str.charCodeAt(i);
@@ -558,8 +554,8 @@ function formatImpl(format: string, args: CelList) {
   return result;
 }
 
-const format = new Func("format", [
-  new FuncOverload(
+const format = celFunc("format", [
+  celOverload(
     [CelScalar.STRING, listType(CelScalar.DYN)],
     CelScalar.STRING,
     formatImpl,

@@ -17,8 +17,8 @@ import { createRegistryWithWKT } from "./registry.js";
 import {
   FuncRegistry,
   OrderedDispatcher,
+  type CelFunc,
   type Dispatcher,
-  type Func,
 } from "./func.js";
 import { STD_FUNCS } from "./std/std.js";
 import { Namespace } from "./namespace.js";
@@ -55,7 +55,7 @@ export interface CelEnvOptions {
    *
    * All functions must be uniue. This can be used to override any std function.
    */
-  funcs?: Func[];
+  funcs?: CelFunc[];
 }
 
 /**

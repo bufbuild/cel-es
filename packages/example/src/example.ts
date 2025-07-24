@@ -15,8 +15,8 @@
 import {
   celEnv,
   CelScalar,
-  Func,
-  FuncOverload,
+  celFunc,
+  celOverload,
   parse,
   plan,
   run,
@@ -50,8 +50,8 @@ console.log(result); // true
 
 // Provide a new function:
 
-const similar = new Func("similar", [
-  new FuncOverload(
+const similar = celFunc("similar", [
+  celOverload(
     // Parameter types.
     [CelScalar.STRING, CelScalar.STRING],
     // Return type.
