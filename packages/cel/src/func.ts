@@ -58,12 +58,13 @@ export class Func implements CallDispatch {
         }
         checkedVals.push(celValue);
       }
-      if (checkedVals.length === vals.length) {
-        try {
-          return toCel(overload.impl(...checkedVals));
-        } catch (ex) {
-          return CelError.from(ex);
-        }
+      if (checkedVals.length !== vals.length) {
+        continue;
+      }
+      try {
+        return toCel(overload.impl(...checkedVals));
+      } catch (ex) {
+        return CelError.from(ex, id);
       }
     }
     return undefined;
@@ -87,18 +88,29 @@ export class FuncOverload<
 export class FuncRegistry implements Dispatcher {
   private functions = new Map<string, CallDispatch>();
 
+  constructor(funcs?: Func[]) {
+    funcs && this.add(funcs);
+  }
+
   /**
    * Adds a new function to the registry.
    *
    * Throws an error if the function with the same name is already added.
    */
   add(func: Func): void;
+  add(funcs: Func[]): void;
   /**
    * Adds a function by name and the call.
    */
   add(name: string, call: CallDispatch): void;
-  add(nameOrFunc: Func | string, call?: CallDispatch) {
+  add(nameOrFunc: Func | Func[] | string, call?: CallDispatch) {
     if (typeof nameOrFunc !== "string") {
+      if (Array.isArray(nameOrFunc)) {
+        for (const func of nameOrFunc) {
+          this.add(func);
+        }
+        return;
+      }
       call = nameOrFunc;
       nameOrFunc = nameOrFunc.name;
     }

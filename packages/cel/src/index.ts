@@ -12,47 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  type ParsedExpr,
-  ParsedExprSchema,
-} from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
-import { parse as internalParse } from "./parser.js";
-import { CelEnv } from "./celenv.js";
-import { create, type Registry } from "@bufbuild/protobuf";
-import { STRINGS_EXT_FUNCS } from "./ext/strings.js";
-
-export { type CelParser, CelPlanner, CelEnv } from "./celenv.js";
 export {
   type CelResult,
   CelError,
 } from "./error.js";
-export { ObjectActivation } from "./activation.js";
-export { makeStringExtFuncRegistry } from "./ext/strings.js";
-export { Func, FuncRegistry } from "./func.js";
+export { Func, FuncOverload } from "./func.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
 export { type CelList, celList, isCelList, celListConcat } from "./list.js";
 export { type CelUint, celUint, isCelUint } from "./uint.js";
+export { celFromScalar } from "./proto.js";
 export {
   celType,
   objectType,
   CelScalar,
-  type CelType,
-  type CelValue,
-  type CelInput,
   listType,
   typeType,
+  mapType,
+  isCelType,
+  isObjectCelType,
 } from "./type.js";
 
-export function createEnv(namespace: string, registry: Registry): CelEnv {
-  const env = new CelEnv(namespace, registry);
-  env.addFuncs(STRINGS_EXT_FUNCS);
-  env.setParser({
-    parse(text: string): ParsedExpr {
-      const expr = internalParse(text);
-      return create(ParsedExprSchema, {
-        expr,
-      });
-    },
-  });
-  return env;
-}
+export type {
+  CelListType,
+  CelMapType,
+  CelObjectType,
+  CelTypeType,
+  CelScalarType,
+  CelType,
+  CelValue,
+  CelInput,
+} from "./type.js";
+
+export { run } from "./run.js";
+export { plan } from "./plan.js";
+export { parse } from "./parse.js";
+export { type CelEnv, celEnv } from "./env.js";

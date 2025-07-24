@@ -12,14 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  CelError,
-  CelPlanner,
-  makeStringExtFuncRegistry,
-  ObjectActivation,
-  type CelResult,
-  isCelMap,
-} from "./index.js";
+import { CelError, type CelResult, isCelMap, plan } from "./index.js";
+import { STRINGS_EXT_FUNCS } from "./ext/strings/index.js";
 import type {
   SimpleTest,
   SimpleTestFile,
@@ -52,8 +46,7 @@ import {
 import { getMsgDesc } from "./eval.js";
 import type { SimpleNameTuples } from "@bufbuild/cel-spec/testdata/simple.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-
-const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
+import { celEnv } from "./env.js";
 
 export function testSimpleTestFile(
   simpleTestFile: SimpleTestFile,
@@ -129,19 +122,21 @@ function name(obj: { name: string; description: string }): string {
 }
 
 function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
-  const planner = new CelPlanner(testCase.container, registry);
-  planner.addFuncs(STRINGS_EXT_FUNCS);
   const parsed = parse(testCase.expr);
-  const plan = planner.plan(parsed);
-  const bindings: Record<string, CelInput | undefined> = {};
+  const env = celEnv({
+    registry,
+    namespace: testCase.container,
+    funcs: STRINGS_EXT_FUNCS,
+  });
+  const celEval = plan(env, parsed);
+  const bindings: Record<string, CelInput> = {};
   for (const [k, v] of Object.entries(testCase.bindings)) {
     if (v.kind.case !== "value") {
       throw new Error(`unimplemented binding conversion: ${v.kind.case}`);
     }
     bindings[k] = valueToCelValue(v.kind.value, registry);
   }
-  const ctx = new ObjectActivation(bindings);
-  const result = plan.eval(ctx);
+  const result = celEval(bindings);
   switch (testCase.resultMatcher.case) {
     case "value":
       assertResultEqual(registry, result, testCase.resultMatcher.value);

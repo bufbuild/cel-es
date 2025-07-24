@@ -51,3 +51,9 @@ export class VarActivation implements Activation {
     return this.parent.resolve(name);
   }
 }
+
+export const EMPTY_ACTIVATION: Activation = {
+  resolve() {
+    return undefined;
+  },
+};

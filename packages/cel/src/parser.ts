@@ -157,7 +157,7 @@ export class ParseError extends Error {
   constructor(
     message: string,
     location: runtime.LocationRange,
-    name = "parse error",
+    name: string = "parse error",
   ) {
     super(ParseError.#formatMessage(message, location));
     this.name = name;
@@ -179,7 +179,7 @@ export class SyntaxError extends ParseError {
     expected: runtime.Expectation[],
     found: string,
     location: runtime.LocationRange,
-    name = "syntax error",
+    name: string = "syntax error",
   ) {
     super(SyntaxError.#formatMessage(expected, found), location, name);
     this.expected = expected;
