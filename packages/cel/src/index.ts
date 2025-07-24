@@ -16,7 +16,12 @@ export {
   type CelResult,
   CelError,
 } from "./error.js";
-export { Func, FuncOverload } from "./func.js";
+export {
+  type CelFunc,
+  type CelOverload,
+  celFunc,
+  celOverload,
+} from "./func.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
 export { type CelList, celList, isCelList, celListConcat } from "./list.js";
 export { type CelUint, celUint, isCelUint } from "./uint.js";
