@@ -22,7 +22,6 @@ import {
 
 import { FuncOverload, FuncRegistry, Func } from "../func.js";
 import { CelScalar, isCelType, listType, type CelValue } from "../type.js";
-import { indexOutOfBounds, invalidArgument } from "../errors.js";
 import { type CelList, celList, isCelList } from "../list.js";
 import { type CelMap, isCelMap } from "../map.js";
 import { isCelUint } from "../uint.js";
@@ -603,3 +602,11 @@ export function makeStringExtFuncRegistry(): FuncRegistry {
 }
 
 export const STRINGS_EXT_FUNCS = makeStringExtFuncRegistry();
+
+function invalidArgument(func: string, issue: string) {
+  return new Error(`invalid argument to function ${func}: ${issue}`);
+}
+
+function indexOutOfBounds(index: number, length: number) {
+  return new Error(`index ${index} out of bounds [0, ${length})`);
+}

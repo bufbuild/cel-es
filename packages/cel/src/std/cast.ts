@@ -20,7 +20,6 @@ import {
 } from "@bufbuild/protobuf/wkt";
 
 import { FuncOverload, type FuncRegistry, Func } from "../func.js";
-import { CelError, parseDuration } from "../value/value.js";
 import {
   isOverflowInt,
   isOverflowIntNum,
@@ -33,10 +32,11 @@ import {
   DURATION as DURATION_TYPE,
   celType,
   objectType,
+  type CelType,
 } from "../type.js";
-import { badStringBytes, badTimeStr, overflow } from "../errors.js";
 import { celUint } from "../uint.js";
 import { getMsgDesc } from "../eval.js";
+import { parseDuration } from "../duration.js";
 
 const INT = "int";
 const UINT = "uint";
@@ -159,7 +159,7 @@ const stringFunc = new Func(STRING, [
     try {
       return coder.decode(x);
     } catch (e) {
-      throw badStringBytes(String(e));
+      throw new Error(`Failed to decode bytes as string: ${e}`);
     }
   }),
   new FuncOverload([TIMESTAMP_TYPE], CelScalar.STRING, (x) =>
@@ -176,7 +176,7 @@ const timestampFunc = new Func(TIMESTAMP, [
     try {
       return fromJson(TimestampSchema, x);
     } catch (e) {
-      throw badTimeStr(String(e));
+      throw new Error(`Failed to parse timestamp: ${e}`);
     }
   }),
   new FuncOverload([CelScalar.INT], TIMESTAMP_TYPE, (x) =>
@@ -186,13 +186,7 @@ const timestampFunc = new Func(TIMESTAMP, [
 
 const durationFunc = new Func(DURATION, [
   new FuncOverload([DURATION_TYPE], DURATION_TYPE, (x) => x),
-  new FuncOverload([CelScalar.STRING], DURATION_TYPE, (x) => {
-    const result = parseDuration(-1, x);
-    if (result instanceof CelError) {
-      throw new Error(result.message);
-    }
-    return result;
-  }),
+  new FuncOverload([CelScalar.STRING], DURATION_TYPE, parseDuration),
   new FuncOverload([CelScalar.INT], DURATION_TYPE, (x) =>
     create(DurationSchema, { seconds: x }),
   ),
@@ -222,4 +216,8 @@ export function addCasts(funcs: FuncRegistry) {
   funcs.add(durationFunc);
   funcs.add(typeFunc);
   funcs.add(dynFunc);
+}
+
+function overflow(op: string, type: CelType) {
+  return new Error(`${type} return error for overflow during ${op}`);
 }

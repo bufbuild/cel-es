@@ -20,7 +20,7 @@ import {
 } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import { CelError, CelErrors } from "../value/value.js";
+import { CelError } from "../error.js";
 import {
   CelScalar,
   DURATION,
@@ -70,7 +70,7 @@ const and: CallDispatch = {
       return true;
     }
     if (errors.length > 0) {
-      return CelErrors.merge(errors);
+      return CelError.merge(errors);
     }
     return undefined;
   },
@@ -95,7 +95,7 @@ const or: CallDispatch = {
       return false;
     }
     if (errors.length > 0) {
-      return CelErrors.merge(errors);
+      return CelError.merge(errors);
     }
     return undefined;
   },

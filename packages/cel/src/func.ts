@@ -21,7 +21,7 @@ import {
   type CelValue,
   type CelInput,
 } from "./type.js";
-import { type CelResult, CelError, CelErrors } from "./value/value.js";
+import { type CelResult, CelError } from "./error.js";
 import { isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
@@ -189,7 +189,7 @@ function unwrapResults<V = CelValue>(args: CelResult<V>[]) {
     }
   }
   if (errors.length > 0) {
-    return CelErrors.merge(errors);
+    return CelError.merge(errors);
   }
   return vals;
 }

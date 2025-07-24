@@ -18,21 +18,21 @@ import * as assert from "node:assert/strict";
 import { isMessage } from "@bufbuild/protobuf";
 import { DurationSchema } from "@bufbuild/protobuf/wkt";
 
-import { newDuration } from "./value.js";
+import { createDuration } from "./duration.js";
 
-void suite("scalar", () => {
-  void test("duration", () => {
-    let actual = newDuration(0, 0n, -1);
+void suite("duration", () => {
+  void test("createDuration()", () => {
+    let actual = createDuration(0n, -1);
     assert.ok(isMessage(actual, DurationSchema));
     assert.equal(actual.seconds, -1n);
     assert.equal(actual.nanos, 999999999);
 
-    actual = newDuration(0, 0n, -999999999);
+    actual = createDuration(0n, -999999999);
     assert.ok(isMessage(actual, DurationSchema));
     assert.equal(actual.seconds, -1n);
     assert.equal(actual.nanos, 1);
 
-    actual = newDuration(0, 0n, -1000000000);
+    actual = createDuration(0n, -1000000000);
     assert.ok(isMessage(actual, DurationSchema));
     assert.equal(actual.seconds, -1n);
     assert.equal(actual.nanos, 0);

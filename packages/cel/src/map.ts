@@ -267,3 +267,5 @@ function celFromMapValue(desc: DescField & { fieldKind: "map" }, v: unknown) {
       return celFromScalar(desc.scalar, v as ScalarValue);
   }
 }
+
+export const EMPTY_MAP = celMap(new Map());

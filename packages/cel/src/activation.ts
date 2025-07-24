@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CelError, type CelResult } from "./value/value.js";
+import { CelError, type CelResult } from "./error.js";
 import type { CelInput } from "./type.js";
 import { toCel } from "./value.js";
 
