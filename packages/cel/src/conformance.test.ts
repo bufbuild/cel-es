@@ -20,18 +20,31 @@ import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
 const files = getSimpleTestFiles();
 
 const failures = createTestFilter([
-  ["bindings_ext"],
-  ["block_ext"],
-  ["encoders_ext", "encode", "hello"],
-  ["encoders_ext", "decode", "hello"],
-  ["encoders_ext", "decode", "hello_without_padding"],
-  ["encoders_ext", "round_trip", "hello"],
+  // Requires update to the parser to support quoted fields.
   ["fields", "quoted_map_fields"],
   ["proto2", "quoted_fields"],
   ["proto2", "extensions_get"],
   ["proto2", "extensions_has"],
-  ["proto2_ext"],
   ["proto3", "quoted_fields"],
+  // We don't have support for type-checking.
+  ["type_deductions"],
+  // Failing in Go and Java as well. Basically it requires us to check if the map doesn't
+  // have duplicates based on numerical equality. We can easily do that but that means
+  // we have to loop over all the elements of a Map at least once. Doesn't seem to be
+  // worth it for this case.
+  [
+    "fields",
+    "qualified_identifier_resolution",
+    "map_value_repeat_key_heterogeneous",
+  ],
+  /*
+    All the tests after this are Extensions that we don't yet support or
+    features that are not well established that we cannot support.
+  */
+  ["proto2_ext"],
+  ["bindings_ext"],
+  ["block_ext"],
+  ["encoders_ext"],
   // Enums began as Ints but were changed to have types and reverted back again: https://github.com/google/cel-spec/pull/321
   ["enums", "strong_proto2", "literal_global"],
   ["enums", "strong_proto2", "literal_nested"],
@@ -101,14 +114,6 @@ const failures = createTestFilter([
   ["macros2", "transformMap", "one_filter"],
   ["macros2", "transformMap", "many"],
   ["macros2", "transformMap", "many_filter"],
-  // We don't have support for type-checking.
-  ["type_deductions"],
-  // Failing in Go and Java as well.
-  [
-    "fields",
-    "qualified_identifier_resolution",
-    "map_value_repeat_key_heterogeneous",
-  ],
   // Math extension functions are not implemented
   ["math_ext", "greatest_int_result"],
   ["math_ext", "greatest_double_result"],
