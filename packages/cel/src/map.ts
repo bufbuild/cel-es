@@ -161,7 +161,7 @@ class NativeMap implements CelMap {
 }
 
 class ProtoMap implements CelMap {
-  [privateSymbol]: unknown;
+  [privateSymbol] = {};
   constructor(private readonly _map: ReflectMap) {}
   get size(): number {
     return this._map.size;
