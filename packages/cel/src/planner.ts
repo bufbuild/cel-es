@@ -37,9 +37,8 @@ import { CelError, type CelResult } from "./error.js";
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
-import { toCel } from "./value.js";
 import { celObject } from "./object.js";
-import { celType, type CelInput, type CelValue } from "./type.js";
+import { celType, type CelValue } from "./type.js";
 import type { Registry } from "@bufbuild/protobuf";
 
 export class Planner {
@@ -444,7 +443,7 @@ export class EvalAttr implements Attribute, Interpretable {
     if (val instanceof CelError) {
       return val;
     }
-    return toCel(val);
+    return val;
   }
 
   resolve(vars: Activation): CelResult | undefined {
@@ -510,7 +509,7 @@ export class EvalObj implements InterpretableCtor {
       if (obj.has(this.fields[i])) {
         return new CelError(this.id, `map key conflict: ${this.fields[i]}`);
       }
-      obj.set(this.fields[i], toCel(vals[i] as CelInput));
+      obj.set(this.fields[i], vals[i]);
     }
     try {
       return celObject(this.typeName, obj) as CelResult;
