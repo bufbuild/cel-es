@@ -7,11 +7,11 @@ This package provides a [CEL](https://cel.dev) evaluator for ECMAScript.
 Let's evaluate a CEL expression that has the variable `name` and uses the strings extension functions:
 
 ```ts
-import { run} from "@bufbuild/cel";
+import { run } from "@bufbuild/cel";
 import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
 
 run(
-  `name.startsWith('taco')`,
+  `name.indexOf('taco') == 0`,
   {name: "tacocat"},
   {funcs: STRINGS_EXT_FUNCS },
 ); // true
