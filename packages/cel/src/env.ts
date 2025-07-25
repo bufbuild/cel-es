@@ -26,10 +26,10 @@ import { Namespace } from "./namespace.js";
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
 /**
- * CEL evaluation environment containing configuration, functions, and type information.
+ * CEL evaluation environment.
  *
- * The environment defines what functions, types, and variables are available
- * during CEL expression evaluation. Create with celEnv().
+ * The environment defines the functions and types that are available
+ * during CEL expression evaluation.
  */
 export interface CelEnv {
   [privateSymbol]: unknown;
