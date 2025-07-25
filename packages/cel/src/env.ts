@@ -27,7 +27,7 @@ const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
 /**
  * CEL evaluation environment containing configuration, functions, and type information.
- * 
+ *
  * The environment defines what functions, types, and variables are available
  * during CEL expression evaluation. Create with celEnv().
  */

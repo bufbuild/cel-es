@@ -19,7 +19,7 @@ import type { CelInput } from "./type.js";
 
 /**
  * Convenience function that parses, plans, and executes a CEL expression in one call.
- * 
+ *
  * This is the simplest way to evaluate a CEL expression, but for better performance
  * and reusability, consider using parse(), plan(), and execution separately.la
  */

@@ -21,7 +21,7 @@ import { create } from "@bufbuild/protobuf";
 
 /**
  * Parses a CEL expression string into an abstract syntax tree (AST).
- * 
+ *
  * This is the first stage of CEL evaluation. The resulting ParsedExpr
  * can be passed to plan() for execution planning.
  */

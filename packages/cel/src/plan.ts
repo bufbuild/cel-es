@@ -35,7 +35,7 @@ const cache = new WeakMap<CelEnv, Planner>();
 
 /**
  * Creates an execution plan for a CEL expression and returns a reusable evaluation function.
- * 
+ *
  * Planning analyzes the expression structure once, independent of runtime variable values.
  * The returned function can be called multiple times with different variable bindings.
  */
