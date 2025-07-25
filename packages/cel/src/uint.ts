@@ -26,7 +26,7 @@ export interface CelUint {
 }
 
 /**
- * Creats a new CelUint from bigint.
+ * Creates a new CelUint from bigint.
  */
 export function celUint(v: bigint): CelUint {
   return new Uint(v);

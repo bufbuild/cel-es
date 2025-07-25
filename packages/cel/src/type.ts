@@ -217,7 +217,7 @@ type mapKeyType =
   | typeof CelScalar.DYN;
 
 /**
- * Internal representation of CEL values according to their type.
+ * CEL values corresponding to their type.
  */
 // biome-ignore format: Ternaries
 export type CelValue<T extends CelType = CelType> = 
@@ -264,7 +264,7 @@ export type CelValueTuple<T extends readonly CelType[]> =
     : CelType[] extends T ? any[] : [];
 
 /**
- * Get the CELType of a CelValue.
+ * Get the CelType of a CelValue.
  */
 export function celType(v: CelValue): CelType {
   switch (typeof v) {
