@@ -25,6 +25,12 @@ import { Namespace } from "./namespace.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
+/**
+ * CEL evaluation environment.
+ *
+ * The environment defines the functions and types that are available
+ * during CEL expression evaluation.
+ */
 export interface CelEnv {
   [privateSymbol]: unknown;
   /**
@@ -53,7 +59,7 @@ export interface CelEnvOptions {
   /**
    * Additional functions to add.
    *
-   * All functions must be uniue. This can be used to override any std function.
+   * All functions must be unique. This can be used to override any std function.
    */
   funcs?: CelFunc[];
 }

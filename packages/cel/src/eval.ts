@@ -39,7 +39,7 @@ export function setEvalContext(context: EvalContext) {
 /**
  * Gets the current EvalContext.
  *
- * Throws an error if it doesn't.
+ * Throws an error if there isn't one.
  */
 export function getEvalContext(): EvalContext {
   if (contextStack.length === 0) {

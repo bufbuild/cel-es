@@ -14,6 +14,9 @@
 
 import type { CelValue } from "./type.js";
 
+/**
+ * Result type that represents either a successful value or a CEL error.
+ **/
 export type CelResult<T = CelValue> = T | CelError;
 
 const privateSymbol = Symbol.for("@bufbuild/cel/error");
@@ -28,7 +31,6 @@ export interface CelError extends Error {
    * evaluating an expression.
    */
   readonly exprId: bigint | undefined;
-
   /**
    * The underlying cause of this error, if any.
    */

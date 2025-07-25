@@ -34,10 +34,10 @@ import type { CelInput } from "./type.js";
 const cache = new WeakMap<CelEnv, Planner>();
 
 /**
- * Creates an execution plan for a CEL expression and returns a function
- * that executes the plan.
+ * Creates an execution plan for a CEL expression and returns a reusable evaluation function.
  *
- * The returned function can be reused with different values.
+ * Planning analyzes the expression structure once, independent of runtime variable values.
+ * The returned function can be called multiple times with different variable bindings.
  */
 export function plan(
   env: CelEnv,

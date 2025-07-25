@@ -18,10 +18,10 @@ import { plan } from "./plan.js";
 import type { CelInput } from "./type.js";
 
 /**
- * Run is convenient function to parse, plan, and execute.
+ * Convenience function that parses, plans, and executes a CEL expression in one call.
  *
- * You must almost always prefer splitting up the stages for
- * better performance and reusability.
+ * This is the simplest way to evaluate a CEL expression, but for better performance
+ * and reusability, consider using parse(), plan(), and execution separately.
  */
 export function run(
   expr: string,

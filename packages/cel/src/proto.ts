@@ -21,7 +21,7 @@ import type { CelValue } from "./type.js";
  * Converts a protobuf scalar value to a CEL value.
  *
  * This doesn't validate the value should match the type.
- * The given value must match the scalar type. It will match if aquired from a Reflect type.
+ * The given value must match the scalar type. It will match if acquired from a Reflect type.
  */
 export function celFromScalar(type: ScalarType, v: ScalarValue): CelValue {
   switch (type) {
