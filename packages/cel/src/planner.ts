@@ -33,7 +33,13 @@ import { VarActivation, type Activation } from "./activation.js";
 import type { CallDispatch, Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { Namespace } from "./namespace.js";
-import { CelError, type CelResult } from "./error.js";
+import {
+  celError,
+  type CelError,
+  celErrorMerge,
+  type CelResult,
+  isCelError,
+} from "./error.js";
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
@@ -379,7 +385,7 @@ export class EvalHas implements Interpretable {
     if (raw === undefined) {
       return false;
     }
-    if (raw instanceof CelError) {
+    if (isCelError(raw)) {
       return raw;
     }
     return this.access.isPresent(ctx, raw);
@@ -393,7 +399,7 @@ export class EvalErr implements Interpretable {
   ) {}
 
   eval(_ctx: Activation): CelResult {
-    return new CelError(this.id, this.msg);
+    return celError(this.msg, this.id);
   }
 }
 
@@ -438,9 +444,9 @@ export class EvalAttr implements Attribute, Interpretable {
   eval(ctx: Activation) {
     const val = this.attr.resolve(ctx);
     if (val === undefined) {
-      return new CelError(this.id, "unresolved attribute");
+      return celError("unresolved attribute", this.id);
     }
-    if (val instanceof CelError) {
+    if (isCelError(val)) {
       return val;
     }
     return val;
@@ -466,7 +472,7 @@ export class EvalCall implements Interpretable {
 
   public eval(ctx: Activation): CelResult {
     if (this.call === undefined) {
-      return new CelError(this.id, `unbound function: ${this.name}`);
+      return celError(`unbound function: ${this.name}`, this.id);
     }
     const argVals = this.args.map((x) => x.eval(ctx));
     const result = this.call.dispatch(this.id, argVals);
@@ -475,15 +481,15 @@ export class EvalCall implements Interpretable {
     }
 
     const vals = coerceToValues(argVals);
-    if (vals instanceof CelError) {
+    if (isCelError(vals)) {
       return vals;
     }
-    return new CelError(
-      this.id,
+    return celError(
       `found no matching overload for '${this.name}' applied to '(${vals
         .map((x) => celType(x))
         .map((x) => x.name)
         .join(", ")})'`,
+      this.id,
     );
   }
 }
@@ -501,13 +507,13 @@ export class EvalObj implements InterpretableCtor {
   }
   eval(ctx: Activation): CelResult {
     const vals = coerceToValues(this.values.map((x) => x.eval(ctx)));
-    if (vals instanceof CelError) {
+    if (isCelError(vals)) {
       return vals;
     }
     const obj = new Map<string, CelValue>();
     for (let i = 0; i < vals.length; i++) {
       if (obj.has(this.fields[i])) {
-        return new CelError(this.id, `map key conflict: ${this.fields[i]}`);
+        return celError(`map key conflict: ${this.fields[i]}`, this.id);
       }
       obj.set(this.fields[i], vals[i]);
     }
@@ -517,7 +523,7 @@ export class EvalObj implements InterpretableCtor {
       if (ex instanceof Error) {
         ex = ex.message;
       }
-      return new CelError(this.id, `${ex}`);
+      return celError(`${ex}`, this.id);
     }
   }
 }
@@ -534,13 +540,13 @@ export class EvalList implements InterpretableCtor {
       return EMPTY_LIST;
     }
     const first = this.elems[0].eval(ctx);
-    if (first instanceof CelError) {
+    if (isCelError(first)) {
       return first;
     }
     const elemVals: CelValue[] = [first];
     for (let i = 1; i < this.elems.length; i++) {
       const elemVal = this.elems[i].eval(ctx);
-      if (elemVal instanceof CelError) {
+      if (isCelError(elemVal)) {
         return elemVal;
       }
       elemVals.push(elemVal);
@@ -572,11 +578,11 @@ export class EvalMap implements InterpretableCtor {
     const entries: Map<string | bigint | boolean | CelUint, CelValue> =
       new Map();
     const firstKey = this.mapKeyOrError(this.keys[0].eval(ctx));
-    if (firstKey instanceof CelError) {
+    if (isCelError(firstKey)) {
       return firstKey;
     }
     const firstVal = this.values[0].eval(ctx);
-    if (firstVal instanceof CelError) {
+    if (isCelError(firstVal)) {
       return firstVal;
     }
     if (typeof firstKey === "number" && !Number.isInteger(firstKey)) {
@@ -585,15 +591,15 @@ export class EvalMap implements InterpretableCtor {
     entries.set(firstKey, firstVal);
     for (let i = 1; i < this.keys.length; i++) {
       const key = this.mapKeyOrError(this.keys[i].eval(ctx));
-      if (key instanceof CelError) {
+      if (isCelError(key)) {
         return key;
       }
       const val = this.values[i].eval(ctx);
-      if (val instanceof CelError) {
+      if (isCelError(val)) {
         return val;
       }
       if (entries.has(key)) {
-        return new CelError(this.id, `map key conflict: ${key}`);
+        return celError(`map key conflict: ${key}`, this.id);
       }
       if (typeof key === "number" && !Number.isInteger(key)) {
         return unsupportedKeyType(this.id);
@@ -641,12 +647,12 @@ export class EvalFold implements Interpretable {
 
   eval(ctx: Activation): CelResult {
     const accuInit = this.accu.eval(ctx);
-    if (accuInit instanceof CelError) {
+    if (isCelError(accuInit)) {
       return accuInit;
     }
     const accuCtx = new VarActivation(this.accuVar, accuInit, ctx);
     const iterRange = this.iterRange.eval(ctx);
-    if (iterRange instanceof CelError) {
+    if (isCelError(iterRange)) {
       return iterRange;
     }
 
@@ -656,20 +662,20 @@ export class EvalFold implements Interpretable {
     } else if (isCelList(iterRange)) {
       items = Array.from(iterRange) as CelResult[];
     } else {
-      return new CelError(
-        this.id,
+      return celError(
         `type mismatch: iterable vs ${celType(iterRange)}`,
+        this.id,
       );
     }
 
     // Fold the items.
     for (const item of items) {
-      if (item instanceof CelError) {
+      if (isCelError(item)) {
         return item;
       }
       const iterCtx = new VarActivation(this.iterVar, item, accuCtx);
       const cond = this.cond.eval(iterCtx);
-      if (cond instanceof CelError) {
+      if (isCelError(cond)) {
         return cond;
       }
       if (cond !== true) {
@@ -706,19 +712,19 @@ function toQualifiedName(expr: Expr): string | undefined {
 }
 
 function unsupportedKeyType(id: number): CelError {
-  return new CelError(id, `unsupported key type`);
+  return celError(`unsupported key type`, id);
 }
 
 function coerceToValues(args: CelResult[]): CelResult<CelValue[]> {
   const errors: CelError[] = [];
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    if (arg instanceof CelError) {
+    if (isCelError(arg)) {
       errors.push(arg);
     }
   }
   if (errors.length > 0) {
-    return CelError.merge(errors);
+    return celErrorMerge(errors[0], ...errors.slice(1));
   }
   return args as CelValue[];
 }

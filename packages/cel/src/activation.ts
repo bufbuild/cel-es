@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { CelError, type CelResult } from "./error.js";
+import { type CelError, type CelResult, isCelError } from "./error.js";
 import type { CelInput } from "./type.js";
 import { toCel } from "./value.js";
 
@@ -30,7 +30,7 @@ export class ObjectActivation implements Activation {
     if (value === undefined) {
       return undefined;
     }
-    if (value instanceof CelError) {
+    if (isCelError(value)) {
       return value;
     }
     return toCel(value);

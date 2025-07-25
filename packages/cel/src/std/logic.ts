@@ -20,7 +20,7 @@ import {
 } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import { CelError } from "../error.js";
+import { type CelError, celErrorMerge, isCelError } from "../error.js";
 import {
   CelScalar,
   DURATION,
@@ -40,7 +40,7 @@ import type { CelMap } from "../map.js";
 const notStrictlyFalse: CallDispatch = {
   dispatch(_, args) {
     const raw = args[0];
-    if (raw instanceof CelError) {
+    if (isCelError(raw)) {
       return true;
     }
     return raw !== false;
@@ -61,7 +61,7 @@ const and: CallDispatch = {
         if (!arg) return false; // short-circuit
       } else {
         allBools = false;
-        if (arg instanceof CelError) {
+        if (isCelError(arg)) {
           errors.push(arg);
         }
       }
@@ -70,7 +70,7 @@ const and: CallDispatch = {
       return true;
     }
     if (errors.length > 0) {
-      return CelError.merge(errors);
+      return celErrorMerge(errors[0], ...errors.slice(1));
     }
     return undefined;
   },
@@ -86,7 +86,7 @@ const or: CallDispatch = {
         if (arg) return true; // short-circuit
       } else {
         allBools = false;
-        if (arg instanceof CelError) {
+        if (isCelError(arg)) {
           errors.push(arg);
         }
       }
@@ -95,7 +95,7 @@ const or: CallDispatch = {
       return false;
     }
     if (errors.length > 0) {
-      return CelError.merge(errors);
+      return celErrorMerge(errors[0], ...errors.slice(1));
     }
     return undefined;
   },

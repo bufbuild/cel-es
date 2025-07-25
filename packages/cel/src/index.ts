@@ -14,7 +14,9 @@
 
 export {
   type CelResult,
-  CelError,
+  type CelError,
+  celError,
+  isCelError,
 } from "./error.js";
 export {
   type CelFunc,

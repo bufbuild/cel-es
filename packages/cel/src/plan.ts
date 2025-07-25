@@ -24,7 +24,7 @@ import {
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { Planner } from "./planner.js";
 import { create, isMessage } from "@bufbuild/protobuf";
-import { CelError, type CelResult } from "./error.js";
+import { celError, type CelResult, isCelError } from "./error.js";
 import { withEvalContext } from "./eval.js";
 import { unwrapAny } from "./value.js";
 import type { CelEnv } from "./env.js";
@@ -65,12 +65,12 @@ export function plan(
       eval(ctx) {
         try {
           let val = plan.eval(ctx);
-          if (val instanceof CelError) {
+          if (isCelError(val)) {
             return val;
           }
           return unwrapAny(val);
         } catch (ex) {
-          return CelError.from(ex, plan.id);
+          return celError(ex, plan.id);
         }
       },
     },
