@@ -73,7 +73,7 @@ console.log(result); // true
 const env = celEnv({ funcs: [...STRINGS_EXT_FUNCS, similar] });
 const evaluate = plan(
   env,
-  parse(`name.startsWith('taco') && name.similar('tacocat')`),
+  parse(`name.indexOf('taco') == 0 && name.similar('tacocat')`),
 );
 
 for (const name of ["tacocat", "tacodog"]) {
