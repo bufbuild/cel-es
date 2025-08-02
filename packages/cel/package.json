@@ -56,6 +56,6 @@
   "devDependencies": {
     "peggy": "^4.0.3",
     "peggy-ts": "github:hudlow/peggy-ts",
-    "expect-type": "^1.2.1"
+    "expect-type": "^1.2.2"
   }
 }
