@@ -14,7 +14,13 @@
 
 import { extractFiles, fetchRepository, readPackageJson } from "./common.js";
 import { spawnSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import {
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+} from "node:fs";
+import { parseArgs } from "node:util";
 
 /*
  * Fetch conformance test data from the upstream github.com/google/cel-spec
@@ -22,15 +28,38 @@ import { writeFileSync } from "node:fs";
  * on the directory "proto" to contain the corresponding Protobuf files.
  */
 
-const { upstreamCelSpecRef } = readPackageJson("package.json");
+const { positionals } = parseArgs({ allowPositionals: true });
 
-// Fetch github.com/google/cel-spec
-const archive = await fetchRepository(upstreamCelSpecRef);
-// Extract testdata/simple/*.textproto
-const testdataTextProto = extractFiles(
-  archive,
-  /^cel-spec-[^/]+\/tests\/simple\/testdata\/([^/]+\.textproto)$/,
-);
+let source;
+const testdataTextProto = [];
+
+if (positionals.length === 0) {
+  const { upstreamCelSpecRef } = readPackageJson("package.json");
+  source = `github.com/google/cel-spec ${upstreamCelSpecRef}`;
+
+  // Fetch github.com/google/cel-spec
+  const archive = await fetchRepository(upstreamCelSpecRef);
+  // Extract testdata/simple/*.textproto
+  const testdata = extractFiles(
+    archive,
+    /^cel-spec-[^/]+\/tests\/simple\/testdata\/([^/]+\.textproto)$/,
+  );
+
+  testdataTextProto.push(...testdata);
+} else if (positionals.length === 1) {
+  // Read from local directory containing *.textproto instead —
+  // useful when concurrently developing new conformance tests
+  // e.g., `npm run fetch-testdata ../../../../google/cel-spec/tests/simple/testdata`
+  source = realpathSync(positionals[0]);
+
+  const paths = readdirSync(source).filter((p) => p.endsWith(".textproto"));
+  const testdata = paths.map((p) => [p, readFileSync(`${source}/${p}`)]);
+
+  testdataTextProto.push(...testdata);
+} else {
+  throw new Error("Too many arguments.");
+}
+
 // Convert textproto to JSON with `buf convert`, using the local module "proto".
 const testdataJson = convertTestDataToJson(
   testdataTextProto,
@@ -40,7 +69,7 @@ const testdataJson = convertTestDataToJson(
 // Write as JSON array to a TypeScript file
 writeFileSync(
   "src/testdata-json.ts",
-  `// Generated from github.com/google/cel-spec ${upstreamCelSpecRef} by scripts/fetch-testdata.js
+  `// Generated from ${source} by scripts/fetch-testdata.js
 
 export const testdataJson = ${JSON.stringify(testdataJson, null, 2)} as const;`,
 );

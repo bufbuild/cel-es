@@ -18,15 +18,34 @@ import {
   readPackageJson,
   writeFiles,
 } from "./common.js";
+import { parseArgs } from "node:util";
+import { copyFileSync, readdirSync, realpathSync } from "node:fs";
 
 /*
  * Fetch Protobuf files from the upstream github.com/google/cel-spec
  */
 
-const { upstreamCelSpecRef } = readPackageJson("package.json");
-const archive = await fetchRepository(upstreamCelSpecRef);
-const proto = extractFiles(
-  archive,
-  /^cel-spec-[^/]+\/proto\/(cel\/expr\/.+\.proto)$/,
-);
-writeFiles(proto, "proto");
+const { positionals } = parseArgs({ allowPositionals: true });
+
+if (positionals.length === 0) {
+  const { upstreamCelSpecRef } = readPackageJson("package.json");
+  const archive = await fetchRepository(upstreamCelSpecRef);
+  const proto = extractFiles(
+    archive,
+    /^cel-spec-[^/]+\/proto\/(cel\/expr\/.+\.proto)$/,
+  );
+  writeFiles(proto, "proto");
+} else if (positionals.length === 1) {
+  // Copy from local directory containing CEL expression protos —
+  // useful when concurrently developing changes to the schemas
+  // e.g., `npm run fetch-proto ../../../../google/cel-spec/proto/cel/expr`
+  const source = realpathSync(positionals[0]);
+  const files = readdirSync(source, { recursive: true }).filter((f) =>
+    f.endsWith(".proto"),
+  );
+  for (const file of files) {
+    copyFileSync(`${source}/${file}`, `proto/cel/expr/${file}`);
+  }
+} else {
+  throw new Error("Too many arguments.");
+}
