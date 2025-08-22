@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { testdataJson } from "../testdata-json.js";
+import { testdata } from "./conformance.js";
 import { fromJson, type JsonObject } from "@bufbuild/protobuf";
 import { SimpleTestFileSchema } from "../gen/cel/expr/conformance/test/simple_pb.js";
 import type { SimpleTestFile } from "../gen/cel/expr/conformance/test/simple_pb.js";
@@ -25,9 +25,9 @@ import { getTestRegistry } from "./registry.js";
 export function getSimpleTestFiles(): SimpleTestFile[] {
   const files: SimpleTestFile[] = [];
   const registry = getTestRegistry();
-  for (const json of testdataJson) {
+  for (const file of testdata) {
     files.push(
-      fromJson(SimpleTestFileSchema, json as JsonObject, { registry }),
+      fromJson(SimpleTestFileSchema, file as JsonObject, { registry }),
     );
   }
   return files;
@@ -59,4 +59,4 @@ type TestNameTuples<FN, S> = S extends {
     : never
   : never;
 
-type file = (typeof testdataJson)[number];
+type file = (typeof testdata)[number];

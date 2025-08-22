@@ -19,11 +19,13 @@
     "fetch-proto": "node scripts/fetch-proto.js",
     "postfetch-proto": "license-header proto",
     "fetch-testdata": "node scripts/fetch-testdata.js",
-    "postfetch-testdata": "license-header src/testdata-json.ts",
+    "postfetch-testdata": "biome format --write src/testdata/conformance.ts src/testdata/json/*.json && license-header src/testdata/conformance.ts",
     "fetch-parser": "go run -C scripts gen_parser_tests.go -output ../src/testdata/parser.ts parser/parser_test.go",
     "postfetch-parser": "biome format --write src/testdata/parser.ts && license-header src/testdata/parser.ts",
     "fetch-parser-comprehensions": "go run -C scripts gen_parser_tests.go -output ../src/testdata/parser-comprehensions.ts ext/comprehensions_test.go",
     "postfetch-parser-comprehensions": "biome format --write src/testdata/parser-comprehensions.ts && license-header src/testdata/parser-comprehensions.ts",
+    "fetch-parser-conformance": "go run -C scripts gen_parser_tests.go -output ../src/testdata/parser-conformance.ts ../src/testdata/json",
+    "postfetch-parser-conformance": "biome format --write src/testdata/parser-conformance.ts && license-header src/testdata/parser-conformance.ts",
     "update-exports": "node scripts/update-exports.js",
     "postupdate-exports": "biome format --write package.json",
     "update-readme": "node scripts/update-readme.js",
@@ -42,9 +44,17 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./testdata/conformance.js": {
+      "import": "./dist/esm/testdata/conformance.js",
+      "require": "./dist/cjs/testdata/conformance.js"
+    },
     "./testdata/parser-comprehensions.js": {
       "import": "./dist/esm/testdata/parser-comprehensions.js",
       "require": "./dist/cjs/testdata/parser-comprehensions.js"
+    },
+    "./testdata/parser-conformance.js": {
+      "import": "./dist/esm/testdata/parser-conformance.js",
+      "require": "./dist/cjs/testdata/parser-conformance.js"
     },
     "./testdata/parser.js": {
       "import": "./dist/esm/testdata/parser.js",
@@ -117,8 +127,12 @@
   },
   "typesVersions": {
     "*": {
+      "testdata/conformance.js": ["./dist/cjs/testdata/conformance.d.ts"],
       "testdata/parser-comprehensions.js": [
         "./dist/cjs/testdata/parser-comprehensions.d.ts"
+      ],
+      "testdata/parser-conformance.js": [
+        "./dist/cjs/testdata/parser-conformance.d.ts"
       ],
       "testdata/parser.js": ["./dist/cjs/testdata/parser.d.ts"],
       "testdata/registry.js": ["./dist/cjs/testdata/registry.d.ts"],
@@ -156,7 +170,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^22.15.29",
+    "@types/node": "^24.1.0",
     "fflate": "^0.8.2"
   },
   "peerDependencies": {

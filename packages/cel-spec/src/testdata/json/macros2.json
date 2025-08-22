@@ -1,0 +1,491 @@
+{
+  "name": "macros2",
+  "description": "Tests for CEL comprehensions v2",
+  "section": [
+    {
+      "name": "exists",
+      "description": "Tests for the .exists() macro, which is equivalent to joining the evaluated elements with logical-OR.",
+      "test": [
+        {
+          "name": "list_elem_all_true",
+          "expr": "[1, 2, 3].exists(i, v, i > -1 && v > 0)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "list_elem_some_true",
+          "expr": "[1, 2, 3].exists(i, v, i == 1 && v == 2)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "list_elem_none_true",
+          "expr": "[1, 2, 3].exists(i, v, i > 2 && v > 3)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_elem_type_shortcircuit",
+          "expr": "[1, 'foo', 3].exists(i, v, i == 1 && v != '1')",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "list_elem_type_exhaustive",
+          "expr": "[1, 'foo', 3].exists(i, v, i == 3 || v == '10')",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_elem_exists_error",
+          "expr": "[1, 2, 3].exists(i, v, v / i == 17)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "divide by zero"
+              }
+            ]
+          }
+        },
+        {
+          "name": "list_empty",
+          "expr": "[].exists(i, v, i == 0 || v == 2)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "map_key",
+          "expr": "{'key1':1, 'key2':2}.exists(k, v, k == 'key2' && v == 2)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "not_map_key",
+          "expr": "!{'key1':1, 'key2':2}.exists(k, v, k == 'key3' || v == 3)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "map_key_type_shortcircuit",
+          "expr": "{'key':1, 1:21}.exists(k, v, k != 2 && v != 22)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "map_key_type_exhaustive",
+          "expr": "!{'key':1, 1:42}.exists(k, v, k == 2 && v == 43)",
+          "value": {
+            "boolValue": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "all",
+      "description": "Tests for the .all() macro, which is equivalent to joining the evaluated elements with logical-AND.",
+      "test": [
+        {
+          "name": "list_elem_all_true",
+          "expr": "[1, 2, 3].all(i, v, i > -1 && v > 0)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "list_elem_some_true",
+          "expr": "[1, 2, 3].all(i, v, i == 1 && v == 2)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_elem_none_true",
+          "expr": "[1, 2, 3].all(i, v, i == 3 || v == 4)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_elem_type_shortcircuit",
+          "expr": "[1, 'foo', 3].all(i, v, i == 0 || v == 1)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_elem_type_exhaustive",
+          "expr": "[0, 'foo', 3].all(i, v, v % 2 == i)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_elem_type_error_exhaustive",
+          "expr": "[0, 'foo', 5].all(i, v, v % 3 == i)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_such_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "list_elem_error_shortcircuit",
+          "expr": "[1, 2, 3].all(i, v, 6 / (2 - v) == i)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_elem_error_exhaustive",
+          "expr": "[1, 2, 3].all(i, v, v / i != 17)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "divide by zero"
+              }
+            ]
+          }
+        },
+        {
+          "name": "list_empty",
+          "expr": "[].all(i, v, i > -1 || v > 0)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "map_key",
+          "expr": "{'key1':1, 'key2':2}.all(k, v, k == 'key2' && v == 2)",
+          "value": {
+            "boolValue": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "existsOne",
+      "description": "Tests for existsOne() macro. An expression 'L.existsOne(I, E)' is equivalent to 'size(L.filter(I, E)) == 1'.",
+      "test": [
+        {
+          "name": "list_empty",
+          "expr": "[].existsOne(i, v, i == 3 || v == 7)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_one_true",
+          "expr": "[7].existsOne(i, v, i == 0 && v == 7)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "list_one_false",
+          "expr": "[8].existsOne(i, v, i == 0 && v == 7)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_none",
+          "expr": "[1, 2, 3].existsOne(i, v, i > 2 || v > 3)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_one",
+          "expr": "[5, 7, 8].existsOne(i, v, v % 5 == i)",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "list_many",
+          "expr": "[0, 1, 2, 3, 4].existsOne(i, v, v % 2 == i)",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_all",
+          "expr": "['foal', 'foo', 'four'].existsOne(i, v, i > -1 && v.startsWith('fo'))",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "list_no_shortcircuit",
+          "expr": "[3, 2, 1, 0].existsOne(i, v, v / i > 1)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "divide by zero"
+              }
+            ]
+          }
+        },
+        {
+          "name": "map_one",
+          "expr": "{6: 'six', 7: 'seven', 8: 'eight'}.existsOne(k, v, k % 5 == 2 && v == 'seven')",
+          "value": {
+            "boolValue": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "transformList",
+      "description": "Tests for transformList() macro.",
+      "test": [
+        {
+          "name": "empty",
+          "expr": "[].transformList(i, v, i / v)",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "empty_filter",
+          "expr": "[].transformList(i, v, i > v, i / v)",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "one",
+          "expr": "[3].transformList(i, v, v * v + i)",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "int64Value": "9"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "one_filter",
+          "expr": "[3].transformList(i, v, i == 0 && v == 3, v * v + i)",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "int64Value": "9"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "many",
+          "expr": "[2, 4, 6].transformList(i, v, v / 2 + i)",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "int64Value": "1"
+                },
+                {
+                  "int64Value": "3"
+                },
+                {
+                  "int64Value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "many_filter",
+          "expr": "[2, 4, 6].transformList(i, v, i != 1 && v != 4, v / 2 + i)",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "int64Value": "1"
+                },
+                {
+                  "int64Value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "error",
+          "expr": "[2, 1, 0].transformList(i, v, v / i)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "divide by zero"
+              }
+            ]
+          }
+        },
+        {
+          "name": "error_filter",
+          "expr": "[2, 1, 0].transformList(i, v, v / i > 0, v)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "divide by zero"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "transformMap",
+      "description": "Tests for transformMap() macro.",
+      "test": [
+        {
+          "name": "empty",
+          "expr": "{}.transformMap(k, v, k + v)",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "empty_filter",
+          "expr": "{}.transformMap(k, v, k == 'foo' && v == 'bar', k + v)",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "one",
+          "expr": "{'foo': 'bar'}.transformMap(k, v, k + v)",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "foo"
+                  },
+                  "value": {
+                    "stringValue": "foobar"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "one_filter",
+          "expr": "{'foo': 'bar'}.transformMap(k, v, k == 'foo' && v == 'bar', k + v)",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "foo"
+                  },
+                  "value": {
+                    "stringValue": "foobar"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "many",
+          "expr": "{'foo': 'bar', 'baz': 'bux', 'hello': 'world'}.transformMap(k, v, k + v)",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "foo"
+                  },
+                  "value": {
+                    "stringValue": "foobar"
+                  }
+                },
+                {
+                  "key": {
+                    "stringValue": "baz"
+                  },
+                  "value": {
+                    "stringValue": "bazbux"
+                  }
+                },
+                {
+                  "key": {
+                    "stringValue": "hello"
+                  },
+                  "value": {
+                    "stringValue": "helloworld"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "many_filter",
+          "expr": "{'foo': 'bar', 'baz': 'bux', 'hello': 'world'}.transformMap(k, v, k != 'baz' && v != 'bux', k + v)",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "foo"
+                  },
+                  "value": {
+                    "stringValue": "foobar"
+                  }
+                },
+                {
+                  "key": {
+                    "stringValue": "hello"
+                  },
+                  "value": {
+                    "stringValue": "helloworld"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "error",
+          "expr": "{'foo': 2, 'bar': 1, 'baz': 0}.transformMap(k, v, 4 / v)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "divide by zero"
+              }
+            ]
+          }
+        },
+        {
+          "name": "error_filter",
+          "expr": "{'foo': 2, 'bar': 1, 'baz': 0}.transformMap(k, v, k == 'baz' && 4 / v == 0, v)",
+          "evalError": {
+            "errors": [
+              {
+                "message": "divide by zero"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
