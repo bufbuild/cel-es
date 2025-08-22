@@ -1,0 +1,49 @@
+{
+  "name": "encoders_ext",
+  "description": "Tests for the encoders extension library.",
+  "section": [
+    {
+      "name": "encode",
+      "test": [
+        {
+          "name": "hello",
+          "expr": "base64.encode(b'hello')",
+          "value": {
+            "stringValue": "aGVsbG8="
+          }
+        }
+      ]
+    },
+    {
+      "name": "decode",
+      "test": [
+        {
+          "name": "hello",
+          "expr": "base64.decode('aGVsbG8=')",
+          "value": {
+            "bytesValue": "aGVsbG8="
+          }
+        },
+        {
+          "name": "hello_without_padding",
+          "expr": "base64.decode('aGVsbG8')",
+          "value": {
+            "bytesValue": "aGVsbG8="
+          }
+        }
+      ]
+    },
+    {
+      "name": "round_trip",
+      "test": [
+        {
+          "name": "hello",
+          "expr": "base64.decode(base64.encode(b'Hello World!'))",
+          "value": {
+            "bytesValue": "SGVsbG8gV29ybGQh"
+          }
+        }
+      ]
+    }
+  ]
+}

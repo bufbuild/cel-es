@@ -30,11 +30,17 @@ import (
 	goparser "go/parser"
 	gotoken "go/token"
 
+	_ "cel.dev/expr/conformance/proto2"
+	_ "cel.dev/expr/conformance/proto3"
+	"cel.dev/expr/conformance/test"
+
 	"github.com/google/cel-go/common"
 	"github.com/google/cel-go/common/ast"
 	"github.com/google/cel-go/common/debug"
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/parser"
+
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type ParserTest struct {
@@ -53,25 +59,60 @@ func main() {
 	outputPath := flag.String("output", "output.json", "write result to file")
 	flag.Parse()
 	if len(flag.Args()) != 1 {
-		log.Fatalf("must provide path to a cel-go source file")
+		log.Fatalf("must provide path to a cel-go source file or testdata JSON directory")
 	}
-	sourceFile := flag.Args()[0]
-	file, sourceId, err := parseCelGoSourceFile(*goModPath, flag.Args()[0])
-	if err != nil {
-		log.Fatalf("failed to parse source: %v", err)
-	}
-	var filter func(file *goast.File) ([]string, error)
-	if strings.HasSuffix(sourceFile, "parser_test.go") {
-		filter = findParserTestExpressions
-	} else if strings.HasSuffix(sourceFile, "comprehensions_test.go") {
-		filter = findComprehensionTestExpressions
+	sourcePath := flag.Args()[0]
+	var expressions []string
+	var sourceId = sourcePath
+
+	simpleTestFilePaths, err := os.ReadDir(sourcePath)
+	if err == nil {
+		for _, path := range simpleTestFilePaths {
+			name := path.Name()
+
+			if strings.HasSuffix(name, ".json") {
+				simpleTestFile, err := os.ReadFile(sourcePath + "/" + name)
+				if err != nil {
+					log.Fatalf("failed to read file: %v", err)
+				}
+
+				var file test.SimpleTestFile
+				err = protojson.Unmarshal(simpleTestFile, &file)
+				if err != nil {
+					log.Fatalf("failed to unmarshal file: %v", err)
+				}
+
+				for _, section := range file.Section {
+					for _, test := range section.Test {
+						expressions = append(expressions, test.Expr)
+					}
+				}
+			}
+		}
 	} else {
-		log.Fatalf("do not know what to extract from %s", sourceFile)
+		var file *goast.File
+		file, sourceId, err = parseCelGoSourceFile(*goModPath, sourcePath)
+
+		if err != nil {
+			log.Fatalf("failed to parse source: %v", err)
+		}
+
+		var filter func(file *goast.File) ([]string, error)
+		if strings.HasSuffix(sourcePath, "parser_test.go") {
+			filter = findParserTestExpressions
+		} else if strings.HasSuffix(sourcePath, "comprehensions_test.go") {
+			filter = findComprehensionTestExpressions
+		} else {
+			log.Fatalf("do not know what to extract from %s", sourcePath)
+		}
+
+		expressions, err = filter(file)
+
+		if err != nil {
+			log.Fatalf("failed to extract expressions: %v", err)
+		}
 	}
-	expressions, err := filter(file)
-	if err != nil {
-		log.Fatalf("failed to extract expressions: %v", err)
-	}
+
 	parserTests, err := parseExpressions(expressions)
 	if err != nil {
 		log.Fatalf("failed to parse expressions: %v", err)

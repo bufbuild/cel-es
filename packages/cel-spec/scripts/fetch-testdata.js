@@ -14,7 +14,7 @@
 
 import { extractFiles, fetchRepository, readPackageJson } from "./common.js";
 import { spawnSync } from "node:child_process";
-import { writeFileSync } from "node:fs";
+import { promises as fs } from "node:fs";
 
 /*
  * Fetch conformance test data from the upstream github.com/google/cel-spec
@@ -32,17 +32,28 @@ const testdataTextProto = extractFiles(
   /^cel-spec-[^/]+\/tests\/simple\/testdata\/([^/]+\.textproto)$/,
 );
 // Convert textproto to JSON with `buf convert`, using the local module "proto".
-const testdataJson = convertTestDataToJson(
+const testdataJsonFiles = convertTestDataToJson(
   testdataTextProto,
   "proto",
   "cel.expr.conformance.test.SimpleTestFile",
 );
-// Write as JSON array to a TypeScript file
-writeFileSync(
-  "src/testdata-json.ts",
+
+// Write to JSON
+await Promise.all(
+  testdataJsonFiles.map((file) =>
+    fs.writeFile(
+      `src/testdata/json/${file.name}.json`,
+      JSON.stringify(file, null, 2),
+    ),
+  ),
+);
+
+// Write to TypeScript
+await fs.writeFile(
+  "src/testdata/conformance.ts",
   `// Generated from github.com/google/cel-spec ${upstreamCelSpecRef} by scripts/fetch-testdata.js
 
-export const testdataJson = ${JSON.stringify(testdataJson, null, 2)} as const;`,
+export const testdata = ${JSON.stringify(testdataJsonFiles, null, 2)} as const;`,
 );
 
 /**

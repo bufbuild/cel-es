@@ -1,0 +1,2854 @@
+{
+  "name": "dynamic",
+  "description": "Tests for 'dynamic' proto behavior, including JSON, wrapper, and Any messages.",
+  "section": [
+    {
+      "name": "int32",
+      "description": "Tests for int32 conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Int32Value{value: -123}",
+          "value": {
+            "int64Value": "-123"
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Int32Value{value: -123}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_zero",
+          "expr": "google.protobuf.Int32Value{}",
+          "value": {
+            "int64Value": "0"
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Int32Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Int32Value",
+                  "value": 2000000
+                }
+              }
+            }
+          },
+          "value": {
+            "int64Value": "2000000"
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_int32_wrapper: 432}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32Wrapper": 432
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_zero",
+          "expr": "TestAllTypes{single_int32_wrapper: 0}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32Wrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_max",
+          "expr": "TestAllTypes{single_int32_wrapper: 2147483647}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32Wrapper": 2147483647
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_min",
+          "expr": "TestAllTypes{single_int32_wrapper: -2147483648}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32Wrapper": -2147483648
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_range",
+          "expr": "TestAllTypes{single_int32_wrapper: 12345678900}",
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "range error"
+              }
+            ]
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_int32_wrapper: 642}.single_int32_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "int64Value": "642"
+          }
+        },
+        {
+          "name": "field_read_proto2_zero",
+          "expr": "TestAllTypes{single_int32_wrapper: 0}.single_int32_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "int64Value": "0"
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "expr": "TestAllTypes{}.single_int32_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_int32_wrapper: -975}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleInt32Wrapper": -975
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_zero",
+          "expr": "TestAllTypes{single_int32_wrapper: 0}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleInt32Wrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_max",
+          "expr": "TestAllTypes{single_int32_wrapper: 2147483647}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleInt32Wrapper": 2147483647
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_min",
+          "expr": "TestAllTypes{single_int32_wrapper: -2147483648}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleInt32Wrapper": -2147483648
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_range",
+          "expr": "TestAllTypes{single_int32_wrapper: -998877665544332211}",
+          "container": "cel.expr.conformance.proto3",
+          "evalError": {
+            "errors": [
+              {
+                "message": "range error"
+              }
+            ]
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_int32_wrapper: 642}.single_int32_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "int64Value": "642"
+          }
+        },
+        {
+          "name": "field_read_proto3_zero",
+          "expr": "TestAllTypes{single_int32_wrapper: 0}.single_int32_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "int64Value": "0"
+          }
+        },
+        {
+          "name": "field_read_proto3_unset",
+          "expr": "TestAllTypes{}.single_int32_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "nullValue": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "int64",
+      "description": "Tests for int64 conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Int64Value{value: -123}",
+          "value": {
+            "int64Value": "-123"
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Int64Value{value: -123}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_zero",
+          "expr": "google.protobuf.Int64Value{}",
+          "value": {
+            "int64Value": "0"
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Int64Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Int64Value",
+                  "value": "2000000"
+                }
+              }
+            }
+          },
+          "value": {
+            "int64Value": "2000000"
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_int64_wrapper: 432}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt64Wrapper": "432"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_zero",
+          "expr": "TestAllTypes{single_int64_wrapper: 0}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt64Wrapper": "0"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_int64_wrapper: -975}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleInt64Wrapper": "-975"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_zero",
+          "expr": "TestAllTypes{single_int64_wrapper: 0}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleInt64Wrapper": "0"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "uint32",
+      "description": "Tests for uint32 conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.UInt32Value{value: 123u}",
+          "value": {
+            "uint64Value": "123"
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.UInt32Value{value: 123u}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_zero",
+          "expr": "google.protobuf.UInt32Value{}",
+          "value": {
+            "uint64Value": "0"
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.UInt32Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.UInt32Value",
+                  "value": 2000000
+                }
+              }
+            }
+          },
+          "value": {
+            "uint64Value": "2000000"
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_uint32_wrapper: 432u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint32Wrapper": 432
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_zero",
+          "expr": "TestAllTypes{single_uint32_wrapper: 0u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint32Wrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_max",
+          "expr": "TestAllTypes{single_uint32_wrapper: 4294967295u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint32Wrapper": 4294967295
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_range",
+          "expr": "TestAllTypes{single_uint32_wrapper: 6111222333u}",
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "range error"
+              }
+            ]
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_uint32_wrapper: 975u}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleUint32Wrapper": 975
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_zero",
+          "expr": "TestAllTypes{single_uint32_wrapper: 0u}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleUint32Wrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_max",
+          "expr": "TestAllTypes{single_uint32_wrapper: 4294967295u}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleUint32Wrapper": 4294967295
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_range",
+          "expr": "TestAllTypes{single_uint32_wrapper: 6111222333u}",
+          "container": "cel.expr.conformance.proto3",
+          "evalError": {
+            "errors": [
+              {
+                "message": "range error"
+              }
+            ]
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_uint32_wrapper: 258u}.single_uint32_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "uint64Value": "258"
+          }
+        },
+        {
+          "name": "field_read_proto2_zero",
+          "expr": "TestAllTypes{single_uint32_wrapper: 0u}.single_uint32_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "uint64Value": "0"
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "expr": "TestAllTypes{}.single_uint32_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "uint64",
+      "description": "Tests for uint64 conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.UInt64Value{value: 123u}",
+          "value": {
+            "uint64Value": "123"
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.UInt64Value{value: 123u}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_zero",
+          "expr": "google.protobuf.UInt64Value{}",
+          "value": {
+            "uint64Value": "0"
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.UInt64Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.UInt64Value",
+                  "value": "2000000"
+                }
+              }
+            }
+          },
+          "value": {
+            "uint64Value": "2000000"
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_uint64_wrapper: 432u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint64Wrapper": "432"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_zero",
+          "expr": "TestAllTypes{single_uint64_wrapper: 0u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint64Wrapper": "0"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_uint64_wrapper: 975u}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleUint64Wrapper": "975"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_zero",
+          "expr": "TestAllTypes{single_uint64_wrapper: 0u}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleUint64Wrapper": "0"
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_uint64_wrapper: 5123123123u}.single_uint64_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "uint64Value": "5123123123"
+          }
+        },
+        {
+          "name": "field_read_proto2_zero",
+          "expr": "TestAllTypes{single_uint64_wrapper: 0u}.single_uint64_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "uint64Value": "0"
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "expr": "TestAllTypes{}.single_uint64_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "float",
+      "description": "Tests for float conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.FloatValue{value: -1.5e3}",
+          "value": {
+            "doubleValue": -1500
+          }
+        },
+        {
+          "name": "literal_not_double",
+          "description": "Use a number with no exact representation to make sure we actually narrow to a float.",
+          "expr": "google.protobuf.FloatValue{value: 1.333} == 1.333",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.FloatValue{value: 3.1416}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_zero",
+          "expr": "google.protobuf.FloatValue{}",
+          "value": {
+            "doubleValue": 0
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.FloatValue"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.FloatValue",
+                  "value": -1250000
+                }
+              }
+            }
+          },
+          "value": {
+            "doubleValue": -1250000
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_float_wrapper: 86.75}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloatWrapper": 86.75
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_zero",
+          "expr": "TestAllTypes{single_float_wrapper: 0.0}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloatWrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_subnorm",
+          "description": "Subnormal single floats range from ~1e-38 to ~1e-45.",
+          "expr": "TestAllTypes{single_float_wrapper: 1e-40}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloatWrapper": 1e-40
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_round_to_zero",
+          "description": "Subnormal single floats range from ~1e-38 to ~1e-45.",
+          "expr": "TestAllTypes{single_float_wrapper: 1e-50}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloatWrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_range",
+          "description": "Single float max is about 3.4e38",
+          "expr": "TestAllTypes{single_float_wrapper: 1.4e55}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloatWrapper": "Infinity"
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_float_wrapper: -12.375}.single_float_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "doubleValue": -12.375
+          }
+        },
+        {
+          "name": "field_read_proto2_zero",
+          "expr": "TestAllTypes{single_float_wrapper: 0.0}.single_float_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "doubleValue": 0
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "expr": "TestAllTypes{}.single_float_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_float_wrapper: -9.75}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleFloatWrapper": -9.75
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_zero",
+          "expr": "TestAllTypes{single_float_wrapper: 0.0}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleFloatWrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_subnorm",
+          "description": "Subnormal single floats range from ~1e-38 to ~1e-45.",
+          "expr": "TestAllTypes{single_float_wrapper: 1e-40}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloatWrapper": 1e-40
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_round_to_zero",
+          "expr": "TestAllTypes{single_float_wrapper: -9.9e-100}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleFloatWrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_range",
+          "description": "Single float min is about -3.4e38",
+          "expr": "TestAllTypes{single_float_wrapper: -9.9e100}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleFloatWrapper": "-Infinity"
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_float_wrapper: 64.25}.single_float_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "doubleValue": 64.25
+          }
+        },
+        {
+          "name": "field_read_proto3_zero",
+          "expr": "TestAllTypes{single_float_wrapper: 0.0}.single_float_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "doubleValue": 0
+          }
+        },
+        {
+          "name": "field_read_proto3_unset",
+          "expr": "TestAllTypes{}.single_float_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "nullValue": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "double",
+      "description": "Tests for double conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.DoubleValue{value: -1.5e3}",
+          "value": {
+            "doubleValue": -1500
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.DoubleValue{value: 3.1416}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_zero",
+          "expr": "google.protobuf.DoubleValue{}",
+          "value": {
+            "doubleValue": 0
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.DoubleValue"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.DoubleValue",
+                  "value": -1250000
+                }
+              }
+            }
+          },
+          "value": {
+            "doubleValue": -1250000
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_double_wrapper: 86.75}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleDoubleWrapper": 86.75
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_zero",
+          "expr": "TestAllTypes{single_double_wrapper: 0.0}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleDoubleWrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_range",
+          "expr": "TestAllTypes{single_double_wrapper: 1.4e55}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleDoubleWrapper": 1.4e55
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_double_wrapper: -12.375}.single_double_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "doubleValue": -12.375
+          }
+        },
+        {
+          "name": "field_read_proto2_zero",
+          "expr": "TestAllTypes{single_int32_wrapper: 0}.single_int32_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "int64Value": "0"
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "expr": "TestAllTypes{}.single_double_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_double_wrapper: -9.75}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleDoubleWrapper": -9.75
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_zero",
+          "expr": "TestAllTypes{single_double_wrapper: 0.0}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleDoubleWrapper": 0
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_range",
+          "expr": "TestAllTypes{single_double_wrapper: -9.9e100}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleDoubleWrapper": -9.9e100
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_double_wrapper: 64.25}.single_double_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "doubleValue": 64.25
+          }
+        },
+        {
+          "name": "field_read_proto3_zero",
+          "expr": "TestAllTypes{single_double_wrapper: 0.0}.single_double_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "doubleValue": 0
+          }
+        },
+        {
+          "name": "field_read_proto3_unset",
+          "expr": "TestAllTypes{}.single_double_wrapper",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "nullValue": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "bool",
+      "description": "Tests for bool conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.BoolValue{value: true}",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.BoolValue{value: true}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.BoolValue{}",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.BoolValue"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.BoolValue",
+                  "value": true
+                }
+              }
+            }
+          },
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_bool_wrapper: true}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBoolWrapper": true
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_false",
+          "expr": "TestAllTypes{single_bool_wrapper: false}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBoolWrapper": false
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_bool_wrapper: true}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleBoolWrapper": true
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_false",
+          "expr": "TestAllTypes{single_bool_wrapper: false}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleBoolWrapper": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "string",
+      "description": "Tests for string conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.StringValue{value: 'foo'}",
+          "value": {
+            "stringValue": "foo"
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.StringValue{value: 'foo'}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.StringValue{}",
+          "value": {
+            "stringValue": ""
+          }
+        },
+        {
+          "name": "literal_unicode",
+          "expr": "google.protobuf.StringValue{value: 'flambé'}",
+          "value": {
+            "stringValue": "flambé"
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.StringValue"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.StringValue",
+                  "value": "bar"
+                }
+              }
+            }
+          },
+          "value": {
+            "stringValue": "bar"
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_string_wrapper: 'baz'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleStringWrapper": "baz"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_empty",
+          "expr": "TestAllTypes{single_string_wrapper: ''}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleStringWrapper": ""
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_string_wrapper: 'bletch'}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleStringWrapper": "bletch"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_empty",
+          "expr": "TestAllTypes{single_string_wrapper: ''}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleStringWrapper": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "bytes",
+      "description": "Tests for bytes conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.BytesValue{value: b'foo\\123'}",
+          "value": {
+            "bytesValue": "Zm9vUw=="
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.BytesValue{value: b'foo'}.value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.BytesValue{}",
+          "value": {
+            "bytesValue": ""
+          }
+        },
+        {
+          "name": "literal_unicode",
+          "expr": "google.protobuf.BytesValue{value: b'flambé'}",
+          "value": {
+            "bytesValue": "ZmxhbWLDqQ=="
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.BytesValue"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.BytesValue",
+                  "value": "YmFy"
+                }
+              }
+            }
+          },
+          "value": {
+            "bytesValue": "YmFy"
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_bytes_wrapper: b'baz'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBytesWrapper": "YmF6"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_empty",
+          "expr": "TestAllTypes{single_bytes_wrapper: b''}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBytesWrapper": ""
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_bytes_wrapper: b'bletch'}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleBytesWrapper": "YmxldGNo"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_empty",
+          "expr": "TestAllTypes{single_bytes_wrapper: b''}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleBytesWrapper": ""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "list",
+      "description": "Tests for list conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.ListValue{values: [3.0, 'foo', null]}",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "doubleValue": 3
+                },
+                {
+                  "stringValue": "foo"
+                },
+                {
+                  "nullValue": null
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.ListValue{values: [3.0, 'foo', null]}.values",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.ListValue{values: []}",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.ListValue"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.ListValue",
+                  "value": ["bar", ["a", "b"]]
+                }
+              }
+            }
+          },
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "stringValue": "bar"
+                },
+                {
+                  "listValue": {
+                    "values": [
+                      {
+                        "stringValue": "a"
+                      },
+                      {
+                        "stringValue": "b"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{list_value: [1.0, 'one']}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "listValue": [1, "one"]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_empty",
+          "expr": "TestAllTypes{list_value: []}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "listValue": []
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{list_value: [1.0, 'one']}.list_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "doubleValue": 1
+                },
+                {
+                  "stringValue": "one"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2_empty",
+          "expr": "TestAllTypes{list_value: []}.list_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "description": "Not a wrapper type, so doesn't convert to null.",
+          "expr": "TestAllTypes{}.list_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{list_value: [1.0, 'one']}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "listValue": [1, "one"]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_empty",
+          "expr": "TestAllTypes{list_value: []}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "listValue": []
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{list_value: [1.0, 'one']}.list_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "doubleValue": 1
+                },
+                {
+                  "stringValue": "one"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3_empty",
+          "expr": "TestAllTypes{list_value: []}.list_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "field_read_proto3_unset",
+          "description": "Not a wrapper type, so doesn't convert to null.",
+          "expr": "TestAllTypes{}.list_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "listValue": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "struct",
+      "description": "Tests for struct conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Struct{fields: {'uno': 1.0, 'dos': 2.0}}",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "uno"
+                  },
+                  "value": {
+                    "doubleValue": 1
+                  }
+                },
+                {
+                  "key": {
+                    "stringValue": "dos"
+                  },
+                  "value": {
+                    "doubleValue": 2
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Struct{fields: {'uno': 1.0, 'dos': 2.0}}.fields",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.Struct{fields: {}}",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Struct"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Struct",
+                  "value": {
+                    "first": "Abraham",
+                    "last": "Lincoln"
+                  }
+                }
+              }
+            }
+          },
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "first"
+                  },
+                  "value": {
+                    "stringValue": "Abraham"
+                  }
+                },
+                {
+                  "key": {
+                    "stringValue": "last"
+                  },
+                  "value": {
+                    "stringValue": "Lincoln"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_struct: {'un': 1.0, 'deux': 2.0}}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleStruct": {
+                "deux": 2,
+                "un": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_empty",
+          "expr": "TestAllTypes{single_struct: {}}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleStruct": {}
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_bad",
+          "expr": "TestAllTypes{single_struct: {1: 'uno'}}",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "bad key type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_struct: {'one': 1.0}}.single_struct",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "one"
+                  },
+                  "value": {
+                    "doubleValue": 1
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2_empty",
+          "expr": "TestAllTypes{single_struct: {}}.single_struct",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "description": "Not a wrapper type, so doesn't convert to null.",
+          "expr": "TestAllTypes{}.single_struct",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_struct: {'un': 1.0, 'deux': 2.0}}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleStruct": {
+                "deux": 2,
+                "un": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_empty",
+          "expr": "TestAllTypes{single_struct: {}}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleStruct": {}
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_bad",
+          "expr": "TestAllTypes{single_struct: {1: 'uno'}}",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto3",
+          "evalError": {
+            "errors": [
+              {
+                "message": "bad key type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_struct: {'one': 1.0}}.single_struct",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "one"
+                  },
+                  "value": {
+                    "doubleValue": 1
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3_empty",
+          "expr": "TestAllTypes{single_struct: {}}.single_struct",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "field_read_proto3_unset",
+          "description": "Not a wrapper type, so doesn't convert to null.",
+          "expr": "TestAllTypes{}.single_struct",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "mapValue": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_null",
+      "description": "Tests for null conversions.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "Value{null_value: NullValue.NULL_VALUE}",
+          "container": "google.protobuf",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "Value{null_value: NullValue.NULL_VALUE}.null_value",
+          "disableCheck": true,
+          "container": "google.protobuf",
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_unset",
+          "expr": "google.protobuf.Value{}",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Value",
+                  "value": null
+                }
+              }
+            }
+          },
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_value: null}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": null
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_value: null}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "field_read_proto2_unset",
+          "expr": "TestAllTypes{}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_value: null}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": null
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_value: null}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "field_read_proto3_unset",
+          "expr": "TestAllTypes{}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "nullValue": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_number",
+      "description": "Tests for number conversions in Value.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Value{number_value: 12.5}",
+          "value": {
+            "doubleValue": 12.5
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Value{number_value: 12.5}.number_value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_zero",
+          "expr": "google.protobuf.Value{number_value: 0.0}",
+          "value": {
+            "doubleValue": 0
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Value",
+                  "value": -26.375
+                }
+              }
+            }
+          },
+          "value": {
+            "doubleValue": -26.375
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_value: 7e23}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": 7e23
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_zero",
+          "expr": "TestAllTypes{single_value: 0.0}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": 0
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_value: 7e23}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "doubleValue": 7e23
+          }
+        },
+        {
+          "name": "field_read_proto2_zero",
+          "expr": "TestAllTypes{single_value: 0.0}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "doubleValue": 0
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_value: 7e23}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": 7e23
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_zero",
+          "expr": "TestAllTypes{single_value: 0.0}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": 0
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_value: 7e23}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "doubleValue": 7e23
+          }
+        },
+        {
+          "name": "field_read_proto3_zero",
+          "expr": "TestAllTypes{single_value: 0.0}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "doubleValue": 0
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_string",
+      "description": "Tests for string conversions in Value.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Value{string_value: 'foo'}",
+          "value": {
+            "stringValue": "foo"
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Value{string_value: 'foo'}.string_value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.Value{string_value: ''}",
+          "value": {
+            "stringValue": ""
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Value",
+                  "value": "bar"
+                }
+              }
+            }
+          },
+          "value": {
+            "stringValue": "bar"
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_value: 'baz'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": "baz"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_empty",
+          "expr": "TestAllTypes{single_value: ''}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": ""
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_value: 'bletch'}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "stringValue": "bletch"
+          }
+        },
+        {
+          "name": "field_read_proto2_zero",
+          "expr": "TestAllTypes{single_value: ''}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "stringValue": ""
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_value: 'baz'}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": "baz"
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_empty",
+          "expr": "TestAllTypes{single_value: ''}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": ""
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_value: 'bletch'}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "stringValue": "bletch"
+          }
+        },
+        {
+          "name": "field_read_proto3_zero",
+          "expr": "TestAllTypes{single_value: ''}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "stringValue": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_bool",
+      "description": "Tests for boolean conversions in Value.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Value{bool_value: true}",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Value{bool_value: true}.bool_value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_false",
+          "expr": "google.protobuf.Value{bool_value: false}",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Value",
+                  "value": true
+                }
+              }
+            }
+          },
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_value: true}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": true
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_false",
+          "expr": "TestAllTypes{single_value: false}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": false
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_value: true}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "field_read_proto2_false",
+          "expr": "TestAllTypes{single_value: false}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_value: true}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": true
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_false",
+          "expr": "TestAllTypes{single_value: false}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": false
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_value: true}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "field_read_proto3_false",
+          "expr": "TestAllTypes{single_value: false}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "boolValue": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_struct",
+      "description": "Tests for struct conversions in Value.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Value{struct_value: {'a': 1.0, 'b': 'two'}}",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "a"
+                  },
+                  "value": {
+                    "doubleValue": 1
+                  }
+                },
+                {
+                  "key": {
+                    "stringValue": "b"
+                  },
+                  "value": {
+                    "stringValue": "two"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Value{struct_value: {'a': 1.0, 'b': 'two'}}.struct_value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.Value{struct_value: {}}",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Value",
+                  "value": {
+                    "x": null,
+                    "y": false
+                  }
+                }
+              }
+            }
+          },
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "x"
+                  },
+                  "value": {
+                    "nullValue": null
+                  }
+                },
+                {
+                  "key": {
+                    "stringValue": "y"
+                  },
+                  "value": {
+                    "boolValue": false
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_value: {'un': 1.0, 'deux': 2.0}}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": {
+                "deux": 2,
+                "un": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_empty",
+          "expr": "TestAllTypes{single_value: {}}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": {}
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_value: {'i': true}}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "i"
+                  },
+                  "value": {
+                    "boolValue": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2_empty",
+          "expr": "TestAllTypes{single_value: {}}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "mapValue": {}
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_value: {'un': 1.0, 'deux': 2.0}}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": {
+                "deux": 2,
+                "un": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_empty",
+          "expr": "TestAllTypes{single_value: {}}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": {}
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_value: {'i': true}}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "mapValue": {
+              "entries": [
+                {
+                  "key": {
+                    "stringValue": "i"
+                  },
+                  "value": {
+                    "boolValue": true
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3_empty",
+          "expr": "TestAllTypes{single_value: {}}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "mapValue": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_list",
+      "description": "Tests for list conversions in Value.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Value{list_value: ['a', 3.0]}",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "stringValue": "a"
+                },
+                {
+                  "doubleValue": 3
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Value{list_value: []}.list_value",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.Value{list_value: []}",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Value"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Value",
+                  "value": [1, true, "hi"]
+                }
+              }
+            }
+          },
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "doubleValue": 1
+                },
+                {
+                  "boolValue": true
+                },
+                {
+                  "stringValue": "hi"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_value: ['un', 1.0]}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": ["un", 1]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2_empty",
+          "expr": "TestAllTypes{single_value: []}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": []
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_value: ['i', true]}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "stringValue": "i"
+                },
+                {
+                  "boolValue": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2_empty",
+          "expr": "TestAllTypes{single_value: []}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_value: ['un', 1.0]}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": ["un", 1]
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3_empty",
+          "expr": "TestAllTypes{single_value: []}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleValue": []
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_value: ['i', true]}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "stringValue": "i"
+                },
+                {
+                  "boolValue": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3_empty",
+          "expr": "TestAllTypes{single_value: []}.single_value",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "listValue": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "any",
+      "description": "Tests for Any conversion.",
+      "test": [
+        {
+          "name": "literal",
+          "expr": "google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\x08\\x96\\x01'}",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32": 150
+            }
+          }
+        },
+        {
+          "name": "literal_no_field_access",
+          "expr": "google.protobuf.Any{type_url: 'type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes', value: b'\\x08\\x96\\x01'}.type_url",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_matching_overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "literal_empty",
+          "expr": "google.protobuf.Any{}",
+          "evalError": {
+            "errors": [
+              {
+                "message": "conversion"
+              }
+            ]
+          }
+        },
+        {
+          "name": "var",
+          "expr": "x",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "google.protobuf.Any"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/google.protobuf.Any",
+                  "value": {
+                    "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                    "singleInt32": 150
+                  }
+                }
+              }
+            }
+          },
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32": 150
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto2",
+          "expr": "TestAllTypes{single_any: TestAllTypes{single_int32: 150}}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleAny": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                "singleInt32": 150
+              }
+            }
+          }
+        },
+        {
+          "name": "field_read_proto2",
+          "expr": "TestAllTypes{single_any: TestAllTypes{single_int32: 150}}.single_any",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32": 150
+            }
+          }
+        },
+        {
+          "name": "field_assign_proto3",
+          "expr": "TestAllTypes{single_any: TestAllTypes{single_int32: 150}}",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleAny": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "singleInt32": 150
+              }
+            }
+          }
+        },
+        {
+          "name": "field_read_proto3",
+          "expr": "TestAllTypes{single_any: TestAllTypes{single_int32: 150}}.single_any",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+              "singleInt32": 150
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "complex",
+      "description": "Tests combining various dynamic conversions.",
+      "test": [
+        {
+          "name": "any_list_map",
+          "expr": "TestAllTypes{single_any: [{'almost': 'done'}]}.single_any",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "listValue": {
+              "values": [
+                {
+                  "mapValue": {
+                    "entries": [
+                      {
+                        "key": {
+                          "stringValue": "almost"
+                        },
+                        "value": {
+                          "stringValue": "done"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
