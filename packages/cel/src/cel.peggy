@@ -146,10 +146,10 @@ MemberTail
   = (S @Access)*
 
 Access
-  = "." S field:Identifier S ![(]
+  = "." S field:Selector S ![(]
     { return ((prevExpr: Expr) => builder.newSelectExpr(offset(), prevExpr, field)) }
-  / "." S identifier:Identifier S "(" args:ExprList ")"
-    { return ((prevExpr: Expr) => builder.newMemberCallExpr(offset(), prevExpr, identifier, args)) }
+  / "." S func:Selector S "(" args:ExprList ")"
+    { return ((prevExpr: Expr) => builder.newMemberCallExpr(offset(), prevExpr, func, args)) }
   / "[" index:Expr "]"
     { return ((prevExpr: Expr) => builder.newCallExpr(offset(), "_[_]", [prevExpr, index])) }
 
@@ -157,9 +157,9 @@ Primary
   = Literal
   / "."? S identifier:Identifier S "(" args:ExprList ")"
     { return builder.newCallExpr(offset(), identifier, args) }
-  / dot:"."? S name:Identifier|1.., S "." S| S "{" entries:FieldInits (",")? S "}"
+  / dot:"."? S name:Selector|1.., S "." S| S "{" entries:FieldInits (",")? S "}"
     { return builder.newStructExpr(offset(), entries, (dot !== null ? dot : '') + name.join('.')) }
-  / "."? S name:Identifier
+  / "."? S name:Selector
     { return builder.newIdentExpr(offset(), name) }
   / "(" @Expr ")"
   / elements:("[" @ExprList (",")? S "]")
@@ -172,7 +172,7 @@ ExprList
 
 FieldInits
   = (
-      S key:Identifier $(S ":") value:Expr
+      S key:Selector $(S ":") value:Expr
       { return builder.newStructEntry(offset(), key, value) }
     )|0.., ","|
 
@@ -194,6 +194,16 @@ Identifier "identifier"
       }
 
       return id;
+    }
+
+Selector "selector"
+  = selector:$([_a-zA-Z][_a-zA-Z0-9]*)
+    {
+      if (["true", "false", "null", "in"].includes(selector)) {
+        error("reserved keyword");
+      }
+
+      return selector;
     }
 
 Literal
