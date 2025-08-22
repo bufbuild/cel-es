@@ -1,0 +1,1403 @@
+{
+  "name": "proto2",
+  "description": "Protocol buffer version 2 tests.  See notes for the available set of protos for tests.",
+  "section": [
+    {
+      "name": "literal_singular",
+      "description": "Literals with singular fields set.",
+      "test": [
+        {
+          "name": "int64_nocontainer",
+          "expr": "cel.expr.conformance.proto2.TestAllTypes{single_int64: 17}",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt64": "17"
+            }
+          }
+        },
+        {
+          "name": "int32",
+          "expr": "TestAllTypes{single_int32: -34}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32": -34
+            }
+          }
+        },
+        {
+          "name": "int32_eq_uint",
+          "expr": "Int32Value{value: 34} == dyn(UInt64Value{value: 34u})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "not_int32_eq_uint",
+          "expr": "Int32Value{value: 34} == dyn(UInt64Value{value: 18446744073709551615u})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "int32_eq_double",
+          "expr": "Int32Value{value: 34} == dyn(DoubleValue{value: 34.0})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "not_int32_eq_double",
+          "expr": "Int32Value{value: 34} == dyn(DoubleValue{value: -9223372036854775809.0})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "int64",
+          "expr": "TestAllTypes{single_int64: 17}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt64": "17"
+            }
+          }
+        },
+        {
+          "name": "uint32",
+          "expr": "TestAllTypes{single_uint32: 1u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint32": 1
+            }
+          }
+        },
+        {
+          "name": "uint32_eq_int",
+          "expr": "UInt32Value{value: 34u} == dyn(Int64Value{value: 34})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "not_uint32_eq_int",
+          "expr": "UInt32Value{value: 34u} == dyn(Int64Value{value: -1})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "uint32_eq_double",
+          "expr": "UInt32Value{value: 34u} == dyn(DoubleValue{value: 34.0})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "not_uint32_eq_double",
+          "expr": "UInt32Value{value: 34u} == dyn(DoubleValue{value: 18446744073709551616.0})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "uint64",
+          "expr": "TestAllTypes{single_uint64: 9999u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint64": "9999"
+            }
+          }
+        },
+        {
+          "name": "sint32",
+          "expr": "TestAllTypes{single_sint32: -3}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleSint32": -3
+            }
+          }
+        },
+        {
+          "name": "sint64",
+          "expr": "TestAllTypes{single_sint64: 255}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleSint64": "255"
+            }
+          }
+        },
+        {
+          "name": "fixed32",
+          "expr": "TestAllTypes{single_fixed32: 43u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFixed32": 43
+            }
+          }
+        },
+        {
+          "name": "fixed64",
+          "expr": "TestAllTypes{single_fixed64: 1880u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFixed64": "1880"
+            }
+          }
+        },
+        {
+          "name": "sfixed32",
+          "expr": "TestAllTypes{single_sfixed32: -404}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleSfixed32": -404
+            }
+          }
+        },
+        {
+          "name": "sfixed64",
+          "expr": "TestAllTypes{single_sfixed64: -1}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleSfixed64": "-1"
+            }
+          }
+        },
+        {
+          "name": "float",
+          "expr": "TestAllTypes{single_float: 3.1416}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloat": 3.1416
+            }
+          }
+        },
+        {
+          "name": "float_eq_int",
+          "expr": "FloatValue{value: 3.0} == dyn(Int64Value{value: 3})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "not_float_eq_int",
+          "expr": "FloatValue{value: -1.14} == dyn(Int64Value{value: -1})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "float_eq_uint",
+          "expr": "FloatValue{value: 34.0} == dyn(UInt64Value{value: 34u})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "not_float_eq_uint",
+          "expr": "FloatValue{value: -1.0} == dyn(UInt64Value{value: 18446744073709551615u})",
+          "container": "google.protobuf",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "double",
+          "expr": "TestAllTypes{single_double: 6.022e23}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleDouble": 6.022e23
+            }
+          }
+        },
+        {
+          "name": "bool",
+          "expr": "TestAllTypes{single_bool: true}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBool": true
+            }
+          }
+        },
+        {
+          "name": "string",
+          "expr": "TestAllTypes{single_string: 'foo'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleString": "foo"
+            }
+          }
+        },
+        {
+          "name": "bytes",
+          "expr": "TestAllTypes{single_bytes: b'\\377'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBytes": "/w=="
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "literal_wellknown",
+      "description": "Literals with well-known fields set.",
+      "test": [
+        {
+          "name": "any",
+          "expr": "TestAllTypes{single_any: TestAllTypes{single_int32: 1}}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleAny": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                "singleInt32": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "duration",
+          "expr": "TestAllTypes{single_duration: duration('123s')}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleDuration": "123s"
+            }
+          }
+        },
+        {
+          "name": "timestamp",
+          "expr": "TestAllTypes{single_timestamp: timestamp('2009-02-13T23:31:30Z')}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleTimestamp": "2009-02-13T23:31:30Z"
+            }
+          }
+        },
+        {
+          "name": "struct",
+          "expr": "TestAllTypes{single_struct: {'one': 1, 'two': 2}}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleStruct": {
+                "one": 1,
+                "two": 2
+              }
+            }
+          }
+        },
+        {
+          "name": "value",
+          "expr": "TestAllTypes{single_value: 'foo'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleValue": "foo"
+            }
+          }
+        },
+        {
+          "name": "int64_wrapper",
+          "expr": "TestAllTypes{single_int64_wrapper: -321}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt64Wrapper": "-321"
+            }
+          }
+        },
+        {
+          "name": "int32_wrapper",
+          "expr": "TestAllTypes{single_int32_wrapper: -456}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleInt32Wrapper": -456
+            }
+          }
+        },
+        {
+          "name": "double_wrapper",
+          "expr": "TestAllTypes{single_double_wrapper: 2.71828}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleDoubleWrapper": 2.71828
+            }
+          }
+        },
+        {
+          "name": "float_wrapper",
+          "expr": "TestAllTypes{single_float_wrapper: 2.99792e8}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleFloatWrapper": 299792000
+            }
+          }
+        },
+        {
+          "name": "uint64_wrapper",
+          "expr": "TestAllTypes{single_uint64_wrapper: 8675309u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint64Wrapper": "8675309"
+            }
+          }
+        },
+        {
+          "name": "uint32_wrapper",
+          "expr": "TestAllTypes{single_uint32_wrapper: 987u}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleUint32Wrapper": 987
+            }
+          }
+        },
+        {
+          "name": "string_wrapper",
+          "expr": "TestAllTypes{single_string_wrapper: 'hubba'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleStringWrapper": "hubba"
+            }
+          }
+        },
+        {
+          "name": "bool_wrapper",
+          "expr": "TestAllTypes{single_bool_wrapper: true}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBoolWrapper": true
+            }
+          }
+        },
+        {
+          "name": "bytes_wrapper",
+          "expr": "TestAllTypes{single_bytes_wrapper: b'\\301\\103'}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+              "singleBytesWrapper": "wUM="
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "singular_bind",
+      "description": "Binding the singular fields.",
+      "test": [
+        {
+          "name": "int32",
+          "expr": "x.single_int32",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "singleInt32": 17
+                }
+              }
+            }
+          },
+          "value": {
+            "int64Value": "17"
+          }
+        },
+        {
+          "name": "int64",
+          "expr": "x.single_int64",
+          "typeEnv": [
+            {
+              "name": "x",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "x": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "singleInt64": "-99"
+                }
+              }
+            }
+          },
+          "value": {
+            "int64Value": "-99"
+          }
+        }
+      ]
+    },
+    {
+      "name": "empty_field",
+      "description": "Tests on empty fields.",
+      "test": [
+        {
+          "name": "scalar_with_default",
+          "expr": "TestAllTypes{}.single_int32",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "int64Value": "-32"
+          }
+        },
+        {
+          "name": "scalar_no_default",
+          "expr": "TestAllTypes{}.single_fixed32",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "uint64Value": "0"
+          }
+        },
+        {
+          "name": "nested_message",
+          "expr": "TestAllTypes{}.single_nested_message",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "objectValue": {
+              "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes.NestedMessage"
+            }
+          }
+        },
+        {
+          "name": "nested_message_subfield",
+          "expr": "TestAllTypes{}.single_nested_message.bb",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "int64Value": "0"
+          }
+        },
+        {
+          "name": "wkt",
+          "expr": "TestAllTypes{}.single_int64_wrapper",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "repeated_scalar",
+          "expr": "TestAllTypes{}.repeated_int64",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "repeated_enum",
+          "expr": "TestAllTypes{}.repeated_nested_enum",
+          "container": "cel.expr.conformance.proto3",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "repeated_nested",
+          "expr": "TestAllTypes{}.repeated_nested_message",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "listValue": {}
+          }
+        },
+        {
+          "name": "map",
+          "expr": "TestAllTypes{}.map_string_string",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "mapValue": {}
+          }
+        }
+      ]
+    },
+    {
+      "name": "has",
+      "description": "Tests for the has() macro on proto2 messages.",
+      "test": [
+        {
+          "name": "undefined",
+          "expr": "has(TestAllTypes{}.no_such_field)",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "no_such_field"
+              }
+            ]
+          }
+        },
+        {
+          "name": "repeated_none_implicit",
+          "expr": "has(TestAllTypes{}.repeated_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "repeated_none_explicit",
+          "expr": "has(TestAllTypes{repeated_int32: []}.repeated_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "repeated_one",
+          "expr": "has(TestAllTypes{repeated_int32: [1]}.repeated_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "repeated_many",
+          "expr": "has(TestAllTypes{repeated_int32: [1, 2, 3]}.repeated_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "map_none_implicit",
+          "expr": "has(TestAllTypes{}.map_string_string)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "map_none_explicit",
+          "expr": "has(TestAllTypes{map_string_string: {}}.map_string_string)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "map_one_default",
+          "expr": "has(TestAllTypes{map_string_string: {'MT': ''}}.map_string_string)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "map_one",
+          "expr": "has(TestAllTypes{map_string_string: {'one': 'uno'}}.map_string_string)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "map_many",
+          "expr": "has(TestAllTypes{map_string_string: {'one': 'uno', 'two': 'dos'}}.map_string_string)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "required",
+          "expr": "has(TestRequired{required_int32: 4}.required_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "optional_unset_no_default",
+          "expr": "has(TestAllTypes{}.single_sint32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "optional_set_no_default",
+          "expr": "has(TestAllTypes{single_sint32: -4}.single_sint32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "optional_unset_with_default",
+          "expr": "has(TestAllTypes{}.single_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "optional_set_with_default",
+          "expr": "has(TestAllTypes{single_int32: 16}.single_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "optional_set_to_default",
+          "expr": "has(TestAllTypes{single_int32: -32}.single_int32)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "optional_message_unset",
+          "expr": "has(TestAllTypes{}.standalone_message)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "optional_message_set",
+          "expr": "has(TestAllTypes{standalone_message: TestAllTypes.NestedMessage{}}.standalone_message)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "optional_enum_unset",
+          "expr": "has(TestAllTypes{}.standalone_enum)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "optional_enum_set",
+          "expr": "has(TestAllTypes{standalone_enum: TestAllTypes.NestedEnum.BAR}.standalone_enum)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "optional_enum_set_zero",
+          "expr": "has(TestAllTypes{standalone_enum: TestAllTypes.NestedEnum.FOO}.standalone_enum)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "oneof_unset",
+          "expr": "has(TestAllTypes{}.single_nested_message)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "oneof_other_set",
+          "expr": "has(TestAllTypes{single_nested_enum: TestAllTypes.NestedEnum.BAZ}.single_nested_message)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "oneof_set",
+          "expr": "has(TestAllTypes{single_nested_message: TestAllTypes.NestedMessage{}}.single_nested_message)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "oneof_set_default",
+          "expr": "has(TestAllTypes{single_nested_enum: TestAllTypes.NestedEnum.FOO}.single_nested_enum)",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "set_null",
+      "test": [
+        {
+          "name": "single_message",
+          "expr": "TestAllTypes{single_nested_message: null} == TestAllTypes{}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "single_any",
+          "expr": "TestAllTypes{single_any: null}.single_any",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "single_value",
+          "expr": "TestAllTypes{single_value: null}.single_value",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "nullValue": null
+          }
+        },
+        {
+          "name": "single_duration",
+          "expr": "TestAllTypes{single_duration: null} == TestAllTypes{}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "single_timestamp",
+          "expr": "TestAllTypes{single_timestamp: null} == TestAllTypes{}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        },
+        {
+          "name": "single_scalar",
+          "expr": "TestAllTypes{single_bool: null} == TestAllTypes{}",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "unsupported field type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "repeated",
+          "expr": "TestAllTypes{repeated_int32: null} == TestAllTypes{}",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "unsupported field type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "map",
+          "expr": "TestAllTypes{map_string_string: null} == TestAllTypes{}",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "unsupported field type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "list_value",
+          "expr": "TestAllTypes{list_value: null} == TestAllTypes{}",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "unsupported field type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "single_struct",
+          "expr": "TestAllTypes{single_struct: null} == TestAllTypes{}",
+          "disableCheck": true,
+          "container": "cel.expr.conformance.proto2",
+          "evalError": {
+            "errors": [
+              {
+                "message": "unsupported field type"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "quoted_fields",
+      "test": [
+        {
+          "name": "set_field_with_quoted_name",
+          "expr": "TestAllTypes{`in`: true} == TestAllTypes{}",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": false
+          }
+        },
+        {
+          "name": "get_field_with_quoted_name",
+          "expr": "TestAllTypes{`in`: true}.`in`",
+          "container": "cel.expr.conformance.proto2",
+          "value": {
+            "boolValue": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "extensions_has",
+      "description": "Tests for presence checks on proto2 extension fields.",
+      "test": [
+        {
+          "name": "package_scoped_int32",
+          "expr": "has(msg.`cel.expr.conformance.proto2.int32_ext`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.int32_ext]": 42
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_nested_ext",
+          "expr": "has(msg.`cel.expr.conformance.proto2.nested_ext`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.nested_ext]": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_test_all_types_ext",
+          "expr": "has(msg.`cel.expr.conformance.proto2.test_all_types_ext`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.test_all_types_ext]": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_test_all_types_nested_enum_ext",
+          "expr": "has(msg.`cel.expr.conformance.proto2.nested_enum_ext`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.nested_enum_ext]": "BAR"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_repeated_test_all_types",
+          "expr": "has(msg.`cel.expr.conformance.proto2.repeated_test_all_types`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.repeated_test_all_types]": [
+                    {
+                      "singleInt64": "1"
+                    },
+                    {
+                      "singleBool": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_int64",
+          "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext]": "42"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_nested_ext",
+          "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext]": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_nested_enum_ext",
+          "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext]": "BAR"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_repeated_test_all_types",
+          "expr": "has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types`)",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types]": [
+                    {
+                      "singleInt64": "1"
+                    },
+                    {
+                      "singleBool": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "extensions_get",
+      "description": "Tests for accessing proto2 extension fields.",
+      "test": [
+        {
+          "name": "package_scoped_int32",
+          "expr": "msg.`cel.expr.conformance.proto2.int32_ext` == 42",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.int32_ext]": 42
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_nested_ext",
+          "expr": "msg.`cel.expr.conformance.proto2.nested_ext` == cel.expr.conformance.proto2.TestAllTypes{}",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.nested_ext]": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_test_all_types_ext",
+          "expr": "msg.`cel.expr.conformance.proto2.test_all_types_ext` == cel.expr.conformance.proto2.TestAllTypes{}",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.test_all_types_ext]": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_test_all_types_nested_enum_ext",
+          "expr": "msg.`cel.expr.conformance.proto2.nested_enum_ext` == cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.nested_enum_ext]": "BAR"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "package_scoped_repeated_test_all_types",
+          "expr": "msg.`cel.expr.conformance.proto2.repeated_test_all_types` == [cel.expr.conformance.proto2.TestAllTypes{single_int64: 1}, cel.expr.conformance.proto2.TestAllTypes{single_bool: true}]",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.repeated_test_all_types]": [
+                    {
+                      "singleInt64": "1"
+                    },
+                    {
+                      "singleBool": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_int64",
+          "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext` == 42",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext]": "42"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_nested_ext",
+          "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext` == cel.expr.conformance.proto2.TestAllTypes{}",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext]": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_nested_enum_ext",
+          "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext` == cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext]": "BAR"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "message_scoped_repeated_test_all_types",
+          "expr": "msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types` == [cel.expr.conformance.proto2.TestAllTypes{single_int64: 1}, cel.expr.conformance.proto2.TestAllTypes{single_bool: true}]",
+          "typeEnv": [
+            {
+              "name": "msg",
+              "ident": {
+                "type": {
+                  "messageType": "cel.expr.conformance.proto2.TestAllTypes"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "msg": {
+              "value": {
+                "objectValue": {
+                  "@type": "type.googleapis.com/cel.expr.conformance.proto2.TestAllTypes",
+                  "[cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types]": [
+                    {
+                      "singleInt64": "1"
+                    },
+                    {
+                      "singleBool": true
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

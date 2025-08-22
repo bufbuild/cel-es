@@ -14,7 +14,7 @@
 
 // Generated from github.com/google/cel-spec v0.24.0 by scripts/fetch-testdata.js
 
-export const testdataJson = [
+export const testdata = [
   {
     "name": "basic",
     "description": "Basic conformance tests that all implementations should pass.",

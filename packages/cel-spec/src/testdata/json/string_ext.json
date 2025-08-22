@@ -1,0 +1,1615 @@
+{
+  "name": "string_ext",
+  "description": "Tests for the strings extension library.",
+  "section": [
+    {
+      "name": "char_at",
+      "test": [
+        {
+          "name": "middle_index",
+          "expr": "'tacocat'.charAt(3)",
+          "value": {
+            "stringValue": "o"
+          }
+        },
+        {
+          "name": "end_index",
+          "expr": "'tacocat'.charAt(7)",
+          "value": {
+            "stringValue": ""
+          }
+        },
+        {
+          "name": "multiple",
+          "expr": "'©αT'.charAt(0) == '©' && '©αT'.charAt(1) == 'α' && '©αT'.charAt(2) == 'T'"
+        }
+      ]
+    },
+    {
+      "name": "index_of",
+      "test": [
+        {
+          "name": "empty_index",
+          "expr": "'tacocat'.indexOf('')",
+          "value": {
+            "int64Value": "0"
+          }
+        },
+        {
+          "name": "string_index",
+          "expr": "'tacocat'.indexOf('ac')",
+          "value": {
+            "int64Value": "1"
+          }
+        },
+        {
+          "name": "nomatch",
+          "expr": "'tacocat'.indexOf('none') == -1"
+        },
+        {
+          "name": "empty_index",
+          "expr": "'tacocat'.indexOf('', 3) == 3"
+        },
+        {
+          "name": "char_index",
+          "expr": "'tacocat'.indexOf('a', 3) == 5"
+        },
+        {
+          "name": "string_index",
+          "expr": "'tacocat'.indexOf('at', 3) == 5"
+        },
+        {
+          "name": "unicode_char",
+          "expr": "'ta©o©αT'.indexOf('©') == 2"
+        },
+        {
+          "name": "unicode_char_index",
+          "expr": "'ta©o©αT'.indexOf('©', 3) == 4"
+        },
+        {
+          "name": "unicode_string_index",
+          "expr": "'ta©o©αT'.indexOf('©αT', 3) == 4"
+        },
+        {
+          "name": "unicode_string_nomatch_index",
+          "expr": "'ta©o©αT'.indexOf('©α', 5) == -1"
+        },
+        {
+          "name": "char_index",
+          "expr": "'ijk'.indexOf('k') == 2"
+        },
+        {
+          "name": "string_with_space_fullmatch",
+          "expr": "'hello wello'.indexOf('hello wello') == 0"
+        },
+        {
+          "name": "string_with_space_index",
+          "expr": "'hello wello'.indexOf('ello', 6) == 7"
+        },
+        {
+          "name": "string_nomatch_index",
+          "expr": "'hello wello'.indexOf('elbo room!!') == -1"
+        }
+      ]
+    },
+    {
+      "name": "last_index_of",
+      "test": [
+        {
+          "name": "empty",
+          "expr": "'tacocat'.lastIndexOf('') == 7"
+        },
+        {
+          "name": "string",
+          "expr": "'tacocat'.lastIndexOf('at') == 5"
+        },
+        {
+          "name": "string_nomatch",
+          "expr": "'tacocat'.lastIndexOf('none') == -1"
+        },
+        {
+          "name": "empty_index",
+          "expr": "'tacocat'.lastIndexOf('', 3) == 3"
+        },
+        {
+          "name": "char_index",
+          "expr": "'tacocat'.lastIndexOf('a', 3) == 1"
+        },
+        {
+          "name": "unicode_char",
+          "expr": "'ta©o©αT'.lastIndexOf('©') == 4"
+        },
+        {
+          "name": "unicode_char_index",
+          "expr": "'ta©o©αT'.lastIndexOf('©', 3) == 2"
+        },
+        {
+          "name": "unicode_string_index",
+          "expr": "'ta©o©αT'.lastIndexOf('©α', 4) == 4"
+        },
+        {
+          "name": "string_with_space_string_index",
+          "expr": "'hello wello'.lastIndexOf('ello', 6) == 1"
+        },
+        {
+          "name": "string_with_space_string_nomatch",
+          "expr": "'hello wello'.lastIndexOf('low') == -1"
+        },
+        {
+          "name": "string_with_space_string_with_space_nomatch",
+          "expr": "'hello wello'.lastIndexOf('elbo room!!') == -1"
+        },
+        {
+          "name": "string_with_space_fullmatch",
+          "expr": "'hello wello'.lastIndexOf('hello wello') == 0"
+        },
+        {
+          "name": "repeated_string",
+          "expr": "'bananananana'.lastIndexOf('nana', 7) == 6"
+        }
+      ]
+    },
+    {
+      "name": "ascii_casing",
+      "test": [
+        {
+          "name": "lowerascii",
+          "expr": "'TacoCat'.lowerAscii() == 'tacocat'"
+        },
+        {
+          "name": "lowerascii_unicode",
+          "expr": "'TacoCÆt'.lowerAscii() == 'tacocÆt'"
+        },
+        {
+          "name": "lowerascii_unicode_with_space",
+          "expr": "'TacoCÆt Xii'.lowerAscii() == 'tacocÆt xii'"
+        },
+        {
+          "name": "upperascii",
+          "expr": "'tacoCat'.upperAscii() == 'TACOCAT'"
+        },
+        {
+          "name": "upperascii_unicode",
+          "expr": "'tacoCαt'.upperAscii() == 'TACOCαT'"
+        },
+        {
+          "name": "upperascii_unicode_with_space",
+          "expr": "'TacoCÆt Xii'.upperAscii() == 'TACOCÆT XII'"
+        }
+      ]
+    },
+    {
+      "name": "replace",
+      "test": [
+        {
+          "name": "no_placeholder",
+          "expr": "'12 days 12 hours'.replace('{0}', '2') == '12 days 12 hours'"
+        },
+        {
+          "name": "basic",
+          "expr": "'{0} days {0} hours'.replace('{0}', '2') == '2 days 2 hours'"
+        },
+        {
+          "name": "chained",
+          "expr": "'{0} days {0} hours'.replace('{0}', '2', 1).replace('{0}', '23') == '2 days 23 hours'"
+        },
+        {
+          "name": "unicode",
+          "expr": "'1 ©αT taco'.replace('αT', 'o©α') == '1 ©o©α taco'"
+        }
+      ]
+    },
+    {
+      "name": "split",
+      "test": [
+        {
+          "name": "empty",
+          "expr": "'hello world'.split(' ') == ['hello', 'world']"
+        },
+        {
+          "name": "zero_limit",
+          "expr": "'hello world events!'.split(' ', 0) == []"
+        },
+        {
+          "name": "one_limit",
+          "expr": "'hello world events!'.split(' ', 1) == ['hello world events!']"
+        },
+        {
+          "name": "unicode_negative_limit",
+          "expr": "'o©o©o©o'.split('©', -1) == ['o', 'o', 'o', 'o']"
+        }
+      ]
+    },
+    {
+      "name": "substring",
+      "test": [
+        {
+          "name": "start",
+          "expr": "'tacocat'.substring(4) == 'cat'"
+        },
+        {
+          "name": "start_with_max_length",
+          "expr": "'tacocat'.substring(7) == ''"
+        },
+        {
+          "name": "start_and_end",
+          "expr": "'tacocat'.substring(0, 4) == 'taco'"
+        },
+        {
+          "name": "start_and_end_equal_value",
+          "expr": "'tacocat'.substring(4, 4) == ''"
+        },
+        {
+          "name": "unicode_start_and_end",
+          "expr": "'ta©o©αT'.substring(2, 6) == '©o©α'"
+        },
+        {
+          "name": "unicode_start_and_end_equal_value",
+          "expr": "'ta©o©αT'.substring(7, 7) == ''"
+        }
+      ]
+    },
+    {
+      "name": "trim",
+      "test": [
+        {
+          "name": "blank_spaces_escaped_chars",
+          "expr": "' \\f\\n\\r\\t\\vtext  '.trim() == 'text'"
+        },
+        {
+          "name": "unicode_space_chars_1",
+          "expr": "'\\u0085\\u00a0\\u1680text'.trim() == 'text'"
+        },
+        {
+          "name": "unicode_space_chars_2",
+          "expr": "'text\\u2000\\u2001\\u2002\\u2003\\u2004\\u2004\\u2006\\u2007\\u2008\\u2009'.trim() == 'text'"
+        },
+        {
+          "name": "unicode_space_chars_3",
+          "expr": "'\\u200atext\\u2028\\u2029\\u202F\\u205F\\u3000'.trim() == 'text'"
+        },
+        {
+          "name": "unicode_no_trim",
+          "expr": "'\\u180etext\\u200b\\u200c\\u200d\\u2060\\ufeff'.trim() == '\\u180etext\\u200b\\u200c\\u200d\\u2060\\ufeff'"
+        }
+      ]
+    },
+    {
+      "name": "join",
+      "test": [
+        {
+          "name": "empty_separator",
+          "expr": "['x', 'y'].join() == 'xy'"
+        },
+        {
+          "name": "dash_separator",
+          "expr": "['x', 'y'].join('-') == 'x-y'"
+        },
+        {
+          "name": "empty_string_empty_separator",
+          "expr": "[].join() == ''"
+        },
+        {
+          "name": "empty_string_dash_separator",
+          "expr": "[].join('-') == ''"
+        }
+      ]
+    },
+    {
+      "name": "quote",
+      "test": [
+        {
+          "name": "multiline",
+          "expr": "strings.quote(\"first\\nsecond\") == \"\\\"first\\\\nsecond\\\"\""
+        },
+        {
+          "name": "escaped",
+          "expr": "strings.quote(\"bell\\a\") == \"\\\"bell\\\\a\\\"\""
+        },
+        {
+          "name": "backspace",
+          "expr": "strings.quote(\"\\bbackspace\") == \"\\\"\\\\bbackspace\\\"\""
+        },
+        {
+          "name": "form_feed",
+          "expr": "strings.quote(\"\\fform feed\") == \"\\\"\\\\fform feed\\\"\""
+        },
+        {
+          "name": "carriage_return",
+          "expr": "strings.quote(\"carriage \\r return\") == \"\\\"carriage \\\\r return\\\"\""
+        },
+        {
+          "name": "horizontal_tab",
+          "expr": "strings.quote(\"horizontal tab\\t\") == \"\\\"horizontal tab\\\\t\\\"\""
+        },
+        {
+          "name": "vertical_tab",
+          "expr": "strings.quote(\"vertical \\v tab\") == \"\\\"vertical \\\\v tab\\\"\""
+        },
+        {
+          "name": "double_slash",
+          "expr": "strings.quote(\"double \\\\\\\\ slash\") == \"\\\"double \\\\\\\\\\\\\\\\ slash\\\"\""
+        },
+        {
+          "name": "two_escape_sequences",
+          "expr": "strings.quote(\"two escape sequences \\\\a\\\\n\") == \"\\\"two escape sequences \\\\\\\\a\\\\\\\\n\\\"\""
+        },
+        {
+          "name": "verbatim",
+          "expr": "strings.quote(\"verbatim\") == \"\\\"verbatim\\\"\""
+        },
+        {
+          "name": "ends_with",
+          "expr": "strings.quote(\"ends with \\\\\") == \"\\\"ends with \\\\\\\\\\\"\""
+        },
+        {
+          "name": "starts_with",
+          "expr": "strings.quote(\"\\\\ starts with\") == \"\\\"\\\\\\\\ starts with\\\"\""
+        },
+        {
+          "name": "printable_unicode",
+          "expr": "strings.quote(\"printable unicode😀\") == \"\\\"printable unicode😀\\\"\""
+        },
+        {
+          "name": "mid_string_quote",
+          "expr": "strings.quote(\"mid string \\\" quote\") == \"\\\"mid string \\\\\\\" quote\\\"\""
+        },
+        {
+          "name": "single_quote_with_double_quote",
+          "expr": "strings.quote('single-quote with \"double quote\"') == \"\\\"single-quote with \\\\\\\"double quote\\\\\\\"\\\"\""
+        },
+        {
+          "name": "size_unicode_char",
+          "expr": "strings.quote(\"size('ÿ')\") == \"\\\"size('ÿ')\\\"\""
+        },
+        {
+          "name": "size_unicode_string",
+          "expr": "strings.quote(\"size('πέντε')\") == \"\\\"size('πέντε')\\\"\""
+        },
+        {
+          "name": "unicode",
+          "expr": "strings.quote(\"завтра\") == \"\\\"завтра\\\"\""
+        },
+        {
+          "name": "unicode_code_points",
+          "expr": "strings.quote(\"\\U0001F431\\U0001F600\\U0001F61B\")",
+          "value": {
+            "stringValue": "\"🐱😀😛\""
+          }
+        },
+        {
+          "name": "unicode_2",
+          "expr": "strings.quote(\"ta©o©αT\") == \"\\\"ta©o©αT\\\"\""
+        },
+        {
+          "name": "empty_quote",
+          "expr": "strings.quote(\"\")",
+          "value": {
+            "stringValue": "\"\""
+          }
+        }
+      ]
+    },
+    {
+      "name": "format",
+      "test": [
+        {
+          "name": "no-op",
+          "expr": "\"no substitution\".format([])",
+          "value": {
+            "stringValue": "no substitution"
+          }
+        },
+        {
+          "name": "mid-string substitution",
+          "expr": "\"str is %s and some more\".format([\"filler\"])",
+          "value": {
+            "stringValue": "str is filler and some more"
+          }
+        },
+        {
+          "name": "percent escaping",
+          "expr": "\"%% and also %%\".format([])",
+          "value": {
+            "stringValue": "% and also %"
+          }
+        },
+        {
+          "name": "substitution inside escaped percent signs",
+          "expr": "\"%%%s%%\".format([\"text\"])",
+          "value": {
+            "stringValue": "%text%"
+          }
+        },
+        {
+          "name": "substitution with one escaped percent sign on the right",
+          "expr": "\"%s%%\".format([\"percent on the right\"])",
+          "value": {
+            "stringValue": "percent on the right%"
+          }
+        },
+        {
+          "name": "substitution with one escaped percent sign on the left",
+          "expr": "\"%%%s\".format([\"percent on the left\"])",
+          "value": {
+            "stringValue": "%percent on the left"
+          }
+        },
+        {
+          "name": "multiple substitutions",
+          "expr": "\"%d %d %d, %s %s %s, %d %d %d, %s %s %s\".format([1, 2, 3, \"A\", \"B\", \"C\", 4, 5, 6, \"D\", \"E\", \"F\"])",
+          "value": {
+            "stringValue": "1 2 3, A B C, 4 5 6, D E F"
+          }
+        },
+        {
+          "name": "percent sign escape sequence support",
+          "expr": "\"%%escaped %s%%\".format([\"percent\"])",
+          "value": {
+            "stringValue": "%escaped percent%"
+          }
+        },
+        {
+          "name": "fixed point formatting clause",
+          "expr": "\"%.3f\".format([1.2345])",
+          "value": {
+            "stringValue": "1.234"
+          }
+        },
+        {
+          "name": "binary formatting clause",
+          "expr": "\"this is 5 in binary: %b\".format([5])",
+          "value": {
+            "stringValue": "this is 5 in binary: 101"
+          }
+        },
+        {
+          "name": "uint support for binary formatting",
+          "expr": "\"unsigned 64 in binary: %b\".format([uint(64)])",
+          "value": {
+            "stringValue": "unsigned 64 in binary: 1000000"
+          }
+        },
+        {
+          "name": "bool support for binary formatting",
+          "expr": "\"bit set from bool: %b\".format([true])",
+          "value": {
+            "stringValue": "bit set from bool: 1"
+          }
+        },
+        {
+          "name": "octal formatting clause",
+          "expr": "\"%o\".format([11])",
+          "value": {
+            "stringValue": "13"
+          }
+        },
+        {
+          "name": "uint support for octal formatting clause",
+          "expr": "\"this is an unsigned octal: %o\".format([uint(65535)])",
+          "value": {
+            "stringValue": "this is an unsigned octal: 177777"
+          }
+        },
+        {
+          "name": "lowercase hexadecimal formatting clause",
+          "expr": "\"%x is 20 in hexadecimal\".format([30])",
+          "value": {
+            "stringValue": "1e is 20 in hexadecimal"
+          }
+        },
+        {
+          "name": "uppercase hexadecimal formatting clause",
+          "expr": "\"%X is 20 in hexadecimal\".format([30])",
+          "value": {
+            "stringValue": "1E is 20 in hexadecimal"
+          }
+        },
+        {
+          "name": "unsigned support for hexadecimal formatting clause",
+          "expr": "\"%X is 6000 in hexadecimal\".format([uint(6000)])",
+          "value": {
+            "stringValue": "1770 is 6000 in hexadecimal"
+          }
+        },
+        {
+          "name": "string support with hexadecimal formatting clause",
+          "expr": "\"%x\".format([\"Hello world!\"])",
+          "value": {
+            "stringValue": "48656c6c6f20776f726c6421"
+          }
+        },
+        {
+          "name": "string support with uppercase hexadecimal formatting clause",
+          "expr": "\"%X\".format([\"Hello world!\"])",
+          "value": {
+            "stringValue": "48656C6C6F20776F726C6421"
+          }
+        },
+        {
+          "name": "byte support with hexadecimal formatting clause",
+          "expr": "\"%x\".format([b\"byte string\"])",
+          "value": {
+            "stringValue": "6279746520737472696e67"
+          }
+        },
+        {
+          "name": "byte support with uppercase hexadecimal formatting clause",
+          "expr": "\"%X\".format([b\"byte string\"])",
+          "value": {
+            "stringValue": "6279746520737472696E67"
+          }
+        },
+        {
+          "name": "scientific notation formatting clause",
+          "expr": "\"%.6e\".format([1052.032911275])",
+          "value": {
+            "stringValue": "1.052033e+03"
+          }
+        },
+        {
+          "name": "default precision for fixed-point clause",
+          "expr": "\"%f\".format([2.71828])",
+          "value": {
+            "stringValue": "2.718280"
+          }
+        },
+        {
+          "name": "default precision for scientific notation",
+          "expr": "\"%e\".format([2.71828])",
+          "value": {
+            "stringValue": "2.718280e+00"
+          }
+        },
+        {
+          "name": "NaN support for scientific notation",
+          "expr": "\"%e\".format([double(\"NaN\")])",
+          "value": {
+            "stringValue": "NaN"
+          }
+        },
+        {
+          "name": "positive infinity support for scientific notation",
+          "expr": "\"%e\".format([double(\"Infinity\")])",
+          "value": {
+            "stringValue": "Infinity"
+          }
+        },
+        {
+          "name": "negative infinity support for scientific notation",
+          "expr": "\"%e\".format([double(\"-Infinity\")])",
+          "value": {
+            "stringValue": "-Infinity"
+          }
+        },
+        {
+          "name": "NaN support for decimal",
+          "expr": "\"%d\".format([double(\"NaN\")])",
+          "value": {
+            "stringValue": "NaN"
+          }
+        },
+        {
+          "name": "positive infinity support for decimal",
+          "expr": "\"%d\".format([double(\"Infinity\")])",
+          "value": {
+            "stringValue": "Infinity"
+          }
+        },
+        {
+          "name": "negative infinity support for decimal",
+          "expr": "\"%d\".format([double(\"-Infinity\")])",
+          "value": {
+            "stringValue": "-Infinity"
+          }
+        },
+        {
+          "name": "NaN support for fixed-point",
+          "expr": "\"%f\".format([double(\"NaN\")])",
+          "value": {
+            "stringValue": "NaN"
+          }
+        },
+        {
+          "name": "positive infinity support for fixed-point",
+          "expr": "\"%f\".format([double(\"Infinity\")])",
+          "value": {
+            "stringValue": "Infinity"
+          }
+        },
+        {
+          "name": "negative infinity support for fixed-point",
+          "expr": "\"%f\".format([double(\"-Infinity\")])",
+          "value": {
+            "stringValue": "-Infinity"
+          }
+        },
+        {
+          "name": "uint support for decimal clause",
+          "expr": "\"%d\".format([uint(64)])",
+          "value": {
+            "stringValue": "64"
+          }
+        },
+        {
+          "name": "null support for string",
+          "expr": "\"%s\".format([null])",
+          "value": {
+            "stringValue": "null"
+          }
+        },
+        {
+          "name": "int support for string",
+          "expr": "\"%s\".format([999999999999])",
+          "value": {
+            "stringValue": "999999999999"
+          }
+        },
+        {
+          "name": "bytes support for string",
+          "expr": "\"%s\".format([b\"xyz\"])",
+          "value": {
+            "stringValue": "xyz"
+          }
+        },
+        {
+          "name": "type() support for string",
+          "expr": "\"%s\".format([type(\"test string\")])",
+          "value": {
+            "stringValue": "string"
+          }
+        },
+        {
+          "name": "timestamp support for string",
+          "expr": "\"%s\".format([timestamp(\"2023-02-03T23:31:20+00:00\")])",
+          "value": {
+            "stringValue": "2023-02-03T23:31:20Z"
+          }
+        },
+        {
+          "name": "duration support for string",
+          "expr": "\"%s\".format([duration(\"1h45m47s\")])",
+          "value": {
+            "stringValue": "6347s"
+          }
+        },
+        {
+          "name": "list support for string",
+          "expr": "\"%s\".format([[\"abc\", 3.14, null, [9, 8, 7, 6], timestamp(\"2023-02-03T23:31:20Z\")]])",
+          "value": {
+            "stringValue": "[abc, 3.14, null, [9, 8, 7, 6], 2023-02-03T23:31:20Z]"
+          }
+        },
+        {
+          "name": "map support for string",
+          "expr": "\"%s\".format([{\"key1\": b\"xyz\", \"key5\": null, \"key2\": duration(\"2h\"), \"key4\": true, \"key3\": 2.71828}])",
+          "value": {
+            "stringValue": "{key1: xyz, key2: 7200s, key3: 2.71828, key4: true, key5: null}"
+          }
+        },
+        {
+          "name": "map support (all key types)",
+          "expr": "\"%s\".format([{1: \"value1\", uint(2): \"value2\", true: double(\"NaN\")}])",
+          "value": {
+            "stringValue": "{1: value1, 2: value2, true: NaN}"
+          }
+        },
+        {
+          "name": "boolean support for %s",
+          "expr": "\"%s, %s\".format([true, false])",
+          "value": {
+            "stringValue": "true, false"
+          }
+        },
+        {
+          "name": "dyntype support for string formatting clause",
+          "expr": "\"%s\".format([dyn(\"a string\")])",
+          "value": {
+            "stringValue": "a string"
+          }
+        },
+        {
+          "name": "dyntype support for numbers with string formatting clause",
+          "expr": "\"%s, %s\".format([dyn(32), dyn(56.8)])",
+          "value": {
+            "stringValue": "32, 56.8"
+          }
+        },
+        {
+          "name": "dyntype support for integer formatting clause",
+          "expr": "\"%d\".format([dyn(128)])",
+          "value": {
+            "stringValue": "128"
+          }
+        },
+        {
+          "name": "dyntype support for integer formatting clause (unsigned)",
+          "expr": "\"%d\".format([dyn(256u)])",
+          "value": {
+            "stringValue": "256"
+          }
+        },
+        {
+          "name": "dyntype support for hex formatting clause",
+          "expr": "\"%x\".format([dyn(22)])",
+          "value": {
+            "stringValue": "16"
+          }
+        },
+        {
+          "name": "dyntype support for hex formatting clause (uppercase)",
+          "expr": "\"%X\".format([dyn(26)])",
+          "value": {
+            "stringValue": "1A"
+          }
+        },
+        {
+          "name": "dyntype support for unsigned hex formatting clause",
+          "expr": "\"%x\".format([dyn(500u)])",
+          "value": {
+            "stringValue": "1f4"
+          }
+        },
+        {
+          "name": "dyntype support for fixed-point formatting clause",
+          "expr": "\"%.3f\".format([dyn(4.5)])",
+          "value": {
+            "stringValue": "4.500"
+          }
+        },
+        {
+          "name": "dyntype support for scientific notation",
+          "expr": "\"%e\".format([dyn(2.71828)])",
+          "value": {
+            "stringValue": "2.718280e+00"
+          }
+        },
+        {
+          "name": "dyntype NaN/infinity support",
+          "expr": "\"%s\".format([[double(\"NaN\"), double(\"Infinity\"), double(\"-Infinity\")]])",
+          "value": {
+            "stringValue": "[NaN, Infinity, -Infinity]"
+          }
+        },
+        {
+          "name": "dyntype support for timestamp",
+          "expr": "\"%s\".format([dyn(timestamp(\"2009-11-10T23:00:00Z\"))])",
+          "value": {
+            "stringValue": "2009-11-10T23:00:00Z"
+          }
+        },
+        {
+          "name": "dyntype support for duration",
+          "expr": "\"%s\".format([dyn(duration(\"8747s\"))])",
+          "value": {
+            "stringValue": "8747s"
+          }
+        },
+        {
+          "name": "dyntype support for lists",
+          "expr": "\"%s\".format([dyn([6, 4.2, \"a string\"])])",
+          "value": {
+            "stringValue": "[6, 4.2, a string]"
+          }
+        },
+        {
+          "name": "dyntype support for maps",
+          "expr": "\"%s\".format([{\"strKey\":\"x\", 6:duration(\"422s\"), true:42}])",
+          "value": {
+            "stringValue": "{6: 422s, strKey: x, true: 42}"
+          }
+        },
+        {
+          "name": "string substitution in a string variable",
+          "expr": "str_var.format([\"filler\"])",
+          "typeEnv": [
+            {
+              "name": "str_var",
+              "ident": {
+                "type": {
+                  "primitive": "STRING"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "str_var": {
+              "value": {
+                "stringValue": "%s"
+              }
+            }
+          },
+          "value": {
+            "stringValue": "filler"
+          }
+        },
+        {
+          "name": "multiple substitutions in a string variable",
+          "expr": "str_var.format([1, 2, 3, \"A\", \"B\", \"C\", 4, 5, 6, \"D\", \"E\", \"F\"])",
+          "typeEnv": [
+            {
+              "name": "str_var",
+              "ident": {
+                "type": {
+                  "primitive": "STRING"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "str_var": {
+              "value": {
+                "stringValue": "%d %d %d, %s %s %s, %d %d %d, %s %s %s"
+              }
+            }
+          },
+          "value": {
+            "stringValue": "1 2 3, A B C, 4 5 6, D E F"
+          }
+        },
+        {
+          "name": "substitution inside escaped percent signs in a string variable",
+          "expr": "str_var.format([\"text\"])",
+          "typeEnv": [
+            {
+              "name": "str_var",
+              "ident": {
+                "type": {
+                  "primitive": "STRING"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "str_var": {
+              "value": {
+                "stringValue": "%%%s%%"
+              }
+            }
+          },
+          "value": {
+            "stringValue": "%text%"
+          }
+        },
+        {
+          "name": "fixed point formatting clause in a string variable",
+          "expr": "str_var.format([1.2345])",
+          "typeEnv": [
+            {
+              "name": "str_var",
+              "ident": {
+                "type": {
+                  "primitive": "STRING"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "str_var": {
+              "value": {
+                "stringValue": "%.3f"
+              }
+            }
+          },
+          "value": {
+            "stringValue": "1.234"
+          }
+        },
+        {
+          "name": "binary formatting clause in a string variable",
+          "expr": "str_var.format([5])",
+          "typeEnv": [
+            {
+              "name": "str_var",
+              "ident": {
+                "type": {
+                  "primitive": "STRING"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "str_var": {
+              "value": {
+                "stringValue": "%b"
+              }
+            }
+          },
+          "value": {
+            "stringValue": "101"
+          }
+        },
+        {
+          "name": "scientific notation formatting clause in a string variable",
+          "expr": "str_var.format([1052.032911275])",
+          "typeEnv": [
+            {
+              "name": "str_var",
+              "ident": {
+                "type": {
+                  "primitive": "STRING"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "str_var": {
+              "value": {
+                "stringValue": "%.6e"
+              }
+            }
+          },
+          "value": {
+            "stringValue": "1.052033e+03"
+          }
+        },
+        {
+          "name": "default precision for fixed-point clause in a string variable",
+          "expr": "str_var.format([2.71828])",
+          "typeEnv": [
+            {
+              "name": "str_var",
+              "ident": {
+                "type": {
+                  "primitive": "STRING"
+                }
+              }
+            }
+          ],
+          "bindings": {
+            "str_var": {
+              "value": {
+                "stringValue": "%f"
+              }
+            }
+          },
+          "value": {
+            "stringValue": "2.718280"
+          }
+        }
+      ]
+    },
+    {
+      "name": "format_errors",
+      "test": [
+        {
+          "name": "unrecognized formatting clause",
+          "expr": "\"%a\".format([1])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "could not parse formatting clause: unrecognized formatting clause \"a\""
+              }
+            ]
+          }
+        },
+        {
+          "name": "out of bounds arg index",
+          "expr": "\"%d %d %d\".format([0, 1])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "index 2 out of range"
+              }
+            ]
+          }
+        },
+        {
+          "name": "string substitution is not allowed with binary clause",
+          "expr": "\"string is %b\".format([\"abc\"])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: only integers and bools can be formatted as binary, was given string"
+              }
+            ]
+          }
+        },
+        {
+          "name": "duration substitution not allowed with decimal clause",
+          "expr": "\"%d\".format([duration(\"30m2s\")])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: decimal clause can only be used on integers, was given google.protobuf.Duration"
+              }
+            ]
+          }
+        },
+        {
+          "name": "string substitution not allowed with octal clause",
+          "expr": "\"octal: %o\".format([\"a string\"])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: octal clause can only be used on integers, was given string"
+              }
+            ]
+          }
+        },
+        {
+          "name": "double substitution not allowed with hex clause",
+          "expr": "\"double is %x\".format([0.5])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: only integers, byte buffers, and strings can be formatted as hex, was given double"
+              }
+            ]
+          }
+        },
+        {
+          "name": "uppercase not allowed for scientific clause",
+          "expr": "\"double is %E\".format([0.5])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "could not parse formatting clause: unrecognized formatting clause \"E\""
+              }
+            ]
+          }
+        },
+        {
+          "name": "object not allowed",
+          "expr": "\"object is %s\".format([cel.expr.conformance.proto3.TestAllTypes{}])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: string clause can only be used on strings, bools, bytes, ints, doubles, maps, lists, types, durations, and timestamps, was given cel.expr.conformance.proto3.TestAllTypes"
+              }
+            ]
+          }
+        },
+        {
+          "name": "object inside list",
+          "expr": "\"%s\".format([[1, 2, cel.expr.conformance.proto3.TestAllTypes{}]])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: string clause can only be used on strings, bools, bytes, ints, doubles, maps, lists, types, durations, and timestamps, was given cel.expr.conformance.proto3.TestAllTypes"
+              }
+            ]
+          }
+        },
+        {
+          "name": "object inside map",
+          "expr": "\"%s\".format([{1: \"a\", 2: cel.expr.conformance.proto3.TestAllTypes{}}])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: string clause can only be used on strings, bools, bytes, ints, doubles, maps, lists, types, durations, and timestamps, was given cel.expr.conformance.proto3.TestAllTypes"
+              }
+            ]
+          }
+        },
+        {
+          "name": "null not allowed for %d",
+          "expr": "\"null: %d\".format([null])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: decimal clause can only be used on integers, was given null_type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "null not allowed for %e",
+          "expr": "\"null: %e\".format([null])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: scientific clause can only be used on doubles, was given null_type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "null not allowed for %f",
+          "expr": "\"null: %f\".format([null])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: fixed-point clause can only be used on doubles, was given null_type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "null not allowed for %x",
+          "expr": "\"null: %x\".format([null])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: only integers, byte buffers, and strings can be formatted as hex, was given null_type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "null not allowed for %X",
+          "expr": "\"null: %X\".format([null])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: only integers, byte buffers, and strings can be formatted as hex, was given null_type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "null not allowed for %b",
+          "expr": "\"null: %b\".format([null])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: only integers and bools can be formatted as binary, was given null_type"
+              }
+            ]
+          }
+        },
+        {
+          "name": "null not allowed for %o",
+          "expr": "\"null: %o\".format([null])",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "error during formatting: octal clause can only be used on integers, was given null_type"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "value_errors",
+      "test": [
+        {
+          "name": "charat_out_of_range",
+          "expr": "'tacocat'.charAt(30) == ''",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: 30"
+              }
+            ]
+          }
+        },
+        {
+          "name": "indexof_out_of_range",
+          "expr": "'tacocat'.indexOf('a', 30) == -1",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: 30"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lastindexof_negative_index",
+          "expr": "'tacocat'.lastIndexOf('a', -1) == -1",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: -1"
+              }
+            ]
+          }
+        },
+        {
+          "name": "lastindexof_out_of_range",
+          "expr": "'tacocat'.lastIndexOf('a', 30) == -1",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: 30"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_out_of_range",
+          "expr": "'tacocat'.substring(40) == 'cat'",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: 40"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_negative_index",
+          "expr": "'tacocat'.substring(-1) == 'cat'",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: -1"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_end_index_out_of_range",
+          "expr": "'tacocat'.substring(1, 50) == 'cat'",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: 50"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_begin_index_out_of_range",
+          "expr": "'tacocat'.substring(49, 50) == 'cat'",
+          "evalError": {
+            "errors": [
+              {
+                "message": "index out of range: 49"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_end_index_greater_than_begin_index",
+          "expr": "'tacocat'.substring(4, 3) == ''",
+          "evalError": {
+            "errors": [
+              {
+                "message": "invalid substring range. start: 4, end: 3"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "type_errors",
+      "test": [
+        {
+          "name": "charat_invalid_type",
+          "expr": "42.charAt(2) == ''",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "charat_invalid_argument",
+          "expr": "'hello'.charAt(true) == ''",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "indexof_unary_invalid_type",
+          "expr": "24.indexOf('2') == 0",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "indexof_unary_invalid_argument",
+          "expr": "'hello'.indexOf(true) == 1",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "indexof_binary_invalid_argument",
+          "expr": "42.indexOf('4', 0) == 0",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "indexof_binary_invalid_argument_2",
+          "expr": "'42'.indexOf(4, 0) == 0",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "indexof_binary_both_invalid_arguments",
+          "expr": "'42'.indexOf('4', '0') == 0",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "indexof_ternary_invalid_arguments",
+          "expr": "'42'.indexOf('4', 0, 1) == 0",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "split_invalid_type",
+          "expr": "42.split('2') == ['4']",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_invalid_type",
+          "expr": "42.replace(2, 1) == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_binary_invalid_argument",
+          "expr": "'42'.replace(2, 1) == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_binary_invalid_argument_2",
+          "expr": "'42'.replace('2', 1) == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_ternary_invalid_argument",
+          "expr": "42.replace('2', '1', 1) == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_ternary_invalid_argument_2",
+          "expr": "'42'.replace(2, '1', 1) == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_ternary_invalid_argument_3",
+          "expr": "'42'.replace('2', 1, 1) == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_ternary_invalid_argument_4",
+          "expr": "'42'.replace('2', '1', '1') == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "replace_quaternary_invalid_argument",
+          "expr": "'42'.replace('2', '1', 1, false) == '41'",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "split_invalid_type_empty_arg",
+          "expr": "42.split('') == ['4', '2']",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "split_invalid_argument",
+          "expr": "'42'.split(2) == ['4']",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "split_binary_invalid_type",
+          "expr": "42.split('2', '1') == ['4']",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "split_binary_invalid_argument",
+          "expr": "'42'.split(2, 1) == ['4']",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "split_binary_invalid_argument_2",
+          "expr": "'42'.split('2', '1') == ['4']",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "split_ternary_invalid_argument",
+          "expr": "'42'.split('2', 1, 1) == ['4']",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_ternary_invalid_argument",
+          "expr": "'hello'.substring(1, 2, 3) == ''",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_binary_invalid_type",
+          "expr": "30.substring(true, 3) == ''",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_binary_invalid_argument",
+          "expr": "'tacocat'.substring(true, 3) == ''",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        },
+        {
+          "name": "substring_binary_invalid_argument_2",
+          "expr": "'tacocat'.substring(0, false) == ''",
+          "disableCheck": true,
+          "evalError": {
+            "errors": [
+              {
+                "message": "no such overload"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
