@@ -38,7 +38,12 @@
       "outputLogs": "new-only"
     },
     "update-exports": {
-      "dependsOn": ["generate", "fetch-parser", "fetch-parser-comprehensions"],
+      "dependsOn": [
+        "generate",
+        "fetch-parser",
+        "fetch-parser-comprehensions",
+        "fetch-parser-conformance"
+      ],
       "inputs": ["src/**", "scripts/**"],
       "outputs": ["package.json"],
       "outputLogs": "new-only"
