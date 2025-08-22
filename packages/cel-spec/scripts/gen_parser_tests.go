@@ -130,7 +130,7 @@ func parseExpressions(expressions []string) ([]*ParserTest, error) {
 		parser.ErrorRecoveryLimit(4),
 		parser.ErrorRecoveryLookaheadTokenLimit(4),
 		parser.PopulateMacroCalls(true),
-		parser.EnableVariadicOperatorASTs(true),
+		parser.EnableVariadicOperatorASTs(false),
 	)
 	if err != nil {
 		return nil, err
