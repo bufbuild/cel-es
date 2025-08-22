@@ -39,14 +39,14 @@ const testdataJsonFiles = convertTestDataToJson(
 );
 
 // Write to JSON
-const writes = testdataJsonFiles.map((file) =>
-  fs.writeFile(
-    `src/testdata/json/${file.name}.json`,
-    JSON.stringify(file, null, 2),
+await Promise.all(
+  testdataJsonFiles.map((file) =>
+    fs.writeFile(
+      `src/testdata/json/${file.name}.json`,
+      JSON.stringify(file, null, 2),
+    ),
   ),
 );
-
-for await (const _ of writes);
 
 // Write to TypeScript
 await fs.writeFile(
