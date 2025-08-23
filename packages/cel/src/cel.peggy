@@ -25,9 +25,9 @@ Expr
       /* : Expr */
       if (tail === null) {
         return or;
-      } else {
-        return builder.newCallExpr(offset(), "_?_:_", [or, ...tail]);
       }
+
+      return builder.newCallExpr(offset(), "_?_:_", [or, ...tail]);
     }
 
 TernaryTail
@@ -43,9 +43,9 @@ ConditionalOr
       /* : Expr */
       if (and.length === 1) {
         return and[0];
-      } else {
-        return builder.newCallExpr(offset(), "_||_", and);
       }
+
+      return builder.newCallExpr(offset(), "_||_", and);
     }
 
 ConditionalAnd
@@ -54,9 +54,9 @@ ConditionalAnd
       /* : Expr */
       if (relation.length === 1) {
         return relation[0];
-      } else {
-        return builder.newCallExpr(offset(), "_&&_", relation);
       }
+
+      return builder.newCallExpr(offset(), "_&&_", relation);
     }
 
 Relation
@@ -65,9 +65,9 @@ Relation
       /* : Expr */
       if (tail === null) {
         return addition;
-      } else {
-        return tail.reduce((expr, op) => op(expr), addition);
       }
+
+      return tail.reduce((expr, op) => op(expr), addition);
     }
 
 RelationTail
@@ -89,9 +89,9 @@ Addition
       /* : Expr */
       if (tail === null) {
         return multiplication;
-      } else {
-        return tail.reduce((expr, op) => op(expr), multiplication);
       }
+
+      return tail.reduce((expr, op) => op(expr), multiplication);
     }
 
 AdditionTail
@@ -106,9 +106,9 @@ Multiplication
       /* : Expr */
       if (tail === null) {
         return unary;
-      } else {
-        return tail.reduce((expr, op) => op(expr), unary);
       }
+
+      return tail.reduce((expr, op) => op(expr), unary);
     }
 
 MultiplicationTail
@@ -124,11 +124,13 @@ Unary
       /* : Expr */
       if (ops.length % 2 === 0) {
         return expr;
-      } else if (expr.exprKind.case === "callExpr" && expr.exprKind.value.function === `${ops[0]}_`) {
-        return expr.exprKind.value.args[0];
-      } else {
-        return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
       }
+
+      if (expr.exprKind.case === "callExpr" && expr.exprKind.value.function === `${ops[0]}_`) {
+        return expr.exprKind.value.args[0];
+      }
+
+      return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
     }
 
 Member
@@ -137,9 +139,9 @@ Member
       /* : Expr */
       if (tail.length === 0) {
         return primary;
-      } else {
-        return tail.reduce((expr, op) => op(expr), primary);
       }
+
+      return tail.reduce((expr, op) => op(expr), primary);
     }
 
 MemberTail
