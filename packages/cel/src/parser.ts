@@ -54,10 +54,6 @@ namespace runtime {
     padString += padString.repeat(targetLength);
     return str + padString.slice(0, targetLength);
   }
-  export interface SourceText {
-    source: any;
-    text: string;
-  }
   export interface Expectation {
     type: "literal" | "class" | "any" | "end" | "pattern" | "other";
     value: string;
@@ -157,7 +153,7 @@ export class ParseError extends Error {
   constructor(
     message: string,
     location: runtime.LocationRange,
-    name: string = "parse error",
+    name = "parse error",
   ) {
     super(ParseError.#formatMessage(message, location));
     this.name = name;
@@ -172,16 +168,16 @@ export class ParseError extends Error {
     );
   }
 }
-export class SyntaxError extends ParseError {
+export class ParseSyntaxError extends ParseError {
   expected: runtime.Expectation[];
   found: string | null;
   constructor(
     expected: runtime.Expectation[],
     found: string,
     location: runtime.LocationRange,
-    name: string = "syntax error",
+    name = "syntax error",
   ) {
-    super(SyntaxError.#formatMessage(expected, found), location, name);
+    super(ParseSyntaxError.#formatMessage(expected, found), location, name);
     this.expected = expected;
     this.found = found;
   }
@@ -540,24 +536,23 @@ export function parse(
   const result = item1(input);
   if (result.success === true) {
     return result.value;
-  } else {
-    let remainder = input;
-    let failedExpectations: runtime.FailedExpectation[] = [];
-    for (const e of result.failedExpectations) {
-      if (e.remainder.length < remainder.length) {
-        remainder = e.remainder;
-        failedExpectations = [];
-      }
-      if (e.remainder.length === remainder.length) {
-        failedExpectations.push(e);
-      }
-    }
-    throw new SyntaxError(
-      failedExpectations.map((e) => e.expectation),
-      remainder.slice(0, 1),
-      runtime.getLocation(parse$source, input, remainder, remainder),
-    );
   }
+  let remainder = input;
+  let failedExpectations: runtime.FailedExpectation[] = [];
+  for (const e of result.failedExpectations) {
+    if (e.remainder.length < remainder.length) {
+      remainder = e.remainder;
+      failedExpectations = [];
+    }
+    if (e.remainder.length === remainder.length) {
+      failedExpectations.push(e);
+    }
+  }
+  throw new ParseSyntaxError(
+    failedExpectations.map((e) => e.expectation),
+    remainder.slice(0, 1),
+    runtime.getLocation(parse$source, input, remainder, remainder),
+  );
   function item103(
     location: () => runtime.LocationRange,
     range: () => runtime.Range,
@@ -891,9 +886,8 @@ export function parse(
     /* : Expr */
     if (tail.length === 0) {
       return primary;
-    } else {
-      return tail.reduce((expr, op) => op(expr), primary);
     }
+    return tail.reduce((expr, op) => op(expr), primary);
   }
   function item529(
     location: () => runtime.LocationRange,
@@ -907,14 +901,14 @@ export function parse(
     /* : Expr */
     if (ops.length % 2 === 0) {
       return expr;
-    } else if (
+    }
+    if (
       expr.exprKind.case === "callExpr" &&
       expr.exprKind.value.function === `${ops[0]}_`
     ) {
       return expr.exprKind.value.args[0];
-    } else {
-      return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
     }
+    return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   }
   function item541(
     location: () => runtime.LocationRange,
@@ -950,9 +944,8 @@ export function parse(
     /* : Expr */
     if (tail === null) {
       return unary;
-    } else {
-      return tail.reduce((expr, op) => op(expr), unary);
     }
+    return tail.reduce((expr, op) => op(expr), unary);
   }
   function item557(
     location: () => runtime.LocationRange,
@@ -988,9 +981,8 @@ export function parse(
     /* : Expr */
     if (tail === null) {
       return multiplication;
-    } else {
-      return tail.reduce((expr, op) => op(expr), multiplication);
     }
+    return tail.reduce((expr, op) => op(expr), multiplication);
   }
   function item588(
     location: () => runtime.LocationRange,
@@ -1035,9 +1027,8 @@ export function parse(
     /* : Expr */
     if (tail === null) {
       return addition;
-    } else {
-      return tail.reduce((expr, op) => op(expr), addition);
     }
+    return tail.reduce((expr, op) => op(expr), addition);
   }
   function item603(
     location: () => runtime.LocationRange,
@@ -1050,17 +1041,16 @@ export function parse(
     /* : Expr */
     if (relation.length === 1) {
       return relation[0];
-    } else {
-      const logicManager = LogicManager.newBalancingLogicManager(
-        builder,
-        "_&&_",
-        relation[0],
-      );
-      for (let i = 1; i < relation.length; i += 1) {
-        logicManager.addTerm(offset(), relation[i]);
-      }
-      return logicManager.toExpr();
     }
+    const logicManager = LogicManager.newBalancingLogicManager(
+      builder,
+      "_&&_",
+      relation[0],
+    );
+    for (let i = 1; i < relation.length; i += 1) {
+      logicManager.addTerm(offset(), relation[i]);
+    }
+    return logicManager.toExpr();
   }
   function item609(
     location: () => runtime.LocationRange,
@@ -1073,17 +1063,16 @@ export function parse(
     /* : Expr */
     if (and.length === 1) {
       return and[0];
-    } else {
-      const logicManager = LogicManager.newBalancingLogicManager(
-        builder,
-        "_||_",
-        and[0],
-      );
-      for (let i = 1; i < and.length; i += 1) {
-        logicManager.addTerm(offset(), and[i]);
-      }
-      return logicManager.toExpr();
     }
+    const logicManager = LogicManager.newBalancingLogicManager(
+      builder,
+      "_||_",
+      and[0],
+    );
+    for (let i = 1; i < and.length; i += 1) {
+      logicManager.addTerm(offset(), and[i]);
+    }
+    return logicManager.toExpr();
   }
   function item621(
     location: () => runtime.LocationRange,
@@ -1109,30 +1098,27 @@ export function parse(
     /* : Expr */
     if (tail === null) {
       return or;
-    } else {
-      return builder.newCallExpr(offset(), "_?_:_", [or, ...tail]);
     }
+    return builder.newCallExpr(offset(), "_?_:_", [or, ...tail]);
   }
   function item1(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item4(text);
     if (result.success === true) {
       if (result.remainder.length === 0) {
         return result;
-      } else {
-        return {
-          success: false,
-          remainder: result.remainder,
-          failedExpectations: [
-            {
-              expectation: item624,
-              remainder: result.remainder,
-            },
-          ],
-        };
       }
-    } else {
-      return result;
+      return {
+        success: false,
+        remainder: result.remainder,
+        failedExpectations: [
+          {
+            expectation: item624,
+            remainder: result.remainder,
+          },
+        ],
+      };
     }
+    return result;
   }
   // or:ConditionalOr S
   // tail:TernaryTail?
@@ -1140,9 +1126,9 @@ export function parse(
   // /* : Expr */
   // if (tail === null) {
   // return or;
-  // } else {
-  // return builder.newCallExpr(offset(), "_?_:_", [or, ...tail]);
   // }
+  //
+  // return builder.newCallExpr(offset(), "_?_:_", [or, ...tail]);
   // }
   function item4(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item5(text);
@@ -1173,9 +1159,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // or:ConditionalOr S
   // tail:TernaryTail?
@@ -1192,9 +1177,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -1214,9 +1198,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item611(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -1225,9 +1208,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result0.value, result2.value],
@@ -1240,7 +1222,8 @@ export function parse(
   // /* : Expr */
   // if (and.length === 1) {
   // return and[0];
-  // } else {
+  // }
+  //
   // const logicManager = LogicManager.newBalancingLogicManager(
   // builder,
   // "_||_",
@@ -1250,7 +1233,6 @@ export function parse(
   // logicManager.addTerm(offset(), and[i]);
   // }
   // return logicManager.toExpr();
-  // }
   // }
   function item8(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item10(text);
@@ -1280,52 +1262,44 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // ConditionalAnd|1.., $(S "||")|
   function item10(text: string): runtime.Success<Expr[]> | runtime.Failure {
     const values: Array<Expr> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
       if (values.length > 0) {
-        result = item604(r);
+        const result = item604(r);
+        failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
         }
         r = result.remainder;
       }
-      result = item12(r);
+      const result = item12(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // relation:Relation|1.., $(S "&&")|
   // {
   // /* : Expr */
   // if (relation.length === 1) {
   // return relation[0];
-  // } else {
+  // }
+  //
   // const logicManager = LogicManager.newBalancingLogicManager(
   // builder,
   // "_&&_",
@@ -1335,7 +1309,6 @@ export function parse(
   // logicManager.addTerm(offset(), relation[i]);
   // }
   // return logicManager.toExpr();
-  // }
   // }
   function item12(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item14(text);
@@ -1365,54 +1338,45 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // Relation|1.., $(S "&&")|
   function item14(text: string): runtime.Success<Expr[]> | runtime.Failure {
     const values: Array<Expr> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
       if (values.length > 0) {
-        result = item598(r);
+        const result = item598(r);
+        failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
         }
         r = result.remainder;
       }
-      result = item16(r);
+      const result = item16(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // addition:Addition tail:RelationTail?
   // {
   // /* : Expr */
   // if (tail === null) {
   // return addition;
-  // } else {
-  // return tail.reduce((expr, op) => op(expr), addition);
   // }
+  //
+  // return tail.reduce((expr, op) => op(expr), addition);
   // }
   function item16(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item17(text);
@@ -1443,9 +1407,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // addition:Addition tail:RelationTail?
   function item17(
@@ -1463,9 +1426,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = item563(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -1474,9 +1436,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result0.value, result1.value],
@@ -1489,9 +1450,9 @@ export function parse(
   // /* : Expr */
   // if (tail === null) {
   // return multiplication;
-  // } else {
-  // return tail.reduce((expr, op) => op(expr), multiplication);
   // }
+  //
+  // return tail.reduce((expr, op) => op(expr), multiplication);
   // }
   function item20(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item21(text);
@@ -1522,9 +1483,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // multiplication:Multiplication tail:AdditionTail?
   function item21(
@@ -1542,9 +1502,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = item548(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -1553,9 +1512,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result0.value, result1.value],
@@ -1568,9 +1526,9 @@ export function parse(
   // /* : Expr */
   // if (tail === null) {
   // return unary;
-  // } else {
-  // return tail.reduce((expr, op) => op(expr), unary);
   // }
+  //
+  // return tail.reduce((expr, op) => op(expr), unary);
   // }
   function item24(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item25(text);
@@ -1601,9 +1559,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // unary:Unary tail:MultiplicationTail?
   function item25(
@@ -1621,9 +1578,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = item531(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -1632,9 +1588,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result0.value, result1.value],
@@ -1648,11 +1603,13 @@ export function parse(
   // /* : Expr */
   // if (ops.length % 2 === 0) {
   // return expr;
-  // } else if (expr.exprKind.case === "callExpr" && expr.exprKind.value.function === `${ops[0]}_`) {
-  // return expr.exprKind.value.args[0];
-  // } else {
-  // return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   // }
+  //
+  // if (expr.exprKind.case === "callExpr" && expr.exprKind.value.function === `${ops[0]}_`) {
+  // return expr.exprKind.value.args[0];
+  // }
+  //
+  // return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   // }
   function item28(text: string): runtime.Success<Expr> | runtime.Failure {
     const choices = [item30, item517];
@@ -1684,9 +1641,9 @@ export function parse(
   // /* : Expr */
   // if (tail.length === 0) {
   // return primary;
-  // } else {
-  // return tail.reduce((expr, op) => op(expr), primary);
   // }
+  //
+  // return tail.reduce((expr, op) => op(expr), primary);
   // }
   function item30(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item31(text);
@@ -1717,9 +1674,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // S primary:Primary tail:MemberTail
   function item31(
@@ -1746,9 +1702,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item63(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -1757,9 +1712,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item484(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -1768,9 +1722,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result1.value, result2.value],
@@ -1796,9 +1749,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = item42(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -1807,9 +1759,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item59(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -1818,9 +1769,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result0.value, result1.value, result2.value],
@@ -1835,14 +1785,13 @@ export function parse(
     const result = item36(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // WhiteSpace "whitespace"
   // = $([\t\n\f\r ]+)
@@ -1851,18 +1800,17 @@ export function parse(
     const result = item37(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item41,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item41,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // $([\t\n\f\r ]+)
   function item37(text: string): runtime.Success<string> | runtime.Failure {
@@ -1874,18 +1822,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item40,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item40,
+          remainder: text,
+        },
+      ],
+    };
   }
   // Comment?
   function item42(
@@ -1894,35 +1841,34 @@ export function parse(
     const result = item44(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // Comment "comment"
   // = '//' [^\r\n]* NewLine
+  //
   function item44(
     text: string,
   ): runtime.Success<["//", string[], string[]]> | runtime.Failure {
     const result = item45(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item58,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item58,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // '//' [^\r\n]* NewLine
   function item45(
@@ -1938,9 +1884,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = item48(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -1949,9 +1894,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item52(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -1960,9 +1904,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result0.value, result1.value, result2.value],
@@ -1979,35 +1922,33 @@ export function parse(
         remainder: text.slice(2),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item47,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item47,
+          remainder: text,
+        },
+      ],
+    };
   }
   // [^\r\n]*
   function item48(text: string): runtime.Success<string[]> | runtime.Failure {
     const values: Array<string> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item49(r);
+      const result = item49(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // [^\r\n]
@@ -2019,18 +1960,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item50,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item50,
+          remainder: text,
+        },
+      ],
+    };
   }
   // NewLine "new line"
   // = [\r\n]+
@@ -2039,47 +1979,37 @@ export function parse(
     const result = item53(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item56,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item56,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // [\r\n]+
   function item53(text: string): runtime.Success<string[]> | runtime.Failure {
     const values: Array<string> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item54(r);
+      const result = item54(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // [\r\n]
   function item54(text: string): runtime.Success<string> | runtime.Failure {
@@ -2090,18 +2020,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item55,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item55,
+          remainder: text,
+        },
+      ],
+    };
   }
   // WhiteSpace?
   function item59(
@@ -2110,14 +2039,13 @@ export function parse(
     const result = item36(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // Literal
   // / "."? S identifier:Identifier S "(" args:ExprList ")"
@@ -2206,18 +2134,17 @@ export function parse(
     const result = item68(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item104,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item104,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // digits:$("-"? Digit* "." Digit+ Exponent? / "-"? Digit+ Exponent)
   // { return builder.newDoubleExpr(offset(), digits) }
@@ -2249,9 +2176,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // $("-"? Digit* "." Digit+ Exponent? / "-"? Digit+ Exponent)
   function item70(text: string): runtime.Success<string> | runtime.Failure {
@@ -2265,26 +2191,25 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item75,
-            remainder: text,
-          },
-          {
-            expectation: item81,
-            remainder: text,
-          },
-          {
-            expectation: item83,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item75,
+          remainder: text,
+        },
+        {
+          expectation: item81,
+          remainder: text,
+        },
+        {
+          expectation: item83,
+          remainder: text,
+        },
+      ],
+    };
   }
   // UnsignedIntLiteral "unsigned integer literal"
   // = digits:$("0x" HexDigit+ / Digit+) [uU]
@@ -2294,18 +2219,17 @@ export function parse(
     const result = item107(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item127,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item127,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // digits:$("0x" HexDigit+ / Digit+) [uU]
   // { return builder.newUnsignedInt64Expr(offset(), digits) }
@@ -2337,9 +2261,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // digits:$("0x" HexDigit+ / Digit+) [uU]
   function item108(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -2353,9 +2276,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = remainder.match(/^[uU]/g);
     failedExpectations.push({
       expectation: item124,
@@ -2367,9 +2289,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     return {
       success: true,
       value: [result0.value],
@@ -2387,22 +2308,21 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item114,
-            remainder: text,
-          },
-          {
-            expectation: item81,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item114,
+          remainder: text,
+        },
+        {
+          expectation: item81,
+          remainder: text,
+        },
+      ],
+    };
   }
   // IntLiteral "integer literal"
   // = digits:$("-"? ("0x" HexDigit+ / Digit+))
@@ -2412,18 +2332,17 @@ export function parse(
     const result = item130(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item143,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item143,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // digits:$("-"? ("0x" HexDigit+ / Digit+))
   // { return builder.newInt64Expr(offset(), digits) }
@@ -2455,9 +2374,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // $("-"? ("0x" HexDigit+ / Digit+))
   function item132(text: string): runtime.Success<string> | runtime.Failure {
@@ -2469,26 +2387,25 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item75,
-            remainder: text,
-          },
-          {
-            expectation: item114,
-            remainder: text,
-          },
-          {
-            expectation: item81,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item75,
+          remainder: text,
+        },
+        {
+          expectation: item114,
+          remainder: text,
+        },
+        {
+          expectation: item81,
+          remainder: text,
+        },
+      ],
+    };
   }
   // StringLiteral "string literal"
   // = bytes:CharacterSequence
@@ -2498,18 +2415,17 @@ export function parse(
     const result = item146(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item328,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item328,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // bytes:CharacterSequence
   // { return builder.newStringExpr(offset(), bytes) }
@@ -2541,9 +2457,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // CharacterSequence "quoted character sequence"
   // = [rR] @( '"""'  @(!'"""' @.)*                  '"""'
@@ -2576,18 +2491,17 @@ export function parse(
     const result = item150(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item326,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item326,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // [rR] @( '"""'  @(!'"""' @.)*                  '"""'
   // / "'''"  @(!"'''" @.)*                          "'''"
@@ -2657,9 +2571,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item155(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -2668,9 +2581,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: result1.value,
@@ -2722,9 +2634,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item160(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -2733,9 +2644,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^"""/g);
     failedExpectations.push({
       expectation: item158,
@@ -2747,9 +2657,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -2762,17 +2671,16 @@ export function parse(
     const values: Array<string> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item161(r);
+      const result = item161(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // !'"""' @.
@@ -2787,9 +2695,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item165(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -2798,9 +2705,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: result1.value,
@@ -2817,18 +2723,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "'''"  @(!"'''" @.)*                          "'''"
   function item169(text: string): runtime.Success<string[]> | runtime.Failure {
@@ -2845,9 +2750,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item173(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -2856,9 +2760,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^'''/g);
     failedExpectations.push({
       expectation: item171,
@@ -2870,9 +2773,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -2885,17 +2787,16 @@ export function parse(
     const values: Array<string> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item174(r);
+      const result = item174(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // !"'''" @.
@@ -2910,9 +2811,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item178(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -2921,9 +2821,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: result1.value,
@@ -2940,18 +2839,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // '"'    @(!( '"' / NewLine ) @.)*              '"'
   function item180(text: string): runtime.Success<string[]> | runtime.Failure {
@@ -2968,9 +2866,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item184(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -2979,9 +2876,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^"/g);
     failedExpectations.push({
       expectation: item182,
@@ -2993,9 +2889,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -3008,17 +2903,16 @@ export function parse(
     const values: Array<string> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item185(r);
+      const result = item185(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // !( '"' / NewLine ) @.
@@ -3033,9 +2927,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item190(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -3044,9 +2937,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: result1.value,
@@ -3063,18 +2955,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "'"    @(!( "'" / NewLine ) @.)*              "'"
   function item192(text: string): runtime.Success<string[]> | runtime.Failure {
@@ -3091,9 +2982,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item196(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -3102,9 +2992,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^'/g);
     failedExpectations.push({
       expectation: item194,
@@ -3116,9 +3005,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -3131,17 +3019,16 @@ export function parse(
     const values: Array<string> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item197(r);
+      const result = item197(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // !( "'" / NewLine ) @.
@@ -3156,9 +3043,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item202(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -3167,9 +3053,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: result1.value,
@@ -3186,18 +3071,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // '"""'  @(Escape / $(!'"""' @.))*      '"""'
   // / "'''"  @(Escape / $(!"'''" @.))*              "'''"
@@ -3275,9 +3159,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item208(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -3286,9 +3169,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^"""/g);
     failedExpectations.push({
       expectation: item158,
@@ -3300,9 +3182,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -3333,17 +3214,16 @@ export function parse(
     > = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item209(r);
+      const result = item209(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // Escape / $(!'"""' @.)
@@ -3406,18 +3286,17 @@ export function parse(
     const result = item212(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item279,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item279,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // ByteSequence
   // / "\\" value:[abfnrtv]
@@ -3473,47 +3352,37 @@ export function parse(
     const result = item215(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item266,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item266,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // Bytes+
   function item215(text: string): runtime.Success<number[]> | runtime.Failure {
     const values: Array<number> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item217(r);
+      const result = item217(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // Bytes "escaped bytes"
   // = "\\" [xX] value:$Byte|1|        { return parseInt(value, 16) }
@@ -3525,18 +3394,17 @@ export function parse(
     const result = item218(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item265,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item265,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // "\\" [xX] value:$Byte|1|        { return parseInt(value, 16) }
   // / "\\u" value:$Byte|2|            { return parseInt(value, 16) }
@@ -3596,9 +3464,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "\\" [xX] value:$Byte|1|
   function item220(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -3615,9 +3482,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = remainder.match(/^[xX]/g);
     failedExpectations.push({
       expectation: item224,
@@ -3629,9 +3495,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item226(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -3640,9 +3505,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result2.value],
@@ -3660,18 +3524,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item233,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item233,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "\\u" value:$Byte|2|            { return parseInt(value, 16) }
   function item236(text: string): runtime.Success<number> | runtime.Failure {
@@ -3702,9 +3565,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "\\u" value:$Byte|2|
   function item237(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -3721,9 +3583,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item241(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -3732,9 +3593,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result1.value],
@@ -3752,18 +3612,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item233,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item233,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "\\U" value:$Byte|4|            { return parseInt(value, 16) }
   function item244(text: string): runtime.Success<number> | runtime.Failure {
@@ -3794,9 +3653,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "\\U" value:$Byte|4|
   function item245(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -3813,9 +3671,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item249(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -3824,9 +3681,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result1.value],
@@ -3844,18 +3700,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item233,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item233,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "\\" value:$([0-3] [0-7] [0-7]) { return parseInt(value, 8) }
   function item252(text: string): runtime.Success<number> | runtime.Failure {
@@ -3886,9 +3741,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "\\" value:$([0-3] [0-7] [0-7])
   function item253(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -3905,9 +3759,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item256(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -3916,9 +3769,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result1.value],
@@ -3936,18 +3788,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item259,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item259,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "\\" value:[abfnrtv]
   // {
@@ -3995,9 +3846,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "\\" value:[abfnrtv]
   function item268(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -4014,9 +3864,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item271(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -4025,9 +3874,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result1.value],
@@ -4044,18 +3892,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item272,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item272,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "\\" @$[\"\'\`\\?]
   function item274(text: string): runtime.Success<string> | runtime.Failure {
@@ -4072,9 +3919,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item277(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -4083,9 +3929,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: result1.value,
@@ -4102,18 +3947,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item278,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item278,
+          remainder: text,
+        },
+      ],
+    };
   }
   // $(!'"""' @.)
   function item280(text: string): runtime.Success<string> | runtime.Failure {
@@ -4125,18 +3969,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "'''"  @(Escape / $(!"'''" @.))*              "'''"
   function item288(
@@ -4169,9 +4012,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item291(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -4180,9 +4022,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^'''/g);
     failedExpectations.push({
       expectation: item171,
@@ -4194,9 +4035,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -4227,17 +4067,16 @@ export function parse(
     > = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item292(r);
+      const result = item292(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // Escape / $(!"'''" @.)
@@ -4282,18 +4121,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // '"'    @(Escape / $(!( '"' / NewLine ) @.))*  '"'
   function item300(
@@ -4326,9 +4164,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item303(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -4337,9 +4174,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^"/g);
     failedExpectations.push({
       expectation: item182,
@@ -4351,9 +4187,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -4384,17 +4219,16 @@ export function parse(
     > = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item304(r);
+      const result = item304(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // Escape / $(!( '"' / NewLine ) @.)
@@ -4439,18 +4273,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "'"    @(Escape / $(!( "'" / NewLine ) @.))*  "'"
   function item313(
@@ -4483,9 +4316,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item316(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -4494,9 +4326,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^'/g);
     failedExpectations.push({
       expectation: item194,
@@ -4508,9 +4339,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -4541,17 +4371,16 @@ export function parse(
     > = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item317(r);
+      const result = item317(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // Escape / $(!( "'" / NewLine ) @.)
@@ -4596,18 +4425,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item2,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item2,
+          remainder: text,
+        },
+      ],
+    };
   }
   // BytesLiteral "bytes literal"
   // = [bB] bytes:CharacterSequence
@@ -4617,18 +4445,17 @@ export function parse(
     const result = item331(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item338,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item338,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // [bB] bytes:CharacterSequence
   // { return builder.newBytesExpr(offset(), bytes) }
@@ -4660,9 +4487,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // [bB] bytes:CharacterSequence
   function item332(
@@ -4698,9 +4524,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item149(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -4709,9 +4534,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: [result1.value],
@@ -4727,18 +4551,17 @@ export function parse(
     const result = item341(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item349,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item349,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // keyword:("true" / "false")
   // { return builder.newBoolExpr(offset(), keyword) }
@@ -4770,9 +4593,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "true" / "false"
   function item343(
@@ -4811,18 +4633,17 @@ export function parse(
         remainder: text.slice(4),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item345,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item345,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "false"
   function item346(text: string): runtime.Success<"false"> | runtime.Failure {
@@ -4833,18 +4654,17 @@ export function parse(
         remainder: text.slice(5),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item347,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item347,
+          remainder: text,
+        },
+      ],
+    };
   }
   // NullLiteral "null literal"
   // = "null" ![_a-zA-Z0-9]
@@ -4854,18 +4674,17 @@ export function parse(
     const result = item352(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item361,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item361,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // "null" ![_a-zA-Z0-9]
   // { return builder.newNullExpr(offset()) }
@@ -4896,9 +4715,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "null" ![_a-zA-Z0-9]
   function item353(text: string): runtime.Success<[]> | runtime.Failure {
@@ -4915,9 +4733,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = remainder.match(/^(?![_a-zA-Z0-9])/g);
     failedExpectations.push();
     if (result1?.length !== 1) {
@@ -4926,9 +4743,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     return {
       success: true,
       value: [],
@@ -4967,9 +4783,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "."? S identifier:Identifier S "(" args:ExprList ")"
   function item363(
@@ -4988,9 +4803,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -5010,9 +4824,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item368(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -5021,9 +4834,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     const result3 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -5043,9 +4855,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result3[0].length);
     }
+    remainder = remainder.slice(result3[0].length);
     const result4 = remainder.match(/^\(/g);
     failedExpectations.push({
       expectation: item381,
@@ -5057,9 +4868,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result4[0].length);
     }
+    remainder = remainder.slice(result4[0].length);
     const result5 = item384(remainder);
     failedExpectations.push(...result5.failedExpectations);
     if (result5.success === false) {
@@ -5068,9 +4878,8 @@ export function parse(
         remainder: result5.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result5.remainder;
     }
+    remainder = result5.remainder;
     const result6 = remainder.match(/^\)/g);
     failedExpectations.push({
       expectation: item388,
@@ -5082,9 +4891,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result6[0].length);
     }
+    remainder = remainder.slice(result6[0].length);
     return {
       success: true,
       value: [result2.value, result5.value],
@@ -5110,18 +4918,17 @@ export function parse(
     const result = item369(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item379,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item379,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // id:$([_a-zA-Z][_a-zA-Z0-9]*)
   // {
@@ -5163,9 +4970,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // $([_a-zA-Z][_a-zA-Z0-9]*)
   function item371(text: string): runtime.Success<string> | runtime.Failure {
@@ -5177,42 +4983,41 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item374,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item374,
+          remainder: text,
+        },
+      ],
+    };
   }
   // Expr|0.., ","|
   function item384(text: string): runtime.Success<Expr[]> | runtime.Failure {
     const values: Array<Expr> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
       if (values.length > 0) {
-        result = item385(r);
+        const result = item385(r);
+        failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
         }
         r = result.remainder;
       }
-      result = item4(r);
+      const result = item4(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // ","
@@ -5224,18 +5029,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item386,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item386,
+          remainder: text,
+        },
+      ],
+    };
   }
   // dot:"."? S name:Selector|1.., S "." S| S "{" entries:FieldInits (",")? S "}"
   // { return builder.newStructExpr(offset(), entries, (dot !== null ? dot : '') + name.join('.')) }
@@ -5269,9 +5073,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // dot:"."? S name:Selector|1.., S "." S| S "{" entries:FieldInits (",")? S "}"
   function item392(
@@ -5289,9 +5092,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -5311,9 +5113,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item397(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -5322,9 +5123,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     const result3 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -5344,9 +5144,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result3[0].length);
     }
+    remainder = remainder.slice(result3[0].length);
     const result4 = remainder.match(/^\{/g);
     failedExpectations.push({
       expectation: item413,
@@ -5358,9 +5157,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result4[0].length);
     }
+    remainder = remainder.slice(result4[0].length);
     const result5 = item416(remainder);
     failedExpectations.push(...result5.failedExpectations);
     if (result5.success === false) {
@@ -5369,9 +5167,8 @@ export function parse(
         remainder: result5.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result5.remainder;
     }
+    remainder = result5.remainder;
     const result6 = remainder.match(/^(,)?/g);
     failedExpectations.push({
       expectation: item386,
@@ -5383,9 +5180,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result6[0].length);
     }
+    remainder = remainder.slice(result6[0].length);
     const result7 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -5405,9 +5201,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result7[0].length);
     }
+    remainder = remainder.slice(result7[0].length);
     const result8 = remainder.match(/^\}/g);
     failedExpectations.push({
       expectation: item432,
@@ -5419,9 +5214,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result8[0].length);
     }
+    remainder = remainder.slice(result8[0].length);
     return {
       success: true,
       value: [result0.value, result2.value, result5.value],
@@ -5436,14 +5230,13 @@ export function parse(
     const result = item395(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // "."
   function item395(text: string): runtime.Success<"."> | runtime.Failure {
@@ -5454,54 +5247,45 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item83,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item83,
+          remainder: text,
+        },
+      ],
+    };
   }
   // Selector|1.., S "." S|
   function item397(text: string): runtime.Success<string[]> | runtime.Failure {
     const values: Array<string> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
       if (values.length > 0) {
-        result = item409(r);
+        const result = item409(r);
+        failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
         }
         r = result.remainder;
       }
-      result = item399(r);
+      const result = item399(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // Selector "selector"
   // = selector:$([_a-zA-Z][_a-zA-Z0-9]*)
@@ -5517,18 +5301,17 @@ export function parse(
     const result = item400(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item408,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item408,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // selector:$([_a-zA-Z][_a-zA-Z0-9]*)
   // {
@@ -5566,9 +5349,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // $([_a-zA-Z][_a-zA-Z0-9]*)
   function item402(text: string): runtime.Success<string> | runtime.Failure {
@@ -5580,18 +5362,17 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item374,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item374,
+          remainder: text,
+        },
+      ],
+    };
   }
   // S "." S
   function item409(
@@ -5615,9 +5396,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = item410(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -5626,9 +5406,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item33(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -5637,9 +5416,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result0.value, result1.value, result0.value],
@@ -5656,18 +5434,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item83,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item83,
+          remainder: text,
+        },
+      ],
+    };
   }
   // (
   // S key:Selector $(S ":") value:Expr
@@ -5679,24 +5456,24 @@ export function parse(
     const values: Array<Expr_CreateStruct_Entry> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
       if (values.length > 0) {
-        result = item428(r);
+        const result = item428(r);
+        failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
         }
         r = result.remainder;
       }
-      result = item417(r);
+      const result = item417(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // S key:Selector $(S ":") value:Expr
@@ -5732,9 +5509,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // S key:Selector $(S ":") value:Expr
   function item418(
@@ -5761,9 +5537,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item399(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -5772,9 +5547,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?:/g,
     );
@@ -5798,9 +5572,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     const result3 = item4(remainder);
     failedExpectations.push(...result3.failedExpectations);
     if (result3.success === false) {
@@ -5809,9 +5582,8 @@ export function parse(
         remainder: result3.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result3.remainder;
     }
+    remainder = result3.remainder;
     return {
       success: true,
       value: [result1.value, result3.value],
@@ -5828,18 +5600,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item386,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item386,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "."? S name:Selector
   // { return builder.newIdentExpr(offset(), name) }
@@ -5871,9 +5642,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "."? S name:Selector
   function item436(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -5890,9 +5660,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -5912,9 +5681,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item399(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -5923,9 +5691,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result2.value],
@@ -5948,9 +5715,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item4(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -5959,9 +5725,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^\)/g);
     failedExpectations.push({
       expectation: item388,
@@ -5973,9 +5738,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -6013,9 +5777,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "[" @ExprList (",")? S "]"
   function item449(text: string): runtime.Success<Expr[]> | runtime.Failure {
@@ -6032,9 +5795,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item384(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -6043,9 +5805,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^(,)?/g);
     failedExpectations.push({
       expectation: item386,
@@ -6057,9 +5818,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     const result3 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -6079,9 +5839,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result3[0].length);
     }
+    remainder = remainder.slice(result3[0].length);
     const result4 = remainder.match(/^\]/g);
     failedExpectations.push({
       expectation: item456,
@@ -6093,9 +5852,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result4[0].length);
     }
+    remainder = remainder.slice(result4[0].length);
     return {
       success: true,
       value: result1.value,
@@ -6133,9 +5891,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "{" @MapInits $((",")? S "}")
   function item461(
@@ -6154,9 +5911,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item465(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -6165,9 +5921,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(
       /^(,)?(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?\}/g,
     );
@@ -6195,9 +5950,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: result1.value,
@@ -6215,24 +5969,24 @@ export function parse(
     const values: Array<Expr_CreateStruct_Entry> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
       if (values.length > 0) {
-        result = item473(r);
+        const result = item473(r);
+        failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
         }
         r = result.remainder;
       }
-      result = item466(r);
+      const result = item466(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // key:Expr ":" value:Expr
@@ -6268,9 +6022,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // key:Expr ":" value:Expr
   function item467(
@@ -6286,9 +6039,8 @@ export function parse(
         remainder: result0.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result0.remainder;
     }
+    remainder = result0.remainder;
     const result1 = remainder.match(/^:/g);
     failedExpectations.push({
       expectation: item423,
@@ -6300,9 +6052,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item4(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -6311,9 +6062,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result0.value, result2.value],
@@ -6330,18 +6080,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item386,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item386,
+          remainder: text,
+        },
+      ],
+    };
   }
   // (S @Access)*
   function item484(
@@ -6350,17 +6099,16 @@ export function parse(
     const values: Array<(prevExpr: Expr) => Expr> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item485(r);
+      const result = item485(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
+    }
     return { success: true, value: values, remainder, failedExpectations };
   }
   // S @Access
@@ -6388,9 +6136,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item488(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -6399,9 +6146,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     return {
       success: true,
       value: result1.value,
@@ -6474,9 +6220,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "." S field:Selector S ![(]
   function item490(text: string): runtime.Success<[string]> | runtime.Failure {
@@ -6493,9 +6238,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -6515,9 +6259,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item399(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -6526,9 +6269,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     const result3 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -6548,9 +6290,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result3[0].length);
     }
+    remainder = remainder.slice(result3[0].length);
     const result4 = remainder.match(/^(?![(])/g);
     failedExpectations.push();
     if (result4?.length !== 1) {
@@ -6559,9 +6300,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result4[0].length);
     }
+    remainder = remainder.slice(result4[0].length);
     return {
       success: true,
       value: [result2.value],
@@ -6602,9 +6342,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "." S func:Selector S "(" args:ExprList ")"
   function item499(
@@ -6623,9 +6362,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -6645,9 +6383,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result1[0].length);
     }
+    remainder = remainder.slice(result1[0].length);
     const result2 = item399(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -6656,9 +6393,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     const result3 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -6678,9 +6414,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result3[0].length);
     }
+    remainder = remainder.slice(result3[0].length);
     const result4 = remainder.match(/^\(/g);
     failedExpectations.push({
       expectation: item381,
@@ -6692,9 +6427,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result4[0].length);
     }
+    remainder = remainder.slice(result4[0].length);
     const result5 = item384(remainder);
     failedExpectations.push(...result5.failedExpectations);
     if (result5.success === false) {
@@ -6703,9 +6437,8 @@ export function parse(
         remainder: result5.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result5.remainder;
     }
+    remainder = result5.remainder;
     const result6 = remainder.match(/^\)/g);
     failedExpectations.push({
       expectation: item388,
@@ -6717,9 +6450,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result6[0].length);
     }
+    remainder = remainder.slice(result6[0].length);
     return {
       success: true,
       value: [result2.value, result5.value],
@@ -6759,9 +6491,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "[" index:Expr "]"
   function item508(text: string): runtime.Success<[Expr]> | runtime.Failure {
@@ -6778,9 +6509,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item4(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -6789,9 +6519,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(/^\]/g);
     failedExpectations.push({
       expectation: item456,
@@ -6803,9 +6532,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     return {
       success: true,
       value: [result1.value],
@@ -6818,11 +6546,13 @@ export function parse(
   // /* : Expr */
   // if (ops.length % 2 === 0) {
   // return expr;
-  // } else if (expr.exprKind.case === "callExpr" && expr.exprKind.value.function === `${ops[0]}_`) {
-  // return expr.exprKind.value.args[0];
-  // } else {
-  // return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   // }
+  //
+  // if (expr.exprKind.case === "callExpr" && expr.exprKind.value.function === `${ops[0]}_`) {
+  // return expr.exprKind.value.args[0];
+  // }
+  //
+  // return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   // }
   function item517(text: string): runtime.Success<Expr> | runtime.Failure {
     const result = item518(text);
@@ -6853,9 +6583,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // S ops:$( "!"+ / "-"+ ) expr:Member
   function item518(
@@ -6882,9 +6611,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item520(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -6893,9 +6621,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item30(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -6904,9 +6631,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result1.value, result2.value],
@@ -6924,22 +6650,21 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item524,
-            remainder: text,
-          },
-          {
-            expectation: item75,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item524,
+          remainder: text,
+        },
+        {
+          expectation: item75,
+          remainder: text,
+        },
+      ],
+    };
   }
   // MultiplicationTail?
   function item531(
@@ -6948,14 +6673,13 @@ export function parse(
     const result = item533(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // (
   // S operator:( o:[*/%] { return `_${o}_` } ) nextExpr:Unary
@@ -6967,29 +6691,20 @@ export function parse(
     const values: Array<(prevExpr: Expr) => Expr> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item534(r);
+      const result = item534(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // S operator:( o:[*/%] { return `_${o}_` } ) nextExpr:Unary
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
@@ -7024,9 +6739,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // S operator:( o:[*/%] { return `_${o}_` } ) nextExpr:Unary
   function item535(
@@ -7053,9 +6767,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item537(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -7064,9 +6777,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item28(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -7075,9 +6787,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result1.value, result2.value],
@@ -7114,9 +6825,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // [*/%]
   function item539(text: string): runtime.Success<string> | runtime.Failure {
@@ -7127,18 +6837,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item540,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item540,
+          remainder: text,
+        },
+      ],
+    };
   }
   // AdditionTail?
   function item548(
@@ -7147,14 +6856,13 @@ export function parse(
     const result = item550(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // (
   // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
@@ -7166,29 +6874,20 @@ export function parse(
     const values: Array<(prevExpr: Expr) => Expr> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item551(r);
+      const result = item551(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
@@ -7223,9 +6922,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
   function item552(
@@ -7252,9 +6950,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item554(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -7263,9 +6960,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item24(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -7274,9 +6970,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result1.value, result2.value],
@@ -7313,9 +7008,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // [+-]
   function item556(text: string): runtime.Success<string> | runtime.Failure {
@@ -7326,18 +7020,17 @@ export function parse(
         remainder: text.slice(1),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item93,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item93,
+          remainder: text,
+        },
+      ],
+    };
   }
   // RelationTail?
   function item563(
@@ -7346,14 +7039,13 @@ export function parse(
     const result = item565(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // (
   // S operator:Relop nextExpr:Addition
@@ -7365,29 +7057,20 @@ export function parse(
     const values: Array<(prevExpr: Expr) => Expr> = [];
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
-    let result;
-    do {
+    while (true) {
       let r = remainder;
-      result = item566(r);
+      const result = item566(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
       }
       remainder = result.remainder;
       values.push(result.value);
-    } while (true);
-    if (
-      values.length < 1 &&
-      result.success === false /* technically redundant */
-    ) {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations,
-      };
-    } else {
-      return { success: true, value: values, remainder, failedExpectations };
     }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
   }
   // S operator:Relop nextExpr:Addition
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
@@ -7422,9 +7105,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // S operator:Relop nextExpr:Addition
   function item567(
@@ -7451,9 +7133,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item570(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -7462,9 +7143,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = item20(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -7473,9 +7153,8 @@ export function parse(
         remainder: result2.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result2.remainder;
     }
+    remainder = result2.remainder;
     return {
       success: true,
       value: [result1.value, result2.value],
@@ -7494,18 +7173,17 @@ export function parse(
     const result = item571(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: false,
-        remainder: result.remainder,
-        failedExpectations: [
-          {
-            expectation: item593,
-            remainder: result.remainder,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item593,
+          remainder: result.remainder,
+        },
+      ],
+    };
   }
   // (
   // operator:$("<=" / "<" / ">=" / ">" / "==" / "!=")
@@ -7567,9 +7245,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // $("<=" / "<" / ">=" / ">" / "==" / "!=")
   function item574(text: string): runtime.Success<string> | runtime.Failure {
@@ -7581,38 +7258,37 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item577,
-            remainder: text,
-          },
-          {
-            expectation: item579,
-            remainder: text,
-          },
-          {
-            expectation: item581,
-            remainder: text,
-          },
-          {
-            expectation: item583,
-            remainder: text,
-          },
-          {
-            expectation: item585,
-            remainder: text,
-          },
-          {
-            expectation: item587,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item577,
+          remainder: text,
+        },
+        {
+          expectation: item579,
+          remainder: text,
+        },
+        {
+          expectation: item581,
+          remainder: text,
+        },
+        {
+          expectation: item583,
+          remainder: text,
+        },
+        {
+          expectation: item585,
+          remainder: text,
+        },
+        {
+          expectation: item587,
+          remainder: text,
+        },
+      ],
+    };
   }
   // "in" { return "@in" }
   function item589(text: string): runtime.Success<string> | runtime.Failure {
@@ -7642,9 +7318,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "in"
   function item590(text: string): runtime.Success<"in"> | runtime.Failure {
@@ -7655,18 +7330,17 @@ export function parse(
         remainder: text.slice(2),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item591,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item591,
+          remainder: text,
+        },
+      ],
+    };
   }
   // $(S "&&")
   function item598(text: string): runtime.Success<string> | runtime.Failure {
@@ -7680,26 +7354,25 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item41,
-            remainder: text,
-          },
-          {
-            expectation: item58,
-            remainder: text,
-          },
-          {
-            expectation: item601,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item41,
+          remainder: text,
+        },
+        {
+          expectation: item58,
+          remainder: text,
+        },
+        {
+          expectation: item601,
+          remainder: text,
+        },
+      ],
+    };
   }
   // $(S "||")
   function item604(text: string): runtime.Success<string> | runtime.Failure {
@@ -7713,26 +7386,25 @@ export function parse(
         remainder: text.slice(matches[0].length),
         failedExpectations: [],
       };
-    } else {
-      return {
-        success: false,
-        remainder: text,
-        failedExpectations: [
-          {
-            expectation: item41,
-            remainder: text,
-          },
-          {
-            expectation: item58,
-            remainder: text,
-          },
-          {
-            expectation: item607,
-            remainder: text,
-          },
-        ],
-      };
     }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item41,
+          remainder: text,
+        },
+        {
+          expectation: item58,
+          remainder: text,
+        },
+        {
+          expectation: item607,
+          remainder: text,
+        },
+      ],
+    };
   }
   // TernaryTail?
   function item611(
@@ -7741,14 +7413,13 @@ export function parse(
     const result = item613(text);
     if (result.success === true) {
       return result;
-    } else {
-      return {
-        success: true,
-        value: null,
-        remainder: text,
-        failedExpectations: result.failedExpectations,
-      };
     }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
   }
   // "?" t:ConditionalOr S ":" f:Expr S
   // {
@@ -7786,9 +7457,8 @@ export function parse(
         remainder: result.remainder,
         failedExpectations: [],
       };
-    } else {
-      return result;
     }
+    return result;
   }
   // "?" t:ConditionalOr S ":" f:Expr S
   function item614(
@@ -7807,9 +7477,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result0[0].length);
     }
+    remainder = remainder.slice(result0[0].length);
     const result1 = item8(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
@@ -7818,9 +7487,8 @@ export function parse(
         remainder: result1.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result1.remainder;
     }
+    remainder = result1.remainder;
     const result2 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -7840,9 +7508,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result2[0].length);
     }
+    remainder = remainder.slice(result2[0].length);
     const result3 = remainder.match(/^:/g);
     failedExpectations.push({
       expectation: item423,
@@ -7854,9 +7521,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result3[0].length);
     }
+    remainder = remainder.slice(result3[0].length);
     const result4 = item4(remainder);
     failedExpectations.push(...result4.failedExpectations);
     if (result4.success === false) {
@@ -7865,9 +7531,8 @@ export function parse(
         remainder: result4.remainder,
         failedExpectations,
       };
-    } else {
-      remainder = result4.remainder;
     }
+    remainder = result4.remainder;
     const result5 = remainder.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
     );
@@ -7887,9 +7552,8 @@ export function parse(
         remainder,
         failedExpectations,
       };
-    } else {
-      remainder = remainder.slice(result5[0].length);
     }
+    remainder = remainder.slice(result5[0].length);
     return {
       success: true,
       value: [result1.value, result4.value],
