@@ -18,6 +18,7 @@ import type {
   Expr_CreateStruct_Entry,
   SourceInfo,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import LogicManager from "./logic-manager.js";
 
 const encoder = new TextEncoder();
 
@@ -76,6 +77,20 @@ export default class Builder {
       args[0].exprKind?.case === "selectExpr"
     ) {
       return this.expandHasMacro(offset, args[0]);
+    }
+    if (
+      (functionName === "_||_" || functionName === "_&&_") &&
+      args.length > 1
+    ) {
+      const logicManager = LogicManager.newBalancingLogicManager(
+        this,
+        functionName,
+        args[0],
+      );
+      for (let i = 1; i < args.length; i += 1) {
+        logicManager.addTerm(offset, args[i]);
+      }
+      return logicManager.toExpr();
     }
     return this.nextExpr(offset, {
       case: "callExpr",
