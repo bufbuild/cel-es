@@ -170,7 +170,7 @@
     }
   },
   "devDependencies": {
-    "@types/node": "^24.1.0",
+    "@types/node": "^24.6.1",
     "fflate": "^0.8.2"
   },
   "peerDependencies": {
