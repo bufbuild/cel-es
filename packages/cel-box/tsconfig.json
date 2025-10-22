@@ -1,0 +1,12 @@
+{
+  "files": [
+    "src/split.ts",
+    "src/split-component.ts",
+    "src/table.ts",
+    "src/table-component.ts"
+  ],
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es5", "es6", "dom"]
+  }
+}

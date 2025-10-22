@@ -1,0 +1,54 @@
+{
+  "name": "@bufbuild/cel-box",
+  "version": "0.1.0",
+  "description": "Embeddable CEL UI",
+  "keywords": [
+    "javascript",
+    "typescript",
+    "protobuf",
+    "cel",
+    "common-expression-language"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bufbuild/cel-es.git",
+    "directory": "packages/cel-box"
+  },
+  "scripts": {
+    "prebuild": "rm -rf ./dist/*",
+    "build": "npx esbuild src/*.ts --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/ && prettier dist/* --write",
+    "build-minified": "npx esbuild src/*.ts --minify --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/",
+    "watch": "npx esbuild src/*.ts --watch --bundle --platform=browser --format=esm --tree-shaking=false --outdir=dist/",
+    "format": "biome format --write",
+    "lint": "biome lint --error-on-warnings",
+    "fix": "biome check --write",
+    "fix-unsafe": "biome check --write --unsafe",
+    "attw": "attw --pack",
+    "license-header": "license-header",
+    "postinstall": "npm run build"
+  },
+  "type": "module",
+  "dependencies": {
+    "@bufbuild/cel": "^0.3.0",
+    "@bufbuild/cel-spec": "^0.3.0",
+    "@types/papaparse": "^5.3.16",
+    "papaparse": "^5.5.3",
+    "split-grid": "^1.0.11",
+    "yaml": "^2.8.1"
+  },
+  "exports": {
+    ".": "dist/split.js",
+    "./split.js": "dist/split.js",
+    "./split-component.js": "dist/split-component.js",
+    "./table.js": "dist/table.js",
+    "./table-component.js": "dist/table-component.js",
+    "./split.ts": "src/split.js",
+    "./split-component.ts": "src/split-component.js",
+    "./table.ts": "src/table.js",
+    "./table-component.ts": "src/table-component.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.11"
+  }
+}
