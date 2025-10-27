@@ -17,6 +17,7 @@
   },
   "scripts": {
     "prebuild": "rm -rf ./dist/*",
+    "encode-icons": "node scripts/encode-icons.js; prettier --write src/gen",
     "build": "npx esbuild src/*.ts --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/ && prettier dist/* --write",
     "build-minified": "npx esbuild src/*.ts --minify --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/",
     "watch": "npx esbuild src/*.ts --watch --bundle --platform=browser --format=esm --tree-shaking=false --outdir=dist/",
@@ -39,16 +40,21 @@
   },
   "exports": {
     ".": "dist/split.js",
+    "./simple.js": "dist/simple.js",
+    "./simple-component.js": "dist/simple-component.js",
     "./split.js": "dist/split.js",
     "./split-component.js": "dist/split-component.js",
     "./table.js": "dist/table.js",
     "./table-component.js": "dist/table-component.js",
+    "./simple.ts": "src/simple.js",
+    "./simple-component.ts": "src/simple-component.js",
     "./split.ts": "src/split.js",
     "./split-component.ts": "src/split-component.js",
     "./table.ts": "src/table.js",
     "./table-component.ts": "src/table-component.js"
   },
   "devDependencies": {
-    "esbuild": "^0.25.11"
+    "esbuild": "^0.25.11",
+    "iconoir": "^7.11.0"
   }
 }

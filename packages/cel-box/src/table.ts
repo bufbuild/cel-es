@@ -32,15 +32,17 @@ class CelBoxTable extends CelBox {
     this.rows = result.data.map((r) => ({ ...r, [selectedSymbol]: false }));
 
     this.root.innerHTML = `
-      <div class="cel-box-data">
-        <table>
-          <thead>
-            <tr>
-              ${this.columns.map((c) => `<th>${c.name}</th>`).join("")}
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
+      <div class="cel-box-area">
+        <div class="cel-box-data">
+          <table>
+            <thead>
+              <tr>
+                <th></th>${this.columns.map((c) => `<th>${c.name}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
       ${this.getExprInputHTML()}
     `;
@@ -51,18 +53,18 @@ class CelBoxTable extends CelBox {
     this.addHTMLRenderer(".cel-box-data table tbody", () => {
       return this.rows
         .map((r) => {
-          const rowClass = r[selectedSymbol] ? "cel-box-highlight" : "";
+          const rowClass = r[selectedSymbol] ? "cel-box-highlighted" : "";
           return `
             <tr class="${rowClass}">
-              ${this.columns.map((c) => `<td>${r[c.index]}</td>`).join("")}
+              <td></td>${this.columns.map((c) => `<td>${r[c.index]}</td>`).join("")}
             </tr>`;
         })
         .join("\n");
     });
 
     this.addClassRenderer(
-      ".cel-box-data",
-      "cel-box-highlighting",
+      this.root,
+      "cel-box-has-highlighting",
       () => this.currentExpr !== undefined && this.error === undefined,
     );
   }

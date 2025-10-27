@@ -11,11 +11,11 @@ class CelBoxSplit extends CelBox {
   currentResult?: CEL.CelResult;
   currentResultYAML = "";
 
-  constructor(root: Element | string, options?: CelBoxOptions) {
+  constructor(root: HTMLElement | string, options?: CelBoxOptions) {
     super(root, options);
 
     this.root.innerHTML = `
-      <div class="cel-box-data">
+      <div class="cel-box-data" style="grid-template-columns: 1fr 12px 1fr;">
         <div class="cel-box-content cel-box-input">
           <h4>Bindings</h4>
           <div class="cel-box-code" contenteditable="plaintext-only" spellcheck="false">${this.originalContent.trim()}</div>
@@ -31,7 +31,21 @@ class CelBoxSplit extends CelBox {
       ${this.getExprInputHTML()}
     `;
 
+    const grid = this.root.querySelector('.cel-box-data') as HTMLDivElement;
+
     this.split = Split({
+      onDrag: (_1, _2, gridTemplateStyle: string) => {
+        const [, l, r] = gridTemplateStyle.match(/^(\S+)fr \S+px (\S+)fr$/) ?? [,"1","1"];
+
+        let left = parseFloat(l), right = parseFloat(r);
+        const sum = left + right;
+        left *= 2/sum, right *= 2/sum;
+
+        if (Math.abs(left - right) < 0.1)
+          left = 1, right = 1;
+
+        grid.style.gridTemplateColumns = `${left}fr 12px ${right}fr`;
+      },
       columnGutters: [
         {
           track: 1,
@@ -59,10 +73,14 @@ class CelBoxSplit extends CelBox {
     super.update(event, element);
 
     if (event == "CEL_BOX_BINDINGS_INPUT") {
-      this.currentBindings = YAML.parse(element.textContent);
+      this.currentBindings = YAML.parse(
+        element.textContent,
+        { intAsBigInt: true }
+      );
     }
 
     this.currentResult = undefined;
+    this.currentResultYAML = "";
     if (this.currentProgram) {
       this.error = undefined;
 
@@ -75,7 +93,11 @@ class CelBoxSplit extends CelBox {
       this.currentResult = result;
 
       const jsonCompatibleResult = toJsonCompatibleValue(result);
-      this.currentResultYAML = YAML.stringify(jsonCompatibleResult);
+
+      const document = new YAML.Document()
+      document.contents = document.createNode(jsonCompatibleResult);
+      (document.contents as { minFractionDigits: number }).minFractionDigits = 1
+      this.currentResultYAML = document.toString();
     }
   }
 }
@@ -103,6 +125,6 @@ function toJsonCompatibleValue(
   return value;
 }
 
-export default (target: Element | string, options?: CelBoxOptions) =>
+export default (target: HTMLElement | string, options?: CelBoxOptions) =>
   new CelBoxSplit(target, options);
 export type { CelBoxSplit };

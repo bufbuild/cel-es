@@ -3,15 +3,18 @@ import type { ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
 
 export interface CelBoxOptions {
-  original?: Element;
+  original?: HTMLElement;
+  fontSize?: string;
+  expr?: string;
+  dataHeight?: string;
 }
 
 export abstract class CelBox {
   readonly #renderers: (() => void)[] = [];
   readonly env: CEL.CelEnv = CEL.celEnv({ funcs: STRINGS_EXT_FUNCS });
 
-  readonly root: Element;
-  readonly originalElement: Element;
+  readonly root: HTMLElement;
+  readonly originalElement: HTMLElement;
   readonly originalContent: string;
   readonly originalExpression: string;
 
@@ -28,7 +31,7 @@ export abstract class CelBox {
   getExprInputHTML() {
     return `
       <div class="cel-box-expr">
-        <div class="cel-box-code" contenteditable="plaintext-only" spellcheck="false">${this.originalExpression}</div>
+        <div class="cel-box-code cel-box-area" contenteditable="plaintext-only" spellcheck="false">${this.originalExpression}</div>
         <div class="cel-box-error"></div>
       </div>
     `;
@@ -39,6 +42,7 @@ export abstract class CelBox {
     if (event == "CEL_BOX_EXPR_INPUT") {
       const exprText = element.textContent;
       if (this.currentExprText === exprText) return;
+      this.currentExprText = exprText;
 
       this.currentExpr = undefined;
       this.currentProgram = undefined;
@@ -53,20 +57,21 @@ export abstract class CelBox {
     }
   }
 
-  constructor(root: Element | string, options?: CelBoxOptions) {
-    if (root instanceof Element) {
+  constructor(root: HTMLElement | string, options: CelBoxOptions = {}) {
+    if (root instanceof HTMLElement) {
       this.root = root;
     } else {
       const candidate = document.querySelector(root);
-      if (candidate) this.root = candidate;
+      if (candidate instanceof HTMLElement) this.root = candidate;
       else throw new Error(`Cannot find root element: ${String(root)}`);
     }
 
-    this.originalElement = options?.original ? options.original : this.root;
+    this.originalElement = options.original ?? this.root;
     this.originalContent = this.originalElement.textContent;
-    this.originalExpression =
-      this.originalElement.getAttribute("data-expr") ?? "";
+    this.originalExpression = options.expr ?? this.originalElement.getAttribute("data-expr") ?? "";
 
+    this.root.style = options.fontSize ?? this.originalElement.style.fontSize;
+    this.root.style.setProperty("--cel-box-content-height", options.dataHeight ?? this.originalElement.getAttribute('height'));
     this.root.classList.add("cel-box");
   }
 

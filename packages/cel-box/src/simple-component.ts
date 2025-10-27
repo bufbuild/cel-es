@@ -1,9 +1,9 @@
-import celBoxSplit from "./split.js";
-import type { CelBoxSplit } from "./split.js";
+import celBoxSimple from "./simple.js";
+import type { CelBoxSimple } from "./simple.js";
 
-class CelBoxSplitElement extends HTMLElement {
-  static readonly elementName: string = "cel-box-split";
-  model?: CelBoxSplit;
+class CelBoxSimpleElement extends HTMLElement {
+  static readonly elementName: string = "cel-box-simple";
+  model?: CelBoxSimple;
 
   connectedCallback() {
     const shadow = this.attachShadow({ mode: "closed" });
@@ -16,6 +16,7 @@ class CelBoxSplitElement extends HTMLElement {
           box-shadow: var(--cel-box-shadow);
           border-radius: 12px;
           padding: 8px;
+          padding-bottom: 0;
           margin: 2em 0;
           text-wrap: nowrap;
           font-family: monospace;
@@ -25,10 +26,10 @@ class CelBoxSplitElement extends HTMLElement {
           --cel-box-background-color-variant: hsl(224, 19%, 98%);
           --cel-box-border-color: hsl(224, 19%, 90%);
           --cel-box-content-background-color: #fff;
-          --cel-box-content-height: 5.5lh;
+          --cel-box-content-height: 1lh;
           --cel-box-content-padding: 8px;
           --cel-box-content-border-width: 2px;
-          --cel-box-content-computed-height: calc(var(--cel-box-content-height) * ((1lh + 1px) / 1lh) + 2 * var(--cel-box-content-border-width) - 1px);
+          --cel-box-content-computed-height: calc(1lh + 2 * var(--cel-box-content-padding) + 2 * var(--cel-box-content-border-width));
           --cel-box-shadow: 0px 1px 1px hsla(0, 0%, 0%, 0.06), 0px 2px 1px hsla(0, 0%, 0%, 0.06);
         }
 
@@ -58,33 +59,38 @@ class CelBoxSplitElement extends HTMLElement {
           box-shadow: var(--cel-box-shadow);
         }
 
-        .cel-box-expr, .cel-box-error {
+        .cel-box-expr {
           border-radius: 8px;
         }
 
         .cel-box-expr .cel-box-code,
-        .cel-box-error {
+        .cel-box-error,
+        .cel-box-result {
           outline: none;
           margin: 0;
+          margin-bottom: var(--cel-box-content-padding);
           width: 100%;
           overflow-x: scroll;
           padding: var(--cel-box-content-padding);
         }
 
-        .cel-box-error {
+        .cel-box-error,
+        .cel-box-result {
           margin-top: 0;
-          color: #fff;
+          padding-top: 0;
           border-top: 0px;
           display: none;
+          padding-bottom: 0;
+          white-space: pre;
         }
 
         .cel-box-has-error .cel-box-error {
           display: block;
+          color: #c00;
         }
 
-        .cel-box-has-error .cel-box-expr {
-          background-color: #c00;
-          outline: var(--cel-box-content-border-width) solid #c00;
+        .cel-box-has-result .cel-box-result {
+          display: block;
         }
 
         .cel-box-has-error .cel-box-expr .cel-box-code {
@@ -95,74 +101,21 @@ class CelBoxSplitElement extends HTMLElement {
           opacity: 50%;
         }
 
-        .cel-box-data .cel-box-content .cel-box-code {
+        .cel-box-content .cel-box-code {
           padding: var(--cel-box-content-padding);
-          overflow: scroll;
-          height: var(--cel-box-content-computed-height)
-        }
-
-        .cel-box-data .cel-box-content {
-          padding-bottom: 8px;
-          overflow: hidden;
-        }
-
-        .cel-box-data {
-          display: grid;
-        }
-
-        .cel-box-input {
-          grid-column: 1;
-        }
-
-        .cel-box-output {
-          grid-column: 3;
-        }
-
-        .cel-box-gutter {
-          grid-row: 1/-1;
-          cursor: col-resize;
-          grid-column: 2;
-          display: flex;
-          align-items: center;
-          align-self: end;
-          height: var(--cel-box-content-computed-height);
-          margin-bottom: 8px;
-        }
-
-        .cel-box-gutter span {
-          display: block;
-          margin: 0 auto;
-          width: 4px;
-          height: 2lh;
-          background: var(--cel-box-border-color);
-        }
-
-        .cel-box-gutter:hover span {
-          background: #999;
-        }
-
-        .cel-box-data[style*="col-resize"] .cel-box-gutter span {
-          background: #555;
-        }
-
-        .cel-box-data[style*=" 0fr 12px"] .cel-box-input {
-          visibility: hidden;
-        }
-
-        .cel-box-data[style*="12px 0fr;"] .cel-box-output {
-          visibility: hidden;
+          min-height: var(--cel-box-content-computed-height)
         }
       </style>
       <div></div>
     `;
 
-    this.model = celBoxSplit(shadow.querySelector("div") as HTMLDivElement, {
+    this.model = celBoxSimple(shadow.querySelector("div") as HTMLDivElement, {
       original: this,
     });
   }
 }
 
 window.customElements.define(
-  CelBoxSplitElement.elementName,
-  CelBoxSplitElement,
+  CelBoxSimpleElement.elementName,
+  CelBoxSimpleElement,
 );

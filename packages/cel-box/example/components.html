@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>CEL Box Example</title>
+    <script src="../dist/simple-component.js" defer></script>
+    <script src="../dist/split-component.js" defer></script>
+    <script src="../dist/table-component.js" defer></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 32px;
+        background-color: #eee;
+      }
+
+      #page {
+        margin: 0 auto;
+        padding: 32px;
+        background-color: #fff;
+        width: 640px;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="page">
+      <cel-box-simple>1 in [1, 2, 3]</cel-box-simple>
+      <cel-box-split data-expr="a" height="8lh">a: 1</cel-box-split>
+      <cel-box-table data-expr="from == 'churchill@gov.uk'">
+from,subject,label,priority (uint)
+churchill@gov.uk,"never, never, never",copyediting,1
+astley@rca.com,Gonna get the ball rolling,copyediting,3
+abe@whitehouse.gov,Fwd: tix 4 our american cousin,events,3
+jswigert@nasa.gov,We’ve had a problem...,troubleshooting,2
+kelly@lockheed.com,You too?,personal,3
+stanislav.petrov@mil.ru,Пять МБР на подходе?,troubleshooting,2
+kessel12pc@hotmail.com,Re: I love you,personal,1
+pdhewson@myspace.com,Re: You too?,personal,3
+      </cel-box-table>
+    </div>
+  </body>
+</html>
