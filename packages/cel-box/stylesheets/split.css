@@ -1,0 +1,69 @@
+.cel-box-content h4 {
+  color: var(--cel-box-color-dark);
+  margin: 0;
+  text-align: center;
+}
+
+.cel-box-has-error .cel-box-output .cel-box-code {
+  background: var(--cel-box-color-light);
+  color: var(--cel-box-color-medium);
+}
+
+.cel-box-data .cel-box-content .cel-box-code {
+  height: var(--cel-box-content-computed-height);
+  overflow: scroll;
+  padding: var(--cel-box-area-padding);
+}
+
+.cel-box-data .cel-box-content {
+  overflow: hidden;
+  padding-bottom: var(--cel-box-area-padding);
+}
+
+.cel-box-data {
+  display: grid;
+}
+
+.cel-box-input {
+  grid-column: 1;
+}
+
+.cel-box-output {
+  grid-column: 3;
+}
+
+.cel-box-gutter {
+  align-items: center;
+  align-self: end;
+  cursor: col-resize;
+  display: flex;
+  grid-column: 2;
+  grid-row: 1/-1;
+  height: var(--cel-box-content-computed-height);
+  margin-bottom:  var(--cel-box-area-padding);
+}
+
+.cel-box-gutter span {
+  background: var(--cel-box-color-border);
+  border-radius: var(--cel-box-area-padding);
+  display: block;
+  height: 2lh;
+  margin: 0 auto;
+  width: calc(var(--cel-box-area-padding) / 2);
+}
+
+.cel-box-gutter:hover span {
+  background: var(--cel-box-color-accent);
+}
+
+.cel-box-data[style*="col-resize"] .cel-box-gutter span {
+  background: var(--cel-box-color-dark);
+}
+
+.cel-box-data[style*=" 0fr 12px"] .cel-box-input {
+  visibility: hidden;
+}
+
+.cel-box-data[style*="12px 0fr;"] .cel-box-output {
+  visibility: hidden;
+}

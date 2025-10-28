@@ -19,6 +19,12 @@ for (const icon of icons) {
 }
 
 fs.writeFileSync(
-  `${import.meta.dirname}/../src/gen/icons.ts`,
-  `const icons = ${JSON.stringify(iconDataURLs)}; export default icons;`
+  `${import.meta.dirname}/../stylesheets/gen/icons.css`,
+  `.cel-box {
+    ${
+      Object.entries(iconDataURLs).map(
+        ([name, value]) => `--cel-box-icon-${name}: url("${value}");`
+      ).join("\n")
+    }
+  }`,
 );

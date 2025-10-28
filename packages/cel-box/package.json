@@ -17,7 +17,8 @@
   },
   "scripts": {
     "prebuild": "rm -rf ./dist/*",
-    "encode-icons": "node scripts/encode-icons.js; prettier --write src/gen",
+    "gen-icons": "node scripts/gen-icons.js; prettier --write stylesheets/gen/icons.css",
+    "gen-stylesheets": "node scripts/gen-stylesheets.js; prettier --write src/gen/stylesheets.ts",
     "build": "npx esbuild src/*.ts --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/ && prettier dist/* --write",
     "build-minified": "npx esbuild src/*.ts --minify --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/",
     "watch": "npx esbuild src/*.ts --watch --bundle --platform=browser --format=esm --tree-shaking=false --outdir=dist/",

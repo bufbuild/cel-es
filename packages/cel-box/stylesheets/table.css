@@ -1,0 +1,95 @@
+.cel-box {
+  & table {
+    border-radius: inherit;
+    border-spacing: 0;
+    min-width: 100%;
+
+    & th,
+    & td {
+      border-radius: inherit;
+      border: var(--cel-box-border);
+      line-height: calc(1lh - var(--cel-box-border-width));
+      padding: 0 var(--cel-box-area-padding);
+
+      & {
+        border-left: 0;
+        border-top: 0;
+      }
+
+      &:first-child {
+        padding: 0;
+      }
+
+      &:first-child::before {
+        content: "";
+        display: block;
+        height: 1lh;
+        mask: var(--cel-box-icon-mask);
+        width: 1lh;
+      }
+    }
+
+    & thead tr {
+      background: var(--cel-box-color-tint-dark);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    &::before {
+      /* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1803813 */
+      backdrop-filter: saturate(100%) blur(10px);
+      content: "";
+      display: block;
+      height: 1lh;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1;
+    }
+
+    & thead th {
+      text-align: left;
+    }
+
+    & tr > :last-child {
+      border-right: 0;
+    }
+
+    & tr:last-child td {
+      border-bottom: 0;
+    }
+  }
+
+  &.cel-box-has-highlighting {
+    & td:first-child::before {
+      background: var(--cel-box-color-medium);
+      content: "Not matched: ";
+      mask-image: var(--cel-box-icon-xmark-circle);
+    }
+
+    & .cel-box-highlighted {
+      background: var(--cel-box-color-lightest);
+      color: var(--cel-box-color-accent-valid);
+      font-weight: bold;
+
+      & td:first-child::before {
+        background: var(--cel-box-color-accent-valid);
+        content: "Matched: ";
+        mask-image: var(--cel-box-icon-check-circle-solid);
+      }
+    }
+  }
+
+  &.cel-box-has-highlighting,
+  &.cel-box-has-error {
+    & tbody tr {
+      color: var(--cel-box-color-medium);
+    }
+  }
+
+  & .cel-box-data {
+    height: var(--cel-box-content-computed-height);
+    overflow: scroll;
+  }
+}
