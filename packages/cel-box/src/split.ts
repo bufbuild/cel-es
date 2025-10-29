@@ -2,6 +2,7 @@ import * as CEL from "@bufbuild/cel";
 import Split from "split-grid";
 import type { SplitInstance } from "split-grid";
 import YAML from "yaml";
+import { print } from "./internal/print.js";
 import { CelBox, type CelBoxOptions } from "./internal/core.js";
 
 class CelBoxSplit extends CelBox {
@@ -9,7 +10,7 @@ class CelBoxSplit extends CelBox {
 
   currentBindings?: Record<string, CEL.CelInput>;
   currentResult?: CEL.CelResult;
-  currentResultYAML = "";
+  currentResultString = "";
 
   constructor(root: HTMLElement | string, options?: CelBoxOptions) {
     super(root, options);
@@ -65,7 +66,7 @@ class CelBoxSplit extends CelBox {
 
     this.addTextRenderer(
       ".cel-box-output .cel-box-code",
-      () => this.currentResultYAML,
+      () => this.currentResultString,
     );
   }
 
@@ -80,7 +81,7 @@ class CelBoxSplit extends CelBox {
     }
 
     this.currentResult = undefined;
-    this.currentResultYAML = "";
+    this.currentResultString = "";
     if (this.currentProgram) {
       this.error = undefined;
 
@@ -91,38 +92,9 @@ class CelBoxSplit extends CelBox {
       }
 
       this.currentResult = result;
-
-      const jsonCompatibleResult = toJsonCompatibleValue(result);
-
-      const document = new YAML.Document()
-      document.contents = document.createNode(jsonCompatibleResult);
-      (document.contents as { minFractionDigits: number }).minFractionDigits = 1
-      this.currentResultYAML = document.toString();
+      this.currentResultString = print(result);
     }
   }
-}
-
-function toJsonCompatibleValue(
-  value: CEL.CelValue,
-): ReturnType<(typeof JSON)["parse"]> {
-  if (CEL.isCelMap(value)) {
-    return Object.fromEntries(
-      [...value.entries()].map(
-        ([k, v]): [string, ReturnType<(typeof JSON)["parse"]>] => [
-          k.toString(),
-          toJsonCompatibleValue(v),
-        ],
-      ),
-    );
-  }
-
-  if (CEL.isCelList(value)) {
-    return [...value].map(
-      (v): ReturnType<(typeof JSON)["parse"]> => toJsonCompatibleValue(v),
-    );
-  }
-
-  return value;
 }
 
 export default (target: HTMLElement | string, options?: CelBoxOptions) =>

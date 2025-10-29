@@ -39,21 +39,26 @@ export abstract class CelBox {
 
   update(event: string, element: HTMLElement) {
     this.lastUpdatedAt = Date.now();
-    if (event == "CEL_BOX_EXPR_INPUT") {
-      const exprText = element.textContent;
-      if (this.currentExprText === exprText) return;
-      this.currentExprText = exprText;
+    switch (event) {
+      case "CEL_BOX_EXPR_INPUT":
+        const exprText = element.textContent;
+        if (this.currentExprText === exprText) return;
+        this.currentExprText = exprText;
 
-      this.currentExpr = undefined;
-      this.currentProgram = undefined;
-      this.error = undefined;
+        this.currentExpr = undefined;
+        this.currentProgram = undefined;
+        this.error = undefined;
 
-      if (exprText.trim().length == 0) {
-        return;
-      }
+        if (exprText.trim().length == 0) {
+          return;
+        }
 
-      this.currentExpr = CEL.parse(exprText);
-      this.currentProgram = CEL.plan(this.env, this.currentExpr);
+        this.currentExpr = CEL.parse(exprText);
+        this.currentProgram = CEL.plan(this.env, this.currentExpr);
+        break;
+      case 'CEL_BOX_THEME_CHANGED':
+        this.root.dataset.theme = element.dataset.theme;
+        break;
     }
   }
 
@@ -73,6 +78,13 @@ export abstract class CelBox {
     this.root.style = options.fontSize ?? this.originalElement.style.fontSize;
     this.root.style.setProperty("--cel-box-content-height", options.dataHeight ?? this.originalElement.getAttribute('height'));
     this.root.classList.add("cel-box");
+
+    this.addObserver(
+      document.documentElement,
+      "attributes",
+      m => m.attributeName == "data-theme",
+      "CEL_BOX_THEME_CHANGED",
+    )
   }
 
   addExprInputListener() {
@@ -94,11 +106,13 @@ export abstract class CelBox {
   }
 
   addListener(
-    selector: string,
+    target: string | HTMLElement,
     event: keyof HTMLElementEventMap,
     celBoxEventName: string,
   ) {
-    const element = this.getElement(selector);
+    const element =
+      target instanceof HTMLElement ? target : this.getElement(target);
+
     const fire = () => {
       try {
         this.update(celBoxEventName, element);
@@ -111,12 +125,43 @@ export abstract class CelBox {
     element.addEventListener(event, fire);
   }
 
+  addObserver(
+    target: string | HTMLElement,
+    type: 'attributes' | 'childList' | 'characterData',
+    filter: (m: MutationRecord) => boolean,
+    celBoxEventName: string,
+  ) {
+    const element =
+      target instanceof HTMLElement ? target : this.getElement(target);
+
+    const fire = () => {
+      try {
+        this.update(celBoxEventName, element);
+      } catch (e) {
+        this.error = e as Error;
+      }
+      this.render();
+    };
+    fire();
+
+    const observer = new MutationObserver(
+      (mutations) => mutations.filter(filter).forEach(fire)
+    );
+
+    observer.observe(element, {
+      attributes: false,
+      childList: false,
+      characterData: false,
+      [type]: true,
+    });
+  }
+
   #addRenderer(render: () => void) {
     this.#renderers.push(render);
     this.render();
   }
 
-  addHTMLRenderer(target: string | Element, renderHTML: () => string): void {
+  addHTMLRenderer(target: string | HTMLElement, renderHTML: () => string): void {
     const element =
       target instanceof Element ? target : this.getElement(target);
 
@@ -125,7 +170,7 @@ export abstract class CelBox {
     });
   }
 
-  addTextRenderer(target: string | Element, renderText: () => string): void {
+  addTextRenderer(target: string | HTMLElement, renderText: () => string): void {
     const element =
       target instanceof Element ? target : this.getElement(target);
 
@@ -135,7 +180,7 @@ export abstract class CelBox {
   }
 
   addClassRenderer(
-    target: string | Element,
+    target: string | HTMLElement,
     className: string,
     shouldHaveClass: () => boolean,
   ) {

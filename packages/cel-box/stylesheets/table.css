@@ -61,17 +61,22 @@
     }
   }
 
-  &.cel-box-has-highlighting {
-    & td:first-child::before {
-      background: var(--cel-box-color-medium);
-      content: "Not matched: ";
-      mask-image: var(--cel-box-icon-xmark-circle);
+  &.cel-box-has-highlighting tbody {
+    & tr {
+      text-decoration: line-through;
+
+      & td:first-child::before {
+        background: var(--cel-box-color-medium);
+        content: "Not matched: ";
+        mask-image: var(--cel-box-icon-xmark-circle);
+      }
     }
 
     & .cel-box-highlighted {
       background: var(--cel-box-color-lightest);
       color: var(--cel-box-color-accent-valid);
       font-weight: bold;
+      text-decoration: none;
 
       & td:first-child::before {
         background: var(--cel-box-color-accent-valid);

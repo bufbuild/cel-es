@@ -30,6 +30,11 @@
 
 .cel-box-output {
   grid-column: 3;
+
+  & .cel-box-code {
+    background: var(--cel-box-color-lighter);
+    border-style: dotted;
+  }
 }
 
 .cel-box-gutter {

@@ -10,7 +10,23 @@
   --cel-box-color-light: hsl(from var(--cel-box-color-base) h s 97%);
   --cel-box-color-lighter: hsl(from var(--cel-box-color-base) h s 98%);
   --cel-box-color-lightest: hsl(from var(--cel-box-color-base) h s 99%);
+}
 
+.cel-box[data-theme="dark"] {
+  --cel-box-color-base: hsl(224 20% 60%);
+  --cel-box-color-accent: hsl(256 80% 80%);
+  --cel-box-color-accent-valid: #47e147;
+  --cel-box-color-accent-invalid: #f48888;
+  --cel-box-color-dark: hsl(from var(--cel-box-color-base) h s 95%);
+  --cel-box-color-medium: hsl(from var(--cel-box-color-base) h s 65%);
+  --cel-box-color-medium-light: hsl(from var(--cel-box-color-base) h s 45%);
+  --cel-box-color-lightish: hsl(from var(--cel-box-color-base) h s 30%);
+  --cel-box-color-light: hsl(from var(--cel-box-color-base) h s 25%);
+  --cel-box-color-lighter: hsl(from var(--cel-box-color-base) h s 20%);
+  --cel-box-color-lightest: hsl(from var(--cel-box-color-base) h s 10%);
+}
+
+.cel-box {
   --cel-box-color-border: var(--cel-box-color-medium-light);
   --cel-box-color-tint-dark: hsla(
     from var(--cel-box-color-dark) h calc(3 * s) l / 15%
@@ -41,6 +57,7 @@
   );
 
   --cel-box-shadow: 0px 2px 2px var(--cel-box-color-tint-medium);
+  --cel-box-shadow-deep: 0px 4px 8px var(--cel-box-color-tint-dark);
   --cel-box-icon-mask: center/0.75lh no-repeat;
 
   background: var(--cel-box-color-light);
@@ -51,11 +68,17 @@
   display: block;
   font-family: monospace;
   font-size: 100%;
+  interpolate-size: allow-keywords;
   line-height: 180%;
   margin: 1lh 0;
   padding-bottom: 0;
   padding: var(--cel-box-padding);
   text-wrap: nowrap;
+  transition: box-shadow 0.25s ease-in-out;
+
+  &:focus-within {
+    box-shadow: var(--cel-box-shadow-deep);
+  }
 
   & div {
     box-sizing: border-box;

@@ -47,8 +47,6 @@ class CelBoxSimple extends CelBox {
 
       this.currentResult = result;
       this.currentResultString = print(result);
-      // const jsonCompatibleResult = toJsonCompatibleValue(result);
-      // this.currentResultYAML = YAML.stringify(jsonCompatibleResult);
     }
   }
 }

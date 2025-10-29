@@ -10,7 +10,7 @@
     "license-header": "license-header --ignore 'packages/**'",
     "lint": "biome lint --error-on-warnings"
   },
-  "workspaces": ["packages/cel-spec", "packages/cel", "packages/example"],
+  "workspaces": ["packages/cel-box", "packages/cel-spec", "packages/cel", "packages/example"],
   "type": "module",
   "packageManager": "npm@10.9.0",
   "licenseHeader": {
