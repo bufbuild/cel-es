@@ -74,10 +74,19 @@ class CelBoxSplit extends CelBox {
     super.update(event, element);
 
     if (event == "CEL_BOX_BINDINGS_INPUT") {
-      this.currentBindings = YAML.parse(
+      const doc = YAML.parse(
         element.textContent,
-        { intAsBigInt: true }
+        {
+          intAsBigInt: true,
+          mapAsMap: true,
+        }
       );
+
+      if (!(doc instanceof Map)) {
+        throw new Error("Bindings must be a map.");
+      }
+
+      this.currentBindings = Object.fromEntries(doc?.entries())
     }
 
     this.currentResult = undefined;

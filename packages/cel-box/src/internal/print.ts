@@ -4,13 +4,16 @@ function indent(text: string) {
   return `${text.split("\n").map(l => `  ${l}`).join("\n")}`;
 }
 
-export function print(value: CEL.CelValue) {
+export function print(value: CEL.CelValue): string {
+  if (typeof value === "boolean")
+    return value.toString();
+
   if (typeof value === "bigint")
     return value.toString();
 
   if (typeof value === "number") {
     const number = value.toString();
-    return /[.e]/.test(number) ? number : `${number}.0`;
+    return /[0-9][.e]/.test(number) ? number : `${number}.0`;
   }
 
   if (typeof value === "string")
