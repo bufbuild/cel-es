@@ -101,10 +101,15 @@
     margin-bottom: 0;
   }
 
+  & .cel-box-error,
+  & .cel-box-result {
+    white-space: wrap;
+    overflow-x: auto;
+  }
+
   & .cel-box-code,
   & .cel-box-error,
   & .cel-box-result {
-    overflow-x: scroll;
     padding: var(--cel-box-area-padding);
     padding-bottom: 0;
   }
@@ -117,6 +122,7 @@
     color: var(--cel-box-color-accent-invalid);
     display: none;
     padding-left: 0;
+    text-indent: calc(1lh + var(--cel-box-area-padding) / 2) hanging;
 
     &::before {
       background: var(--cel-box-color-accent-invalid);
@@ -141,6 +147,7 @@
 
   & .cel-box-code {
     background: var(--cel-box-color-lightest);
+    overflow-x: hidden;
     padding: calc(var(--cel-box-area-padding) / 2) var(--cel-box-area-padding);
     white-space: pre;
   }

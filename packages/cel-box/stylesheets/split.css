@@ -11,7 +11,7 @@
 
 .cel-box-data .cel-box-content .cel-box-code {
   height: var(--cel-box-content-computed-height);
-  overflow: scroll;
+  overflow: auto;
   padding: var(--cel-box-area-padding);
 }
 

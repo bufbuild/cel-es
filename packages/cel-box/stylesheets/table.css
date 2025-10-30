@@ -95,6 +95,6 @@
 
   & .cel-box-data {
     height: var(--cel-box-content-computed-height);
-    overflow: scroll;
+    overflow: auto;
   }
 }
