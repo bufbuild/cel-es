@@ -70,7 +70,7 @@
   font-size: 100%;
   interpolate-size: allow-keywords;
   line-height: 180%;
-  margin: 1lh 0;
+  margin: 1rem 0;
   padding-bottom: 0;
   padding: var(--cel-box-padding);
   text-wrap: nowrap;

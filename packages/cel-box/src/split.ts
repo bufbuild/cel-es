@@ -18,7 +18,7 @@ class CelBoxSplit extends CelBox {
     this.root.innerHTML = `
       <div class="cel-box-data" style="grid-template-columns: 1fr 12px 1fr;">
         <div class="cel-box-content cel-box-input">
-          <h4>Bindings</h4>
+          <h4>Variables</h4>
           <div class="cel-box-code" contenteditable="plaintext-only" spellcheck="false">${this.originalContent.trim()}</div>
         </div>
         <div class="cel-box-gutter">
