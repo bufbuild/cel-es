@@ -22,6 +22,8 @@ export abstract class CelBox {
   currentExpr?: ParsedExpr;
   currentProgram?: ReturnType<typeof CEL.plan>;
 
+  #hasHadFirstInput = false;
+
   error?: Error;
 
   debounceWaitFor = 1000;
@@ -38,20 +40,20 @@ export abstract class CelBox {
   }
 
   update(event: string, element: HTMLElement) {
-    this.lastUpdatedAt = Date.now();
     switch (event) {
       case "CEL_BOX_EXPR_INPUT":
         const exprText = element.textContent;
+
         if (this.currentExprText === exprText) return;
+        if (exprText.trim().length == 0) return;
+
+        this.lastUpdatedAt = Date.now();
+
         this.currentExprText = exprText;
 
         this.currentExpr = undefined;
         this.currentProgram = undefined;
         this.error = undefined;
-
-        if (exprText.trim().length == 0) {
-          return;
-        }
 
         this.currentExpr = CEL.parse(exprText);
         this.currentProgram = CEL.plan(this.env, this.currentExpr);
@@ -113,7 +115,9 @@ export abstract class CelBox {
     const element =
       target instanceof HTMLElement ? target : this.getElement(target);
 
-    const fire = () => {
+    const fire = (ev?: Event) => {
+      if (event == "input" && ev !== undefined) this.#hasHadFirstInput = true;
+
       try {
         this.update(celBoxEventName, element);
       } catch (e) {
@@ -209,7 +213,7 @@ export abstract class CelBox {
   }
 
   render() {
-    if (this.error === undefined) {
+    if (this.error === undefined || !this.#hasHadFirstInput) {
       this.#renderNow();
       return;
     }
