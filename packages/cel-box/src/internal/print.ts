@@ -5,19 +5,22 @@ function indent(text: string) {
 }
 
 export function print(value: CEL.CelValue): string {
-  if (typeof value === "boolean")
+  if (typeof value === "bigint")
     return value.toString();
 
-  if (typeof value === "bigint")
+  if (typeof value === "boolean")
     return value.toString();
 
   if (typeof value === "number") {
     const number = value.toString();
-    return /[0-9][.e]/.test(number) ? number : `${number}.0`;
+    return /^[0-9]+$/.test(number) ? `${number}.0` : number;
   }
 
   if (typeof value === "string")
     return JSON.stringify(value);
+
+  if (value instanceof Uint8Array)
+    return `b"${[...value].map(b => `\\x` + b.toString(0x10).toUpperCase()).join('')}"`;
 
   if (CEL.isCelUint(value))
     return `${value.value}u`;

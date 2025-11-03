@@ -21,7 +21,7 @@ class CelBoxSimple extends CelBox {
     this.addErrorRenderers();
 
     this.addClassRenderer(this.root, "cel-box-has-result", () =>
-      this.currentResult !== undefined,
+      this.currentResultString !== "",
     );
 
     this.addTextRenderer(

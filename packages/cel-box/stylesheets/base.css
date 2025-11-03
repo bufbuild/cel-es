@@ -132,7 +132,7 @@
       margin-right: calc(var(--cel-box-area-padding) / 2);
       mask: var(--cel-box-icon-warning-circle) var(--cel-box-icon-mask);
       user-select: text;
-      vertical-align: middle;
+      vertical-align: 0.04lh;
       width: 1lh;
     }
   }
