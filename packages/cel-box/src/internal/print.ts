@@ -20,7 +20,7 @@ export function print(value: CEL.CelValue): string {
     return JSON.stringify(value);
 
   if (value instanceof Uint8Array)
-    return `b"${[...value].map(b => `\\x` + b.toString(0x10).toUpperCase()).join('')}"`;
+    return `b"${[...value].map(b => `\\x` + b.toString(0x10).toUpperCase().padStart(2, "0")).join('')}"`;
 
   if (CEL.isCelUint(value))
     return `${value.value}u`;
