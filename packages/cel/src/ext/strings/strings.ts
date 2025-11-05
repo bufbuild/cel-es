@@ -288,7 +288,17 @@ function formatFloating(val: CelValue, precision: number | undefined) {
       if (precision === undefined) {
         return val.toString();
       }
-      return val.toFixed(precision);
+
+      // `roundingMode` is not supported until ES2023, but ignoring it produces
+      // a fairly innocuous bug, and it doesn't seem worth trying to backfill
+      // a round-toward-even implementation.
+      return new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: precision,
+        minimumFractionDigits: precision,
+        notation: "standard",
+        roundingMode: "halfEven",
+        useGrouping: false,
+      } as Intl.NumberFormatOptions).format(val);
     case typeof val === "string":
       return formatFloatString(val);
     default:

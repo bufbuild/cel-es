@@ -40,7 +40,7 @@
     "attw": "attw --pack",
     "license-header": "license-header"
   },
-  "upstreamCelSpecRef": "v0.24.0",
+  "upstreamCelSpecRef": "v0.25.0",
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -92,10 +92,6 @@
       "import": "./dist/esm/gen/cel/expr/value_pb.js",
       "require": "./dist/cjs/gen/cel/expr/value_pb.js"
     },
-    "./google/rpc/status_pb.js": {
-      "import": "./dist/esm/gen/google/rpc/status_pb.js",
-      "require": "./dist/cjs/gen/google/rpc/status_pb.js"
-    },
     "./cel/expr/conformance/conformance_service_pb.js": {
       "import": "./dist/esm/gen/cel/expr/conformance/conformance_service_pb.js",
       "require": "./dist/cjs/gen/cel/expr/conformance/conformance_service_pb.js"
@@ -145,7 +141,6 @@
       "cel/expr/explain_pb.js": ["./dist/cjs/gen/cel/expr/explain_pb.d.ts"],
       "cel/expr/syntax_pb.js": ["./dist/cjs/gen/cel/expr/syntax_pb.d.ts"],
       "cel/expr/value_pb.js": ["./dist/cjs/gen/cel/expr/value_pb.d.ts"],
-      "google/rpc/status_pb.js": ["./dist/cjs/gen/google/rpc/status_pb.d.ts"],
       "cel/expr/conformance/conformance_service_pb.js": [
         "./dist/cjs/gen/cel/expr/conformance/conformance_service_pb.d.ts"
       ],
