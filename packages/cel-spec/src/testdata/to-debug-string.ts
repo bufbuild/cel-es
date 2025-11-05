@@ -312,7 +312,6 @@ const unprintableExp = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/v;
 const unprintableExpGlobal = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/gv;
 
 const segmenter: { segment(input: string): Iterable<{ segment: string }> } =
-  // @ts-expect-error - Intl.Segmenter is only available in ES2022 or later
   new Intl.Segmenter("en");
 
 function isPrintable(c: string) {
@@ -427,7 +426,6 @@ function escapeString(text: string): string {
         return formatSpecial(s.segment);
       }
       return formatSpecial(
-        // @ts-expect-error - string.replaceAll is only available in ES2021 or later
         s.segment.replaceAll(
           unprintableExpGlobal,
           (c: string) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"),
