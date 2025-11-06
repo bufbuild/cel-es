@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from cel-go github.com/google/cel-go@v0.22.2-0.20241217215216-98789f34a481/ext/comprehensions_test.go
+// Generated from cel-go github.com/google/cel-go@v0.26.1/ext/comprehensions_test.go
 export const parserTests = [
   {
     expr: "[1, 2, 3, 4].all(i, v, i \u003c 5 \u0026\u0026 v \u003e 0)",
@@ -161,6 +161,70 @@ export const parserTests = [
     ast: '_==_(\n  {\n    "hello"^#*expr.Constant_StringValue#:"world"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n    "greetings"^#*expr.Constant_StringValue#:"tacocat"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#.transformMapEntry(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    {}^#*expr.Expr_StructExpr#\n  )^#*expr.Expr_CallExpr#,\n  {}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#',
   },
   {
+    expr: "[1, 2, 3, 4].all(i, v, i \u003c 5 \u0026\u0026 v \u003e 0)",
+    ast: "[\n  1^#*expr.Constant_Int64Value#,\n  2^#*expr.Constant_Int64Value#,\n  3^#*expr.Constant_Int64Value#,\n  4^#*expr.Constant_Int64Value#\n]^#*expr.Expr_ListExpr#.all(\n  i^#*expr.Expr_IdentExpr#,\n  v^#*expr.Expr_IdentExpr#,\n  _\u0026\u0026_(\n    _\u003c_(\n      i^#*expr.Expr_IdentExpr#,\n      5^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _\u003e_(\n      v^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "{1: 1, 2: 2, 3: 3}.all(i, v, i \u003c 5 \u0026\u0026 v \u003e 0)",
+    ast: "{\n  1^#*expr.Constant_Int64Value#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  2^#*expr.Constant_Int64Value#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  3^#*expr.Constant_Int64Value#:3^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.all(\n  i^#*expr.Expr_IdentExpr#,\n  v^#*expr.Expr_IdentExpr#,\n  _\u0026\u0026_(\n    _\u003c_(\n      i^#*expr.Expr_IdentExpr#,\n      5^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _\u003e_(\n      v^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "!{0: 0}.all(i, v, i \u003c 5 \u0026\u0026 v \u003e 0)",
+    ast: "!_(\n  {\n    0^#*expr.Constant_Int64Value#:0^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#.all(\n    i^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    _\u0026\u0026_(\n      _\u003c_(\n        i^#*expr.Expr_IdentExpr#,\n        5^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      _\u003e_(\n        v^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "m.all(i, v, i \u003c 5 \u0026\u0026 v \u003e 0)",
+    ast: "m^#*expr.Expr_IdentExpr#.all(\n  i^#*expr.Expr_IdentExpr#,\n  v^#*expr.Expr_IdentExpr#,\n  _\u0026\u0026_(\n    _\u003c_(\n      i^#*expr.Expr_IdentExpr#,\n      5^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _\u003e_(\n      v^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "m.all(k, v, k \u003c v)",
+    ast: "m^#*expr.Expr_IdentExpr#.all(\n  k^#*expr.Expr_IdentExpr#,\n  v^#*expr.Expr_IdentExpr#,\n  _\u003c_(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "[].transformList(i, v, v) == []",
+    ast: "_==_(\n  []^#*expr.Expr_ListExpr#.transformList(\n    i^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  []^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "[1].transformList(i, v, i) == [0]",
+    ast: "_==_(\n  [\n    1^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#.transformList(\n    i^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    i^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  [\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "[3, 2, 1].transformList(i, v, v \u003e i, v) == [3, 2]",
+    ast: "_==_(\n  [\n    3^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#.transformList(\n    i^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      v^#*expr.Expr_IdentExpr#,\n      i^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    v^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  [\n    3^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "[].transformMap(k, v, v + 1) == {}",
+    ast: "_==_(\n  []^#*expr.Expr_ListExpr#.transformMap(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    _+_(\n      v^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  {}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "{}.transformMap(k, v, v + 1) == {}",
+    ast: "_==_(\n  {}^#*expr.Expr_StructExpr#.transformMap(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    _+_(\n      v^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  {}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "{1: 2}.transformMap(k, v, v + 1) == {1: 3}",
+    ast: "_==_(\n  {\n    1^#*expr.Constant_Int64Value#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#.transformMap(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    _+_(\n      v^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  {\n    1^#*expr.Constant_Int64Value#:3^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: 'cel.bind(m, {"hello": "hello"},\n\t\t\t                m.transformMap(k, v, v + "world")) == {"hello": "helloworld"}',
+    ast: '_==_(\n  cel^#*expr.Expr_IdentExpr#.bind(\n    m^#*expr.Expr_IdentExpr#,\n    {\n      "hello"^#*expr.Constant_StringValue#:"hello"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    m^#*expr.Expr_IdentExpr#.transformMap(\n      k^#*expr.Expr_IdentExpr#,\n      v^#*expr.Expr_IdentExpr#,\n      _+_(\n        v^#*expr.Expr_IdentExpr#,\n        "world"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  {\n    "hello"^#*expr.Constant_StringValue#:"helloworld"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: "{1: 2, 3: 4, 5: 6}.transformMap(k, v, k % 3 == 0, v + 1) == {3: 5}",
+    ast: "_==_(\n  {\n    1^#*expr.Constant_Int64Value#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    3^#*expr.Constant_Int64Value#:4^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    5^#*expr.Constant_Int64Value#:6^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#.transformMap(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    _==_(\n      _%_(\n        k^#*expr.Expr_IdentExpr#,\n        3^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      v^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  {\n    3^#*expr.Constant_Int64Value#:5^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "m.transformMap(k, v, k.startsWith('legacy') \u0026\u0026 v.size() == 1, v + [2]) == {'legacy-solo': [1, 2]}",
+    ast: '_==_(\n  m^#*expr.Expr_IdentExpr#.transformMap(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    _\u0026\u0026_(\n      k^#*expr.Expr_IdentExpr#.startsWith(\n        "legacy"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#,\n      _==_(\n        v^#*expr.Expr_IdentExpr#.size()^#*expr.Expr_CallExpr#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      v^#*expr.Expr_IdentExpr#,\n      [\n        2^#*expr.Constant_Int64Value#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  {\n    "legacy-solo"^#*expr.Constant_StringValue#:[\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: "{1: 2}.transformMapEntry(k, v, {v: k}) == {2: 1}",
+    ast: "_==_(\n  {\n    1^#*expr.Constant_Int64Value#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#.transformMapEntry(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    {\n      v^#*expr.Expr_IdentExpr#:k^#*expr.Expr_IdentExpr#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  )^#*expr.Expr_CallExpr#,\n  {\n    2^#*expr.Constant_Int64Value#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "m.transformMapEntry(k, v, {v: k}) == m.transformMapEntry(k, v, {v: k})",
+    ast: "_==_(\n  m^#*expr.Expr_IdentExpr#.transformMapEntry(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    {\n      v^#*expr.Expr_IdentExpr#:k^#*expr.Expr_IdentExpr#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  )^#*expr.Expr_CallExpr#,\n  m^#*expr.Expr_IdentExpr#.transformMapEntry(\n    k^#*expr.Expr_IdentExpr#,\n    v^#*expr.Expr_IdentExpr#,\n    {\n      v^#*expr.Expr_IdentExpr#:k^#*expr.Expr_IdentExpr#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
     expr: "[].all(i, i, i \u003c i)",
     ast: "[]^#*expr.Expr_ListExpr#.all(\n  i^#*expr.Expr_IdentExpr#,\n  i^#*expr.Expr_IdentExpr#,\n  _\u003c_(\n    i^#*expr.Expr_IdentExpr#,\n    i^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
   },
@@ -290,19 +354,19 @@ export const parserTests = [
   },
   {
     expr: "x.exists(val, y.exists(key, _, key == val))",
-    ast: "__comprehension__(\n  // Variable\n  val,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    y^#*expr.Expr_IdentExpr#.exists(\n      key^#*expr.Expr_IdentExpr#,\n      _^#*expr.Expr_IdentExpr#,\n      _==_(\n        key^#*expr.Expr_IdentExpr#,\n        val^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  val,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    y^#*expr.Expr_IdentExpr#.exists(\n      key^#*expr.Expr_IdentExpr#,\n      _^#*expr.Expr_IdentExpr#,\n      _==_(\n        key^#*expr.Expr_IdentExpr#,\n        val^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "x.exists(val, y.exists(key, _, key == val))",
-    ast: "__comprehension__(\n  // Variable\n  val,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    y^#*expr.Expr_IdentExpr#.exists(\n      key^#*expr.Expr_IdentExpr#,\n      _^#*expr.Expr_IdentExpr#,\n      _==_(\n        key^#*expr.Expr_IdentExpr#,\n        val^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  val,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    y^#*expr.Expr_IdentExpr#.exists(\n      key^#*expr.Expr_IdentExpr#,\n      _^#*expr.Expr_IdentExpr#,\n      _==_(\n        key^#*expr.Expr_IdentExpr#,\n        val^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "x.exists(val, y.exists(key, _, key == val)) \u0026\u0026 y.all(key, val, val.startsWith('h'))",
-    ast: '_\u0026\u0026_(\n  __comprehension__(\n    // Variable\n    val,\n    // Target\n    x^#*expr.Expr_IdentExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        __result__^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      __result__^#*expr.Expr_IdentExpr#,\n      y^#*expr.Expr_IdentExpr#.exists(\n        key^#*expr.Expr_IdentExpr#,\n        _^#*expr.Expr_IdentExpr#,\n        _==_(\n          key^#*expr.Expr_IdentExpr#,\n          val^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  y^#*expr.Expr_IdentExpr#.all(\n    key^#*expr.Expr_IdentExpr#,\n    val^#*expr.Expr_IdentExpr#,\n    val^#*expr.Expr_IdentExpr#.startsWith(\n      "h"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+    ast: '_\u0026\u0026_(\n  __comprehension__(\n    // Variable\n    val,\n    // Target\n    x^#*expr.Expr_IdentExpr#,\n    // Accumulator\n    @result,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      @result^#*expr.Expr_IdentExpr#,\n      y^#*expr.Expr_IdentExpr#.exists(\n        key^#*expr.Expr_IdentExpr#,\n        _^#*expr.Expr_IdentExpr#,\n        _==_(\n          key^#*expr.Expr_IdentExpr#,\n          val^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  y^#*expr.Expr_IdentExpr#.all(\n    key^#*expr.Expr_IdentExpr#,\n    val^#*expr.Expr_IdentExpr#,\n    val^#*expr.Expr_IdentExpr#.startsWith(\n      "h"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
   },
   {
     expr: "x.exists(val, y.exists(key, _, key == val)) || x[0] == 0 || x[1] == 1 || x[2] == 2",
-    ast: "_||_(\n  _||_(\n    __comprehension__(\n      // Variable\n      val,\n      // Target\n      x^#*expr.Expr_IdentExpr#,\n      // Accumulator\n      __result__,\n      // Init\n      false^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        !_(\n          __result__^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _||_(\n        __result__^#*expr.Expr_IdentExpr#,\n        y^#*expr.Expr_IdentExpr#.exists(\n          key^#*expr.Expr_IdentExpr#,\n          _^#*expr.Expr_IdentExpr#,\n          _==_(\n            key^#*expr.Expr_IdentExpr#,\n            val^#*expr.Expr_IdentExpr#\n          )^#*expr.Expr_CallExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n    _==_(\n      _[_](\n        x^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _||_(\n    _==_(\n      _[_](\n        x^#*expr.Expr_IdentExpr#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      _[_](\n        x^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+    ast: "_||_(\n  _||_(\n    __comprehension__(\n      // Variable\n      val,\n      // Target\n      x^#*expr.Expr_IdentExpr#,\n      // Accumulator\n      @result,\n      // Init\n      false^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        !_(\n          @result^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _||_(\n        @result^#*expr.Expr_IdentExpr#,\n        y^#*expr.Expr_IdentExpr#.exists(\n          key^#*expr.Expr_IdentExpr#,\n          _^#*expr.Expr_IdentExpr#,\n          _==_(\n            key^#*expr.Expr_IdentExpr#,\n            val^#*expr.Expr_IdentExpr#\n          )^#*expr.Expr_CallExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n    _==_(\n      _[_](\n        x^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _||_(\n    _==_(\n      _[_](\n        x^#*expr.Expr_IdentExpr#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      _[_](\n        x^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
   },
   {
     expr: "x.exists(val, y.exists(key, _, key == val)) || (x[?0].hasValue() \u0026\u0026 x[?1].hasValue())",

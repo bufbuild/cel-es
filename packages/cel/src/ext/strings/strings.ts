@@ -288,7 +288,14 @@ function formatFloating(val: CelValue, precision: number | undefined) {
       if (precision === undefined) {
         return val.toString();
       }
-      return val.toFixed(precision);
+
+      return new Intl.NumberFormat("en-US", {
+        maximumFractionDigits: precision,
+        minimumFractionDigits: precision,
+        notation: "standard",
+        roundingMode: "halfEven",
+        useGrouping: false,
+      }).format(val);
     case typeof val === "string":
       return formatFloatString(val);
     default:

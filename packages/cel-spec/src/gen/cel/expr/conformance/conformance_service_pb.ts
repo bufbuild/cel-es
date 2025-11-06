@@ -20,19 +20,17 @@ import type { GenEnum, GenFile, GenMessage, GenService } from "@bufbuild/protobu
 import { enumDesc, fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { CheckedExpr, Decl } from "../checked_pb.js";
 import { file_cel_expr_checked } from "../checked_pb.js";
-import type { ExprValue } from "../eval_pb.js";
+import type { ErrorSet, ExprValue } from "../eval_pb.js";
 import { file_cel_expr_eval } from "../eval_pb.js";
 import type { ParsedExpr } from "../syntax_pb.js";
 import { file_cel_expr_syntax } from "../syntax_pb.js";
-import type { Status } from "../../../google/rpc/status_pb.js";
-import { file_google_rpc_status } from "../../../google/rpc/status_pb.js";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file cel/expr/conformance/conformance_service.proto.
  */
 export const file_cel_expr_conformance_conformance_service: GenFile = /*@__PURE__*/
-  fileDesc("Ci5jZWwvZXhwci9jb25mb3JtYW5jZS9jb25mb3JtYW5jZV9zZXJ2aWNlLnByb3RvEhRjZWwuZXhwci5jb25mb3JtYW5jZSJrCgxQYXJzZVJlcXVlc3QSEgoKY2VsX3NvdXJjZRgBIAEoCRIWCg5zeW50YXhfdmVyc2lvbhgCIAEoCRIXCg9zb3VyY2VfbG9jYXRpb24YAyABKAkSFgoOZGlzYWJsZV9tYWNyb3MYBCABKAgiXgoNUGFyc2VSZXNwb25zZRIpCgtwYXJzZWRfZXhwchgBIAEoCzIULmNlbC5leHByLlBhcnNlZEV4cHISIgoGaXNzdWVzGAIgAygLMhIuZ29vZ2xlLnJwYy5TdGF0dXMiggEKDENoZWNrUmVxdWVzdBIpCgtwYXJzZWRfZXhwchgBIAEoCzIULmNlbC5leHByLlBhcnNlZEV4cHISIAoIdHlwZV9lbnYYAiADKAsyDi5jZWwuZXhwci5EZWNsEhEKCWNvbnRhaW5lchgDIAEoCRISCgpub19zdGRfZW52GAQgASgIImAKDUNoZWNrUmVzcG9uc2USKwoMY2hlY2tlZF9leHByGAEgASgLMhUuY2VsLmV4cHIuQ2hlY2tlZEV4cHISIgoGaXNzdWVzGAIgAygLMhIuZ29vZ2xlLnJwYy5TdGF0dXMikgIKC0V2YWxSZXF1ZXN0EisKC3BhcnNlZF9leHByGAEgASgLMhQuY2VsLmV4cHIuUGFyc2VkRXhwckgAEi0KDGNoZWNrZWRfZXhwchgCIAEoCzIVLmNlbC5leHByLkNoZWNrZWRFeHBySAASQQoIYmluZGluZ3MYAyADKAsyLy5jZWwuZXhwci5jb25mb3JtYW5jZS5FdmFsUmVxdWVzdC5CaW5kaW5nc0VudHJ5EhEKCWNvbnRhaW5lchgEIAEoCRpECg1CaW5kaW5nc0VudHJ5EgsKA2tleRgBIAEoCRIiCgV2YWx1ZRgCIAEoCzITLmNlbC5leHByLkV4cHJWYWx1ZToCOAFCCwoJZXhwcl9raW5kIlcKDEV2YWxSZXNwb25zZRIjCgZyZXN1bHQYASABKAsyEy5jZWwuZXhwci5FeHByVmFsdWUSIgoGaXNzdWVzGAIgAygLMhIuZ29vZ2xlLnJwYy5TdGF0dXMiUAoOU291cmNlUG9zaXRpb24SEAoIbG9jYXRpb24YASABKAkSDgoGb2Zmc2V0GAIgASgFEgwKBGxpbmUYAyABKAUSDgoGY29sdW1uGAQgASgFIuABCgxJc3N1ZURldGFpbHMSPQoIc2V2ZXJpdHkYASABKA4yKy5jZWwuZXhwci5jb25mb3JtYW5jZS5Jc3N1ZURldGFpbHMuU2V2ZXJpdHkSNgoIcG9zaXRpb24YAiABKAsyJC5jZWwuZXhwci5jb25mb3JtYW5jZS5Tb3VyY2VQb3NpdGlvbhIKCgJpZBgDIAEoAyJNCghTZXZlcml0eRIYChRTRVZFUklUWV9VTlNQRUNJRklFRBAAEg8KC0RFUFJFQ0FUSU9OEAESCwoHV0FSTklORxACEgkKBUVSUk9SEAMyjQIKEkNvbmZvcm1hbmNlU2VydmljZRJSCgVQYXJzZRIiLmNlbC5leHByLmNvbmZvcm1hbmNlLlBhcnNlUmVxdWVzdBojLmNlbC5leHByLmNvbmZvcm1hbmNlLlBhcnNlUmVzcG9uc2UiABJSCgVDaGVjaxIiLmNlbC5leHByLmNvbmZvcm1hbmNlLkNoZWNrUmVxdWVzdBojLmNlbC5leHByLmNvbmZvcm1hbmNlLkNoZWNrUmVzcG9uc2UiABJPCgRFdmFsEiEuY2VsLmV4cHIuY29uZm9ybWFuY2UuRXZhbFJlcXVlc3QaIi5jZWwuZXhwci5jb25mb3JtYW5jZS5FdmFsUmVzcG9uc2UiAEJSChhkZXYuY2VsLmV4cHIuY29uZm9ybWFuY2VCF0NvbmZvcm1hbmNlU2VydmljZVByb3RvUAFaGGNlbC5kZXYvZXhwci9jb25mb3JtYW5jZfgBAWIGcHJvdG8z", [file_cel_expr_checked, file_cel_expr_eval, file_cel_expr_syntax, file_google_rpc_status]);
+  fileDesc("Ci5jZWwvZXhwci9jb25mb3JtYW5jZS9jb25mb3JtYW5jZV9zZXJ2aWNlLnByb3RvEhRjZWwuZXhwci5jb25mb3JtYW5jZSJrCgxQYXJzZVJlcXVlc3QSEgoKY2VsX3NvdXJjZRgBIAEoCRIWCg5zeW50YXhfdmVyc2lvbhgCIAEoCRIXCg9zb3VyY2VfbG9jYXRpb24YAyABKAkSFgoOZGlzYWJsZV9tYWNyb3MYBCABKAgiXgoNUGFyc2VSZXNwb25zZRIpCgtwYXJzZWRfZXhwchgBIAEoCzIULmNlbC5leHByLlBhcnNlZEV4cHISIgoGaXNzdWVzGAIgASgLMhIuY2VsLmV4cHIuRXJyb3JTZXQiggEKDENoZWNrUmVxdWVzdBIpCgtwYXJzZWRfZXhwchgBIAEoCzIULmNlbC5leHByLlBhcnNlZEV4cHISIAoIdHlwZV9lbnYYAiADKAsyDi5jZWwuZXhwci5EZWNsEhEKCWNvbnRhaW5lchgDIAEoCRISCgpub19zdGRfZW52GAQgASgIImAKDUNoZWNrUmVzcG9uc2USKwoMY2hlY2tlZF9leHByGAEgASgLMhUuY2VsLmV4cHIuQ2hlY2tlZEV4cHISIgoGaXNzdWVzGAIgASgLMhIuY2VsLmV4cHIuRXJyb3JTZXQikgIKC0V2YWxSZXF1ZXN0EisKC3BhcnNlZF9leHByGAEgASgLMhQuY2VsLmV4cHIuUGFyc2VkRXhwckgAEi0KDGNoZWNrZWRfZXhwchgCIAEoCzIVLmNlbC5leHByLkNoZWNrZWRFeHBySAASQQoIYmluZGluZ3MYAyADKAsyLy5jZWwuZXhwci5jb25mb3JtYW5jZS5FdmFsUmVxdWVzdC5CaW5kaW5nc0VudHJ5EhEKCWNvbnRhaW5lchgEIAEoCRpECg1CaW5kaW5nc0VudHJ5EgsKA2tleRgBIAEoCRIiCgV2YWx1ZRgCIAEoCzITLmNlbC5leHByLkV4cHJWYWx1ZToCOAFCCwoJZXhwcl9raW5kIlcKDEV2YWxSZXNwb25zZRIjCgZyZXN1bHQYASABKAsyEy5jZWwuZXhwci5FeHByVmFsdWUSIgoGaXNzdWVzGAIgASgLMhIuY2VsLmV4cHIuRXJyb3JTZXQiUAoOU291cmNlUG9zaXRpb24SEAoIbG9jYXRpb24YASABKAkSDgoGb2Zmc2V0GAIgASgFEgwKBGxpbmUYAyABKAUSDgoGY29sdW1uGAQgASgFIuABCgxJc3N1ZURldGFpbHMSPQoIc2V2ZXJpdHkYASABKA4yKy5jZWwuZXhwci5jb25mb3JtYW5jZS5Jc3N1ZURldGFpbHMuU2V2ZXJpdHkSNgoIcG9zaXRpb24YAiABKAsyJC5jZWwuZXhwci5jb25mb3JtYW5jZS5Tb3VyY2VQb3NpdGlvbhIKCgJpZBgDIAEoAyJNCghTZXZlcml0eRIYChRTRVZFUklUWV9VTlNQRUNJRklFRBAAEg8KC0RFUFJFQ0FUSU9OEAESCwoHV0FSTklORxACEgkKBUVSUk9SEAMyjQIKEkNvbmZvcm1hbmNlU2VydmljZRJSCgVQYXJzZRIiLmNlbC5leHByLmNvbmZvcm1hbmNlLlBhcnNlUmVxdWVzdBojLmNlbC5leHByLmNvbmZvcm1hbmNlLlBhcnNlUmVzcG9uc2UiABJSCgVDaGVjaxIiLmNlbC5leHByLmNvbmZvcm1hbmNlLkNoZWNrUmVxdWVzdBojLmNlbC5leHByLmNvbmZvcm1hbmNlLkNoZWNrUmVzcG9uc2UiABJPCgRFdmFsEiEuY2VsLmV4cHIuY29uZm9ybWFuY2UuRXZhbFJlcXVlc3QaIi5jZWwuZXhwci5jb25mb3JtYW5jZS5FdmFsUmVzcG9uc2UiAEJSChhkZXYuY2VsLmV4cHIuY29uZm9ybWFuY2VCF0NvbmZvcm1hbmNlU2VydmljZVByb3RvUAFaGGNlbC5kZXYvZXhwci9jb25mb3JtYW5jZfgBAWIGcHJvdG8z", [file_cel_expr_checked, file_cel_expr_eval, file_cel_expr_syntax]);
 
 /**
  * Request message for the Parse method.
@@ -92,9 +90,9 @@ export type ParseResponse = Message<"cel.expr.conformance.ParseResponse"> & {
   /**
    * Any number of issues with [StatusDetails][] as the details.
    *
-   * @generated from field: repeated google.rpc.Status issues = 2;
+   * @generated from field: cel.expr.ErrorSet issues = 2;
    */
-  issues: Status[];
+  issues?: ErrorSet;
 };
 
 /**
@@ -135,7 +133,7 @@ export type CheckRequest = Message<"cel.expr.conformance.CheckRequest"> & {
   container: string;
 
   /**
-   * If true, use only the declarations in [type_env][google.api.expr.conformance.v1alpha1.CheckRequest.type_env].  If false (default),
+   * If true, use only the declarations in [type_env][cel.expr.conformance.CheckRequest.type_env].  If false (default),
    * add declarations for the standard definitions to the type environment.  See
    * "Standard Definitions" in the Language Definition.
    *
@@ -167,9 +165,9 @@ export type CheckResponse = Message<"cel.expr.conformance.CheckResponse"> & {
   /**
    * Any number of issues with [StatusDetails][] as the details.
    *
-   * @generated from field: repeated google.rpc.Status issues = 2;
+   * @generated from field: cel.expr.ErrorSet issues = 2;
    */
-  issues: Status[];
+  issues?: ErrorSet;
 };
 
 /**
@@ -210,14 +208,14 @@ export type EvalRequest = Message<"cel.expr.conformance.EvalRequest"> & {
 
   /**
    * Bindings for the external variables.  The types SHOULD be compatible
-   * with the type environment in [CheckRequest][google.api.expr.conformance.v1alpha1.CheckRequest], if checked.
+   * with the type environment in [CheckRequest][cel.expr.conformance.CheckRequest], if checked.
    *
    * @generated from field: map<string, cel.expr.ExprValue> bindings = 3;
    */
   bindings: { [key: string]: ExprValue };
 
   /**
-   * SHOULD be the same container as used in [CheckRequest][google.api.expr.conformance.v1alpha1.CheckRequest], if checked.
+   * SHOULD be the same container as used in [CheckRequest][cel.expr.conformance.CheckRequest], if checked.
    *
    * @generated from field: string container = 4;
    */
@@ -250,9 +248,9 @@ export type EvalResponse = Message<"cel.expr.conformance.EvalResponse"> & {
    * Nevertheless, we'll allow out-of-band issues to be raised,
    * which also makes the replies more regular.
    *
-   * @generated from field: repeated google.rpc.Status issues = 2;
+   * @generated from field: cel.expr.ErrorSet issues = 2;
    */
-  issues: Status[];
+  issues?: ErrorSet;
 };
 
 /**

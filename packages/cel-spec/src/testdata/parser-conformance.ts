@@ -95,11 +95,11 @@ export const parserTests = [
   },
   {
     expr: "cel.bind(valid_elems, [1, 2, 3], [3, 4, 5].exists(e, e in valid_elems))",
-    ast: "cel^#*expr.Expr_IdentExpr#.bind(\n  valid_elems^#*expr.Expr_IdentExpr#,\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  __comprehension__(\n    // Variable\n    e,\n    // Target\n    [\n      3^#*expr.Constant_Int64Value#,\n      4^#*expr.Constant_Int64Value#,\n      5^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        __result__^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      __result__^#*expr.Expr_IdentExpr#,\n      @in(\n        e^#*expr.Expr_IdentExpr#,\n        valid_elems^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n)^#*expr.Expr_CallExpr#",
+    ast: "cel^#*expr.Expr_IdentExpr#.bind(\n  valid_elems^#*expr.Expr_IdentExpr#,\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  __comprehension__(\n    // Variable\n    e,\n    // Target\n    [\n      3^#*expr.Constant_Int64Value#,\n      4^#*expr.Constant_Int64Value#,\n      5^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#,\n    // Accumulator\n    @result,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      @result^#*expr.Expr_IdentExpr#,\n      @in(\n        e^#*expr.Expr_IdentExpr#,\n        valid_elems^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n)^#*expr.Expr_CallExpr#",
   },
   {
     expr: "cel.bind(valid_elems, [1, 2, 3], ![4, 5].exists(e, e in valid_elems))",
-    ast: "cel^#*expr.Expr_IdentExpr#.bind(\n  valid_elems^#*expr.Expr_IdentExpr#,\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  !_(\n    __comprehension__(\n      // Variable\n      e,\n      // Target\n      [\n        4^#*expr.Constant_Int64Value#,\n        5^#*expr.Constant_Int64Value#\n      ]^#*expr.Expr_ListExpr#,\n      // Accumulator\n      __result__,\n      // Init\n      false^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        !_(\n          __result__^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _||_(\n        __result__^#*expr.Expr_IdentExpr#,\n        @in(\n          e^#*expr.Expr_IdentExpr#,\n          valid_elems^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+    ast: "cel^#*expr.Expr_IdentExpr#.bind(\n  valid_elems^#*expr.Expr_IdentExpr#,\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  !_(\n    __comprehension__(\n      // Variable\n      e,\n      // Target\n      [\n        4^#*expr.Constant_Int64Value#,\n        5^#*expr.Constant_Int64Value#\n      ]^#*expr.Expr_ListExpr#,\n      // Accumulator\n      @result,\n      // Init\n      false^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        !_(\n          @result^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _||_(\n        @result^#*expr.Expr_IdentExpr#,\n        @in(\n          e^#*expr.Expr_IdentExpr#,\n          valid_elems^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
   },
   {
     expr: "cel.block([1, cel.index(0) + 1, cel.index(1) + 1, cel.index(2) + 1], cel.index(3))",
@@ -4394,179 +4394,179 @@ export const parserTests = [
   },
   {
     expr: "[1, 2, 3].exists(e, e \u003e 0)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].exists(e, e == 2)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].exists(e, e \u003e 3)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      3^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      3^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 'foo', 3].exists(e, e != '1')",
-    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _!=_(\n      e^#*expr.Expr_IdentExpr#,\n      "1"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _!=_(\n      e^#*expr.Expr_IdentExpr#,\n      "1"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[1, 'foo', 3].exists(e, e == '10')",
-    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      "10"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      "10"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[1, 2, 3].exists(e, e / 0 == 17)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      _/_(\n        e^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      17^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      _/_(\n        e^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      17^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[].exists(e, e == 2)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "{'key1':1, 'key2':2}.exists(k, k == 'key2')",
-    ast: '__comprehension__(\n  // Variable\n  k,\n  // Target\n  {\n    "key1"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    "key2"^#*expr.Constant_StringValue#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      k^#*expr.Expr_IdentExpr#,\n      "key2"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  k,\n  // Target\n  {\n    "key1"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    "key2"^#*expr.Constant_StringValue#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      k^#*expr.Expr_IdentExpr#,\n      "key2"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "!{'key1':1, 'key2':2}.exists(k, k == 'key3')",
-    ast: '!_(\n  __comprehension__(\n    // Variable\n    k,\n    // Target\n    {\n      "key1"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n      "key2"^#*expr.Constant_StringValue#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        __result__^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      __result__^#*expr.Expr_IdentExpr#,\n      _==_(\n        k^#*expr.Expr_IdentExpr#,\n        "key3"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n)^#*expr.Expr_CallExpr#',
+    ast: '!_(\n  __comprehension__(\n    // Variable\n    k,\n    // Target\n    {\n      "key1"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n      "key2"^#*expr.Constant_StringValue#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    @result,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      @result^#*expr.Expr_IdentExpr#,\n      _==_(\n        k^#*expr.Expr_IdentExpr#,\n        "key3"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n)^#*expr.Expr_CallExpr#',
   },
   {
     expr: "{'key':1, 1:21}.exists(k, k != 2)",
-    ast: '__comprehension__(\n  // Variable\n  k,\n  // Target\n  {\n    "key"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    1^#*expr.Constant_Int64Value#:21^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _!=_(\n      k^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  k,\n  // Target\n  {\n    "key"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    1^#*expr.Constant_Int64Value#:21^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _!=_(\n      k^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "!{'key':1, 1:42}.exists(k, k == 2)",
-    ast: '!_(\n  __comprehension__(\n    // Variable\n    k,\n    // Target\n    {\n      "key"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n      1^#*expr.Constant_Int64Value#:42^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        __result__^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      __result__^#*expr.Expr_IdentExpr#,\n      _==_(\n        k^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n)^#*expr.Expr_CallExpr#',
+    ast: '!_(\n  __comprehension__(\n    // Variable\n    k,\n    // Target\n    {\n      "key"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n      1^#*expr.Constant_Int64Value#:42^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    @result,\n    // Init\n    false^#*expr.Constant_BoolValue#,\n    // LoopCondition\n    @not_strictly_false(\n      !_(\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // LoopStep\n    _||_(\n      @result^#*expr.Expr_IdentExpr#,\n      _==_(\n        k^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n)^#*expr.Expr_CallExpr#',
   },
   {
     expr: "[1, 2, 3].all(e, e \u003e 0)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].all(e, e == 2)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].all(e, e == 17)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      17^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      17^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 'foo', 3].all(e, e == 1)",
-    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      e^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[1, 'foo', 3].all(e, e % 2 == 1)",
-    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      _%_(\n        e^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    "foo"^#*expr.Constant_StringValue#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      _%_(\n        e^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[1, 2, 3].all(e, 6 / (2 - e) == 6)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      _/_(\n        6^#*expr.Constant_Int64Value#,\n        _-_(\n          2^#*expr.Constant_Int64Value#,\n          e^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      6^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      _/_(\n        6^#*expr.Constant_Int64Value#,\n        _-_(\n          2^#*expr.Constant_Int64Value#,\n          e^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      6^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].all(e, e / 0 != 17)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _!=_(\n      _/_(\n        e^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      17^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _!=_(\n      _/_(\n        e^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      17^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[].all(e, e \u003e 0)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "{'key1':1, 'key2':2}.all(k, k == 'key2')",
-    ast: '__comprehension__(\n  // Variable\n  k,\n  // Target\n  {\n    "key1"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    "key2"^#*expr.Constant_StringValue#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    _==_(\n      k^#*expr.Expr_IdentExpr#,\n      "key2"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  k,\n  // Target\n  {\n    "key1"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n    "key2"^#*expr.Constant_StringValue#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      k^#*expr.Expr_IdentExpr#,\n      "key2"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[].exists_one(a, a == 7)",
-    ast: "__comprehension__(\n  // Variable\n  a,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      a^#*expr.Expr_IdentExpr#,\n      7^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  a,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      a^#*expr.Expr_IdentExpr#,\n      7^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[7].exists_one(a, a == 7)",
-    ast: "__comprehension__(\n  // Variable\n  a,\n  // Target\n  [\n    7^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      a^#*expr.Expr_IdentExpr#,\n      7^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  a,\n  // Target\n  [\n    7^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      a^#*expr.Expr_IdentExpr#,\n      7^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[8].exists_one(a, a == 7)",
-    ast: "__comprehension__(\n  // Variable\n  a,\n  // Target\n  [\n    8^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      a^#*expr.Expr_IdentExpr#,\n      7^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  a,\n  // Target\n  [\n    8^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      a^#*expr.Expr_IdentExpr#,\n      7^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].exists_one(x, x \u003e 20)",
-    ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      x^#*expr.Expr_IdentExpr#,\n      20^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      x^#*expr.Expr_IdentExpr#,\n      20^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[6, 7, 8].exists_one(foo, foo % 5 == 2)",
-    ast: "__comprehension__(\n  // Variable\n  foo,\n  // Target\n  [\n    6^#*expr.Constant_Int64Value#,\n    7^#*expr.Constant_Int64Value#,\n    8^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        foo^#*expr.Expr_IdentExpr#,\n        5^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  foo,\n  // Target\n  [\n    6^#*expr.Constant_Int64Value#,\n    7^#*expr.Constant_Int64Value#,\n    8^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        foo^#*expr.Expr_IdentExpr#,\n        5^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[0, 1, 2, 3, 4].exists_one(n, n % 2 == 1)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    0^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#,\n    4^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    0^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#,\n    4^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "['foal', 'foo', 'four'].exists_one(n, n.startsWith('fo'))",
-    ast: '__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    "foal"^#*expr.Constant_StringValue#,\n    "foo"^#*expr.Constant_StringValue#,\n    "four"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    n^#*expr.Expr_IdentExpr#.startsWith(\n      "fo"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    "foal"^#*expr.Constant_StringValue#,\n    "foo"^#*expr.Constant_StringValue#,\n    "four"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    n^#*expr.Expr_IdentExpr#.startsWith(\n      "fo"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[3, 2, 1, 0].exists_one(n, 12 / n \u003e 1)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    3^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      _/_(\n        12^#*expr.Constant_Int64Value#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    3^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      _/_(\n        12^#*expr.Constant_Int64Value#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "{6: 'six', 7: 'seven', 8: 'eight'}.exists_one(foo, foo % 5 == 2)",
-    ast: '__comprehension__(\n  // Variable\n  foo,\n  // Target\n  {\n    6^#*expr.Constant_Int64Value#:"six"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n    7^#*expr.Constant_Int64Value#:"seven"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n    8^#*expr.Constant_Int64Value#:"eight"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        foo^#*expr.Expr_IdentExpr#,\n        5^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  foo,\n  // Target\n  {\n    6^#*expr.Constant_Int64Value#:"six"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n    7^#*expr.Constant_Int64Value#:"seven"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n    8^#*expr.Constant_Int64Value#:"eight"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        foo^#*expr.Expr_IdentExpr#,\n        5^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[].map(n, n / 2)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    __result__^#*expr.Expr_IdentExpr#,\n    [\n      _/_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      _/_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[3].map(n, n * n)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    __result__^#*expr.Expr_IdentExpr#,\n    [\n      _*_(\n        n^#*expr.Expr_IdentExpr#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      _*_(\n        n^#*expr.Expr_IdentExpr#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[2, 4, 6].map(n, n / 2)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    2^#*expr.Constant_Int64Value#,\n    4^#*expr.Constant_Int64Value#,\n    6^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    __result__^#*expr.Expr_IdentExpr#,\n    [\n      _/_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    2^#*expr.Constant_Int64Value#,\n    4^#*expr.Constant_Int64Value#,\n    6^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      _/_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[2, 1, 0].map(n, 4 / n)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    __result__^#*expr.Expr_IdentExpr#,\n    [\n      _/_(\n        4^#*expr.Constant_Int64Value#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      _/_(\n        4^#*expr.Constant_Int64Value#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "{'John': 'smart'}.map(key, key) == ['John']",
-    ast: '_==_(\n  __comprehension__(\n    // Variable\n    key,\n    // Target\n    {\n      "John"^#*expr.Constant_StringValue#:"smart"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        key^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  [\n    "John"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+    ast: '_==_(\n  __comprehension__(\n    // Variable\n    key,\n    // Target\n    {\n      "John"^#*expr.Constant_StringValue#:"smart"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    @result,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        key^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  [\n    "John"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
   },
   {
     expr: "[].filter(n, n % 2 == 0)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  []^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        n^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[2].filter(n, n == 2)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    2^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      n^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    2^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      n^#*expr.Expr_IdentExpr#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1].filter(n, n \u003e 3)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      n^#*expr.Expr_IdentExpr#,\n      3^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      n^#*expr.Expr_IdentExpr#,\n      3^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].filter(e, e \u003e 3)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      3^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        e^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      e^#*expr.Expr_IdentExpr#,\n      3^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        e^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[0, 1, 2, 3, 4].filter(x, x % 2 == 1)",
-    ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    0^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#,\n    4^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        x^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    0^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#,\n    4^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      _%_(\n        x^#*expr.Expr_IdentExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[1, 2, 3].filter(n, n \u003e 0)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      n^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      n^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[3, 2, 1, 0].filter(n, 12 / n \u003e 4)",
-    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    3^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      _/_(\n        12^#*expr.Constant_Int64Value#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      4^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  n,\n  // Target\n  [\n    3^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#,\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      _/_(\n        12^#*expr.Constant_Int64Value#,\n        n^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      4^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        n^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "{'John': 'smart', 'Paul': 'cute', 'George': 'quiet', 'Ringo': 'funny'}.filter(key, key == 'Ringo') == ['Ringo']",
-    ast: '_==_(\n  __comprehension__(\n    // Variable\n    key,\n    // Target\n    {\n      "John"^#*expr.Constant_StringValue#:"smart"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n      "Paul"^#*expr.Constant_StringValue#:"cute"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n      "George"^#*expr.Constant_StringValue#:"quiet"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n      "Ringo"^#*expr.Constant_StringValue#:"funny"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _?_:_(\n      _==_(\n        key^#*expr.Expr_IdentExpr#,\n        "Ringo"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#,\n      _+_(\n        __result__^#*expr.Expr_IdentExpr#,\n        [\n          key^#*expr.Expr_IdentExpr#\n        ]^#*expr.Expr_ListExpr#\n      )^#*expr.Expr_CallExpr#,\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  [\n    "Ringo"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+    ast: '_==_(\n  __comprehension__(\n    // Variable\n    key,\n    // Target\n    {\n      "John"^#*expr.Constant_StringValue#:"smart"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n      "Paul"^#*expr.Constant_StringValue#:"cute"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n      "George"^#*expr.Constant_StringValue#:"quiet"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n      "Ringo"^#*expr.Constant_StringValue#:"funny"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    // Accumulator\n    @result,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _?_:_(\n      _==_(\n        key^#*expr.Expr_IdentExpr#,\n        "Ringo"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#,\n      _+_(\n        @result^#*expr.Expr_IdentExpr#,\n        [\n          key^#*expr.Expr_IdentExpr#\n        ]^#*expr.Expr_ListExpr#\n      )^#*expr.Expr_CallExpr#,\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  [\n    "Ringo"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
   },
   {
     expr: "['signer'].filter(signer, ['artifact'].all(artifact, true))",
-    ast: '__comprehension__(\n  // Variable\n  signer,\n  // Target\n  [\n    "signer"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    __comprehension__(\n      // Variable\n      artifact,\n      // Target\n      [\n        "artifact"^#*expr.Constant_StringValue#\n      ]^#*expr.Expr_ListExpr#,\n      // Accumulator\n      __result__,\n      // Init\n      true^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        __result__^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _\u0026\u0026_(\n        __result__^#*expr.Expr_IdentExpr#,\n        true^#*expr.Constant_BoolValue#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        signer^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  signer,\n  // Target\n  [\n    "signer"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    __comprehension__(\n      // Variable\n      artifact,\n      // Target\n      [\n        "artifact"^#*expr.Constant_StringValue#\n      ]^#*expr.Expr_ListExpr#,\n      // Accumulator\n      @result,\n      // Init\n      true^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _\u0026\u0026_(\n        @result^#*expr.Expr_IdentExpr#,\n        true^#*expr.Constant_BoolValue#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        signer^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "['signer'].all(signer, ['artifact'].all(artifact, true))",
-    ast: '__comprehension__(\n  // Variable\n  signer,\n  // Target\n  [\n    "signer"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    __comprehension__(\n      // Variable\n      artifact,\n      // Target\n      [\n        "artifact"^#*expr.Constant_StringValue#\n      ]^#*expr.Expr_ListExpr#,\n      // Accumulator\n      __result__,\n      // Init\n      true^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        __result__^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _\u0026\u0026_(\n        __result__^#*expr.Expr_IdentExpr#,\n        true^#*expr.Constant_BoolValue#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+    ast: '__comprehension__(\n  // Variable\n  signer,\n  // Target\n  [\n    "signer"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    __comprehension__(\n      // Variable\n      artifact,\n      // Target\n      [\n        "artifact"^#*expr.Constant_StringValue#\n      ]^#*expr.Expr_ListExpr#,\n      // Accumulator\n      @result,\n      // Init\n      true^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _\u0026\u0026_(\n        @result^#*expr.Expr_IdentExpr#,\n        true^#*expr.Constant_BoolValue#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
   },
   {
     expr: "[1, 2, 3].exists(i, v, i \u003e -1 \u0026\u0026 v \u003e 0)",
@@ -5972,6 +5972,210 @@ export const parserTests = [
     expr: "[// @\n.// @\ncel.// @\nexpr// @\n.conformance.// @\nproto3.// @\nTestAllTypes// @\n{// @\nsingle_int64// @\n:// @\nint// @\n(// @\n17// @\n)// @\n}// @\n.// @\nsingle_int64// @\n]// @\n[// @\n0// @\n]// @\n==// @\n(// @\n18// @\n-// @\n1// @\n)// @\n\u0026\u0026// @\n!// @\nfalse// @\n?// @\n1// @\n:// @\n2",
     ast: "_?_:_(\n  _\u0026\u0026_(\n    _==_(\n      _[_](\n        [\n          .cel.expr.conformance.proto3.TestAllTypes{\n            single_int64:int(\n              17^#*expr.Constant_Int64Value#\n            )^#*expr.Expr_CallExpr#^#*expr.Expr_CreateStruct_Entry#\n          }^#*expr.Expr_StructExpr#.single_int64^#*expr.Expr_SelectExpr#\n        ]^#*expr.Expr_ListExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      _-_(\n        18^#*expr.Constant_Int64Value#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    !_(\n      false^#*expr.Constant_BoolValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  1^#*expr.Constant_Int64Value#,\n  2^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
   },
+  {
+    expr: "{ 'as': 1 }.as",
+    ast: '{\n  "as"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.as^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'break': 1 }.break",
+    ast: '{\n  "break"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.break^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'const': 1 }.const",
+    ast: '{\n  "const"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.const^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'continue': 1 }.continue",
+    ast: '{\n  "continue"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.continue^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'else': 1 }.else",
+    ast: '{\n  "else"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.else^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'for': 1 }.for",
+    ast: '{\n  "for"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.for^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'function': 1 }.function",
+    ast: '{\n  "function"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.function^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'if': 1 }.if",
+    ast: '{\n  "if"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.if^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'import': 1 }.import",
+    ast: '{\n  "import"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.import^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'let': 1 }.let",
+    ast: '{\n  "let"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.let^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'loop': 1 }.loop",
+    ast: '{\n  "loop"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.loop^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'package': 1 }.package",
+    ast: '{\n  "package"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.package^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'namespace': 1 }.namespace",
+    ast: '{\n  "namespace"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.namespace^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'return': 1 }.return",
+    ast: '{\n  "return"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.return^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'var': 1 }.var",
+    ast: '{\n  "var"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.var^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'void': 1 }.void",
+    ast: '{\n  "void"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.void^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "{ 'while': 1 }.while",
+    ast: '{\n  "while"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.while^#*expr.Expr_SelectExpr#',
+  },
+  {
+    expr: "a.as() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.as()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.break() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.break()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.const() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.const()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.continue() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.continue()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.else() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.else()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.for() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.for()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.function() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.function()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.if() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.if()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.import() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.import()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.let() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.let()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.loop() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.loop()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.package() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.package()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.namespace() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.namespace()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.return() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.return()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.var() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.var()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.void() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.void()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "a.while() || true",
+    ast: "_||_(\n  a^#*expr.Expr_IdentExpr#.while()^#*expr.Expr_CallExpr#,\n  true^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: "TestAllTypes{ as: true }",
+    ast: "TestAllTypes{\n  as:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ break: true }",
+    ast: "TestAllTypes{\n  break:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ const: true }",
+    ast: "TestAllTypes{\n  const:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ continue: true }",
+    ast: "TestAllTypes{\n  continue:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ else: true }",
+    ast: "TestAllTypes{\n  else:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ for: true }",
+    ast: "TestAllTypes{\n  for:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ function: true }",
+    ast: "TestAllTypes{\n  function:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ if: true }",
+    ast: "TestAllTypes{\n  if:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ import: true }",
+    ast: "TestAllTypes{\n  import:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ let: true }",
+    ast: "TestAllTypes{\n  let:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ loop: true }",
+    ast: "TestAllTypes{\n  loop:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ package: true }",
+    ast: "TestAllTypes{\n  package:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ namespace: true }",
+    ast: "TestAllTypes{\n  namespace:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ return: true }",
+    ast: "TestAllTypes{\n  return:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ var: true }",
+    ast: "TestAllTypes{\n  var:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ void: true }",
+    ast: "TestAllTypes{\n  void:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
+  {
+    expr: "TestAllTypes{ while: true }",
+    ast: "TestAllTypes{\n  while:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+  },
   { expr: "17", ast: "17^#*expr.Constant_Int64Value#" },
   {
     expr: "1 / 0",
@@ -7085,6 +7289,10 @@ export const parserTests = [
     ast: '_==_(\n  "hello wello"^#*expr.Constant_StringValue#.indexOf(\n    "elbo room!!"^#*expr.Constant_StringValue#\n  )^#*expr.Expr_CallExpr#,\n  -1^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#',
   },
   {
+    expr: "''.lastIndexOf('@@') == -1",
+    ast: '_==_(\n  ""^#*expr.Constant_StringValue#.lastIndexOf(\n    "@@"^#*expr.Constant_StringValue#\n  )^#*expr.Expr_CallExpr#,\n  -1^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
     expr: "'tacocat'.lastIndexOf('') == 7",
     ast: '_==_(\n  "tacocat"^#*expr.Constant_StringValue#.lastIndexOf(\n    ""^#*expr.Constant_StringValue#\n  )^#*expr.Expr_CallExpr#,\n  7^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#',
   },
@@ -7595,6 +7803,46 @@ export const parserTests = [
   {
     expr: "str_var.format([2.71828])",
     ast: "str_var^#*expr.Expr_IdentExpr#.format(\n  [\n    2.71828^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+  },
+  {
+    expr: '"%.0f".format([123.000000])',
+    ast: '"%.0f"^#*expr.Constant_StringValue#.format(\n  [\n    123^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.0f".format([3.5001])',
+    ast: '"%.0f"^#*expr.Constant_StringValue#.format(\n  [\n    3.5001^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.0f".format([3.4999])',
+    ast: '"%.0f"^#*expr.Constant_StringValue#.format(\n  [\n    3.4999^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.0f".format([1.5])',
+    ast: '"%.0f"^#*expr.Constant_StringValue#.format(\n  [\n    1.5^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.0f".format([2.5])',
+    ast: '"%.0f"^#*expr.Constant_StringValue#.format(\n  [\n    2.5^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.3f".format([123.4999])',
+    ast: '"%.3f"^#*expr.Constant_StringValue#.format(\n  [\n    123.4999^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.3f".format([123.4994])',
+    ast: '"%.3f"^#*expr.Constant_StringValue#.format(\n  [\n    123.4994^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.3f".format([-123.4999])',
+    ast: '"%.3f"^#*expr.Constant_StringValue#.format(\n  [\n    -123.4999^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.3f".format([-123.4994])',
+    ast: '"%.3f"^#*expr.Constant_StringValue#.format(\n  [\n    -123.4994^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+  },
+  {
+    expr: '"%.5f".format([-1.2])',
+    ast: '"%.5f"^#*expr.Constant_StringValue#.format(\n  [\n    -1.2^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
   },
   {
     expr: '"%a".format([1])',
@@ -8181,7 +8429,7 @@ export const parserTests = [
   },
   {
     expr: "msg.repeated_nested_message.map(x, x).map(y, y.bb)",
-    ast: "__comprehension__(\n  // Variable\n  y,\n  // Target\n  __comprehension__(\n    // Variable\n    x,\n    // Target\n    msg^#*expr.Expr_IdentExpr#.repeated_nested_message^#*expr.Expr_SelectExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    __result__^#*expr.Expr_IdentExpr#,\n    [\n      y^#*expr.Expr_IdentExpr#.bb^#*expr.Expr_SelectExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  y,\n  // Target\n  __comprehension__(\n    // Variable\n    x,\n    // Target\n    msg^#*expr.Expr_IdentExpr#.repeated_nested_message^#*expr.Expr_SelectExpr#,\n    // Accumulator\n    @result,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      y^#*expr.Expr_IdentExpr#.bb^#*expr.Expr_SelectExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "([] + msg.repeated_nested_message + [])[0].bb",
@@ -8189,7 +8437,7 @@ export const parserTests = [
   },
   {
     expr: "([].map(x,x))[0].foo",
-    ast: "_[_](\n  __comprehension__(\n    // Variable\n    x,\n    // Target\n    []^#*expr.Expr_ListExpr#,\n    // Accumulator\n    __result__,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  0^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#.foo^#*expr.Expr_SelectExpr#",
+    ast: "_[_](\n  __comprehension__(\n    // Variable\n    x,\n    // Target\n    []^#*expr.Expr_ListExpr#,\n    // Accumulator\n    @result,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  0^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#.foo^#*expr.Expr_SelectExpr#",
   },
   {
     expr: "[msg.single_int64_wrapper, msg.single_string_wrapper]",

@@ -96,7 +96,11 @@
       "name": "last_index_of",
       "test": [
         {
-          "name": "empty",
+          "name": "empty_string",
+          "expr": "''.lastIndexOf('@@') == -1"
+        },
+        {
+          "name": "empty_argument",
           "expr": "'tacocat'.lastIndexOf('') == 7"
         },
         {
@@ -965,6 +969,76 @@
           },
           "value": {
             "stringValue": "2.718280"
+          }
+        },
+        {
+          "name": "format_%f_insignificant_zeroes_removed",
+          "expr": "\"%.0f\".format([123.000000])",
+          "value": {
+            "stringValue": "123"
+          }
+        },
+        {
+          "name": "format_%f_positive_round_to_whole_number",
+          "expr": "\"%.0f\".format([3.5001])",
+          "value": {
+            "stringValue": "4"
+          }
+        },
+        {
+          "name": "format_%f_negative_truncate_to_whole_number",
+          "expr": "\"%.0f\".format([3.4999])",
+          "value": {
+            "stringValue": "3"
+          }
+        },
+        {
+          "name": "format_%f_halfway_round_up_to_nearest_even",
+          "expr": "\"%.0f\".format([1.5])",
+          "value": {
+            "stringValue": "2"
+          }
+        },
+        {
+          "name": "format_%f_halfway_truncate_to_nearest_even",
+          "expr": "\"%.0f\".format([2.5])",
+          "value": {
+            "stringValue": "2"
+          }
+        },
+        {
+          "name": "format_%f_positive_round_up",
+          "expr": "\"%.3f\".format([123.4999])",
+          "value": {
+            "stringValue": "123.500"
+          }
+        },
+        {
+          "name": "format_%f_positive_round_down",
+          "expr": "\"%.3f\".format([123.4994])",
+          "value": {
+            "stringValue": "123.499"
+          }
+        },
+        {
+          "name": "format_%f_negative_round_up",
+          "expr": "\"%.3f\".format([-123.4999])",
+          "value": {
+            "stringValue": "-123.500"
+          }
+        },
+        {
+          "name": "format_%f_negative_round_down",
+          "expr": "\"%.3f\".format([-123.4994])",
+          "value": {
+            "stringValue": "-123.499"
+          }
+        },
+        {
+          "name": "format_%f_zero_padding",
+          "expr": "\"%.5f\".format([-1.2])",
+          "value": {
+            "stringValue": "-1.20000"
           }
         }
       ]

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from cel-go github.com/google/cel-go@v0.22.2-0.20241217215216-98789f34a481/parser/parser_test.go
+// Generated from cel-go github.com/google/cel-go@v0.26.1/parser/parser_test.go
 export const parserTests = [
   { expr: '"A"', ast: '"A"^#*expr.Constant_StringValue#' },
   { expr: "true", ast: "true^#*expr.Constant_BoolValue#" },
@@ -197,15 +197,15 @@ export const parserTests = [
   },
   {
     expr: "m.exists(v, f)",
-    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    f^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    f^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "m.all(v, f)",
-    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    __result__^#*expr.Expr_IdentExpr#,\n    f^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    f^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "m.existsOne(v, f)",
-    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    f^#*expr.Expr_IdentExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    __result__^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    f^#*expr.Expr_IdentExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[].existsOne(__result__, __result__)",
@@ -214,7 +214,7 @@ export const parserTests = [
   },
   {
     expr: "m.map(v, f)",
-    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    __result__^#*expr.Expr_IdentExpr#,\n    [\n      f^#*expr.Expr_IdentExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      f^#*expr.Expr_IdentExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "m.map(__result__, __result__)",
@@ -223,11 +223,11 @@ export const parserTests = [
   },
   {
     expr: "m.map(v, p, f)",
-    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    p^#*expr.Expr_IdentExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        f^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    p^#*expr.Expr_IdentExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        f^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "m.filter(v, p)",
-    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    p^#*expr.Expr_IdentExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        v^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    p^#*expr.Expr_IdentExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        v^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "m.filter(__result__, false)",
@@ -562,15 +562,15 @@ export const parserTests = [
   },
   {
     expr: "x.filter(y, y.filter(z, z \u003e 0))",
-    ast: "__comprehension__(\n  // Variable\n  y,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    __comprehension__(\n      // Variable\n      z,\n      // Target\n      y^#*expr.Expr_IdentExpr#,\n      // Accumulator\n      __result__,\n      // Init\n      []^#*expr.Expr_ListExpr#,\n      // LoopCondition\n      true^#*expr.Constant_BoolValue#,\n      // LoopStep\n      _?_:_(\n        _\u003e_(\n          z^#*expr.Expr_IdentExpr#,\n          0^#*expr.Constant_Int64Value#\n        )^#*expr.Expr_CallExpr#,\n        _+_(\n          __result__^#*expr.Expr_IdentExpr#,\n          [\n            z^#*expr.Expr_IdentExpr#\n          ]^#*expr.Expr_ListExpr#\n        )^#*expr.Expr_CallExpr#,\n        __result__^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        y^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  y,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    __comprehension__(\n      // Variable\n      z,\n      // Target\n      y^#*expr.Expr_IdentExpr#,\n      // Accumulator\n      @result,\n      // Init\n      []^#*expr.Expr_ListExpr#,\n      // LoopCondition\n      true^#*expr.Constant_BoolValue#,\n      // LoopStep\n      _?_:_(\n        _\u003e_(\n          z^#*expr.Expr_IdentExpr#,\n          0^#*expr.Constant_Int64Value#\n        )^#*expr.Expr_CallExpr#,\n        _+_(\n          @result^#*expr.Expr_IdentExpr#,\n          [\n            z^#*expr.Expr_IdentExpr#\n          ]^#*expr.Expr_ListExpr#\n        )^#*expr.Expr_CallExpr#,\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        y^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "has(a.b).filter(c, c)",
-    ast: "__comprehension__(\n  // Variable\n  c,\n  // Target\n  a^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    c^#*expr.Expr_IdentExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        c^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  c,\n  // Target\n  a^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    c^#*expr.Expr_IdentExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        c^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "x.filter(y, y.exists(z, has(z.a)) \u0026\u0026 y.exists(z, has(z.b)))",
-    ast: "__comprehension__(\n  // Variable\n  y,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u0026\u0026_(\n      __comprehension__(\n        // Variable\n        z,\n        // Target\n        y^#*expr.Expr_IdentExpr#,\n        // Accumulator\n        __result__,\n        // Init\n        false^#*expr.Constant_BoolValue#,\n        // LoopCondition\n        @not_strictly_false(\n          !_(\n            __result__^#*expr.Expr_IdentExpr#\n          )^#*expr.Expr_CallExpr#\n        )^#*expr.Expr_CallExpr#,\n        // LoopStep\n        _||_(\n          __result__^#*expr.Expr_IdentExpr#,\n          z^#*expr.Expr_IdentExpr#.a~test-only~^#*expr.Expr_SelectExpr#\n        )^#*expr.Expr_CallExpr#,\n        // Result\n        __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n      __comprehension__(\n        // Variable\n        z,\n        // Target\n        y^#*expr.Expr_IdentExpr#,\n        // Accumulator\n        __result__,\n        // Init\n        false^#*expr.Constant_BoolValue#,\n        // LoopCondition\n        @not_strictly_false(\n          !_(\n            __result__^#*expr.Expr_IdentExpr#\n          )^#*expr.Expr_CallExpr#\n        )^#*expr.Expr_CallExpr#,\n        // LoopStep\n        _||_(\n          __result__^#*expr.Expr_IdentExpr#,\n          z^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#\n        )^#*expr.Expr_CallExpr#,\n        // Result\n        __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      __result__^#*expr.Expr_IdentExpr#,\n      [\n        y^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    __result__^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  y,\n  // Target\n  x^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u0026\u0026_(\n      __comprehension__(\n        // Variable\n        z,\n        // Target\n        y^#*expr.Expr_IdentExpr#,\n        // Accumulator\n        @result,\n        // Init\n        false^#*expr.Constant_BoolValue#,\n        // LoopCondition\n        @not_strictly_false(\n          !_(\n            @result^#*expr.Expr_IdentExpr#\n          )^#*expr.Expr_CallExpr#\n        )^#*expr.Expr_CallExpr#,\n        // LoopStep\n        _||_(\n          @result^#*expr.Expr_IdentExpr#,\n          z^#*expr.Expr_IdentExpr#.a~test-only~^#*expr.Expr_SelectExpr#\n        )^#*expr.Expr_CallExpr#,\n        // Result\n        @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n      __comprehension__(\n        // Variable\n        z,\n        // Target\n        y^#*expr.Expr_IdentExpr#,\n        // Accumulator\n        @result,\n        // Init\n        false^#*expr.Constant_BoolValue#,\n        // LoopCondition\n        @not_strictly_false(\n          !_(\n            @result^#*expr.Expr_IdentExpr#\n          )^#*expr.Expr_CallExpr#\n        )^#*expr.Expr_CallExpr#,\n        // LoopStep\n        _||_(\n          @result^#*expr.Expr_IdentExpr#,\n          z^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#\n        )^#*expr.Expr_CallExpr#,\n        // Result\n        @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        y^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "(has(a.b) || has(c.d)).string()",
@@ -578,11 +578,11 @@ export const parserTests = [
   },
   {
     expr: "has(a.b).asList().exists(c, c)",
-    ast: "__comprehension__(\n  // Variable\n  c,\n  // Target\n  a^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#.asList()^#*expr.Expr_CallExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    c^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  c,\n  // Target\n  a^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#.asList()^#*expr.Expr_CallExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    c^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "[has(a.b), has(c.d)].exists(e, e)",
-    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    a^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#,\n    c^#*expr.Expr_IdentExpr#.d~test-only~^#*expr.Expr_SelectExpr#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  __result__,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      __result__^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    __result__^#*expr.Expr_IdentExpr#,\n    e^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  __result__^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+    ast: "__comprehension__(\n  // Variable\n  e,\n  // Target\n  [\n    a^#*expr.Expr_IdentExpr#.b~test-only~^#*expr.Expr_SelectExpr#,\n    c^#*expr.Expr_IdentExpr#.d~test-only~^#*expr.Expr_SelectExpr#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    e^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
   {
     expr: "y!=y!=y!=y!=y!=y!=y!=y!=y!=-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y\n\t\t!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y\n\t\t!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y\n\t\t!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y\n\t\t!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y\n\t\t!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y!=-y!=-y-y!=-y",
@@ -756,5 +756,29 @@ export const parserTests = [
     expr: "'\\udead' == '\\ufffd'",
     error:
       "ERROR: \u003cinput\u003e:1:1: invalid unicode code point\n | '\\udead' == '\\ufffd'\n | ^",
+  },
+  {
+    expr: "m.exists(v, f)",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    f^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+  },
+  {
+    expr: "m.all(v, f)",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  true^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _\u0026\u0026_(\n    @result^#*expr.Expr_IdentExpr#,\n    f^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+  },
+  {
+    expr: "m.existsOne(v, f)",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  0^#*expr.Constant_Int64Value#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    f^#*expr.Expr_IdentExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  _==_(\n    @result^#*expr.Expr_IdentExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#",
+  },
+  {
+    expr: "m.map(v, f)",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      f^#*expr.Expr_IdentExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+  },
+  {
+    expr: "m.map(v, p, f)",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    p^#*expr.Expr_IdentExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        f^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+  },
+  {
+    expr: "m.filter(v, p)",
+    ast: "__comprehension__(\n  // Variable\n  v,\n  // Target\n  m^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    p^#*expr.Expr_IdentExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        v^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
   },
 ] as const;
