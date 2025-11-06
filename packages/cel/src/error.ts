@@ -88,7 +88,7 @@ class _CelError extends Error implements CelError {
   get exprId() {
     return this._exprId;
   }
-  get cause() {
+  override get cause() {
     return this._cause;
   }
 }
