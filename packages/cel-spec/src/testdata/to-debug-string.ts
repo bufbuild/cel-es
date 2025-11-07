@@ -26,6 +26,24 @@ import type { Message } from "@bufbuild/protobuf";
 
 const decoder = new TextDecoder();
 
+// These expressions MUST capture a single character (a string `S` where `S.length == 1`)
+// @ts-expect-error - The regex flag `v` is only available in ES2024 or later
+const UNPRINTABLE_EXP: CharRegExp = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/v;
+// @ts-expect-error - The regex flag `v` is only available in ES2024 or later
+const UNPRINTABLE_EXP_GLOBAL: CharRegExp = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/gv;
+
+const SPECIAL_ESCAPES: Map<number, string> = new Map([
+  [0x07, "\\a"],
+  [0x08, "\\b"],
+  [0x09, "\\t"],
+  [0x0a, "\\n"],
+  [0x0b, "\\v"],
+  [0x0c, "\\f"],
+  [0x0d, "\\r"],
+  [0x22, '\\"'],
+  [0x5c, "\\\\"],
+]);
+
 /**
  * Returns adorned debug output for the given expression tree, following cel-go.
  *
@@ -306,18 +324,13 @@ function formatLiteral(c: Constant): string {
   }
 }
 
-// @ts-expect-error - The regex flag `v` is only available in ES2024 or later
-const unprintableExp = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/v;
-// @ts-expect-error - The regex flag `v` is only available in ES2024 or later
-const unprintableExpGlobal = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/gv;
-
 const segmenter: { segment(input: string): Iterable<{ segment: string }> } =
   new Intl.Segmenter("en");
 
-function isPrintable(c: string) {
-  if (unprintableExp.test(c.normalize())) {
-    return false;
-  }
+function isSegmentPrintable(s: string, reserved = ["\\", '"']) {
+  if (reserved.includes(s)) return false;
+  if (UNPRINTABLE_EXP.test(s.normalize())) return false;
+
   try {
     // We want to verify that the string does not contain any lone surrogates.
     // Ideally, we would use String.isWellFormed, but it's only available in ES2024,
@@ -325,7 +338,7 @@ function isPrintable(c: string) {
     // As a workaround, we rely on encodeURI raising an error on lone surrogates,
     // and can stay at a more widely supported target.
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI#encoding_a_lone_surrogate_throws
-    encodeURI(c);
+    encodeURI(s);
   } catch (_) {
     return false;
   }
@@ -369,14 +382,20 @@ function quoteBytes(bytes: Uint8Array) {
     if (
       character.length !== 1 ||
       character === replacement ||
-      unprintableExp.test(character)
+      !isSegmentPrintable(character)
     ) {
-      byteString += formatSpecial(
-        "\\x" + bytes[i].toString(16).padStart(2, "0"),
-      );
+      // Even if the byte length > 1, if we have to escape anything, we only escape the first byte
+      // and then try the whole process over on the next byte, ignoring any other bytes we had
+      // attempted to consume.
+      //
+      // This matters if, for example, we saw two UTF-8 first-byte values in a row, but the second
+      // one was actually followed by the rest of a valid multi-byte sequence. In this case, the
+      // first byte will be escaped, we'll increment by one byte, and the multibyte sequence will be
+      // decoded and, if printable, will not be needlessly escaped.
+      byteString += escapeByte(bytes[i]);
       i++;
     } else {
-      byteString += formatSpecial(character);
+      byteString += character;
       i += length;
     }
   }
@@ -385,54 +404,65 @@ function quoteBytes(bytes: Uint8Array) {
 }
 
 function quoteString(text: string): string {
+  console.error('"' + escapeString(text) + '"', JSON.stringify(text));
   return '"' + escapeString(text) + '"';
 }
 
-function formatSpecial(c: string) {
-  if (c === "\\x07" || c === "\\u0007") {
-    return "\\a";
-  }
-  if (c === "\\x08" || c === "\\u0008") {
-    return "\\b";
-  }
-  if (c === "\\x0c" || c === "\\u000c") {
-    return "\\f";
-  }
-  if (c === "\\x0a" || c === "\\u000a") {
-    return "\\n";
-  }
-  if (c === "\\x0d" || c === "\\u000d") {
-    return "\\r";
-  }
-  if (c === "\\x09" || c === "\\u0009") {
-    return "\\t";
-  }
-  if (c === "\\x0b" || c === "\\u000b") {
-    return "\\v";
-  }
-  if (c === "\\") {
-    return "\\\\";
-  }
-  if (c === '"') {
-    return '\\"';
-  }
-  return c;
-}
-
 function escapeString(text: string): string {
+  // This divides the string into "graphemes" which are roughly the units we perceive as characters.
+  // It's important we do this division before we divide into code points because a code point by
+  // itself might not be printable even if it's part of a grapheme that is.
+  //
+  // Consider code points U+0065 (`e`) and U+0301 (combining acute accent) is printable as (`é`).
+  // But U+0301 is not printable by itself, nor is it printable when following a character with
+  // which it doesn't form a printable grapheme.
   return [...segmenter.segment(text)]
     .map((s) => {
-      if (isPrintable(s.segment)) {
-        return formatSpecial(s.segment);
+      if (isSegmentPrintable(s.segment)) {
+        return s.segment;
       }
-      return formatSpecial(
-        s.segment.replaceAll(
-          unprintableExpGlobal,
-          (c: string) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"),
-        ),
+
+      return (
+        // Unicode-aware regular expressions match on code points, so this is a way of turning a
+        // string into an array of code points. TextEncoder() doesn't support UTF-32!
+        [...s.segment.matchAll(/./gsu)]
+          .map((m) =>
+            // This might seem redundant, but even if a grapheme is unprintable, it might contain
+            // individually printable code points. We don't want to escape them if we don't have to!
+            isSegmentPrintable(m[0])
+              ? m[0]
+              : // The U+FFFD (replacement character) fallback should be unreachable, but it's correct
+                // behavior for an encoding/decoding failure in any case.
+                escapeCodePoint(m[0]?.codePointAt(0) ?? 0xfffd),
+          )
+          .join("")
       );
     })
     .join("");
+}
+
+// `c` MUST contain a single code point as captured by a "single character" Unicode-aware RegExp
+function escapeCodePoint(codePoint: number): string {
+  // For values less than 0x80, the code point and UTF-8 byte values are equivalent, and it is
+  // conventional to escape with the byte-style escape sequence.
+  //
+  // Something a little confusing here is that the `\x` escape sequence is supported in CEL strings
+  // for code point C where 0x80 <= C < 0x100, but its numbering is for code points, not UTF-8 byte
+  // values, so "\xE9" is NOT the same as string(b"\xE9") — in fact, the latter produces an error.
+  if (codePoint < 0x80) return escapeByte(codePoint);
+
+  // It conventional to use the 4-digit encoding when more digits are not needed.
+  if (codePoint < 0x10000) {
+    return "\\u" + codePoint.toString(16).padStart(4, "0");
+  }
+
+  return "\\U" + codePoint.toString(16).padStart(8, "0");
+}
+
+function escapeByte(value: number) {
+  return (
+    SPECIAL_ESCAPES.get(value) ?? "\\x" + value.toString(16).padStart(2, "0")
+  );
 }
 
 function getExprType(e: Expr): string {

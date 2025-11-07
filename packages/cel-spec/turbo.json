@@ -17,6 +17,7 @@
     "fetch-parser": {
       "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
       "outputs": ["src/testdata/parser.ts"],
+      "dependsOn": ["fetch-testdata"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
