@@ -21,6 +21,7 @@ import type {
 import LogicManager from "./logic-manager.js";
 
 const encoder = new TextEncoder();
+const accuVarName = "@result";
 
 export type Eventual<T> = () => T;
 
@@ -259,7 +260,7 @@ export default class Builder {
       case: "comprehensionExpr",
       value: {
         $typeName: "cel.expr.Expr.Comprehension",
-        accuVar: "__result__",
+        accuVar: accuVarName,
         accuInit: this.newConstExpr(offset, {
           case: "boolValue",
           value: init,
@@ -269,7 +270,7 @@ export default class Builder {
         iterRange,
         loopStep,
         loopCondition,
-        result: this.newIdentExpr(offset, "__result__"),
+        result: this.newIdentExpr(offset, accuVarName),
       },
     });
   }
@@ -284,7 +285,7 @@ export default class Builder {
       case: "comprehensionExpr",
       value: {
         $typeName: "cel.expr.Expr.Comprehension",
-        accuVar: "__result__",
+        accuVar: accuVarName,
         accuInit: this.newListExpr(offset, []),
         iterVar,
         iterVar2: "", // not yet supported
@@ -294,7 +295,7 @@ export default class Builder {
           value: true,
         }),
         loopStep,
-        result: this.newIdentExpr(offset, "__result__"),
+        result: this.newIdentExpr(offset, accuVarName),
       },
     });
   }
@@ -306,12 +307,12 @@ export default class Builder {
       x,
       false,
       this.newCallExpr(offset, "_||_", [
-        this.newIdentExpr(offset, "__result__"),
+        this.newIdentExpr(offset, accuVarName),
         test,
       ]),
       this.newCallExpr(offset, "@not_strictly_false", [
         this.newCallExpr(offset, "!_", [
-          this.newIdentExpr(offset, "__result__"),
+          this.newIdentExpr(offset, accuVarName),
         ]),
       ]),
     );
@@ -324,11 +325,11 @@ export default class Builder {
       x,
       true,
       this.newCallExpr(offset, "_&&_", [
-        this.newIdentExpr(offset, "__result__"),
+        this.newIdentExpr(offset, accuVarName),
         test,
       ]),
       this.newCallExpr(offset, "@not_strictly_false", [
-        this.newIdentExpr(offset, "__result__"),
+        this.newIdentExpr(offset, accuVarName),
       ]),
     );
   }
@@ -339,7 +340,7 @@ export default class Builder {
       target,
       x,
       this.newCallExpr(offset, "_+_", [
-        this.newIdentExpr(offset, "__result__"),
+        this.newIdentExpr(offset, accuVarName),
         this.newListExpr(offset, [step]),
       ]),
     );
@@ -359,10 +360,10 @@ export default class Builder {
       this.newCallExpr(offset, "_?_:_", [
         test,
         this.newCallExpr(offset, "_+_", [
-          this.newIdentExpr(offset, "__result__"),
+          this.newIdentExpr(offset, accuVarName),
           this.newListExpr(offset, [step]),
         ]),
-        this.newIdentExpr(offset, "__result__"),
+        this.newIdentExpr(offset, accuVarName),
       ]),
     );
   }
@@ -375,10 +376,10 @@ export default class Builder {
       this.newCallExpr(offset, "_?_:_", [
         step,
         this.newCallExpr(offset, "_+_", [
-          this.newIdentExpr(offset, "__result__"),
+          this.newIdentExpr(offset, accuVarName),
           this.newListExpr(offset, [this.newIdentExpr(offset, x)]),
         ]),
-        this.newIdentExpr(offset, "__result__"),
+        this.newIdentExpr(offset, accuVarName),
       ]),
     );
   }
@@ -393,7 +394,7 @@ export default class Builder {
       case: "comprehensionExpr",
       value: {
         $typeName: "cel.expr.Expr.Comprehension",
-        accuVar: "__result__",
+        accuVar: accuVarName,
         accuInit: this.newConstExpr(offset, {
           case: "int64Value",
           value: BigInt(0),
@@ -408,16 +409,16 @@ export default class Builder {
         loopStep: this.newCallExpr(offset, "_?_:_", [
           step,
           this.newCallExpr(offset, "_+_", [
-            this.newIdentExpr(offset, "__result__"),
+            this.newIdentExpr(offset, accuVarName),
             this.newConstExpr(offset, {
               case: "int64Value",
               value: BigInt(1),
             }),
           ]),
-          this.newIdentExpr(offset, "__result__"),
+          this.newIdentExpr(offset, accuVarName),
         ]),
         result: this.newCallExpr(offset, "_==_", [
-          this.newIdentExpr(offset, "__result__"),
+          this.newIdentExpr(offset, accuVarName),
           this.newConstExpr(offset, {
             case: "int64Value",
             value: BigInt(1),

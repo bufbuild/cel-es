@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from github.com/google/cel-spec v0.24.0 by scripts/fetch-testdata.js
+// Generated from github.com/google/cel-spec v0.25.0 by scripts/fetch-testdata.js
 
 export const testdata = [
   {
@@ -15291,6 +15291,517 @@ export const testdata = [
             }
           }
         ]
+      },
+      {
+        "name": "selectors",
+        "description": "Check that reserved identifiers are permitted as selectors as long as they are not language keywords",
+        "test": [
+          {
+            "name": "as",
+            "description": "Check that `as` can be used as a selector.",
+            "expr": "{ 'as': 1 }.as",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "break",
+            "description": "Check that `break` can be used as a selector.",
+            "expr": "{ 'break': 1 }.break",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "const",
+            "description": "Check that `const` can be used as a selector.",
+            "expr": "{ 'const': 1 }.const",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "continue",
+            "description": "Check that `continue` can be used as a selector.",
+            "expr": "{ 'continue': 1 }.continue",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "else",
+            "description": "Check that `else` can be used as a selector.",
+            "expr": "{ 'else': 1 }.else",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "for",
+            "description": "Check that `for` can be used as a selector.",
+            "expr": "{ 'for': 1 }.for",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "function",
+            "description": "Check that `function` can be used as a selector.",
+            "expr": "{ 'function': 1 }.function",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "if",
+            "description": "Check that `if` can be used as a selector.",
+            "expr": "{ 'if': 1 }.if",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "import",
+            "description": "Check that `import` can be used as a selector.",
+            "expr": "{ 'import': 1 }.import",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "let",
+            "description": "Check that `let` can be used as a selector.",
+            "expr": "{ 'let': 1 }.let",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "loop",
+            "description": "Check that `loop` can be used as a selector.",
+            "expr": "{ 'loop': 1 }.loop",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "package",
+            "description": "Check that `package` can be used as a selector.",
+            "expr": "{ 'package': 1 }.package",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "namespace",
+            "description": "Check that `namespace` can be used as a selector.",
+            "expr": "{ 'namespace': 1 }.namespace",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "return",
+            "description": "Check that `return` can be used as a selector.",
+            "expr": "{ 'return': 1 }.return",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "var",
+            "description": "Check that `var` can be used as a selector.",
+            "expr": "{ 'var': 1 }.var",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "void",
+            "description": "Check that `void` can be used as a selector.",
+            "expr": "{ 'void': 1 }.void",
+            "value": {
+              "int64Value": "1"
+            }
+          },
+          {
+            "name": "while",
+            "description": "Check that `while` can be used as a selector.",
+            "expr": "{ 'while': 1 }.while",
+            "value": {
+              "int64Value": "1"
+            }
+          }
+        ]
+      },
+      {
+        "name": "receiver_function_names",
+        "description": "Check that reserved identifiers are permitted as receiver function names as long as they are not language keywords",
+        "test": [
+          {
+            "name": "as",
+            "description": "Check that `as` can be used as a receiver function.",
+            "expr": "a.as() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "break",
+            "description": "Check that `break` can be used as a receiver function.",
+            "expr": "a.break() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "const",
+            "description": "Check that `const` can be used as a receiver function.",
+            "expr": "a.const() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "continue",
+            "description": "Check that `continue` can be used as a receiver function.",
+            "expr": "a.continue() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "else",
+            "description": "Check that `else` can be used as a receiver function.",
+            "expr": "a.else() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "for",
+            "description": "Check that `for` can be used as a receiver function.",
+            "expr": "a.for() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "function",
+            "description": "Check that `function` can be used as a receiver function.",
+            "expr": "a.function() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "if",
+            "description": "Check that `if` can be used as a receiver function.",
+            "expr": "a.if() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "import",
+            "description": "Check that `import` can be used as a receiver function.",
+            "expr": "a.import() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "let",
+            "description": "Check that `let` can be used as a receiver function.",
+            "expr": "a.let() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "loop",
+            "description": "Check that `loop` can be used as a receiver function.",
+            "expr": "a.loop() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "package",
+            "description": "Check that `package` can be used as a receiver function.",
+            "expr": "a.package() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "namespace",
+            "description": "Check that `namespace` can be used as a receiver function.",
+            "expr": "a.namespace() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "return",
+            "description": "Check that `return` can be used as a receiver function.",
+            "expr": "a.return() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "var",
+            "description": "Check that `var` can be used as a receiver function.",
+            "expr": "a.var() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "void",
+            "description": "Check that `void` can be used as a receiver function.",
+            "expr": "a.void() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          },
+          {
+            "name": "while",
+            "description": "Check that `while` can be used as a receiver function.",
+            "expr": "a.while() || true",
+            "disableCheck": true,
+            "value": {
+              "boolValue": true
+            }
+          }
+        ]
+      },
+      {
+        "name": "struct_field_names",
+        "description": "Check that reserved identifiers are permitted as struct field names as long as they are not language keywords",
+        "test": [
+          {
+            "name": "as",
+            "description": "Check that `as` can be used as a struct field name.",
+            "expr": "TestAllTypes{ as: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "as": true
+              }
+            }
+          },
+          {
+            "name": "break",
+            "description": "Check that `break` can be used as a struct field name.",
+            "expr": "TestAllTypes{ break: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "break": true
+              }
+            }
+          },
+          {
+            "name": "const",
+            "description": "Check that `const` can be used as a struct field name.",
+            "expr": "TestAllTypes{ const: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "const": true
+              }
+            }
+          },
+          {
+            "name": "continue",
+            "description": "Check that `continue` can be used as a struct field name.",
+            "expr": "TestAllTypes{ continue: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "continue": true
+              }
+            }
+          },
+          {
+            "name": "else",
+            "description": "Check that `else` can be used as a struct field name.",
+            "expr": "TestAllTypes{ else: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "else": true
+              }
+            }
+          },
+          {
+            "name": "for",
+            "description": "Check that `for` can be used as a struct field name.",
+            "expr": "TestAllTypes{ for: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "for": true
+              }
+            }
+          },
+          {
+            "name": "function",
+            "description": "Check that `function` can be used as a struct field name.",
+            "expr": "TestAllTypes{ function: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "function": true
+              }
+            }
+          },
+          {
+            "name": "if",
+            "description": "Check that `if` can be used as a struct field name.",
+            "expr": "TestAllTypes{ if: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "if": true
+              }
+            }
+          },
+          {
+            "name": "import",
+            "description": "Check that `import` can be used as a struct field name.",
+            "expr": "TestAllTypes{ import: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "import": true
+              }
+            }
+          },
+          {
+            "name": "let",
+            "description": "Check that `let` can be used as a struct field name.",
+            "expr": "TestAllTypes{ let: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "let": true
+              }
+            }
+          },
+          {
+            "name": "loop",
+            "description": "Check that `loop` can be used as a struct field name.",
+            "expr": "TestAllTypes{ loop: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "loop": true
+              }
+            }
+          },
+          {
+            "name": "package",
+            "description": "Check that `package` can be used as a struct field name.",
+            "expr": "TestAllTypes{ package: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "package": true
+              }
+            }
+          },
+          {
+            "name": "namespace",
+            "description": "Check that `namespace` can be used as a struct field name.",
+            "expr": "TestAllTypes{ namespace: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "namespace": true
+              }
+            }
+          },
+          {
+            "name": "return",
+            "description": "Check that `return` can be used as a struct field name.",
+            "expr": "TestAllTypes{ return: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "return": true
+              }
+            }
+          },
+          {
+            "name": "var",
+            "description": "Check that `var` can be used as a struct field name.",
+            "expr": "TestAllTypes{ var: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "var": true
+              }
+            }
+          },
+          {
+            "name": "void",
+            "description": "Check that `void` can be used as a struct field name.",
+            "expr": "TestAllTypes{ void: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "void": true
+              }
+            }
+          },
+          {
+            "name": "while",
+            "description": "Check that `while` can be used as a struct field name.",
+            "expr": "TestAllTypes{ while: true }",
+            "container": "cel.expr.conformance.proto3",
+            "value": {
+              "objectValue": {
+                "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
+                "while": true
+              }
+            }
+          }
+        ]
       }
     ]
   },
@@ -18597,7 +19108,11 @@ export const testdata = [
         "name": "last_index_of",
         "test": [
           {
-            "name": "empty",
+            "name": "empty_string",
+            "expr": "''.lastIndexOf('@@') == -1"
+          },
+          {
+            "name": "empty_argument",
             "expr": "'tacocat'.lastIndexOf('') == 7"
           },
           {
@@ -19466,6 +19981,76 @@ export const testdata = [
             },
             "value": {
               "stringValue": "2.718280"
+            }
+          },
+          {
+            "name": "format_%f_insignificant_zeroes_removed",
+            "expr": "\"%.0f\".format([123.000000])",
+            "value": {
+              "stringValue": "123"
+            }
+          },
+          {
+            "name": "format_%f_positive_round_to_whole_number",
+            "expr": "\"%.0f\".format([3.5001])",
+            "value": {
+              "stringValue": "4"
+            }
+          },
+          {
+            "name": "format_%f_negative_truncate_to_whole_number",
+            "expr": "\"%.0f\".format([3.4999])",
+            "value": {
+              "stringValue": "3"
+            }
+          },
+          {
+            "name": "format_%f_halfway_round_up_to_nearest_even",
+            "expr": "\"%.0f\".format([1.5])",
+            "value": {
+              "stringValue": "2"
+            }
+          },
+          {
+            "name": "format_%f_halfway_truncate_to_nearest_even",
+            "expr": "\"%.0f\".format([2.5])",
+            "value": {
+              "stringValue": "2"
+            }
+          },
+          {
+            "name": "format_%f_positive_round_up",
+            "expr": "\"%.3f\".format([123.4999])",
+            "value": {
+              "stringValue": "123.500"
+            }
+          },
+          {
+            "name": "format_%f_positive_round_down",
+            "expr": "\"%.3f\".format([123.4994])",
+            "value": {
+              "stringValue": "123.499"
+            }
+          },
+          {
+            "name": "format_%f_negative_round_up",
+            "expr": "\"%.3f\".format([-123.4999])",
+            "value": {
+              "stringValue": "-123.500"
+            }
+          },
+          {
+            "name": "format_%f_negative_round_down",
+            "expr": "\"%.3f\".format([-123.4994])",
+            "value": {
+              "stringValue": "-123.499"
+            }
+          },
+          {
+            "name": "format_%f_zero_padding",
+            "expr": "\"%.5f\".format([-1.2])",
+            "value": {
+              "stringValue": "-1.20000"
             }
           }
         ]

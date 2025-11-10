@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "lib": ["ES2020"],
+    "target": "es2023",
+    "lib": ["ES2023"],
     "declaration": true,
     "types": ["@types/node"],
     // We don't have dependencies that require interop

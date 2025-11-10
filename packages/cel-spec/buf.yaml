@@ -10,5 +10,3 @@ version: v2
 # both from arbitrary git references.
 modules:
   - path: proto
-deps:
-  - buf.build/googleapis/googleapis
