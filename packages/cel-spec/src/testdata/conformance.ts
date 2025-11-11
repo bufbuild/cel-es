@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from github.com/google/cel-spec v0.25.0 by scripts/fetch-testdata.js
+// Generated from github.com/google/cel-spec 7f3c4c513b42d471d0be9439bf5bde38f45f8404 by scripts/fetch-testdata.js
 
 export const testdata = [
   {
@@ -15228,6 +15228,1026 @@ export const testdata = [
             "container": "cel.expr.conformance.proto3",
             "value": {
               "int64Value": "30"
+            }
+          }
+        ]
+      },
+      {
+        "name": "string_literals",
+        "description": "Check that string literals are properly parsed",
+        "test": [
+          {
+            "name": "single_quoted",
+            "expr": "'hello'",
+            "value": {
+              "stringValue": "hello"
+            }
+          },
+          {
+            "name": "double_quoted",
+            "expr": "\"hello\"",
+            "value": {
+              "stringValue": "hello"
+            }
+          },
+          {
+            "name": "triple_single_quoted",
+            "expr": "'''hello'''",
+            "value": {
+              "stringValue": "hello"
+            }
+          },
+          {
+            "name": "triple_double_quoted",
+            "expr": "\"\"\"hello\"\"\"",
+            "value": {
+              "stringValue": "hello"
+            }
+          },
+          {
+            "name": "single_quoted_escaped_punctuation",
+            "expr": "' \\\\ \\? \\\" \\' \\` '",
+            "value": {
+              "stringValue": " \\ ? \" ' ` "
+            }
+          },
+          {
+            "name": "double_quoted_escaped_punctuation",
+            "expr": "\" \\\\ \\? \\\" \\' \\` \"",
+            "value": {
+              "stringValue": " \\ ? \" ' ` "
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_punctuation",
+            "expr": "''' \\\\ \\? \\\" \\' \\` '''",
+            "value": {
+              "stringValue": " \\ ? \" ' ` "
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_punctuation",
+            "expr": "\"\"\" \\\\ \\? \\\" \\' \\` \"\"\"",
+            "value": {
+              "stringValue": " \\ ? \" ' ` "
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_punctuation",
+            "expr": "''' ? \" ' ` '''",
+            "value": {
+              "stringValue": " ? \" ' ` "
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_punctuation",
+            "expr": "\"\"\" ? \" ' ` \"\"\"",
+            "value": {
+              "stringValue": " ? \" ' ` "
+            }
+          },
+          {
+            "name": "single_quoted_escaped_special_control_characters",
+            "expr": "' \\a \\b \\f \\t \\v '",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "double_quoted_escaped_special_control_characters",
+            "expr": "\" \\a \\b \\f \\t \\v \"",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "single_quoted_unescaped_special_control_characters",
+            "expr": "' \u0007 \b \f \t \u000b '",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "double_quoted_unescaped_special_control_characters",
+            "expr": "\" \u0007 \b \f \t \u000b \"",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_special_control_characters",
+            "expr": "''' \\a \\b \\f \\t \\v '''",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_special_control_characters",
+            "expr": "\"\"\" \\a \\b \\f \\t \\v \"\"\"",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_special_control_characters",
+            "expr": "''' \u0007 \b \f \t \u000b '''",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_special_control_characters",
+            "expr": "\"\"\" \u0007 \b \f \t \u000b \"\"\"",
+            "value": {
+              "stringValue": " \u0007 \b \f \t \u000b "
+            }
+          },
+          {
+            "name": "single_quoted_escaped_line_feed",
+            "expr": "' \\n '",
+            "value": {
+              "stringValue": " \n "
+            }
+          },
+          {
+            "name": "double_quoted_escaped_line_feed",
+            "expr": "\" \\n \"",
+            "value": {
+              "stringValue": " \n "
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_line_feed",
+            "expr": "''' \\n '''",
+            "value": {
+              "stringValue": " \n "
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_line_feed",
+            "expr": "\"\"\" \\n \"\"\"",
+            "value": {
+              "stringValue": " \n "
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_line_feed",
+            "expr": "''' \n '''",
+            "value": {
+              "stringValue": " \n "
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_line_feed",
+            "expr": "\"\"\" \n \"\"\"",
+            "value": {
+              "stringValue": " \n "
+            }
+          },
+          {
+            "name": "single_quoted_escaped_carriage_return",
+            "expr": "' \\r '",
+            "value": {
+              "stringValue": " \r "
+            }
+          },
+          {
+            "name": "double_quoted_escaped_carriage_return",
+            "expr": "\" \\r \"",
+            "value": {
+              "stringValue": " \r "
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_carriage_return",
+            "expr": "''' \\r '''",
+            "value": {
+              "stringValue": " \r "
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_carriage_return",
+            "expr": "\"\"\" \\r \"\"\"",
+            "value": {
+              "stringValue": " \r "
+            }
+          },
+          {
+            "name": "single_quoted_escaped_windows_line_end",
+            "expr": "' \\r\\n '",
+            "value": {
+              "stringValue": " \r\n "
+            }
+          },
+          {
+            "name": "double_quoted_escaped_windows_line_end",
+            "expr": "\" \\r\\n \"",
+            "value": {
+              "stringValue": " \r\n "
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_windows_line_end",
+            "expr": "''' \\r\\n '''",
+            "value": {
+              "stringValue": " \r\n "
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_windows_line_end",
+            "expr": "\"\"\" \\r\\n \"\"\"",
+            "value": {
+              "stringValue": " \r\n "
+            }
+          },
+          {
+            "name": "single_quoted_escaped_all_control_characters",
+            "expr": "' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "double_quoted_escaped_all_control_characters",
+            "expr": "\" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F \"",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "single_quoted_unescaped_all_control_characters",
+            "expr": "' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "double_quoted_unescaped_all_control_characters",
+            "expr": "\" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  \"",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_all_control_characters",
+            "expr": "''' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '''",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_all_control_characters",
+            "expr": "\"\"\" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F \"\"\"",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_all_control_characters",
+            "expr": "''' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '''",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_all_control_characters",
+            "expr": "\"\"\" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  \"\"\"",
+            "value": {
+              "stringValue": " \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "
+            }
+          },
+          {
+            "name": "single_quoted_octal_escapes",
+            "expr": "' \\000 \\012 \\177 '",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "double_quoted_octal_escapes",
+            "expr": "\" \\000 \\012 \\177 \"",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "triple_single_quoted_octal_escapes",
+            "expr": "''' \\000 \\012 \\177 '''",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "triple_double_quoted_octal_escapes",
+            "expr": "\"\"\" \\000 \\012 \\177 \"\"\"",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "single_quoted_lower_x_escapes",
+            "expr": "' \\x00 \\x0A \\x7F '",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "double_quoted_lower_x_escapes",
+            "expr": "\" \\x00 \\x0A \\x7F \"",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "triple_single_quoted_lower_x_escapes",
+            "expr": "''' \\x00 \\x0A \\x7F '''",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "triple_double_quoted_lower_x_escapes",
+            "expr": "\"\"\" \\x00 \\x0A \\x7F \"\"\"",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "single_quoted_upper_x_escapes",
+            "expr": "' \\X00 \\X0A \\X7F '",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "double_quoted_upper_x_escapes",
+            "expr": "\" \\X00 \\X0A \\X7F \"",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "triple_single_quoted_upper_x_escapes",
+            "expr": "''' \\X00 \\X0A \\X7F '''",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "triple_double_quoted_upper_x_escapes",
+            "expr": "\"\"\" \\X00 \\X0A \\X7F \"\"\"",
+            "value": {
+              "stringValue": " \u0000 \n  "
+            }
+          },
+          {
+            "name": "single_quoted_lower_u_escapes",
+            "expr": "' \\u0000 \\u000A \\u007F \\u0100 \\uFFFB '",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ "
+            }
+          },
+          {
+            "name": "double_quoted_lower_u_escapes",
+            "expr": "\" \\u0000 \\u000A \\u007F \\u0100 \\uFFFB \"",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ "
+            }
+          },
+          {
+            "name": "triple_single_quoted_lower_u_escapes",
+            "expr": "''' \\u0000 \\u000A \\u007F \\u0100 \\uFFFB '''",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ "
+            }
+          },
+          {
+            "name": "triple_double_quoted_lower_u_escapes",
+            "expr": "\"\"\" \\u0000 \\u000A \\u007F \\u0100 \\uFFFB \"\"\"",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ "
+            }
+          },
+          {
+            "name": "single_quoted_upper_u_escapes",
+            "expr": "' \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C '",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ 𐀀 😬 "
+            }
+          },
+          {
+            "name": "double_quoted_upper_u_escapes",
+            "expr": "\" \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C \"",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ 𐀀 😬 "
+            }
+          },
+          {
+            "name": "triple_single_quoted_upper_u_escapes",
+            "expr": "''' \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C '''",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ 𐀀 😬 "
+            }
+          },
+          {
+            "name": "triple_double_quoted_upper_u_escapes",
+            "expr": "\"\"\" \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C \"\"\"",
+            "value": {
+              "stringValue": " \u0000 \n  Ā ￻ 𐀀 😬 "
+            }
+          },
+          {
+            "name": "mixed_case_hex_single_quoted_escapes",
+            "expr": "' \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB '",
+            "value": {
+              "stringValue": " J K L M ƫ ƫ "
+            }
+          },
+          {
+            "name": "mixed_case_hex_double_quoted_escapes",
+            "expr": "\" \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB \"",
+            "value": {
+              "stringValue": " J K L M ƫ ƫ "
+            }
+          },
+          {
+            "name": "mixed_case_hex_triple_single_quoted_escapes",
+            "expr": "''' \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB '''",
+            "value": {
+              "stringValue": " J K L M ƫ ƫ "
+            }
+          },
+          {
+            "name": "mixed_case_hex_triple_double_quoted_escapes",
+            "expr": "\"\"\" \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB \"\"\"",
+            "value": {
+              "stringValue": " J K L M ƫ ƫ "
+            }
+          },
+          {
+            "name": "unassigned_code_point_single_quoted_escapes",
+            "expr": "' \\U00088888 '",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "unassigned_code_point_double_quoted_escapes",
+            "expr": "\" \\U00088888 \"",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "unassigned_code_point_triple_single_quoted_escapes",
+            "expr": "''' \\U00088888 '''",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "unassigned_code_point_triple_double_quoted_escapes",
+            "expr": "\"\"\" \\U00088888 \"\"\"",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "unassigned_code_point_single_quoted_unescaped",
+            "expr": "' 򈢈 '",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "unassigned_code_point_double_quoted_unescaped",
+            "expr": "\" 򈢈 \"",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "unassigned_code_point_triple_single_quoted_unescaped",
+            "expr": "''' 򈢈 '''",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "unassigned_code_point_triple_double_quoted_unescaped",
+            "expr": "\"\"\" 򈢈 \"\"\"",
+            "value": {
+              "stringValue": " 򈢈 "
+            }
+          },
+          {
+            "name": "raw_single_quoted_escapes",
+            "expr": "r' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+            "value": {
+              "stringValue": " \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          },
+          {
+            "name": "raw_double_quoted_escapes",
+            "expr": "r\" \\\\ \\? \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"",
+            "value": {
+              "stringValue": " \\\\ \\? \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          },
+          {
+            "name": "raw_triple_single_quoted_escapes",
+            "expr": "r''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+            "value": {
+              "stringValue": " \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          },
+          {
+            "name": "raw_triple_double_quoted_escapes",
+            "expr": "r\"\"\" \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"\"\"",
+            "value": {
+              "stringValue": " \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          },
+          {
+            "name": "upper_raw_single_quoted_escapes",
+            "expr": "R' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+            "value": {
+              "stringValue": " \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          },
+          {
+            "name": "upper_raw_double_quoted_escapes",
+            "expr": "R\" \\\\ \\? \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"",
+            "value": {
+              "stringValue": " \\\\ \\? \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          },
+          {
+            "name": "upper_raw_triple_single_quoted_escapes",
+            "expr": "R''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+            "value": {
+              "stringValue": " \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          },
+          {
+            "name": "upper_raw_triple_double_quoted_escapes",
+            "expr": "R\"\"\" \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"\"\"",
+            "value": {
+              "stringValue": " \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "
+            }
+          }
+        ]
+      },
+      {
+        "name": "bytes_literals",
+        "description": "Check that bytes literals are properly parsed",
+        "test": [
+          {
+            "name": "single_quoted",
+            "expr": "b'hello'",
+            "value": {
+              "bytesValue": "aGVsbG8="
+            }
+          },
+          {
+            "name": "double_quoted",
+            "expr": "b\"hello\"",
+            "value": {
+              "bytesValue": "aGVsbG8="
+            }
+          },
+          {
+            "name": "triple_single_quoted",
+            "expr": "b'''hello'''",
+            "value": {
+              "bytesValue": "aGVsbG8="
+            }
+          },
+          {
+            "name": "triple_double_quoted",
+            "expr": "b\"\"\"hello\"\"\"",
+            "value": {
+              "bytesValue": "aGVsbG8="
+            }
+          },
+          {
+            "name": "single_quoted_escaped_punctuation",
+            "expr": "b' \\\\ \\? \\\" \\' \\` '",
+            "value": {
+              "bytesValue": "IFwgPyAiICcgYCA="
+            }
+          },
+          {
+            "name": "double_quoted_escaped_punctuation",
+            "expr": "b\" \\\\ \\? \\\" \\' \\` \"",
+            "value": {
+              "bytesValue": "IFwgPyAiICcgYCA="
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_punctuation",
+            "expr": "b''' \\\\ \\? \\\" \\' \\` '''",
+            "value": {
+              "bytesValue": "IFwgPyAiICcgYCA="
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_punctuation",
+            "expr": "b\"\"\" \\\\ \\? \\\" \\' \\` \"\"\"",
+            "value": {
+              "bytesValue": "IFwgPyAiICcgYCA="
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_punctuation",
+            "expr": "b''' ? \" ' ` '''",
+            "value": {
+              "bytesValue": "ID8gIiAnIGAg"
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_punctuation",
+            "expr": "b\"\"\" ? \" ' ` \"\"\"",
+            "value": {
+              "bytesValue": "ID8gIiAnIGAg"
+            }
+          },
+          {
+            "name": "single_quoted_escaped_special_control_characters",
+            "expr": "b' \\a \\b \\f \\t \\v '",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "double_quoted_escaped_special_control_characters",
+            "expr": "b\" \\a \\b \\f \\t \\v \"",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "single_quoted_unescaped_special_control_characters",
+            "expr": "b' \u0007 \b \f \t \u000b '",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "double_quoted_unescaped_special_control_characters",
+            "expr": "b\" \u0007 \b \f \t \u000b \"",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_special_control_characters",
+            "expr": "b''' \\a \\b \\f \\t \\v '''",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_special_control_characters",
+            "expr": "b\"\"\" \\a \\b \\f \\t \\v \"\"\"",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_special_control_characters",
+            "expr": "b''' \u0007 \b \f \t \u000b '''",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_special_control_characters",
+            "expr": "b\"\"\" \u0007 \b \f \t \u000b \"\"\"",
+            "value": {
+              "bytesValue": "IAcgCCAMIAkgCyA="
+            }
+          },
+          {
+            "name": "single_quoted_escaped_line_feed",
+            "expr": "b' \\n '",
+            "value": {
+              "bytesValue": "IAog"
+            }
+          },
+          {
+            "name": "double_quoted_escaped_line_feed",
+            "expr": "b\" \\n \"",
+            "value": {
+              "bytesValue": "IAog"
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_line_feed",
+            "expr": "b''' \\n '''",
+            "value": {
+              "bytesValue": "IAog"
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_line_feed",
+            "expr": "b\"\"\" \\n \"\"\"",
+            "value": {
+              "bytesValue": "IAog"
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_line_feed",
+            "expr": "b''' \n '''",
+            "value": {
+              "bytesValue": "IAog"
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_line_feed",
+            "expr": "b\"\"\" \n \"\"\"",
+            "value": {
+              "bytesValue": "IAog"
+            }
+          },
+          {
+            "name": "single_quoted_escaped_carriage_return",
+            "expr": "b' \\r '",
+            "value": {
+              "bytesValue": "IA0g"
+            }
+          },
+          {
+            "name": "double_quoted_escaped_carriage_return",
+            "expr": "b\" \\r \"",
+            "value": {
+              "bytesValue": "IA0g"
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_carriage_return",
+            "expr": "b''' \\r '''",
+            "value": {
+              "bytesValue": "IA0g"
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_carriage_return",
+            "expr": "b\"\"\" \\r \"\"\"",
+            "value": {
+              "bytesValue": "IA0g"
+            }
+          },
+          {
+            "name": "single_quoted_escaped_windows_line_end",
+            "expr": "b' \\r\\n '",
+            "value": {
+              "bytesValue": "IA0KIA=="
+            }
+          },
+          {
+            "name": "double_quoted_escaped_windows_line_end",
+            "expr": "b\" \\r\\n \"",
+            "value": {
+              "bytesValue": "IA0KIA=="
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_windows_line_end",
+            "expr": "b''' \\r\\n '''",
+            "value": {
+              "bytesValue": "IA0KIA=="
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_windows_line_end",
+            "expr": "b\"\"\" \\r\\n \"\"\"",
+            "value": {
+              "bytesValue": "IA0KIA=="
+            }
+          },
+          {
+            "name": "single_quoted_escaped_all_control_characters",
+            "expr": "b' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "double_quoted_escaped_all_control_characters",
+            "expr": "b\" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F \"",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "single_quoted_unescaped_all_control_characters",
+            "expr": "b' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "double_quoted_unescaped_all_control_characters",
+            "expr": "b\" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  \"",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "triple_single_quoted_escaped_all_control_characters",
+            "expr": "b''' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '''",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "triple_double_quoted_escaped_all_control_characters",
+            "expr": "b\"\"\" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F \"\"\"",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "triple_single_quoted_unescaped_all_control_characters",
+            "expr": "b''' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '''",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "triple_double_quoted_unescaped_all_control_characters",
+            "expr": "b\"\"\" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  \"\"\"",
+            "value": {
+              "bytesValue": "IAEgAiADIAQgBSAGIAcgCCAJIAsgDCAOIA8gECARIBIgEyAUIBUgFiAXIBggGSAaIBsgHCAdIB4gHyB/IA=="
+            }
+          },
+          {
+            "name": "single_quoted_octal_escapes",
+            "expr": "b' \\000 \\012 \\177 \\377 '",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "double_quoted_octal_escapes",
+            "expr": "b\" \\000 \\012 \\177 \\377 \"",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "triple_single_quoted_octal_escapes",
+            "expr": "b''' \\000 \\012 \\177 \\377 '''",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "triple_double_quoted_octal_escapes",
+            "expr": "b\"\"\" \\000 \\012 \\177 \\377 \"\"\"",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "single_quoted_lower_x_escapes",
+            "expr": "b' \\x00 \\x0A \\x7F \\xFF '",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "double_quoted_lower_x_escapes",
+            "expr": "b\" \\x00 \\x0A \\x7F \\xFF \"",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "triple_single_quoted_lower_x_escapes",
+            "expr": "b''' \\x00 \\x0A \\x7F \\xFF '''",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "triple_double_quoted_lower_x_escapes",
+            "expr": "b\"\"\" \\x00 \\x0A \\x7F \\xFF \"\"\"",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "single_quoted_upper_x_escapes",
+            "expr": "b' \\X00 \\X0A \\X7F \\XFF '",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "double_quoted_upper_x_escapes",
+            "expr": "b\" \\X00 \\X0A \\X7F \\XFF \"",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "triple_single_quoted_upper_x_escapes",
+            "expr": "b''' \\X00 \\X0A \\X7F \\XFF '''",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "triple_double_quoted_upper_x_escapes",
+            "expr": "b\"\"\" \\X00 \\X0A \\X7F \\XFF \"\"\"",
+            "value": {
+              "bytesValue": "IAAgCiB/IP8g"
+            }
+          },
+          {
+            "name": "mixed_case_hex_single_quoted_escapes",
+            "expr": "B' \\x4a \\x4B \\X4c \\X4D '",
+            "value": {
+              "bytesValue": "IEogSyBMIE0g"
+            }
+          },
+          {
+            "name": "mixed_case_hex_double_quoted_escapes",
+            "expr": "B\" \\x4a \\x4B \\X4c \\X4D \"",
+            "value": {
+              "bytesValue": "IEogSyBMIE0g"
+            }
+          },
+          {
+            "name": "mixed_case_hex_triple_single_quoted_escapes",
+            "expr": "B''' \\x4a \\x4B \\X4c \\X4D '''",
+            "value": {
+              "bytesValue": "IEogSyBMIE0g"
+            }
+          },
+          {
+            "name": "mixed_case_hex_triple_double_quoted_escapes",
+            "expr": "B\"\"\" \\x4a \\x4B \\X4c \\X4D \"\"\"",
+            "value": {
+              "bytesValue": "IEogSyBMIE0g"
+            }
+          },
+          {
+            "name": "raw_single_quoted_escapes",
+            "expr": "br' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwiIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
+            }
+          },
+          {
+            "name": "raw_double_quoted_escapes",
+            "expr": "br\" \\\\ \\? \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwnIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
+            }
+          },
+          {
+            "name": "raw_triple_single_quoted_escapes",
+            "expr": "br''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwiIFwnIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
+            }
+          },
+          {
+            "name": "raw_triple_double_quoted_escapes",
+            "expr": "br\"\"\" \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"\"\"",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwiIFwnIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
+            }
+          },
+          {
+            "name": "upper_raw_single_quoted_escapes",
+            "expr": "bR' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwiIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
+            }
+          },
+          {
+            "name": "upper_raw_double_quoted_escapes",
+            "expr": "bR\" \\\\ \\? \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwnIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
+            }
+          },
+          {
+            "name": "upper_raw_triple_single_quoted_escapes",
+            "expr": "bR''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwiIFwnIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
+            }
+          },
+          {
+            "name": "upper_raw_triple_double_quoted_escapes",
+            "expr": "bR\"\"\" \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 \"\"\"",
+            "value": {
+              "bytesValue": "IFxcIFw/IFwiIFwnIFxgIFxhIFxiIFxmIFx0IFx2IFxuIFxyIFwwMDAgXHgwMCBcWDAwIFx1MDAwMCBcVTAwMDAwMDAwIA=="
             }
           }
         ]

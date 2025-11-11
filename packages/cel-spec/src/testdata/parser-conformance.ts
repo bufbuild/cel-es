@@ -5948,6 +5948,462 @@ export const parserTests = [
     expr: "TestAllTypes{single_int32: 5, single_int64: 10, single_uint32: 15u, single_uint64: 20u, single_sint32: 25, single_sint64: 30, single_fixed32: 35u, single_fixed64: 40u, single_float: 45.0, single_double: 50.0, single_bool: true, single_string: 'sixty', single_bytes: b'sixty-five', single_value: 70.0, single_int64_wrapper: 75, single_int32_wrapper: 80, single_double_wrapper: 85.0, single_float_wrapper: 90.0, single_uint64_wrapper: 95u, single_uint32_wrapper: 100u, single_string_wrapper: 'one hundred five', single_bool_wrapper: true, repeated_int32: [115], repeated_int64: [120], repeated_uint32: [125u], repeated_uint64: [130u], repeated_sint32: [135], repeated_sint64: [140], repeated_fixed32: [145u], repeated_fixed64: [150u], repeated_sfixed32: [155], repeated_float: [160.0]}.single_sint64",
     ast: 'TestAllTypes{\n  single_int32:5^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_int64:10^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_uint32:15u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_uint64:20u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_sint32:25^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_sint64:30^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_fixed32:35u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_fixed64:40u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_float:45^#*expr.Constant_DoubleValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_double:50^#*expr.Constant_DoubleValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_bool:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_string:"sixty"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_bytes:b"sixty-five"^#*expr.Constant_BytesValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_value:70^#*expr.Constant_DoubleValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_int64_wrapper:75^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_int32_wrapper:80^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_double_wrapper:85^#*expr.Constant_DoubleValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_float_wrapper:90^#*expr.Constant_DoubleValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_uint64_wrapper:95u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_uint32_wrapper:100u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_string_wrapper:"one hundred five"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n  single_bool_wrapper:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_int32:[\n    115^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_int64:[\n    120^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_uint32:[\n    125u^#*expr.Constant_Uint64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_uint64:[\n    130u^#*expr.Constant_Uint64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_sint32:[\n    135^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_sint64:[\n    140^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_fixed32:[\n    145u^#*expr.Constant_Uint64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_fixed64:[\n    150u^#*expr.Constant_Uint64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_sfixed32:[\n    155^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#,\n  repeated_float:[\n    160^#*expr.Constant_DoubleValue#\n  ]^#*expr.Expr_ListExpr#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.single_sint64^#*expr.Expr_SelectExpr#',
   },
+  { expr: "'hello'", ast: '"hello"^#*expr.Constant_StringValue#' },
+  { expr: '"hello"', ast: '"hello"^#*expr.Constant_StringValue#' },
+  { expr: "'''hello'''", ast: '"hello"^#*expr.Constant_StringValue#' },
+  { expr: '"""hello"""', ast: '"hello"^#*expr.Constant_StringValue#' },
+  {
+    expr: "' \\\\ \\? \\\" \\' \\` '",
+    ast: '" \\\\ ? \\" \' ` "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\\\ \\? \\" \\\' \\` "',
+    ast: '" \\\\ ? \\" \' ` "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\\\ \\? \\\" \\' \\` '''",
+    ast: '" \\\\ ? \\" \' ` "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\\\ \\? \\" \\\' \\` """',
+    ast: '" \\\\ ? \\" \' ` "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' ? \" ' ` '''",
+    ast: '" ? \\" \' ` "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" ? " \' ` """',
+    ast: '" ? \\" \' ` "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\a \\b \\f \\t \\v '",
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\a \\b \\f \\t \\v "',
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \u0007 \b \f \t \u000b '",
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \u0007 \b \f \t \u000b "',
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\a \\b \\f \\t \\v '''",
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\a \\b \\f \\t \\v """',
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \u0007 \b \f \t \u000b '''",
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \u0007 \b \f \t \u000b """',
+    ast: '" \\a \\b \\f \\t \\v "^#*expr.Constant_StringValue#',
+  },
+  { expr: "' \\n '", ast: '" \\n "^#*expr.Constant_StringValue#' },
+  { expr: '" \\n "', ast: '" \\n "^#*expr.Constant_StringValue#' },
+  { expr: "''' \\n '''", ast: '" \\n "^#*expr.Constant_StringValue#' },
+  { expr: '""" \\n """', ast: '" \\n "^#*expr.Constant_StringValue#' },
+  { expr: "''' \n '''", ast: '" \\n "^#*expr.Constant_StringValue#' },
+  { expr: '""" \n """', ast: '" \\n "^#*expr.Constant_StringValue#' },
+  { expr: "' \\r '", ast: '" \\r "^#*expr.Constant_StringValue#' },
+  { expr: '" \\r "', ast: '" \\r "^#*expr.Constant_StringValue#' },
+  { expr: "''' \\r '''", ast: '" \\r "^#*expr.Constant_StringValue#' },
+  { expr: '""" \\r """', ast: '" \\r "^#*expr.Constant_StringValue#' },
+  { expr: "' \\r\\n '", ast: '" \\r\\n "^#*expr.Constant_StringValue#' },
+  { expr: '" \\r\\n "', ast: '" \\r\\n "^#*expr.Constant_StringValue#' },
+  { expr: "''' \\r\\n '''", ast: '" \\r\\n "^#*expr.Constant_StringValue#' },
+  { expr: '""" \\r\\n """', ast: '" \\r\\n "^#*expr.Constant_StringValue#' },
+  {
+    expr: "' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '",
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F "',
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '",
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "',
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '''",
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F """',
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '''",
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  """',
+    ast: '" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\000 \\012 \\177 '",
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\000 \\012 \\177 "',
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\000 \\012 \\177 '''",
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\000 \\012 \\177 """',
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\x00 \\x0A \\x7F '",
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\x00 \\x0A \\x7F "',
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\x00 \\x0A \\x7F '''",
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\x00 \\x0A \\x7F """',
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\X00 \\X0A \\X7F '",
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\X00 \\X0A \\X7F "',
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\X00 \\X0A \\X7F '''",
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\X00 \\X0A \\X7F """',
+    ast: '" \\x00 \\n \\x7f "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\u0000 \\u000A \\u007F \\u0100 \\uFFFB '",
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\u0000 \\u000A \\u007F \\u0100 \\uFFFB "',
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\u0000 \\u000A \\u007F \\u0100 \\uFFFB '''",
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\u0000 \\u000A \\u007F \\u0100 \\uFFFB """',
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C '",
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb 𐀀 😬 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C "',
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb 𐀀 😬 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C '''",
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb 𐀀 😬 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\U00000000 \\U0000000A \\U0000007F \\U00000100 \\U0000FFFB \\U00010000 \\U0001F62C """',
+    ast: '" \\x00 \\n \\x7f Ā \\ufffb 𐀀 😬 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB '",
+    ast: '" J K L M ƫ ƫ "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB "',
+    ast: '" J K L M ƫ ƫ "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB '''",
+    ast: '" J K L M ƫ ƫ "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\x4a \\x4B \\X4c \\X4D \\u01aB \\U000001aB """',
+    ast: '" J K L M ƫ ƫ "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "' \\U00088888 '",
+    ast: '" \\U00088888 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '" \\U00088888 "',
+    ast: '" \\U00088888 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "''' \\U00088888 '''",
+    ast: '" \\U00088888 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: '""" \\U00088888 """',
+    ast: '" \\U00088888 "^#*expr.Constant_StringValue#',
+  },
+  { expr: "' 򈢈 '", ast: '" \\U00088888 "^#*expr.Constant_StringValue#' },
+  { expr: '" 򈢈 "', ast: '" \\U00088888 "^#*expr.Constant_StringValue#' },
+  { expr: "''' 򈢈 '''", ast: '" \\U00088888 "^#*expr.Constant_StringValue#' },
+  { expr: '""" 򈢈 """', ast: '" \\U00088888 "^#*expr.Constant_StringValue#' },
+  {
+    expr: "r' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+    ast: '" \\\\\\\\ \\\\? \\\\\\" \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: 'r" \\\\ \\? \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "',
+    ast: '" \\\\\\\\ \\\\? \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "r''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+    ast: '" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: 'r""" \\\\ \\? \\" \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 """',
+    ast: '" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "R' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+    ast: '" \\\\\\\\ \\\\? \\\\\\" \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: 'R" \\\\ \\? \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "',
+    ast: '" \\\\\\\\ \\\\? \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: "R''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+    ast: '" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  {
+    expr: 'R""" \\\\ \\? \\" \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 """',
+    ast: '" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_StringValue#',
+  },
+  { expr: "b'hello'", ast: 'b"hello"^#*expr.Constant_BytesValue#' },
+  { expr: 'b"hello"', ast: 'b"hello"^#*expr.Constant_BytesValue#' },
+  { expr: "b'''hello'''", ast: 'b"hello"^#*expr.Constant_BytesValue#' },
+  { expr: 'b"""hello"""', ast: 'b"hello"^#*expr.Constant_BytesValue#' },
+  {
+    expr: "b' \\\\ \\? \\\" \\' \\` '",
+    ast: 'b" \\\\ ? \\" \' ` "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \\\\ \\? \\" \\\' \\` "',
+    ast: 'b" \\\\ ? \\" \' ` "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \\\\ \\? \\\" \\' \\` '''",
+    ast: 'b" \\\\ ? \\" \' ` "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \\\\ \\? \\" \\\' \\` """',
+    ast: 'b" \\\\ ? \\" \' ` "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' ? \" ' ` '''",
+    ast: 'b" ? \\" \' ` "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" ? " \' ` """',
+    ast: 'b" ? \\" \' ` "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b' \\a \\b \\f \\t \\v '",
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \\a \\b \\f \\t \\v "',
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b' \u0007 \b \f \t \u000b '",
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \u0007 \b \f \t \u000b "',
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \\a \\b \\f \\t \\v '''",
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \\a \\b \\f \\t \\v """',
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \u0007 \b \f \t \u000b '''",
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \u0007 \b \f \t \u000b """',
+    ast: 'b" \\a \\b \\f \\t \\v "^#*expr.Constant_BytesValue#',
+  },
+  { expr: "b' \\n '", ast: 'b" \\n "^#*expr.Constant_BytesValue#' },
+  { expr: 'b" \\n "', ast: 'b" \\n "^#*expr.Constant_BytesValue#' },
+  { expr: "b''' \\n '''", ast: 'b" \\n "^#*expr.Constant_BytesValue#' },
+  { expr: 'b""" \\n """', ast: 'b" \\n "^#*expr.Constant_BytesValue#' },
+  { expr: "b''' \n '''", ast: 'b" \\n "^#*expr.Constant_BytesValue#' },
+  { expr: 'b""" \n """', ast: 'b" \\n "^#*expr.Constant_BytesValue#' },
+  { expr: "b' \\r '", ast: 'b" \\r "^#*expr.Constant_BytesValue#' },
+  { expr: 'b" \\r "', ast: 'b" \\r "^#*expr.Constant_BytesValue#' },
+  { expr: "b''' \\r '''", ast: 'b" \\r "^#*expr.Constant_BytesValue#' },
+  { expr: 'b""" \\r """', ast: 'b" \\r "^#*expr.Constant_BytesValue#' },
+  { expr: "b' \\r\\n '", ast: 'b" \\r\\n "^#*expr.Constant_BytesValue#' },
+  { expr: 'b" \\r\\n "', ast: 'b" \\r\\n "^#*expr.Constant_BytesValue#' },
+  { expr: "b''' \\r\\n '''", ast: 'b" \\r\\n "^#*expr.Constant_BytesValue#' },
+  { expr: 'b""" \\r\\n """', ast: 'b" \\r\\n "^#*expr.Constant_BytesValue#' },
+  {
+    expr: "b' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '",
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F "',
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '",
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  "',
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F '''",
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\x07 \\x08 \\x09 \\x0B \\x0C \\x0E \\x0F \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1A \\x1B \\x1C \\x1D \\x1E \\x1f \\x7F """',
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  '''",
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \b \t \u000b \f \u000e \u000f \u0010 \u0011 \u0012 \u0013 \u0014 \u0015 \u0016 \u0017 \u0018 \u0019 \u001a \u001b \u001c \u001d \u001e \u001f  """',
+    ast: 'b" \\x01 \\x02 \\x03 \\x04 \\x05 \\x06 \\a \\b \\t \\v \\f \\x0e \\x0f \\x10 \\x11 \\x12 \\x13 \\x14 \\x15 \\x16 \\x17 \\x18 \\x19 \\x1a \\x1b \\x1c \\x1d \\x1e \\x1f \\x7f "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b' \\000 \\012 \\177 \\377 '",
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \\000 \\012 \\177 \\377 "',
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \\000 \\012 \\177 \\377 '''",
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \\000 \\012 \\177 \\377 """',
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b' \\x00 \\x0A \\x7F \\xFF '",
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \\x00 \\x0A \\x7F \\xFF "',
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \\x00 \\x0A \\x7F \\xFF '''",
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \\x00 \\x0A \\x7F \\xFF """',
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b' \\X00 \\X0A \\X7F \\XFF '",
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b" \\X00 \\X0A \\X7F \\XFF "',
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "b''' \\X00 \\X0A \\X7F \\XFF '''",
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'b""" \\X00 \\X0A \\X7F \\XFF """',
+    ast: 'b" \\x00 \\n \\x7f \\xff "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "B' \\x4a \\x4B \\X4c \\X4D '",
+    ast: 'b" J K L M "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'B" \\x4a \\x4B \\X4c \\X4D "',
+    ast: 'b" J K L M "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "B''' \\x4a \\x4B \\X4c \\X4D '''",
+    ast: 'b" J K L M "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'B""" \\x4a \\x4B \\X4c \\X4D """',
+    ast: 'b" J K L M "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "br' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+    ast: 'b" \\\\\\\\ \\\\? \\\\\\" \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'br" \\\\ \\? \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "',
+    ast: 'b" \\\\\\\\ \\\\? \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "br''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+    ast: 'b" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'br""" \\\\ \\? \\" \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 """',
+    ast: 'b" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "bR' \\\\ \\? \\\" \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '",
+    ast: 'b" \\\\\\\\ \\\\? \\\\\\" \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'bR" \\\\ \\? \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 "',
+    ast: 'b" \\\\\\\\ \\\\? \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: "bR''' \\\\ \\? \\\" \\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 '''",
+    ast: 'b" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
+  {
+    expr: 'bR""" \\\\ \\? \\" \\\' \\` \\a \\b \\f \\t \\v \\n \\r \\000 \\x00 \\X00 \\u0000 \\U00000000 """',
+    ast: 'b" \\\\\\\\ \\\\? \\\\\\" \\\\\' \\\\` \\\\a \\\\b \\\\f \\\\t \\\\v \\\\n \\\\r \\\\000 \\\\x00 \\\\X00 \\\\u0000 \\\\U00000000 "^#*expr.Constant_BytesValue#',
+  },
   {
     expr: "[ . cel. expr .conformance. proto3. TestAllTypes { single_int64 : int ( 17 ) } . single_int64 ] [ 0 ] == ( 18 - 1 ) \u0026\u0026 ! false ? 1 : 2",
     ast: "_?_:_(\n  _\u0026\u0026_(\n    _==_(\n      _[_](\n        [\n          .cel.expr.conformance.proto3.TestAllTypes{\n            single_int64:int(\n              17^#*expr.Constant_Int64Value#\n            )^#*expr.Expr_CallExpr#^#*expr.Expr_CreateStruct_Entry#\n          }^#*expr.Expr_StructExpr#.single_int64^#*expr.Expr_SelectExpr#\n        ]^#*expr.Expr_ListExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      _-_(\n        18^#*expr.Constant_Int64Value#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    !_(\n      false^#*expr.Constant_BoolValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  1^#*expr.Constant_Int64Value#,\n  2^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
