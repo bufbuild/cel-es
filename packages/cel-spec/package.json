@@ -40,7 +40,7 @@
     "attw": "attw --pack",
     "license-header": "license-header"
   },
-  "upstreamCelSpecRef": "7f3c4c513b42d471d0be9439bf5bde38f45f8404",
+  "upstreamCelSpecRef": "v0.25.1",
   "type": "module",
   "sideEffects": false,
   "exports": {
