@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from github.com/google/cel-spec 7f3c4c513b42d471d0be9439bf5bde38f45f8404 by scripts/fetch-testdata.js
+// Generated from github.com/google/cel-spec v0.25.1 by scripts/fetch-testdata.js
 
 export const testdata = [
   {
