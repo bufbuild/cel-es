@@ -43,9 +43,9 @@
   cursor: col-resize;
   display: flex;
   grid-column: 2;
-  grid-row: 1/-1;
+  grid-row: 1 / -1;
   height: var(--cel-box-content-computed-height);
-  margin-bottom:  var(--cel-box-area-padding);
+  margin-bottom: var(--cel-box-area-padding);
 }
 
 .cel-box-gutter span {

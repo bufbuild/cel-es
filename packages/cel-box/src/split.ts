@@ -1,3 +1,17 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import * as CEL from "@bufbuild/cel";
 import Split from "split-grid";
 import type { SplitInstance } from "split-grid";
@@ -32,18 +46,22 @@ class CelBoxSplit extends CelBox {
       ${this.getExprInputHTML()}
     `;
 
-    const grid = this.root.querySelector('.cel-box-data') as HTMLDivElement;
+    const grid = this.root.querySelector(".cel-box-data") as HTMLDivElement;
 
     this.split = Split({
       onDrag: (_1, _2, gridTemplateStyle: string) => {
-        const [, l, r] = gridTemplateStyle.match(/^(\S+)fr \S+px (\S+)fr$/) ?? [,"1","1"];
+        const [, l, r] = gridTemplateStyle.match(/^(\S+)fr \S+px (\S+)fr$/) ?? [
+          ,
+          "1",
+          "1",
+        ];
 
-        let left = parseFloat(l), right = parseFloat(r);
+        let left = parseFloat(l),
+          right = parseFloat(r);
         const sum = left + right;
-        left *= 2/sum, right *= 2/sum;
+        (left *= 2 / sum), (right *= 2 / sum);
 
-        if (Math.abs(left - right) < 0.1)
-          left = 1, right = 1;
+        if (Math.abs(left - right) < 0.1) (left = 1), (right = 1);
 
         grid.style.gridTemplateColumns = `${left}fr 12px ${right}fr`;
       },
@@ -74,19 +92,16 @@ class CelBoxSplit extends CelBox {
     super.update(event, element);
 
     if (event == "CEL_BOX_BINDINGS_INPUT") {
-      const doc = YAML.parse(
-        element.textContent,
-        {
-          intAsBigInt: true,
-          mapAsMap: true,
-        }
-      );
+      const doc = YAML.parse(element.textContent, {
+        intAsBigInt: true,
+        mapAsMap: true,
+      });
 
       if (!(doc instanceof Map)) {
         throw new Error("Bindings must be a map.");
       }
 
-      this.currentBindings = Object.fromEntries(doc?.entries())
+      this.currentBindings = Object.fromEntries(doc?.entries());
     }
 
     this.currentResult = undefined;

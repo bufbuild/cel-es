@@ -29,13 +29,16 @@
 .cel-box {
   --cel-box-color-border: var(--cel-box-color-medium-light);
   --cel-box-color-tint-dark: hsla(
-    from var(--cel-box-color-dark) h calc(3 * s) l / 15%
+    from var(--cel-box-color-dark) h calc(3 * s) l /
+    15%
   );
   --cel-box-color-tint-medium: hsla(
-    from var(--cel-box-color-dark) h calc(3 * s) l / 10%
+    from var(--cel-box-color-dark) h calc(3 * s) l /
+    10%
   );
   --cel-box-color-tint-light: hsla(
-    from var(--cel-box-color-dark) h calc(3 * s) l / 5%
+    from var(--cel-box-color-dark) h calc(3 * s) l /
+    5%
   );
 
   --cel-box-padding: 8px;
@@ -53,12 +56,13 @@
 
   --cel-box-content-height: 5.5lh;
   --cel-box-content-computed-height: calc(
-    var(--cel-box-content-height) + var(--cel-box-border-width)
+    var(--cel-box-content-height) +
+    var(--cel-box-border-width)
   );
 
   --cel-box-shadow: 0px 2px 2px var(--cel-box-color-tint-medium);
   --cel-box-shadow-deep: 0px 4px 8px var(--cel-box-color-tint-dark);
-  --cel-box-icon-mask: center/0.75lh no-repeat;
+  --cel-box-icon-mask: center / 0.75lh no-repeat;
 
   background: var(--cel-box-color-light);
   border-radius: var(--cel-box-radius);

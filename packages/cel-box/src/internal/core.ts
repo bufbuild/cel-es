@@ -1,3 +1,17 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import * as CEL from "@bufbuild/cel";
 import type { ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
@@ -58,7 +72,7 @@ export abstract class CelBox {
         this.currentExpr = CEL.parse(exprText);
         this.currentProgram = CEL.plan(this.env, this.currentExpr);
         break;
-      case 'CEL_BOX_THEME_CHANGED':
+      case "CEL_BOX_THEME_CHANGED":
         this.root.dataset.theme = element.dataset.theme;
         break;
     }
@@ -75,18 +89,22 @@ export abstract class CelBox {
 
     this.originalElement = options.original ?? this.root;
     this.originalContent = this.originalElement.textContent;
-    this.originalExpression = options.expr ?? this.originalElement.getAttribute("data-expr") ?? "";
+    this.originalExpression =
+      options.expr ?? this.originalElement.getAttribute("data-expr") ?? "";
 
     this.root.style = options.fontSize ?? this.originalElement.style.fontSize;
-    this.root.style.setProperty("--cel-box-content-height", options.dataHeight ?? this.originalElement.getAttribute('height'));
+    this.root.style.setProperty(
+      "--cel-box-content-height",
+      options.dataHeight ?? this.originalElement.getAttribute("height"),
+    );
     this.root.classList.add("cel-box");
 
     this.addObserver(
       document.documentElement,
       "attributes",
-      m => m.attributeName == "data-theme",
+      (m) => m.attributeName == "data-theme",
       "CEL_BOX_THEME_CHANGED",
-    )
+    );
   }
 
   addExprInputListener() {
@@ -131,7 +149,7 @@ export abstract class CelBox {
 
   addObserver(
     target: string | HTMLElement,
-    type: 'attributes' | 'childList' | 'characterData',
+    type: "attributes" | "childList" | "characterData",
     filter: (m: MutationRecord) => boolean,
     celBoxEventName: string,
   ) {
@@ -148,8 +166,8 @@ export abstract class CelBox {
     };
     fire();
 
-    const observer = new MutationObserver(
-      (mutations) => mutations.filter(filter).forEach(fire)
+    const observer = new MutationObserver((mutations) =>
+      mutations.filter(filter).forEach(fire),
     );
 
     observer.observe(element, {
@@ -165,7 +183,10 @@ export abstract class CelBox {
     this.render();
   }
 
-  addHTMLRenderer(target: string | HTMLElement, renderHTML: () => string): void {
+  addHTMLRenderer(
+    target: string | HTMLElement,
+    renderHTML: () => string,
+  ): void {
     const element =
       target instanceof Element ? target : this.getElement(target);
 
@@ -174,7 +195,10 @@ export abstract class CelBox {
     });
   }
 
-  addTextRenderer(target: string | HTMLElement, renderText: () => string): void {
+  addTextRenderer(
+    target: string | HTMLElement,
+    renderText: () => string,
+  ): void {
     const element =
       target instanceof Element ? target : this.getElement(target);
 
