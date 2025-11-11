@@ -3961,7 +3961,7 @@ export function parse(
   }
   // $(!'"""' @.)
   function item280(text: string): runtime.Success<string> | runtime.Failure {
-    const matches = text.match(/^(?!""")./g);
+    const matches = text.match(/^(?!""")[\s\S]/g);
     if (matches?.length === 1) {
       return {
         success: true,
@@ -4113,7 +4113,7 @@ export function parse(
   }
   // $(!"'''" @.)
   function item293(text: string): runtime.Success<string> | runtime.Failure {
-    const matches = text.match(/^(?!''')./g);
+    const matches = text.match(/^(?!''')[\s\S]/g);
     if (matches?.length === 1) {
       return {
         success: true,
@@ -4265,7 +4265,7 @@ export function parse(
   }
   // $(!( '"' / NewLine ) @.)
   function item305(text: string): runtime.Success<string> | runtime.Failure {
-    const matches = text.match(/^(?!("|([\r\n])+))./g);
+    const matches = text.match(/^(?!("|([\r\n])+))[\s\S]/g);
     if (matches?.length === 1) {
       return {
         success: true,
@@ -4417,7 +4417,7 @@ export function parse(
   }
   // $(!( "'" / NewLine ) @.)
   function item318(text: string): runtime.Success<string> | runtime.Failure {
-    const matches = text.match(/^(?!('|([\r\n])+))./g);
+    const matches = text.match(/^(?!('|([\r\n])+))[\s\S]/g);
     if (matches?.length === 1) {
       return {
         success: true,
