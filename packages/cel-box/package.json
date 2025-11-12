@@ -44,6 +44,7 @@
   "main": "./dist/cjs/split.js",
   "types": "./dist/cjs/split.d.ts",
   "exports": {
+    "./src/*": "./src/*",
     "./simple": {
       "import": "./dist/esm/simple.js",
       "require": "./dist/cjs/simple.js"
