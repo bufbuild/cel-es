@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>CEL Box Example</title>
+    <script type="module">
+      import celBoxTable from "../dist/table.js";
+
+      celBoxTable(document.querySelector("#cel-box"))
+    </script>
+    <link href="../stylesheets/gen/icons.css" rel="stylesheet" />
+    <link href="../stylesheets/base.css" rel="stylesheet" />
+    <link href="../stylesheets/table.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="page">
+      <div id="cel-box" data-expr="from == 'churchill@gov.uk'">
+from,subject,label,priority (int)
+churchill@gov.uk,"never, never, never",copyediting,1
+astley@rca.com,Gonna get the ball rolling,copyediting,3
+abe@whitehouse.gov,Fwd: tix 4 our american cousin,events,3
+jswigert@nasa.gov,We’ve had a problem...,troubleshooting,2
+kelly@lockheed.com,You too?,personal,3
+stanislav.petrov@mil.ru,Пять МБР на подходе?,troubleshooting,2
+kessel12pc@hotmail.com,Re: I love you,personal,1
+pdhewson@myspace.com,Re: You too?,personal,3
+      </div>
+    </div>
+  </body>
+</html>
