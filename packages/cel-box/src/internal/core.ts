@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as CEL from "@bufbuild/cel";
+import { type CelEnv, celEnv, plan, parse } from "@bufbuild/cel";
 import type { ParsedExpr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
 
@@ -25,7 +25,7 @@ export interface CelBoxOptions {
 
 export abstract class CelBox {
   readonly #renderers: (() => void)[] = [];
-  readonly env: CEL.CelEnv = CEL.celEnv({ funcs: STRINGS_EXT_FUNCS });
+  readonly env: CelEnv = celEnv({ funcs: STRINGS_EXT_FUNCS });
 
   readonly root: HTMLElement;
   readonly originalElement: HTMLElement;
@@ -34,7 +34,7 @@ export abstract class CelBox {
 
   currentExprText = "";
   currentExpr?: ParsedExpr;
-  currentProgram?: ReturnType<typeof CEL.plan>;
+  currentProgram?: ReturnType<typeof plan>;
 
   #hasHadFirstInput = false;
 
@@ -69,8 +69,8 @@ export abstract class CelBox {
         this.currentProgram = undefined;
         this.error = undefined;
 
-        this.currentExpr = CEL.parse(exprText);
-        this.currentProgram = CEL.plan(this.env, this.currentExpr);
+        this.currentExpr = parse(exprText);
+        this.currentProgram = plan(this.env, this.currentExpr);
         break;
       case "CEL_BOX_THEME_CHANGED":
         this.root.dataset.theme = element.dataset.theme;

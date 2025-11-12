@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as CEL from "@bufbuild/cel";
+import { type CelResult, isCelError } from "@bufbuild/cel";
 import { print } from "./internal/print.js";
 import { CelBox, type CelBoxOptions } from "./internal/core.js";
 
 class CelBoxSimple extends CelBox {
-  currentResult?: CEL.CelResult;
+  currentResult?: CelResult;
   currentResultString = "";
 
   constructor(root: HTMLElement | string, options?: CelBoxOptions) {
@@ -54,7 +54,7 @@ class CelBoxSimple extends CelBox {
 
       const result = this.currentProgram();
 
-      if (CEL.isCelError(result)) {
+      if (isCelError(result)) {
         throw result;
       }
 

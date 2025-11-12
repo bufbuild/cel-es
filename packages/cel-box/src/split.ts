@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import * as CEL from "@bufbuild/cel";
+import { type CelResult, type CelInput, isCelError } from "@bufbuild/cel";
 import Split from "split-grid";
 import type { SplitInstance } from "split-grid";
 import * as YAML from "yaml";
@@ -22,8 +22,8 @@ import { CelBox, type CelBoxOptions } from "./internal/core.js";
 class CelBoxSplit extends CelBox {
   split: SplitInstance;
 
-  currentBindings?: Record<string, CEL.CelInput>;
-  currentResult?: CEL.CelResult;
+  currentBindings?: Record<string, CelInput>;
+  currentResult?: CelResult;
   currentResultString = "";
 
   constructor(root: HTMLElement | string, options?: CelBoxOptions) {
@@ -115,7 +115,7 @@ class CelBoxSplit extends CelBox {
 
       const result = this.currentProgram(this.currentBindings);
 
-      if (CEL.isCelError(result)) {
+      if (isCelError(result)) {
         throw result;
       }
 
