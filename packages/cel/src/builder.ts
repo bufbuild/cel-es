@@ -20,7 +20,9 @@ import type {
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import LogicManager from "./logic-manager.js";
 
-const encoder = new TextEncoder();
+import { getTextEncoding } from "@bufbuild/protobuf/wire";
+
+const encoding = getTextEncoding();
 const accuVarName = "@result";
 
 export type Eventual<T> = () => T;
@@ -149,7 +151,7 @@ export default class Builder {
     let totalSize = 0;
     for (const rawChunk of sequence) {
       const chunk =
-        typeof rawChunk === "string" ? encoder.encode(rawChunk) : rawChunk;
+        typeof rawChunk === "string" ? encoding.encodeUtf8(rawChunk) : rawChunk;
       chunks.push(chunk);
       totalSize += chunk.length;
     }

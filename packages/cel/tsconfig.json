@@ -1,5 +1,4 @@
 {
   "files": ["src/index.ts", "src/ext/strings/index.ts"],
-  "extends": "../../tsconfig.base.json",
-  "include": ["src/**/*.test.ts"]
+  "extends": "../../tsconfig.base.json"
 }
