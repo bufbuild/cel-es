@@ -1,5 +1,7 @@
 {
   "files": [
+    "src/simple.ts",
+    "src/simple-component.ts",
     "src/split.ts",
     "src/split-component.ts",
     "src/table.ts",

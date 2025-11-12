@@ -15,7 +15,7 @@
 import * as CEL from "@bufbuild/cel";
 import Split from "split-grid";
 import type { SplitInstance } from "split-grid";
-import YAML from "yaml";
+import * as YAML from "yaml";
 import { print } from "./internal/print.js";
 import { CelBox, type CelBoxOptions } from "./internal/core.js";
 
@@ -51,7 +51,7 @@ class CelBoxSplit extends CelBox {
     this.split = Split({
       onDrag: (_1, _2, gridTemplateStyle: string) => {
         const [, l, r] = gridTemplateStyle.match(/^(\S+)fr \S+px (\S+)fr$/) ?? [
-          ,
+          undefined,
           "1",
           "1",
         ];
@@ -59,9 +59,13 @@ class CelBoxSplit extends CelBox {
         let left = parseFloat(l),
           right = parseFloat(r);
         const sum = left + right;
-        (left *= 2 / sum), (right *= 2 / sum);
+        left *= 2 / sum;
+        right *= 2 / sum;
 
-        if (Math.abs(left - right) < 0.1) (left = 1), (right = 1);
+        if (Math.abs(left - right) < 0.1) {
+          left = 1;
+          right = 1;
+        }
 
         grid.style.gridTemplateColumns = `${left}fr 12px ${right}fr`;
       },

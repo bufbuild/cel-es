@@ -64,29 +64,6 @@ class CelBoxSimple extends CelBox {
   }
 }
 
-function toJsonCompatibleValue(
-  value: CEL.CelValue,
-): ReturnType<(typeof JSON)["parse"]> {
-  if (CEL.isCelMap(value)) {
-    return Object.fromEntries(
-      [...value.entries()].map(
-        ([k, v]): [string, ReturnType<(typeof JSON)["parse"]>] => [
-          k.toString(),
-          toJsonCompatibleValue(v),
-        ],
-      ),
-    );
-  }
-
-  if (CEL.isCelList(value)) {
-    return [...value].map(
-      (v): ReturnType<(typeof JSON)["parse"]> => toJsonCompatibleValue(v),
-    );
-  }
-
-  return value;
-}
-
 export default (target: HTMLElement | string, options?: CelBoxOptions) =>
   new CelBoxSimple(target, options);
 export type { CelBoxSimple };

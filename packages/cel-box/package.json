@@ -16,11 +16,14 @@
     "directory": "packages/cel-box"
   },
   "scripts": {
-    "prebuild": "rm -rf ./dist/*",
     "gen-icons": "node scripts/gen-icons.js; prettier --write stylesheets/gen/icons.css",
     "gen-stylesheets": "node scripts/gen-stylesheets.js; prettier --write src/gen/stylesheets.ts",
-    "build": "esbuild src/*.ts --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/ && prettier dist/* --write",
-    "build-minified": "esbuild src/*.ts --minify --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/",
+    "prebuild": "rm -rf ./dist/*",
+    "build": "npm run build:cjs && npm run build:esm",
+    "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:esm": "tsc --project tsconfig.json --outDir ./dist/esm",
+    "bundle": "esbuild src/*.ts --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/ && prettier dist/* --write",
+    "bundle-minified": "esbuild src/*.ts --minify --bundle --platform=browser --format=esm --tree-shaking=true --outdir=dist/",
     "watch": "esbuild src/*.ts --watch --bundle --platform=browser --format=esm --tree-shaking=false --outdir=dist/",
     "format": "biome format --write",
     "lint": "biome lint --error-on-warnings",
@@ -38,20 +41,43 @@
     "split-grid": "^1.0.11",
     "yaml": "^2.8.1"
   },
+  "main": "./dist/cjs/split.js",
+  "types": "./dist/cjs/split.d.ts",
   "exports": {
-    ".": "dist/split.js",
-    "./simple.js": "dist/simple.js",
-    "./simple-component.js": "dist/simple-component.js",
-    "./split.js": "dist/split.js",
-    "./split-component.js": "dist/split-component.js",
-    "./table.js": "dist/table.js",
-    "./table-component.js": "dist/table-component.js",
-    "./simple.ts": "src/simple.js",
-    "./simple-component.ts": "src/simple-component.js",
-    "./split.ts": "src/split.js",
-    "./split-component.ts": "src/split-component.js",
-    "./table.ts": "src/table.js",
-    "./table-component.ts": "src/table-component.js"
+    "./simple": {
+      "import": "./dist/esm/simple.js",
+      "require": "./dist/cjs/simple.js"
+    },
+    "./simple/component": {
+      "import": "./dist/esm/simple-component.js",
+      "require": "./dist/cjs/simple-component.js"
+    },
+    "./split": {
+      "import": "./dist/esm/split.js",
+      "require": "./dist/cjs/split.js"
+    },
+    "./split/component": {
+      "import": "./dist/esm/split-component.js",
+      "require": "./dist/cjs/split-component.js"
+    },
+    "./table": {
+      "import": "./dist/esm/table.js",
+      "require": "./dist/cjs/table.js"
+    },
+    "./table/component": {
+      "import": "./dist/esm/table-component.js",
+      "require": "./dist/cjs/table-component.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "simple": ["dist/cjs/simple.d.ts"],
+      "simple/component": ["dist/cjs/simple-component.d.ts"],
+      "split": ["dist/cjs/split.d.ts"],
+      "split/component": ["dist/cjs/split-component.d.ts"],
+      "table": ["dist/cjs/table.d.ts"],
+      "table/component": ["dist/cjs/table-component.d.ts"]
+    }
   },
   "devDependencies": {
     "esbuild": "^0.25.11",

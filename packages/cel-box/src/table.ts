@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import * as CEL from "@bufbuild/cel";
-import Papa from "papaparse";
+import * as Papa from "papaparse";
 import { CelBox, type CelBoxOptions } from "./internal/core.js";
 
 const selectedSymbol = Symbol("selected");
