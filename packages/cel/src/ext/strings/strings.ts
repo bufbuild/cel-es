@@ -26,6 +26,9 @@ import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
 import { isCelUint } from "../../uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
+import { getTextEncoding } from "@bufbuild/protobuf/wire";
+
+const encoding = getTextEncoding();
 
 const charAt = celFunc("charAt", [
   celOverload(
@@ -396,8 +399,7 @@ function formatHex(val: CelValue) {
     case isCelUint(val):
       return val.value.toString(16);
     case typeof val === "string":
-      const encoder = new TextEncoder();
-      return formatHexBytes(encoder.encode(val));
+      return formatHexBytes(encoding.encodeUtf8(val));
     case val instanceof Uint8Array:
       return formatHexBytes(val);
     default:
@@ -470,7 +472,7 @@ function formatString(val: CelValue) {
         case isReflectMessage(val, DurationSchema):
           return toJson(DurationSchema, val.message as Duration);
         case val instanceof Uint8Array:
-          return new TextDecoder().decode(val);
+          return encoding.decodeUtf8(val);
         case isCelList(val):
           return formatList(val);
         case isCelMap(val):

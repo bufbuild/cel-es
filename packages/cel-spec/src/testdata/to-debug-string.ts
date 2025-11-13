@@ -23,8 +23,9 @@ import type {
 } from "../gen/cel/expr/syntax_pb.ts";
 
 import type { Message } from "@bufbuild/protobuf";
+import { getTextEncoding } from "@bufbuild/protobuf/wire";
 
-const decoder = new TextDecoder();
+const encoding = getTextEncoding();
 
 // These expressions MUST capture a single character (a string `S` where `S.length == 1`)
 // @ts-expect-error - The regex flag `v` is only available in ES2024 or later
@@ -358,13 +359,13 @@ function quoteBytes(bytes: Uint8Array) {
           ? "" // continuation
           : bytes[i] < 0xe0
             ? // biome-ignore lint/suspicious/noAssignInExpressions: do not want to remove the ternary expression
-              decoder.decode(bytes.slice(i, i + (length = 2)))
+              encoding.decodeUtf8(bytes.slice(i, i + (length = 2)))
             : bytes[i] < 0xf0
               ? // biome-ignore lint/suspicious/noAssignInExpressions: do not want to remove the ternary expression
-                decoder.decode(bytes.slice(i, i + (length = 3)))
+                encoding.decodeUtf8(bytes.slice(i, i + (length = 3)))
               : bytes[i] < 0xf5
                 ? // biome-ignore lint/suspicious/noAssignInExpressions: do not want to remove the ternary expression
-                  decoder.decode(bytes.slice(i, i + (length = 4)))
+                  encoding.decodeUtf8(bytes.slice(i, i + (length = 4)))
                 : ""; // unused
 
     // this is a bit subtle; either
@@ -404,7 +405,6 @@ function quoteBytes(bytes: Uint8Array) {
 }
 
 function quoteString(text: string): string {
-  console.error('"' + escapeString(text) + '"', JSON.stringify(text));
   return '"' + escapeString(text) + '"';
 }
 

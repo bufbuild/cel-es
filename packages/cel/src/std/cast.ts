@@ -19,6 +19,9 @@ import {
   TimestampSchema,
 } from "@bufbuild/protobuf/wkt";
 
+import { getTextEncoding } from "@bufbuild/protobuf/wire";
+const encoding = getTextEncoding();
+
 import { type FuncRegistry, celOverload, celFunc } from "../func.js";
 import {
   isOverflowInt,
@@ -141,7 +144,9 @@ const boolFunc = celFunc(BOOL, [
 
 const bytesFunc = celFunc(BYTES, [
   celOverload([CelScalar.BYTES], CelScalar.BYTES, (x) => x),
-  celOverload([CelScalar.STRING], CelScalar.BYTES, (x) => Buffer.from(x)),
+  celOverload([CelScalar.STRING], CelScalar.BYTES, (x) =>
+    encoding.encodeUtf8(x),
+  ),
 ]);
 
 const stringFunc = celFunc(STRING, [
@@ -153,9 +158,8 @@ const stringFunc = celFunc(STRING, [
   celOverload([CelScalar.UINT], CelScalar.STRING, (x) => x.value.toString()),
   celOverload([CelScalar.DOUBLE], CelScalar.STRING, (x) => x.toString()),
   celOverload([CelScalar.BYTES], CelScalar.STRING, (x) => {
-    const coder = new TextDecoder(undefined, { fatal: true });
     try {
-      return coder.decode(x);
+      return encoding.decodeUtf8(x, true);
     } catch (e) {
       throw new Error(`Failed to decode bytes as string: ${e}`);
     }
