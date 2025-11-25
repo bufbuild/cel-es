@@ -75,6 +75,10 @@ export function celFunc(
 export interface CelOverload<P extends readonly CelType[], R extends CelType> {
   [privateOverloadSymbol]: unknown;
   /**
+   * Identifier of the overload.
+   */
+  readonly id: string;
+  /**
    * Array of parameter types.
    */
   readonly parameters: P;
@@ -86,6 +90,14 @@ export interface CelOverload<P extends readonly CelType[], R extends CelType> {
    * Implementation for this overload.
    */
   readonly impl: (...args: CelValueTuple<P>) => CelInput<R>;
+  /**
+   * Whether this is a member function overload.
+   */
+  readonly isMemberFunction: boolean;
+  /**
+   * TypeParams returns the type parameter names associated with the overload.
+   */
+  typeParams(): string[];
 }
 
 /**
@@ -95,11 +107,27 @@ export function celOverload<
   const P extends readonly CelType[],
   const R extends CelType,
 >(
+  id: string,
   parameters: P,
   result: R,
   impl: (...args: CelValueTuple<P>) => CelInput<R>,
 ): CelOverload<P, R> {
-  return new FuncOverload(parameters, result, impl);
+  return new FuncOverload(id, parameters, result, impl, false);
+}
+
+/**
+ * Creates a new member function CelOverload.
+ */
+export function celMemberOverload<
+  const P extends readonly CelType[],
+  const R extends CelType,
+>(
+  id: string,
+  parameters: P,
+  result: R,
+  impl: (...args: CelValueTuple<P>) => CelInput<R>,
+): CelOverload<P, R> {
+  return new FuncOverload(id, parameters, result, impl, true);
 }
 
 class Func implements CelFunc {
@@ -152,11 +180,16 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
 {
   [privateOverloadSymbol] = {};
   constructor(
+    private readonly _id: string,
     private readonly _parameters: P,
     private readonly _result: R,
     private readonly _impl: (...args: CelValueTuple<P>) => CelInput<R>,
+    private readonly _isMemberFunction: boolean,
   ) {}
 
+  get id() {
+    return this._id;
+  }
   get parameters() {
     return this._parameters;
   }
@@ -166,6 +199,33 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
   get impl() {
     return this._impl;
   }
+  get isMemberFunction() {
+    return this._isMemberFunction;
+  }
+  typeParams(): string[] {
+    function collectParamNames(paramNames: string[], arg: CelType) {
+      switch (arg.kind) {
+        case 'type_param':
+          paramNames.push(arg.name);
+          break;
+        case 'list':
+          collectParamNames(paramNames, arg.element);
+          break;
+        case 'map':
+          collectParamNames(paramNames, arg.key);
+          collectParamNames(paramNames, arg.value);
+          break;
+        default:
+          break;
+      }
+    }
+    const typeNames: string[] = [];
+    collectParamNames(typeNames, this._result);
+    for (const paramType of this._parameters) {
+      collectParamNames(typeNames, paramType);
+    }
+    return typeNames;
+  }
 }
 
 /**
@@ -173,6 +233,7 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
  */
 export class FuncRegistry implements Dispatcher {
   private functions = new Map<string, CallDispatch>();
+  private functionDeclarations = new Map<string, CelFunc>();
 
   constructor(funcs?: CelFunc[]) {
     funcs && this.add(funcs);
@@ -198,6 +259,7 @@ export class FuncRegistry implements Dispatcher {
         return;
       }
       call = nameOrFunc;
+      this.functionDeclarations.set(nameOrFunc.name, nameOrFunc);
       nameOrFunc = nameOrFunc.name;
     }
     if (call === undefined) {
@@ -218,6 +280,10 @@ export class FuncRegistry implements Dispatcher {
       throw new Error(`Function ${name} already registered`);
     }
     this.functions.set(name, call);
+  }
+
+  get declarations(): CelFunc[] {
+    return Array.from(this.functionDeclarations.values());
   }
 }
 
