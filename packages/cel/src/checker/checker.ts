@@ -2,7 +2,13 @@ import { AggregateLiteralElementType, type CelCheckerEnv } from "./env.js";
 import { Mapping } from "./mapping.js";
 import type { CheckedExpr } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import { CheckedExprSchema } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
-import type { Expr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import {
+  Expr_CallSchema,
+  Expr_CreateStructSchema,
+  Expr_IdentSchema,
+  type Expr,
+  type Expr_CreateStruct,
+} from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { create } from "@bufbuild/protobuf";
 import { celError, type CelError } from "../error.js";
 import {
@@ -46,6 +52,7 @@ import {
   LOGICAL_OR,
   OPT_SELECT,
 } from "../gen/dev/cel/expr/operator_const.js";
+import { celVariable } from "../ident.js";
 
 export interface CelChecker {
   //
@@ -57,7 +64,7 @@ export interface CelChecker {
  */
 export function check(expr: Expr, env: CelCheckerEnv): CheckedExpr {
   const checker = new _CelChecker(env);
-  checker.checkExpr(expr);
+  checker.check(expr);
   return create(CheckedExprSchema, {
     expr,
     // TODO: typeMap, referenceMap, sourceInfo
@@ -84,7 +91,16 @@ export class _CelChecker implements CelChecker {
   mappings: Mapping = new Mapping();
   freeTypeVarCounter = 0;
 
-  constructor(private readonly env: CelCheckerEnv) {}
+  constructor(private env: CelCheckerEnv) {}
+
+  check(expr: Expr): void {
+    this.checkExpr(expr);
+    // Walk over the final type map substituting any type parameters either by their bound value
+    // or by DYN.
+    for (const [id, t] of this.typeMap.entries()) {
+      this.typeMap.set(id, substitute(this.mappings, t, true));
+    }
+  }
 
   checkExpr(expr: Expr): void {
     switch (expr.exprKind.case) {
@@ -94,7 +110,7 @@ export class _CelChecker implements CelChecker {
         return this.checkIdentExpr(expr);
       case "selectExpr":
         return this.checkSelectExpr(expr);
-      case 'callExpr':
+      case "callExpr":
         return this.checkCallExpr(expr);
       case "listExpr":
         return this.checkCreateListExpr(expr);
@@ -103,6 +119,8 @@ export class _CelChecker implements CelChecker {
           return this.checkCreateMapExpr(expr);
         }
         return this.checkCreateStructExpr(expr);
+      case "comprehensionExpr":
+        return this.checkComprehensionExpr(expr);
       default:
         throw new Error(`unexpected expression kind: ${expr.exprKind.case}`);
     }
@@ -151,9 +169,11 @@ export class _CelChecker implements CelChecker {
     if (found) {
       this.setType(expr, found.type);
       this.setReference(expr, identReference(found.name, found.value));
-      // TODO:
-      // // Overwrite the identifier with its fully qualified name.
-      // e.SetKindCase(c.NewIdent(e.ID(), ident.Name()))
+      // Overwrite the identifier with its fully qualified name.
+      expr.exprKind = {
+        case: "identExpr",
+        value: create(Expr_IdentSchema, { name: found.name }),
+      };
       return;
     }
     const error = celError(
@@ -184,8 +204,10 @@ export class _CelChecker implements CelChecker {
         // variable name.
         this.setType(expr, ident.type);
         this.setReference(expr, identReference(ident.name, ident.value));
-        // TODO:
-        // e.SetKindCase(c.NewIdent(e.ID(), ident.Name()))
+        expr.exprKind = {
+          case: "identExpr",
+          value: create(Expr_IdentSchema, { name: ident.name }),
+        };
         return;
       }
     }
@@ -343,9 +365,14 @@ export class _CelChecker implements CelChecker {
         this.setType(expr, errorType(err));
         return;
       }
-      // TODO:
-      // // Overwrite the function name with its fully qualified resolved name.
-      // e.SetKindCase(c.NewCall(e.ID(), fn.Name(), args...))
+      // Overwrite the function name with its fully qualified resolved name.
+      expr.exprKind = {
+        case: "callExpr",
+        value: create(Expr_CallSchema, {
+          function: fn.name,
+          args: args,
+        }),
+      };
       // Check to see whether the overload resolves.
       this.resolveOverloadOrError(expr, fn, undefined, args);
       return;
@@ -365,8 +392,13 @@ export class _CelChecker implements CelChecker {
         // The function name is namespaced and so preserving the target operand would
         // be an inaccurate representation of the desired evaluation behavior.
         // Overwrite with fully-qualified resolved function name sans receiver target.
-        // TODO:
-        // e.SetKindCase(c.NewCall(e.ID(), fn.Name(), args...))
+        expr.exprKind = {
+          case: "callExpr",
+          value: create(Expr_CallSchema, {
+            function: fn.name,
+            args: args,
+          }),
+        };
         this.resolveOverloadOrError(expr, fn, undefined, args);
       }
     }
@@ -626,7 +658,7 @@ export class _CelChecker implements CelChecker {
       this.errors.push(celError(`expected structExpr`, expr.id));
       return;
     }
-    const msgVal = expr.exprKind.value;
+    let msgVal = expr.exprKind.value;
     // Determine the type of the message.
     let resultType: CelType = errorType(
       celError(`'${msgVal.messageName}' is not a message type`, expr.id)
@@ -645,11 +677,16 @@ export class _CelChecker implements CelChecker {
     }
     // Ensure the type name is fully qualified in the AST.
     let typeName = ident.name;
-    // TODO:
-    // if msgVal.TypeName() != typeName {
-    //   e.SetKindCase(c.NewStruct(e.ID(), typeName, msgVal.Fields()))
-    //   msgVal = e.AsStruct()
-    // }
+    if (msgVal.messageName !== typeName) {
+      expr.exprKind = {
+        case: "structExpr",
+        value: create(Expr_CreateStructSchema, {
+          messageName: typeName,
+          entries: msgVal.entries,
+        }),
+      };
+      msgVal = expr.exprKind.value as Expr_CreateStruct;
+    }
     this.setReference(expr, identReference(typeName, undefined));
     const identKind = ident.type.kind;
     if (identKind !== "error") {
@@ -723,6 +760,149 @@ export class _CelChecker implements CelChecker {
         );
       }
     }
+  }
+
+  checkComprehensionExpr(expr: Expr): void {
+    if (expr.exprKind.case !== "comprehensionExpr") {
+      this.errors.push(celError(`expected comprehensionExpr`, expr.id));
+      return;
+    }
+    const comp = expr.exprKind.value;
+    if (!comp.iterRange) {
+      // This should not happen, anyway, report an error.
+      this.errors.push(celError(`expected comprehension iter_range`, expr.id));
+      return;
+    }
+    this.checkExpr(comp.iterRange);
+    if (!comp.accuInit) {
+      // This should not happen, anyway, report an error.
+      this.errors.push(celError(`expected comprehension accu_init`, expr.id));
+      return;
+    }
+    this.checkExpr(comp.accuInit);
+    let rangeType = this.getType(comp.iterRange);
+    if (!rangeType) {
+      // This should not happen, anyway, report an error.
+      this.errors.push(
+        celError(
+          `unable to determine type of comprehension iter_range`,
+          expr.id
+        )
+      );
+      return;
+    }
+    rangeType = substitute(this.mappings, rangeType, false);
+
+    // Create a scope for the comprehension since it has a local accumulation variable.
+    // This scope will contain the accumulation variable used to compute the result.
+    const accuType = this.getType(comp.accuInit);
+    if (!accuType) {
+      // This should not happen, anyway, report an error.
+      this.errors.push(
+        celError(`unable to determine type of comprehension accu_init`, expr.id)
+      );
+      return;
+    }
+    this.env = this.env.enterScope();
+    this.env.addIdents([celVariable(comp.accuVar, accuType)]);
+
+    let varType: CelType | undefined;
+    let var2Type: CelType | undefined;
+    switch (rangeType.kind) {
+      case "list":
+        // varType represents the list element type for one-variable comprehensions.
+        varType = rangeType.element;
+        if (comp.iterVar2) {
+          // varType represents the list index (int) for two-variable comprehensions,
+          // and var2Type represents the list element type.
+          var2Type = varType;
+          varType = CelScalar.INT;
+        }
+        break;
+      case "map":
+        // varType represents the map entry key for all comprehension types.
+        varType = rangeType.key;
+        if (comp.iterVar2) {
+          // var2Type represents the map entry value for two-variable comprehensions.
+          var2Type = rangeType.value;
+        }
+        break;
+      case "error":
+      case "type_param":
+      case "scalar":
+        if (rangeType.kind === "scalar" && rangeType.scalar !== "dyn") {
+          const err = celError(
+            `expression of type '${rangeType.kind}' cannot be range of a comprehension (must be list, map, or dynamic)`
+          );
+          this.errors.push(err);
+          varType = errorType(err);
+          if (comp.iterVar2) {
+            var2Type = errorType(err);
+          }
+          break;
+        }
+        // Set the range type to DYN to prevent assignment to a potentially incorrect type
+        // at a later point in type-checking. The isAssignable call will update the type
+        // substitutions for the type param under the covers.
+        this.isAssignable(CelScalar.DYN, rangeType);
+        // Set the range iteration variable to type DYN as well.
+        varType = CelScalar.DYN;
+        if (comp.iterVar2) {
+          var2Type = CelScalar.DYN;
+        }
+        break;
+      default:
+        const err = celError(
+          `expression of type '${rangeType.kind}' cannot be range of a comprehension (must be list, map, or dynamic)`,
+          expr.id
+        );
+        this.errors.push(err);
+        varType = errorType(err);
+        if (comp.iterVar2) {
+          var2Type = errorType(err);
+        }
+        break;
+    }
+
+    // Create a block scope for the loop.
+    this.env = this.env.enterScope();
+    this.env.addIdents([celVariable(comp.iterVar, varType)]);
+    if (comp.iterVar2) {
+      this.env.addIdents([celVariable(comp.iterVar2, var2Type!)]);
+    }
+    // Check the variable references in the condition and step.
+    if (!comp.loopCondition) {
+      this.errors.push(
+        celError(`expected comprehension loop_condition`, expr.id)
+      );
+      return;
+    }
+    this.checkExpr(comp.loopCondition);
+    this.assertType(comp.loopCondition, CelScalar.BOOL);
+    if (!comp.loopStep) {
+      this.errors.push(celError(`expected comprehension loop_step`, expr.id));
+      return;
+    }
+    this.checkExpr(comp.loopStep);
+    this.assertType(comp.loopStep, accuType);
+    // Exit the loop's block scope before checking the result.
+    this.env = this.env.exitScope();
+    if (!comp.result) {
+      this.errors.push(celError(`expected comprehension result`, expr.id));
+      return;
+    }
+    this.checkExpr(comp.result);
+
+    // Exit the comprehension scope.
+    this.env = this.env.enterScope();
+    const resultType = this.getType(comp.result);
+    if (!resultType) {
+      this.errors.push(
+        celError(`unable to determine type of comprehension result`, expr.id)
+      );
+      return;
+    }
+    this.setType(expr, substitute(this.mappings, resultType, false));
   }
 
   joinTypes(
@@ -801,6 +981,24 @@ export class _CelChecker implements CelChecker {
       return;
     }
     this.referenceMap.set(expr.id, ref);
+  }
+
+  assertType(expr: Expr, t: CelType): void {
+    const exprType = this.getType(expr);
+    if (!exprType) {
+      this.errors.push(
+        celError(`unable to determine type of expression`, expr.id)
+      );
+      return;
+    }
+    if (!this.isAssignable(t, exprType)) {
+      this.errors.push(
+        celError(
+          `expected type '${t.toString()}' but got '${exprType.toString()}'`,
+          expr.id
+        )
+      );
+    }
   }
 
   lookupFieldType(

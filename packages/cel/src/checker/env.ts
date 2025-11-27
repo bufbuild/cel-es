@@ -44,18 +44,44 @@ export interface CelCheckerEnv {
    * The filtered overload ids.
    */
   readonly filteredOverloadIds: Set<string>;
-  
+  /**
+   * AddIdents configures the checker with a list of variable declarations.
+   *
+   * If there are overlapping declarations, the method will error.
+   */
   addIdents(idents: CelIdent[]): void;
-
+  /**
+   * AddFunctions configures the checker with a list of function declarations.
+   *
+   * If there are overlapping declarations, the method will error.
+   */
   addFunctions(funcs: CelFunc[]): void;
-
+  /**
+   * LookupIdent returns an identifier in the Env.
+   * Returns undefined if no such identifier is found in the Env.
+   */
   lookupIdent(name: string): CelIdent | undefined;
-
+  /**
+   * LookupFunction returns a function declaration in the env.
+   * Returns undefined if no such function is found in the env.
+   */
   lookupFunction(name: string): CelFunc | undefined;
-
+  /**
+   * IsOverloadDisabled returns whether the overloadID is disabled in the current environment.
+   */
   isOverloadDisabled(overloadID: string): boolean;
-
+  /**
+   * validatedDeclarations returns a reference to the validated variable and function declaration scope stack.
+   */
   validatedDeclarations(): Scopes;
+  /**
+   * enterScope creates a new Env instance with a new innermost declaration scope.
+   */
+  enterScope(): CelCheckerEnv;
+  /**
+   * exitScope creates a new Env instance with the nearest outer declaration scope.
+   */
+  exitScope(): CelCheckerEnv;
 }
 
 export interface CelCheckerEnvOptions {

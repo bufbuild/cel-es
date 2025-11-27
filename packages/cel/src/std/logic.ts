@@ -16,7 +16,6 @@ import {
   type FuncRegistry,
   celFunc,
   celOverload,
-  type CallDispatch,
   celMemberOverload,
 } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
@@ -33,74 +32,115 @@ import {
 import { equals } from "../equals.js";
 import type { CelMap } from "../map.js";
 
+// TODO: cel-go uses these instead of DYN for various functions
+// const paramA = typeParamType("A") as CelType;
+// const paramB = typeParamType("B") as CelType;
+// const listOfA = listType(paramA);
+// const mapOfAB = mapType(paramA as mapKeyType, paramB);
+
 /**
  * This is not in the spec but is part of at least go,java, and cpp implementations.
  *
  * It should return true for anything exept for the literal `false`.
  */
-const notStrictlyFalse: CallDispatch = {
-  dispatch(_, args) {
-    const raw = args[0];
-    if (isCelError(raw)) {
-      return true;
-    }
-    return raw !== false;
-  },
-};
+const notStrictlyFalse = celFunc(opc.NOT_STRICTLY_FALSE, [
+  celOverload(
+    olc.NOT_STRICTLY_FALSE,
+    [CelScalar.BOOL],
+    CelScalar.BOOL,
+    (x) => true, // Irrelevant because we overwrite dispatch below
+  )
+])
+notStrictlyFalse.dispatch = (_, args) => {
+  const raw = args[0];
+  if (isCelError(raw)) {
+    return true;
+  }
+  return raw !== false;
+}
+
 
 const notFunc = celFunc(opc.LOGICAL_NOT, [
   celOverload(olc.LOGICAL_NOT, [CelScalar.BOOL], CelScalar.BOOL, (x) => !x),
 ]);
 
-const and: CallDispatch = {
-  dispatch(_id, args) {
-    let allBools = true;
-    const errors: CelError[] = [];
-    for (let i = 0; i < args.length; i++) {
-      let arg = args[i];
-      if (typeof arg === "boolean") {
-        if (!arg) return false; // short-circuit
-      } else {
-        allBools = false;
-        if (isCelError(arg)) {
-          errors.push(arg);
-        }
+const and = celFunc(opc.LOGICAL_AND, [
+  celOverload(
+    olc.LOGICAL_AND,
+    [CelScalar.BOOL, CelScalar.BOOL],
+    CelScalar.BOOL,
+    (x, y) => x && y, // Irrelevant because we overwrite dispatch below
+  )
+])
+and.dispatch = (_id, args) => {
+  let allBools = true;
+  const errors: CelError[] = [];
+  for (let i = 0; i < args.length; i++) {
+    let arg = args[i];
+    if (typeof arg === "boolean") {
+      if (!arg) return false; // short-circuit
+    } else {
+      allBools = false;
+      if (isCelError(arg)) {
+        errors.push(arg);
       }
     }
-    if (allBools) {
-      return true;
-    }
-    if (errors.length > 0) {
-      return celErrorMerge(errors[0], ...errors.slice(1));
-    }
-    return undefined;
-  },
-};
+  }
+  if (allBools) {
+    return true;
+  }
+  if (errors.length > 0) {
+    return celErrorMerge(errors[0], ...errors.slice(1));
+  }
+  return undefined;
+}
 
-const or: CallDispatch = {
-  dispatch(_, args) {
-    let allBools = true;
-    const errors: CelError[] = [];
-    for (let i = 0; i < args.length; i++) {
-      let arg = args[i];
-      if (typeof arg === "boolean") {
-        if (arg) return true; // short-circuit
-      } else {
-        allBools = false;
-        if (isCelError(arg)) {
-          errors.push(arg);
-        }
+const or = celFunc(opc.LOGICAL_OR, [
+  celOverload(
+    olc.LOGICAL_OR,
+    [CelScalar.BOOL, CelScalar.BOOL],
+    CelScalar.BOOL,
+    (x, y) => x || y, // Irrelevant because we overwrite dispatch below
+  )
+])
+or.dispatch = (_, args) => {
+  let allBools = true;
+  const errors: CelError[] = [];
+  for (let i = 0; i < args.length; i++) {
+    let arg = args[i];
+    if (typeof arg === "boolean") {
+      if (arg) return true; // short-circuit
+    } else {
+      allBools = false;
+      if (isCelError(arg)) {
+        errors.push(arg);
       }
     }
-    if (allBools) {
-      return false;
-    }
-    if (errors.length > 0) {
-      return celErrorMerge(errors[0], ...errors.slice(1));
-    }
-    return undefined;
-  },
-};
+  }
+  if (allBools) {
+    return false;
+  }
+  if (errors.length > 0) {
+    return celErrorMerge(errors[0], ...errors.slice(1));
+  }
+  return undefined;
+}
+
+/**
+ * This is not actually used by the planner since it handles conditionals
+ * directly, but it is defined here for type checking.
+ */
+const conditional = celFunc(opc.CONDITIONAL, [
+  celOverload(
+    olc.CONDITIONAL,
+    [CelScalar.BOOL, CelScalar.DYN, CelScalar.DYN],
+    CelScalar.DYN,
+    (_cond, thenBranch, elseBranch) => {
+      // Irrelevant because dispatch is never called by the planner for conditionals
+      return _cond ? thenBranch : elseBranch;
+    },
+  ),
+]);
 
 const eqFunc = celFunc(opc.EQUALS, [
   celOverload(olc.EQUALS, [CelScalar.DYN, CelScalar.DYN], CelScalar.BOOL, equals),
@@ -367,10 +407,11 @@ const inFunc = celFunc(opc.IN, [
 ]);
 
 export function addLogic(funcs: FuncRegistry) {
-  funcs.add(opc.NOT_STRICTLY_FALSE, notStrictlyFalse);
-  funcs.add(opc.LOGICAL_AND, and);
-  funcs.add(opc.LOGICAL_OR, or);
+  funcs.add(notStrictlyFalse);
+  funcs.add(and);
+  funcs.add(or);
   funcs.add(notFunc);
+  funcs.add(conditional);
   funcs.add(eqFunc);
   funcs.add(neFunc);
   funcs.add(ltFunc);

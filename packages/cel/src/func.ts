@@ -266,6 +266,9 @@ export class FuncRegistry implements Dispatcher {
       throw new Error("dispatch is required with name");
     }
     this.addCall(nameOrFunc, call);
+    if (call instanceof Func) {
+      this.functionDeclarations.set(nameOrFunc, call);
+    }
   }
 
   /**

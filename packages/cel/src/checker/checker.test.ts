@@ -345,6 +345,34 @@ void suite("checker", () => {
   void test("call expr", () => {
     const cases = [
       {
+        expr: parse("is == 'str'"),
+        want: CelScalar.BOOL,
+      },
+      {
+        expr: parse("ii + 1"),
+        want: CelScalar.INT,
+      },
+      {
+        expr: parse("iu + 1u"),
+        want: CelScalar.UINT,
+      },
+      {
+        expr: parse("id + 1.0"),
+        want: CelScalar.DOUBLE,
+      },
+      {
+        expr: parse("iz && true"),
+        want: CelScalar.BOOL,
+      },
+      {
+        expr: parse("iz || false"),
+        want: CelScalar.BOOL,
+      },
+      {
+        expr: parse("!iz"),
+        want: CelScalar.BOOL,
+      },
+      {
         expr: parse('fg_s()'),
         want: CelScalar.STRING,
       },
@@ -382,4 +410,35 @@ void suite("checker", () => {
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
+
+  void test('macros', () => {
+    const cases = [
+      {
+        expr: parse('[1, 2, 3].all(e, e > 0)'),
+        want: CelScalar.BOOL,
+      },
+      {
+        expr: parse('[1, 2, 3].exists(e, e > 0)'),
+        want: CelScalar.BOOL,
+      },
+      {
+        expr: parse('[1, 2, 3].exists_one(e, e > 2)'),
+        want: CelScalar.BOOL,
+      },
+      {
+        expr: parse('[1, 2, 3].filter(e, e > 2)'),
+        // TODO: other implementations can type this correctly
+        want: listType(CelScalar.DYN),
+      },
+      {
+        expr: parse('[1, 2, 3].map(e, e + 1)'),
+        // TODO: other implementations can type this correctly
+        want: listType(CelScalar.DYN),
+      },
+    ]
+    for (const c of cases) {
+      const got = internal__checkForTest(c.expr.expr!);
+      assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
+    }
+  })
 });
