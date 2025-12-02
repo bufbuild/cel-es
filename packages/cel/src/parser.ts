@@ -59,7 +59,7 @@ namespace runtime {
     value: string;
   }
   export class ParseFailure {}
-  export class ParseOptions {
+  export interface ParseOptions {
     currentPosition?: number;
     silentFails?: number;
     maxFailExpected?: Expectation[];
@@ -528,10 +528,7 @@ const item624: runtime.Expectation = {
   type: "end",
   value: "end of input",
 };
-export function parse(
-  input: string,
-  options: runtime.ParseOptions = new runtime.ParseOptions(),
-): Expr {
+export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   const parse$source = options.grammarSource;
   const result = item1(input);
   if (result.success === true) {
@@ -553,82 +550,28 @@ export function parse(
     remainder.slice(0, 1),
     runtime.getLocation(parse$source, input, remainder, remainder),
   );
-  function item103(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    digits: string,
-  ): Expr {
+  function item103(offset: () => number, digits: string): Expr {
     return builder.newDoubleExpr(offset(), digits);
   }
-  function item126(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    digits: string,
-  ): Expr {
+  function item126(offset: () => number, digits: string): Expr {
     return builder.newUnsignedInt64Expr(offset(), digits);
   }
-  function item142(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    digits: string,
-  ): Expr {
+  function item142(offset: () => number, digits: string): Expr {
     return builder.newInt64Expr(offset(), digits);
   }
-  function item235(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    value: string,
-  ): number {
+  function item235(value: string): number {
     return parseInt(value, 16);
   }
-  function item243(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    value: string,
-  ): number {
+  function item243(value: string): number {
     return parseInt(value, 16);
   }
-  function item251(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    value: string,
-  ): number {
+  function item251(value: string): number {
     return parseInt(value, 16);
   }
-  function item264(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    value: string,
-  ): number {
+  function item264(value: string): number {
     return parseInt(value, 8);
   }
   function item273(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     value: string,
   ): "\u0007" | "\b" | "\f" | "\n" | "\r" | "\t" | "\v" {
     switch (value) {
@@ -650,11 +593,7 @@ export function parse(
     throw new Error();
   }
   function item327(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     bytes:
       | string[]
       | (
@@ -672,11 +611,7 @@ export function parse(
     return builder.newStringExpr(offset(), bytes);
   }
   function item337(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     bytes:
       | string[]
       | (
@@ -693,30 +628,13 @@ export function parse(
   ): Expr {
     return builder.newBytesExpr(offset(), bytes);
   }
-  function item348(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    keyword: "true" | "false",
-  ): Expr {
+  function item348(offset: () => number, keyword: "true" | "false"): Expr {
     return builder.newBoolExpr(offset(), keyword);
   }
-  function item360(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-  ): Expr {
+  function item360(offset: () => number): Expr {
     return builder.newNullExpr(offset());
   }
   function item378(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
     error: (s: string, l?: runtime.LocationRange) => void,
     id: string,
   ): string {
@@ -750,21 +668,13 @@ export function parse(
     return id;
   }
   function item390(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     identifier: string,
     args: Expr[],
   ): Expr {
     return builder.newCallExpr(offset(), identifier, args);
   }
   function item407(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
     error: (s: string, l?: runtime.LocationRange) => void,
     selector: string,
   ): string {
@@ -774,22 +684,14 @@ export function parse(
     return selector;
   }
   function item427(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     key: string,
     value: Expr,
   ): Expr_CreateStruct_Entry {
     return builder.newStructEntry(offset(), key, value);
   }
   function item434(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     dot: "." | null,
     name: string[],
     entries: Expr_CreateStruct_Entry[],
@@ -800,63 +702,33 @@ export function parse(
       (dot !== null ? dot : "") + name.join("."),
     );
   }
-  function item441(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    name: string,
-  ): Expr {
+  function item441(offset: () => number, name: string): Expr {
     return builder.newIdentExpr(offset(), name);
   }
-  function item458(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    elements: Expr[],
-  ): Expr {
+  function item458(offset: () => number, elements: Expr[]): Expr {
     return builder.newListExpr(offset(), elements);
   }
   function item472(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     key: Expr,
     value: Expr,
   ): Expr_CreateStruct_Entry {
     return builder.newMapEntry(offset(), key, value);
   }
   function item481(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     entries: Expr_CreateStruct_Entry[],
   ): Expr {
     return builder.newStructExpr(offset(), entries);
   }
   function item497(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     field: string,
   ): (prevExpr: Expr) => Expr {
     return (prevExpr: Expr) => builder.newSelectExpr(offset(), prevExpr, field);
   }
   function item506(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     func: string,
     args: Expr[],
   ): (prevExpr: Expr) => Expr {
@@ -864,40 +736,20 @@ export function parse(
       builder.newMemberCallExpr(offset(), prevExpr, func, args);
   }
   function item513(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     index: Expr,
   ): (prevExpr: Expr) => Expr {
     return (prevExpr: Expr) =>
       builder.newCallExpr(offset(), "_[_]", [prevExpr, index]);
   }
-  function item516(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    primary: Expr,
-    tail: ((prevExpr: Expr) => Expr)[],
-  ): Expr {
+  function item516(primary: Expr, tail: ((prevExpr: Expr) => Expr)[]): Expr {
     /* : Expr */
     if (tail.length === 0) {
       return primary;
     }
     return tail.reduce((expr, op) => op(expr), primary);
   }
-  function item529(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    ops: string,
-    expr: Expr,
-  ): Expr {
+  function item529(offset: () => number, ops: string, expr: Expr): Expr {
     /* : Expr */
     if (ops.length % 2 === 0) {
       return expr;
@@ -910,22 +762,11 @@ export function parse(
     }
     return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   }
-  function item541(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    o: string,
-  ): string {
+  function item541(o: string): string {
     return `_${o}_`;
   }
   function item544(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     operator: string,
     nextExpr: Expr,
   ): (prevExpr: Expr) => Expr {
@@ -933,11 +774,6 @@ export function parse(
       builder.newCallExpr(offset(), operator, [prevExpr, nextExpr]);
   }
   function item546(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     unary: Expr,
     tail: ((prevExpr: Expr) => Expr)[] | null,
   ): Expr {
@@ -947,22 +783,11 @@ export function parse(
     }
     return tail.reduce((expr, op) => op(expr), unary);
   }
-  function item557(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    o: string,
-  ): string {
+  function item557(o: string): string {
     return `_${o}_`;
   }
   function item559(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     operator: string,
     nextExpr: Expr,
   ): (prevExpr: Expr) => Expr {
@@ -970,11 +795,6 @@ export function parse(
       builder.newCallExpr(offset(), operator, [prevExpr, nextExpr]);
   }
   function item561(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     multiplication: Expr,
     tail: ((prevExpr: Expr) => Expr)[] | null,
   ): Expr {
@@ -984,31 +804,14 @@ export function parse(
     }
     return tail.reduce((expr, op) => op(expr), multiplication);
   }
-  function item588(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    operator: string,
-  ): string {
+  function item588(operator: string): string {
     return `_${operator}_`;
   }
-  function item592(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-  ): string {
+  function item592(): string {
     return "@in";
   }
   function item595(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     operator: string,
     nextExpr: Expr,
   ): (prevExpr: Expr) => Expr {
@@ -1016,11 +819,6 @@ export function parse(
       builder.newCallExpr(offset(), operator, [prevExpr, nextExpr]);
   }
   function item597(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     addition: Expr,
     tail: ((prevExpr: Expr) => Expr)[] | null,
   ): Expr {
@@ -1030,14 +828,7 @@ export function parse(
     }
     return tail.reduce((expr, op) => op(expr), addition);
   }
-  function item603(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    relation: Expr[],
-  ): Expr {
+  function item603(offset: () => number, relation: Expr[]): Expr {
     /* : Expr */
     if (relation.length === 1) {
       return relation[0];
@@ -1052,14 +843,7 @@ export function parse(
     }
     return logicManager.toExpr();
   }
-  function item609(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    and: Expr[],
-  ): Expr {
+  function item609(offset: () => number, and: Expr[]): Expr {
     /* : Expr */
     if (and.length === 1) {
       return and[0];
@@ -1074,24 +858,12 @@ export function parse(
     }
     return logicManager.toExpr();
   }
-  function item621(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
-    offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
-    t: Expr,
-    f: Expr,
-  ): [Expr, Expr] {
+  function item621(t: Expr, f: Expr): [Expr, Expr] {
     /* : [Expr, Expr] */
     return [t, f];
   }
   function item623(
-    location: () => runtime.LocationRange,
-    range: () => runtime.Range,
-    text: () => string,
     offset: () => number,
-    error: (s: string, l?: runtime.LocationRange) => void,
     or: Expr,
     tail: [Expr, Expr] | null,
   ): Expr {
@@ -1136,23 +908,7 @@ export function parse(
       return {
         success: true,
         value: item623(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -1239,26 +995,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item609(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item609(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1315,26 +1052,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item603(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item603(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1383,27 +1101,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item597(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-          result.value[1],
-        ),
+        value: item597(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1459,27 +1157,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item561(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-          result.value[1],
-        ),
+        value: item561(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1535,27 +1213,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item546(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-          result.value[1],
-        ),
+        value: item546(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1650,27 +1308,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item516(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-          result.value[1],
-        ),
+        value: item516(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -2153,26 +1791,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item103(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item103(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -2238,26 +1857,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item126(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item126(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -2351,26 +1951,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item142(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item142(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -2434,26 +2015,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item327(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item327(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -3441,26 +3003,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item235(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item235(result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -3542,26 +3085,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item243(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item243(result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -3630,26 +3154,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item251(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item251(result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -3718,26 +3223,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item264(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item264(result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -3823,26 +3309,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item273(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item273(result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -4464,26 +3931,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item337(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item337(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -4570,26 +4018,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item348(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item348(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -4693,25 +4122,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item360(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-        ),
+        value: item360(() => input.length - text.length),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -4760,23 +4171,7 @@ export function parse(
       return {
         success: true,
         value: item390(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -4948,11 +4343,6 @@ export function parse(
       return {
         success: true,
         value: item378(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
           (
             message: string,
             location = runtime.getLocation(
@@ -5049,23 +4439,7 @@ export function parse(
       return {
         success: true,
         value: item434(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
           result.value[2],
@@ -5327,11 +4701,6 @@ export function parse(
       return {
         success: true,
         value: item407(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
           (
             message: string,
             location = runtime.getLocation(
@@ -5486,23 +4855,7 @@ export function parse(
       return {
         success: true,
         value: item427(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -5619,26 +4972,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item441(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item441(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -5754,26 +5088,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item458(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item458(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -5868,26 +5183,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item481(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item481(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -5999,23 +5295,7 @@ export function parse(
       return {
         success: true,
         value: item472(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -6197,26 +5477,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item497(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item497(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -6319,23 +5580,7 @@ export function parse(
       return {
         success: true,
         value: item506(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -6468,26 +5713,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item513(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-        ),
+        value: item513(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -6560,23 +5786,7 @@ export function parse(
       return {
         success: true,
         value: item529(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -6716,23 +5926,7 @@ export function parse(
       return {
         success: true,
         value: item544(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -6802,26 +5996,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item541(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item541(result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -6899,23 +6074,7 @@ export function parse(
       return {
         success: true,
         value: item559(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -6985,26 +6144,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item557(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item557(result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -7082,23 +6222,7 @@ export function parse(
       return {
         success: true,
         value: item595(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
           () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
           result.value[0],
           result.value[1],
         ),
@@ -7222,26 +6346,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item588(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value,
-        ),
+        value: item588(result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -7296,25 +6401,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item592(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-        ),
+        value: item592(),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -7433,27 +6520,7 @@ export function parse(
     if (result.success === true) {
       return {
         success: true,
-        value: item621(
-          () =>
-            runtime.getLocation(parse$source, input, text, result.remainder),
-          () => runtime.getRange(parse$source, input, text, result.remainder),
-          () => runtime.getText(text, result.remainder),
-          () => input.length - text.length,
-          (
-            message: string,
-            location = runtime.getLocation(
-              parse$source,
-              input,
-              text,
-              result.remainder,
-            ),
-            name?: string,
-          ) => {
-            throw new ParseError(message, location, name);
-          },
-          result.value[0],
-          result.value[1],
-        ),
+        value: item621(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
