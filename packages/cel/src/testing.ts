@@ -58,7 +58,7 @@ export function testSimpleTestFile(
   void suite(name(simpleTestFile), () => {
     for (const section of simpleTestFile.section) {
       const sectionFail = fileFail || failureFn?.(simpleTestFile, section);
-      void suite(name(section), (t) => {
+      void suite(name(section), () => {
         for (const simpleTest of section.test) {
           const fail =
             sectionFail || failureFn?.(simpleTestFile, section, simpleTest);

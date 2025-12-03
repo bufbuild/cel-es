@@ -54,8 +54,8 @@ function makeTimeOp(t: TimeFunc) {
       );
       if (timeOffset?.groups) {
         const sign = timeOffset.groups.sign == "-" ? 1 : -1;
-        const hours = parseInt(timeOffset.groups.hours);
-        const minutes = parseInt(timeOffset.groups.minutes);
+        const hours = parseInt(timeOffset.groups.hours, 10);
+        const minutes = parseInt(timeOffset.groups.minutes, 10);
         const offset = sign * (hours * 60 * 60 * 1000 + minutes * 60 * 1000);
         val = new Date(val.getTime() - offset);
         val = new Date(
@@ -92,22 +92,22 @@ function makeTimeOp(t: TimeFunc) {
         for (const part of format.formatToParts(val)) {
           switch (part.type) {
             case "year":
-              year = parseInt(part.value);
+              year = parseInt(part.value, 10);
               break;
             case "month":
-              month = parseInt(part.value) - 1;
+              month = parseInt(part.value, 10) - 1;
               break;
             case "day":
-              day = parseInt(part.value);
+              day = parseInt(part.value, 10);
               break;
             case "hour":
-              hour = parseInt(part.value);
+              hour = parseInt(part.value, 10);
               break;
             case "minute":
-              minute = parseInt(part.value);
+              minute = parseInt(part.value, 10);
               break;
             case "second":
-              second = parseInt(part.value);
+              second = parseInt(part.value, 10);
               break;
           }
         }

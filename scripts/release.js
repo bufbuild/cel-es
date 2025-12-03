@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
 /*
  * Publish cel-es
@@ -86,7 +85,7 @@ function determinePublishTag(version) {
  * @returns {string}
  */
 function findWorkspaceVersion(packagesDir) {
-  let version = undefined;
+  let version;
   for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) {
       continue;

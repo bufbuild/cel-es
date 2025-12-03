@@ -1,9 +1,7 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "extends": ["../../biome.base.json"],
-  "formatter": {
-    "ignore": ["dist", "src/gen"]
-  },
+  "root": false,
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "extends": "//",
   "linter": {
     "rules": {
       "suspicious": {

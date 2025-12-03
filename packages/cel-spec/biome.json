@@ -1,7 +1,8 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
-  "extends": ["../../biome.base.json"],
+  "root": false,
+  "$schema": "https://biomejs.dev/schemas/2.3.8/schema.json",
+  "extends": "//",
   "files": {
-    "ignore": ["dist", "src/wkt/gen", "src/testdata/conformance.ts"]
+    "includes": ["!**/src/testdata/conformance.ts"]
   }
 }

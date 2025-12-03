@@ -135,7 +135,7 @@ export class Planner {
     if (typeName === undefined) {
       return new EvalErr(id, "unknown type: " + expr.messageName);
     }
-    let optionals: boolean[] | undefined = undefined;
+    let optionals: boolean[] | undefined;
     const keys: string[] = [];
     const values: Interpretable[] = [];
     for (let i = 0; i < expr.entries.length; i++) {
@@ -167,7 +167,7 @@ export class Planner {
     if (expr.messageName !== "") {
       return this.planCreateObj(id, expr);
     }
-    let optionals: boolean[] | undefined = undefined;
+    let optionals: boolean[] | undefined;
     const keys: Interpretable[] = [];
     const values: Interpretable[] = [];
     for (let i = 0; i < expr.entries.length; i++) {

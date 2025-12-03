@@ -29,8 +29,6 @@ const decoder = new TextDecoder();
 // These expressions MUST capture a single character (a string `S` where `S.length == 1`)
 // @ts-expect-error - The regex flag `v` is only available in ES2024 or later
 const UNPRINTABLE_EXP: CharRegExp = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/v;
-// @ts-expect-error - The regex flag `v` is only available in ES2024 or later
-const UNPRINTABLE_EXP_GLOBAL: CharRegExp = /[^\p{L}\p{N}\p{S}\p{P}\p{Cs} ]/gv;
 
 const SPECIAL_ESCAPES: Map<number, string> = new Map([
   [0x07, "\\a"],

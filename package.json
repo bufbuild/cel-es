@@ -10,7 +10,11 @@
     "license-header": "license-header --ignore 'packages/**'",
     "lint": "biome lint --error-on-warnings"
   },
-  "workspaces": ["packages/cel-spec", "packages/cel", "packages/example"],
+  "workspaces": [
+    "packages/cel-spec",
+    "packages/cel",
+    "packages/example"
+  ],
   "type": "module",
   "packageManager": "npm@10.9.0",
   "licenseHeader": {
@@ -20,7 +24,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.3.8",
     "@bufbuild/buf": "^1.61.0",
     "@bufbuild/license-header": "^0.0.4",
     "@bufbuild/protoc-gen-es": "^2.10.1",
