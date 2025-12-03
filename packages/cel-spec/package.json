@@ -37,6 +37,7 @@
     "build:esm": "tsc --project tsconfig.json --outDir ./dist/esm",
     "format": "biome format --write",
     "lint": "biome lint --error-on-warnings",
+    "organize-imports": "biome check --formatter-enabled=false --linter-enabled=false --write",
     "attw": "attw --pack",
     "license-header": "license-header"
   },

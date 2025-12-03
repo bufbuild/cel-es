@@ -32,6 +32,9 @@
       "dependsOn": ["format", "^build", "generate"],
       "cache": false
     },
+    "organize-imports": {
+      "dependsOn": ["lint", "format"]
+    },
     "attw": {
       "dependsOn": ["build"],
       "outputLogs": "new-only"
