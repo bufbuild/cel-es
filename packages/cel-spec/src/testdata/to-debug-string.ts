@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import type { Message } from "@bufbuild/protobuf";
 import type {
   Constant,
   Expr,
-  Expr_Select,
   Expr_Call,
+  Expr_Comprehension,
   Expr_CreateList,
   Expr_CreateStruct,
-  Expr_Comprehension,
+  Expr_Select,
 } from "../gen/cel/expr/syntax_pb.ts";
-
-import type { Message } from "@bufbuild/protobuf";
 
 const decoder = new TextDecoder();
 

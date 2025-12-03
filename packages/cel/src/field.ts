@@ -22,8 +22,8 @@ import {
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
 import { celFromScalar } from "./proto.js";
-import { reflectMsgToCel, unwrapAny } from "./value.js";
 import type { CelValue } from "./type.js";
+import { reflectMsgToCel, unwrapAny } from "./value.js";
 
 export function accessByIndex(
   obj: CelValue,

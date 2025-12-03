@@ -13,11 +13,11 @@
 // limitations under the License.
 
 import {
-  ParsedExprSchema,
   type ParsedExpr,
+  ParsedExprSchema,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
-import { parse as internalParse } from "./parser.js";
 import { create } from "@bufbuild/protobuf";
+import { parse as internalParse } from "./parser.js";
 
 /**
  * Parses a CEL expression string into an abstract syntax tree (AST).

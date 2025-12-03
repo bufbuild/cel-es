@@ -20,42 +20,46 @@ import {
   ScalarType,
   toJson,
 } from "@bufbuild/protobuf";
-import { isCelUint } from "./uint.js";
-import { reflectMsgToCel } from "./value.js";
-import { getMsgDesc } from "./eval.js";
 import {
   isReflectMessage,
-  reflect,
-  reflectList,
-  reflectMap,
   type ReflectList,
   type ReflectMap,
   type ReflectMessage,
+  reflect,
+  reflectList,
+  reflectMap,
 } from "@bufbuild/protobuf/reflect";
-import { isCelList, type CelList } from "./list.js";
-import { isCelMap, type CelMap } from "./map.js";
 import {
-  anyPack,
+  base64Encode,
+  INT32_MAX,
+  INT32_MIN,
+  UINT32_MAX,
+} from "@bufbuild/protobuf/wire";
+import {
+  type Any,
   AnySchema,
+  anyPack,
   BoolValueSchema,
   BytesValueSchema,
   DoubleValueSchema,
   Int64ValueSchema,
   isWrapperDesc,
+  type ListValue,
   ListValueSchema,
   NullValue,
   StringValueSchema,
+  type Struct,
   StructSchema,
   UInt64ValueSchema,
-  ValueSchema,
-  type Any,
-  type ListValue,
-  type Struct,
   type Value,
+  ValueSchema,
 } from "@bufbuild/protobuf/wkt";
-import { base64Encode } from "@bufbuild/protobuf/wire";
-import { celType, type CelValue } from "./type.js";
-import { INT32_MAX, INT32_MIN, UINT32_MAX } from "@bufbuild/protobuf/wire";
+import { getMsgDesc } from "./eval.js";
+import { type CelList, isCelList } from "./list.js";
+import { type CelMap, isCelMap } from "./map.js";
+import { type CelValue, celType } from "./type.js";
+import { isCelUint } from "./uint.js";
+import { reflectMsgToCel } from "./value.js";
 
 /**
  * Creates a new CelValue of the given type and with the given fields.

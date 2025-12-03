@@ -13,19 +13,18 @@
 // limitations under the License.
 
 import { toJson } from "@bufbuild/protobuf";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import {
-  DurationSchema,
-  TimestampSchema,
   type Duration,
+  DurationSchema,
   type Timestamp,
+  TimestampSchema,
 } from "@bufbuild/protobuf/wkt";
-
-import { celOverload, celFunc } from "../../func.js";
-import { CelScalar, isCelType, listType, type CelValue } from "../../type.js";
+import { celFunc, celOverload } from "../../func.js";
 import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
+import { CelScalar, type CelValue, isCelType, listType } from "../../type.js";
 import { isCelUint } from "../../uint.js";
-import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
 const charAt = celFunc("charAt", [
   celOverload(

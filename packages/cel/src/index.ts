@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+export { type CelEnv, celEnv } from "./env.js";
 export {
-  type CelResult,
   type CelError,
+  type CelResult,
   celError,
   isCelError,
 } from "./error.js";
@@ -24,33 +25,31 @@ export {
   celFunc,
   celOverload,
 } from "./func.js";
+export { type CelList, celList, celListConcat, isCelList } from "./list.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
-export { type CelList, celList, isCelList, celListConcat } from "./list.js";
-export { type CelUint, celUint, isCelUint } from "./uint.js";
+export { parse } from "./parse.js";
+export { plan } from "./plan.js";
 export { celFromScalar } from "./proto.js";
-export {
-  celType,
-  objectType,
-  CelScalar,
-  listType,
-  typeType,
-  mapType,
-  isCelType,
-  isObjectCelType,
-} from "./type.js";
 
+export { run } from "./run.js";
 export type {
+  CelInput,
   CelListType,
   CelMapType,
   CelObjectType,
-  CelTypeType,
   CelScalarType,
   CelType,
+  CelTypeType,
   CelValue,
-  CelInput,
 } from "./type.js";
-
-export { run } from "./run.js";
-export { plan } from "./plan.js";
-export { parse } from "./parse.js";
-export { type CelEnv, celEnv } from "./env.js";
+export {
+  CelScalar,
+  celType,
+  isCelType,
+  isObjectCelType,
+  listType,
+  mapType,
+  objectType,
+  typeType,
+} from "./type.js";
+export { type CelUint, celUint, isCelUint } from "./uint.js";

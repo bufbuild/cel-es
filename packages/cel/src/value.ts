@@ -12,35 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { celUint, isCelUint } from "./uint.js";
-import { celMap, isCelMap, type CelMap } from "./map.js";
-import { celList, isCelList, type CelList } from "./list.js";
+import { isMessage, type Message } from "@bufbuild/protobuf";
 import {
   isReflectList,
   isReflectMap,
   isReflectMessage,
-  reflect,
   type ReflectMessage,
+  reflect,
   type ScalarValue,
 } from "@bufbuild/protobuf/reflect";
-import { isMessage, type Message } from "@bufbuild/protobuf";
-import { getEvalContext, getMsgDesc } from "./eval.js";
 import {
+  type Any,
   AnySchema,
   anyUnpack,
   Int32ValueSchema,
   isWrapper,
+  type ListValue,
   ListValueSchema,
+  type Struct,
   StructSchema,
   UInt32ValueSchema,
   UInt64ValueSchema,
-  ValueSchema,
-  type Any,
-  type ListValue,
-  type Struct,
   type Value,
+  ValueSchema,
 } from "@bufbuild/protobuf/wkt";
+import { getEvalContext, getMsgDesc } from "./eval.js";
+import { type CelList, celList, isCelList } from "./list.js";
+import { type CelMap, celMap, isCelMap } from "./map.js";
 import { type CelInput, type CelValue, isCelType } from "./type.js";
+import { celUint, isCelUint } from "./uint.js";
 
 /**
  * Converts a CelInput to a CelValue.

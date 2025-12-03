@@ -13,9 +13,9 @@
 // limitations under the License.
 
 import { suite } from "node:test";
-import { createTestFilter, testSimpleTestFile } from "./testing.js";
-import { getSimpleTestFiles } from "@bufbuild/cel-spec/testdata/simple.js";
 import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
+import { getSimpleTestFiles } from "@bufbuild/cel-spec/testdata/simple.js";
+import { createTestFilter, testSimpleTestFile } from "./testing.js";
 
 const files = getSimpleTestFiles();
 

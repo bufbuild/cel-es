@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { type DescField, ScalarType } from "@bufbuild/protobuf";
 import {
   isReflectMap,
   type ReflectMap,
   type ReflectMessage,
   type ScalarValue,
 } from "@bufbuild/protobuf/reflect";
-import { isCelUint, type CelUint } from "./uint.js";
-import { type DescField, ScalarType } from "@bufbuild/protobuf";
 import { celFromScalar } from "./proto.js";
-import { reflectMsgToCel, toCel } from "./value.js";
 import type { CelInput, CelValue } from "./type.js";
+import { type CelUint, isCelUint } from "./uint.js";
+import { reflectMsgToCel, toCel } from "./value.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 

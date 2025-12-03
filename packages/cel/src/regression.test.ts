@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { testSimpleTestFile } from "./testing.js";
-import { createRegistry, fromJson } from "@bufbuild/protobuf";
 import { SimpleTestFileSchema } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
+import { createRegistry, fromJson } from "@bufbuild/protobuf";
+import { testSimpleTestFile } from "./testing.js";
 
 // TODO was generated. see if this has a source
 const REGRESSION_TEST = fromJson(SimpleTestFileSchema, {

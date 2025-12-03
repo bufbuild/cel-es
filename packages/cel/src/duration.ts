@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type Duration, DurationSchema } from "@bufbuild/protobuf/wkt";
 import { create } from "@bufbuild/protobuf";
+import { type Duration, DurationSchema } from "@bufbuild/protobuf/wkt";
 
 /**
  * Create a new Duration, validating the fields are in range.

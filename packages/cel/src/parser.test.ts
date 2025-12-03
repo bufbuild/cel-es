@@ -14,11 +14,11 @@
 
 import * as assert from "node:assert/strict";
 import { suite, test } from "node:test";
-import {
-  toDebugString,
-  KindAdorner,
-} from "@bufbuild/cel-spec/testdata/to-debug-string.js";
 import { parserTests } from "@bufbuild/cel-spec/testdata/parser.js";
+import {
+  KindAdorner,
+  toDebugString,
+} from "@bufbuild/cel-spec/testdata/to-debug-string.js";
 import { parse } from "./parser.js";
 
 const skip: string[] = [

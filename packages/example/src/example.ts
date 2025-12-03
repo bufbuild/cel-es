@@ -13,8 +13,8 @@
 // limitations under the License.
 
 import {
-  celEnv,
   CelScalar,
+  celEnv,
   celFunc,
   celOverload,
   parse,

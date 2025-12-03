@@ -13,27 +13,27 @@
 // limitations under the License.
 
 import { test } from "node:test";
-import {
-  CelScalar,
-  listType,
-  mapType,
-  type CelValueTuple,
-  type CelValue,
-  type CelType,
-  type CelInput,
-  objectType,
-} from "./type.js";
-import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
-import { expectTypeOf } from "expect-type";
-import type { CelList } from "./list.js";
-import type { CelMap } from "./map.js";
-import type { CelUint } from "./uint.js";
+import type { Message } from "@bufbuild/protobuf";
 import type {
   ReflectList,
   ReflectMap,
   ReflectMessage,
 } from "@bufbuild/protobuf/reflect";
-import type { Message } from "@bufbuild/protobuf";
+import { type Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import { expectTypeOf } from "expect-type";
+import type { CelList } from "./list.js";
+import type { CelMap } from "./map.js";
+import {
+  type CelInput,
+  CelScalar,
+  type CelType,
+  type CelValue,
+  type CelValueTuple,
+  listType,
+  mapType,
+  objectType,
+} from "./type.js";
+import type { CelUint } from "./uint.js";
 
 void test("CelTupleValue", () => {
   expectTypeOf<

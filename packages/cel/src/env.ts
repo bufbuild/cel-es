@@ -13,15 +13,15 @@
 // limitations under the License.
 
 import type { Registry } from "@bufbuild/protobuf";
-import { createRegistryWithWKT } from "./registry.js";
 import {
-  FuncRegistry,
-  OrderedDispatcher,
   type CelFunc,
   type Dispatcher,
+  FuncRegistry,
+  OrderedDispatcher,
 } from "./func.js";
-import { STD_FUNCS } from "./std/std.js";
 import { Namespace } from "./namespace.js";
+import { createRegistryWithWKT } from "./registry.js";
+import { STD_FUNCS } from "./std/std.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 

@@ -253,12 +253,14 @@ export class ParseSyntaxError extends ParseError {
     );
   }
 }
+
 import type {
   Expr,
   Expr_CreateStruct_Entry,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import Builder from "./builder.js";
 import LogicManager from "./logic-manager.js";
+
 const builder = new Builder();
 const item2: runtime.Expectation = {
   type: "any",

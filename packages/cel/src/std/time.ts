@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
-
-import { CelScalar, TIMESTAMP, DURATION, type CelValue } from "../type.js";
-import { type FuncRegistry, celOverload, celFunc } from "../func.js";
-import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { toJson } from "@bufbuild/protobuf";
+import { TimestampSchema, timestampDate } from "@bufbuild/protobuf/wkt";
+import { celFunc, celOverload, type FuncRegistry } from "../func.js";
+import * as olc from "../gen/dev/cel/expr/overload_const.js";
+import { CelScalar, type CelValue, DURATION, TIMESTAMP } from "../type.js";
 
 export function addTime(funcs: FuncRegistry): void {
   funcs.add(getFullYearFunc);

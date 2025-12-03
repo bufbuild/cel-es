@@ -13,16 +13,16 @@
 // limitations under the License.
 
 import type { DescMessage, Message, MessageShape } from "@bufbuild/protobuf";
-import { isCelList, type CelList } from "./list.js";
-import { isCelMap, type CelMap } from "./map.js";
-import { isCelUint, type CelUint } from "./uint.js";
 import {
   isReflectMessage,
   type ReflectList,
   type ReflectMap,
   type ReflectMessage,
 } from "@bufbuild/protobuf/reflect";
-import { TimestampSchema, DurationSchema } from "@bufbuild/protobuf/wkt";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
+import { type CelList, isCelList } from "./list.js";
+import { type CelMap, isCelMap } from "./map.js";
+import { type CelUint, isCelUint } from "./uint.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/type");
 

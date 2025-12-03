@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { equals as equalsMessage } from "@bufbuild/protobuf";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { getEvalContext } from "./eval.js";
-import { equals as equalsMessage } from "@bufbuild/protobuf";
 import { type CelList, isCelList } from "./list.js";
 import { type CelMap, isCelMap } from "./map.js";
+import { type CelValue, isCelType } from "./type.js";
 import { isCelUint } from "./uint.js";
-import { isCelType, type CelValue } from "./type.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:

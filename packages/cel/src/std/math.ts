@@ -14,21 +14,20 @@
 
 import { create } from "@bufbuild/protobuf";
 import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
-
-import { type FuncRegistry, celOverload, celFunc } from "../func.js";
+import { createDuration } from "../duration.js";
+import { celFunc, celOverload, type FuncRegistry } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
+import { celListConcat } from "../list.js";
+import { createTimestamp } from "../timestamp.js";
 import {
   CelScalar,
+  type CelType,
+  type CelValue,
   DURATION,
   listType,
   TIMESTAMP,
-  type CelType,
-  type CelValue,
 } from "../type.js";
-import { celListConcat } from "../list.js";
 import { celUint } from "../uint.js";
-import { createDuration } from "../duration.js";
-import { createTimestamp } from "../timestamp.js";
 
 const MAX_INT = 9223372036854775807n;
 // biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.

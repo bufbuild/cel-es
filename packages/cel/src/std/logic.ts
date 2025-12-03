@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import { equals } from "../equals.js";
+import { type CelError, celErrorMerge, isCelError } from "../error.js";
 import {
-  type FuncRegistry,
+  type CallDispatch,
   celFunc,
   celOverload,
-  type CallDispatch,
+  type FuncRegistry,
 } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import { type CelError, celErrorMerge, isCelError } from "../error.js";
+import type { CelMap } from "../map.js";
 import {
   CelScalar,
+  type CelValue,
   DURATION,
   listType,
   mapType,
   TIMESTAMP,
-  type CelValue,
 } from "../type.js";
-import { equals } from "../equals.js";
-import type { CelMap } from "../map.js";
 
 /**
  * This is not in the spec but is part of at least go,java, and cpp implementations.

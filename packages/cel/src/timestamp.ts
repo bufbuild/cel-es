@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { create } from "@bufbuild/protobuf";
-import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
+import { type Timestamp, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 /**
  * Creates a new Timestamp, validating the fields are in range.

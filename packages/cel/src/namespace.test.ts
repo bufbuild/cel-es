@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
+import { suite, test } from "node:test";
 import { Namespace } from "./namespace.js";
 
 void suite("adapter tests", () => {

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
+import { suite, test } from "node:test";
 
 import { matchesString } from "./logic.js";
 

@@ -15,28 +15,27 @@
 import { create, fromJson, isMessage, toJson } from "@bufbuild/protobuf";
 import {
   DurationSchema,
-  timestampFromMs,
   TimestampSchema,
+  timestampFromMs,
 } from "@bufbuild/protobuf/wkt";
-
-import { type FuncRegistry, celOverload, celFunc } from "../func.js";
+import { parseDuration } from "../duration.js";
+import { getMsgDesc } from "../eval.js";
+import { celFunc, celOverload, type FuncRegistry } from "../func.js";
+import {
+  CelScalar,
+  type CelType,
+  celType,
+  DURATION as DURATION_TYPE,
+  objectType,
+  TIMESTAMP as TIMESTAMP_TYPE,
+} from "../type.js";
+import { celUint } from "../uint.js";
 import {
   isOverflowInt,
   isOverflowIntNum,
   isOverflowUint,
   isOverflowUintNum,
 } from "./math.js";
-import {
-  CelScalar,
-  TIMESTAMP as TIMESTAMP_TYPE,
-  DURATION as DURATION_TYPE,
-  celType,
-  objectType,
-  type CelType,
-} from "../type.js";
-import { celUint } from "../uint.js";
-import { getMsgDesc } from "../eval.js";
-import { parseDuration } from "../duration.js";
 
 const INT = "int";
 const UINT = "uint";

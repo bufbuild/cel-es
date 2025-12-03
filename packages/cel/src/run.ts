@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { celEnv, type CelEnvOptions } from "./env.js";
+import { type CelEnvOptions, celEnv } from "./env.js";
 import { parse } from "./parse.js";
 import { plan } from "./plan.js";
 import type { CelInput } from "./type.js";

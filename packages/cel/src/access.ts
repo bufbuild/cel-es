@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import type { Registry } from "@bufbuild/protobuf";
 import type { Activation } from "./activation.js";
-import { EvalAttr, type Interpretable } from "./planner.js";
-import type { Namespace } from "./namespace.js";
 import {
-  type CelResult,
   type CelError,
-  isCelError,
+  type CelResult,
   celError,
+  isCelError,
 } from "./error.js";
 import { accessByIndex, accessByName, isSet } from "./field.js";
-import { isCelUint } from "./uint.js";
+import type { Namespace } from "./namespace.js";
+import { EvalAttr, type Interpretable } from "./planner.js";
 import {
   CelScalar,
+  type CelValue,
   celType,
   listType,
   mapType,
-  type CelValue,
   objectType,
 } from "./type.js";
-import type { Registry } from "@bufbuild/protobuf";
+import { isCelUint } from "./uint.js";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;

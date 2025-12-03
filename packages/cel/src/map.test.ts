@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { suite, test } from "node:test";
-import { type CelMap, celMap } from "./map.js";
 import * as assert from "node:assert/strict";
-import type { DescField } from "@bufbuild/protobuf";
+import { suite, test } from "node:test";
 import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto3/test_all_types_pb.js";
+import type { DescField } from "@bufbuild/protobuf";
 import { reflectMap } from "@bufbuild/protobuf/reflect";
+import { type CelMap, celMap } from "./map.js";
 import { celUint } from "./uint.js";
 
 void suite("celMap()", () => {

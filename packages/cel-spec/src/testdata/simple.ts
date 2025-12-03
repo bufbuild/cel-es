@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { testdata } from "./conformance.js";
 import { fromJson, type JsonObject } from "@bufbuild/protobuf";
-import { SimpleTestFileSchema } from "../gen/cel/expr/conformance/test/simple_pb.js";
 import type { SimpleTestFile } from "../gen/cel/expr/conformance/test/simple_pb.js";
+import { SimpleTestFileSchema } from "../gen/cel/expr/conformance/test/simple_pb.js";
+import { testdata } from "./conformance.js";
 import { getTestRegistry } from "./registry.js";
 
 /**

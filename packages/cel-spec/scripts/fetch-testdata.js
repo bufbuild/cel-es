@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { extractFiles, fetchRepository, readPackageJson } from "./common.js";
 import { spawnSync } from "node:child_process";
 import { promises as fs } from "node:fs";
+import { extractFiles, fetchRepository, readPackageJson } from "./common.js";
 
 /*
  * Fetch conformance test data from the upstream github.com/google/cel-spec

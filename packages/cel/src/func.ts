@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isCelList } from "./list.js";
-import {
-  type CelType,
-  type CelValueTuple,
-  CelScalar,
-  isCelType,
-  type CelValue,
-  type CelInput,
-} from "./type.js";
-import {
-  type CelResult,
-  type CelError,
-  isCelError,
-  celErrorMerge,
-  celError,
-} from "./error.js";
-import { isCelMap } from "./map.js";
-import { isCelUint } from "./uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { unwrapAny, toCel } from "./value.js";
+import {
+  type CelError,
+  type CelResult,
+  celError,
+  celErrorMerge,
+  isCelError,
+} from "./error.js";
+import { isCelList } from "./list.js";
+import { isCelMap } from "./map.js";
+import {
+  type CelInput,
+  CelScalar,
+  type CelType,
+  type CelValue,
+  type CelValueTuple,
+  isCelType,
+} from "./type.js";
+import { isCelUint } from "./uint.js";
+import { toCel, unwrapAny } from "./value.js";
 
 const privateFuncSymbol = Symbol.for("@bufbuild/cel/func");
 const privateOverloadSymbol = Symbol.for("@bufbuild/cel/overload");

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readPackageJson } from "./common.js";
 import { readFileSync, writeFileSync } from "node:fs";
+import { readPackageJson } from "./common.js";
 
 /*
  * Write the CEL-spec upstream version to README.md

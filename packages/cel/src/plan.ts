@@ -13,23 +13,23 @@
 // limitations under the License.
 
 import {
-  CheckedExprSchema,
   type CheckedExpr,
+  CheckedExprSchema,
 } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import {
-  ExprSchema,
-  ParsedExprSchema,
   type Expr,
+  ExprSchema,
   type ParsedExpr,
+  ParsedExprSchema,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
-import { Planner } from "./planner.js";
 import { create, isMessage } from "@bufbuild/protobuf";
-import { celError, type CelResult, isCelError } from "./error.js";
-import { withEvalContext } from "./eval.js";
-import { unwrapAny } from "./value.js";
-import type { CelEnv } from "./env.js";
 import { EMPTY_ACTIVATION, ObjectActivation } from "./activation.js";
+import type { CelEnv } from "./env.js";
+import { type CelResult, celError, isCelError } from "./error.js";
+import { withEvalContext } from "./eval.js";
+import { Planner } from "./planner.js";
 import type { CelInput } from "./type.js";
+import { unwrapAny } from "./value.js";
 
 const cache = new WeakMap<CelEnv, Planner>();
 

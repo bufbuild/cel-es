@@ -21,31 +21,30 @@ import type {
   Expr_CreateStruct,
   Expr_Select,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
-
+import type { Registry } from "@bufbuild/protobuf";
 import {
-  ConcreteAttributeFactory,
   type Access,
   type Attribute,
   type AttributeFactory,
+  ConcreteAttributeFactory,
   ErrorAttr,
 } from "./access.js";
-import { VarActivation, type Activation } from "./activation.js";
-import type { CallDispatch, Dispatcher } from "./func.js";
-import * as opc from "./gen/dev/cel/expr/operator_const.js";
-import { Namespace } from "./namespace.js";
+import { type Activation, VarActivation } from "./activation.js";
 import {
-  celError,
   type CelError,
-  celErrorMerge,
   type CelResult,
+  celError,
+  celErrorMerge,
   isCelError,
 } from "./error.js";
+import type { CallDispatch, Dispatcher } from "./func.js";
+import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
-import { celUint, isCelUint, type CelUint } from "./uint.js";
+import { Namespace } from "./namespace.js";
 import { celObject } from "./object.js";
-import { celType, type CelValue } from "./type.js";
-import type { Registry } from "@bufbuild/protobuf";
+import { type CelValue, celType } from "./type.js";
+import { type CelUint, celUint, isCelUint } from "./uint.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
