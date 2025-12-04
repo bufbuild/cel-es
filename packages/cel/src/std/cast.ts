@@ -38,6 +38,8 @@ import { celUint } from "../uint.js";
 import { getMsgDesc } from "../eval.js";
 import { parseDuration } from "../duration.js";
 
+const encoder = new TextEncoder();
+
 const INT = "int";
 const UINT = "uint";
 const DOUBLE = "double";
@@ -141,7 +143,7 @@ const boolFunc = celFunc(BOOL, [
 
 const bytesFunc = celFunc(BYTES, [
   celOverload([CelScalar.BYTES], CelScalar.BYTES, (x) => x),
-  celOverload([CelScalar.STRING], CelScalar.BYTES, (x) => Buffer.from(x)),
+  celOverload([CelScalar.STRING], CelScalar.BYTES, (x) => encoder.encode(x)),
 ]);
 
 const stringFunc = celFunc(STRING, [
