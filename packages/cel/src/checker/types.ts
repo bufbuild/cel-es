@@ -12,7 +12,7 @@ import {
   type mapKeyType,
   mapType,
   opaqueType,
-  typeParamTypeWithParam,
+  typeTypeWithParam,
 } from "../type.js";
 import { Mapping } from "./mapping.js";
 
@@ -334,7 +334,7 @@ export function substitute(m: Mapping, t: CelType, typeParamToDyn: boolean): Cel
       );
     case "type":
       if (t.type) {
-        return typeParamTypeWithParam(substitute(m, t.type, typeParamToDyn));
+        return typeTypeWithParam(substitute(m, t.type, typeParamToDyn));
       }
       return t;
     default:

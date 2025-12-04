@@ -1,4 +1,4 @@
-import { type CelValue, type CelType, isEquivalentCelType } from "./type.js";
+import { type CelValue, type CelType, isEquivalentCelType, typeTypeWithParam } from "./type.js";
 
 const privateIdentSymbol = Symbol.for("@bufbuild/cel/ident");
 
@@ -32,6 +32,16 @@ export function celVariable(
   doc?: string
 ): CelIdent {
   return new Ident(name, type, undefined, doc);
+}
+
+/**
+ * Creates a new type identifier
+ */
+export function celTypeVariable(
+  type: CelType,
+  doc?: string
+): CelIdent {
+  return new Ident(type.name, typeTypeWithParam(type), undefined, doc);
 }
 
 /**

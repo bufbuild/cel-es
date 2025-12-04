@@ -361,6 +361,14 @@ void suite("checker", () => {
         want: CelScalar.DOUBLE,
       },
       {
+        expr: parse("[1, 2] + [3, 4]"),
+        want: listType(CelScalar.INT),
+      },
+      {
+        expr: parse("[1.0, 2] + [3u, 4]"),
+        want: listType(CelScalar.DYN),
+      },
+      {
         expr: parse("iz && true"),
         want: CelScalar.BOOL,
       },
@@ -403,6 +411,22 @@ void suite("checker", () => {
       {
         expr: parse("is.contains('str')"),
         want: CelScalar.BOOL,
+      },
+      {
+        expr: parse('["1", "2", "3"][3]'),
+        want: CelScalar.STRING,
+      },
+      {
+        expr: parse('[1, 2.0, 3u, "4"][3]'),
+        want: CelScalar.DYN,
+      },
+      {
+        expr: parse('{ 1: "2", 3: "4" }[1]'),
+        want: CelScalar.STRING,
+      },
+      {
+        expr: parse('{ "1": 2, "3": 4.0 }["1"]'),
+        want: CelScalar.DYN,
       }
     ];
     for (const c of cases) {
@@ -427,13 +451,19 @@ void suite("checker", () => {
       },
       {
         expr: parse('[1, 2, 3].filter(e, e > 2)'),
-        // TODO: other implementations can type this correctly
+        want: listType(CelScalar.INT),
+      },
+      {
+        expr: parse('[1, 2.0, 3u].filter(e, e > 2)'),
         want: listType(CelScalar.DYN),
       },
       {
         expr: parse('[1, 2, 3].map(e, e + 1)'),
-        // TODO: other implementations can type this correctly
-        want: listType(CelScalar.DYN),
+        want: listType(CelScalar.INT),
+      },
+      {
+        expr: parse('[1, 2.0, 3u].map(e, e + 1)'),
+        want: listType(CelScalar.INT),
       },
     ]
     for (const c of cases) {

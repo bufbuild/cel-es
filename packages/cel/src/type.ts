@@ -261,7 +261,7 @@ export function typeParamType(
  * TypeTypeWithParam creates a type with a type parameter.
  * Used for type-checking purposes, but equivalent to TypeType otherwise.
  */
-export function typeParamTypeWithParam(param: CelType): CelTypeType {
+export function typeTypeWithParam(param: CelType): CelTypeType {
   return {
     [privateSymbol]: {},
     kind: "type",

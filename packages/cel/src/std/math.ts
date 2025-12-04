@@ -21,7 +21,6 @@ import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import {
   CelScalar,
   DURATION,
-  listType,
   TIMESTAMP,
   type CelType,
   type CelValue,
@@ -30,6 +29,7 @@ import { celListConcat } from "../list.js";
 import { celUint } from "../uint.js";
 import { createDuration } from "../duration.js";
 import { createTimestamp } from "../timestamp.js";
+import { listOfA } from "./types.js";
 
 const MAX_INT = 9223372036854775807n;
 // biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
@@ -153,8 +153,8 @@ const add = celFunc(opc.ADD, [
   celOverload(olc.ADD_DURATION_DURATION, [DURATION, DURATION], DURATION, addDuration),
   celOverload(
     olc.ADD_LIST,
-    [listType(CelScalar.DYN), listType(CelScalar.DYN)],
-    listType(CelScalar.DYN),
+    [listOfA, listOfA],
+    listOfA,
     celListConcat,
   ),
 ]);

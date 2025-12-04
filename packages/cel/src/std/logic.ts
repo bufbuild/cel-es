@@ -31,12 +31,7 @@ import {
 } from "../type.js";
 import { equals } from "../equals.js";
 import type { CelMap } from "../map.js";
-
-// TODO: cel-go uses these instead of DYN for various functions
-// const paramA = typeParamType("A") as CelType;
-// const paramB = typeParamType("B") as CelType;
-// const listOfA = listType(paramA);
-// const mapOfAB = mapType(paramA as mapKeyType, paramB);
+import { listOfA, mapOfAB, paramA, paramB } from "./types.js";
 
 /**
  * This is not in the spec but is part of at least go,java, and cpp implementations.
@@ -133,13 +128,38 @@ or.dispatch = (_, args) => {
 const conditional = celFunc(opc.CONDITIONAL, [
   celOverload(
     olc.CONDITIONAL,
-    [CelScalar.BOOL, CelScalar.DYN, CelScalar.DYN],
-    CelScalar.DYN,
+    [CelScalar.BOOL, paramA, paramA],
+    paramA,
     (_cond, thenBranch, elseBranch) => {
       // Irrelevant because dispatch is never called by the planner for conditionals
       return _cond ? thenBranch : elseBranch;
     },
   ),
+]);
+
+/**
+ * This is not actually used by the planner since it handles indexing directly,
+ * but it is defined here for type checking.
+ */
+const index = celFunc(opc.INDEX, [
+  celOverload(
+    olc.INDEX_LIST,
+    [listOfA, CelScalar.INT],
+    paramA,
+    (lst, idx) => {
+      // Irrelevant because dispatch is never called by the planner for indexing
+      return lst.get(Number(idx)) ?? null;
+    },
+  ),
+  celOverload(
+    olc.INDEX_MAP,
+    [mapOfAB, paramA],
+    paramB,
+    (mp, key) => {
+      // Irrelevant because dispatch is never called by the planner for indexing
+      return mp.get(key as string) ?? null;
+    },
+  )
 ]);
 
 const eqFunc = celFunc(opc.EQUALS, [
@@ -341,24 +361,10 @@ const sizeFunc = celFunc(olc.SIZE, [
   }),
   celOverload(olc.SIZE_BYTES, [CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
   celMemberOverload(olc.SIZE_BYTES_INST, [CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
-  celOverload(olc.SIZE_LIST, [listType(CelScalar.DYN)], CelScalar.INT, (x) => BigInt(x.size)),
-  celMemberOverload(olc.SIZE_LIST_INST, [listType(CelScalar.DYN)], CelScalar.INT, (x) => BigInt(x.size)),
-  // TODO: this may need to be one dyn like in other implementations
-  celOverload(olc.SIZE_MAP + '_int_key', [mapType(CelScalar.INT, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-  celOverload(olc.SIZE_MAP + '_uint_key', [mapType(CelScalar.UINT, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-  celOverload(olc.SIZE_MAP + '_bool_key', [mapType(CelScalar.BOOL, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-  celOverload(olc.SIZE_MAP + '_string_key', [mapType(CelScalar.STRING, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-  celMemberOverload(olc.SIZE_MAP_INST, [mapType(CelScalar.DYN, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
+  celOverload(olc.SIZE_LIST, [listOfA], CelScalar.INT, (x) => BigInt(x.size)),
+  celMemberOverload(olc.SIZE_LIST_INST, [listOfA], CelScalar.INT, (x) => BigInt(x.size)),
+  celOverload(olc.SIZE_MAP, [mapOfAB], CelScalar.INT, (x) => BigInt(x.size)),
+  celMemberOverload(olc.SIZE_MAP_INST, [mapOfAB], CelScalar.INT, (x) => BigInt(x.size)),
 ]);
 
 function mapInOp(x: CelValue, y: CelMap) {
@@ -379,7 +385,9 @@ const inFunc = celFunc(opc.IN, [
       return false;
     },
   ),
-  // TODO: this may need to be one dyn like in other implementations
+  // TODO: other implementations use listOfA/mapOfAB here instead of having a separate
+  // overload for each key type. Switching it out causes some conformance tests to fail
+  // because the planner cannot resolve the overloads correctly.
   celOverload(
     olc.IN_MAP,
     [CelScalar.DYN, mapType(CelScalar.STRING, CelScalar.DYN)],
@@ -412,6 +420,7 @@ export function addLogic(funcs: FuncRegistry) {
   funcs.add(or);
   funcs.add(notFunc);
   funcs.add(conditional);
+  funcs.add(index);
   funcs.add(eqFunc);
   funcs.add(neFunc);
   funcs.add(ltFunc);

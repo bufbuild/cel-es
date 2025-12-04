@@ -8,6 +8,7 @@ import { celConstant, type CelIdent, celVariable } from "../ident.js";
 import { createRegistryWithWKT } from "../registry.js";
 import { CelScalar, objectType } from "../type.js";
 import { STD_FUNCS } from "../std/std.js";
+import { STD_TYPES } from "../std/types.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/checker/env");
 
@@ -149,6 +150,13 @@ export function celCheckerEnv(options?: CelCheckerEnvOptions): CelCheckerEnv {
     for (const ident of options.idents) {
       idents.set(ident.name, ident);
     }
+  }
+  for (const ident of STD_TYPES) {
+    // TODO: how do other implementations handle this? Can users overwrite std types?
+    if (idents.has(ident.name)) {
+      continue;
+    }
+    idents.set(ident.name, ident);
   }
   const funcs = new Map<string, CelFunc>();
   for (const func of STD_FUNCS.declarations) {
