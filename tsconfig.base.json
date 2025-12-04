@@ -3,7 +3,7 @@
     "target": "es2023",
     "lib": ["ES2023"],
     "declaration": true,
-    "types": ["@types/node"],
+    "types": [],
     // We don't have dependencies that require interop
     "esModuleInterop": false,
     // As strict as possible

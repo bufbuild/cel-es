@@ -24,6 +24,8 @@ import type {
 
 import type { Message } from "@bufbuild/protobuf";
 
+import { TextDecoder } from "../encoding.js";
+
 const decoder = new TextDecoder();
 
 // These expressions MUST capture a single character (a string `S` where `S.length == 1`)

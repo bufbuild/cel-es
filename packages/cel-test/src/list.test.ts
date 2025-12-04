@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { suite, test } from "node:test";
-import { celListConcat, celList } from "./list.js";
+import { celListConcat, celList } from "@bufbuild/cel";
 import * as assert from "node:assert/strict";
 
 void suite("ConcatList", () => {

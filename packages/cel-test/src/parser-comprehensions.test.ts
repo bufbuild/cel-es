@@ -19,7 +19,7 @@ import {
   KindAdorner,
 } from "@bufbuild/cel-spec/testdata/to-debug-string.js";
 import { parserTests } from "@bufbuild/cel-spec/testdata/parser-comprehensions.js";
-import { parse } from "./parser.js";
+import { parse } from "@bufbuild/cel/internal";
 
 const skip: string[] = [];
 

@@ -10,7 +10,12 @@
     "license-header": "license-header --ignore 'packages/**'",
     "lint": "biome lint --error-on-warnings"
   },
-  "workspaces": ["packages/cel-spec", "packages/cel", "packages/example"],
+  "workspaces": [
+    "packages/cel-spec",
+    "packages/cel",
+    "packages/cel-test",
+    "packages/example"
+  ],
   "type": "module",
   "packageManager": "npm@10.9.0",
   "licenseHeader": {
@@ -24,7 +29,6 @@
     "@bufbuild/buf": "^1.61.0",
     "@bufbuild/license-header": "^0.0.4",
     "@bufbuild/protoc-gen-es": "^2.10.1",
-    "@types/node": "^24.10.1",
     "tsx": "^4.21.0",
     "turbo": "^2.6.1",
     "typescript": "^5.9.3"

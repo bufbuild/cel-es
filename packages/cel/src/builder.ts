@@ -20,6 +20,8 @@ import type {
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import LogicManager from "./logic-manager.js";
 
+import { TextEncoder } from "@bufbuild/cel-spec/encoding.js";
+
 const encoder = new TextEncoder();
 const accuVarName = "@result";
 

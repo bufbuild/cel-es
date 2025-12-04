@@ -14,7 +14,7 @@
 
 import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { Namespace } from "./namespace.js";
+import { Namespace } from "@bufbuild/cel/internal";
 
 void suite("adapter tests", () => {
   void test("main namespace", () => {

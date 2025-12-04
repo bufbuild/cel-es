@@ -13,12 +13,11 @@
 // limitations under the License.
 
 import { suite, test } from "node:test";
-import { type CelMap, celMap } from "./map.js";
+import { celMap, celUint, type CelMap } from "@bufbuild/cel";
 import * as assert from "node:assert/strict";
 import type { DescField } from "@bufbuild/protobuf";
 import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto3/test_all_types_pb.js";
 import { reflectMap } from "@bufbuild/protobuf/reflect";
-import { celUint } from "./uint.js";
 
 void suite("celMap()", () => {
   void suite("get by number if the value is same", () => {

@@ -16,7 +16,7 @@ import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 
-import { matchesString } from "./logic.js";
+import { matchesString } from "@bufbuild/cel/internal";
 
 function durationOf(func: () => void, times = 5): number {
   const runs: number[] = [];

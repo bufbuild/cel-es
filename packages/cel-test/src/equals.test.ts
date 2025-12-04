@@ -14,16 +14,15 @@
 
 import { before, suite, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { equals } from "./equals.js";
+import { celList, celMap, celUint, celType } from "@bufbuild/cel";
+import {
+  equals,
+  setEvalContext,
+  createRegistryWithWKT,
+} from "@bufbuild/cel/internal";
 import { create } from "@bufbuild/protobuf";
 import { reflect } from "@bufbuild/protobuf/reflect";
 import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto2/test_all_types_pb.js";
-import { setEvalContext } from "./eval.js";
-import { celList } from "./list.js";
-import { celMap } from "./map.js";
-import { celUint } from "./uint.js";
-import { celType, type CelValue } from "./type.js";
-import { createRegistryWithWKT } from "./registry.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal

@@ -20,9 +20,10 @@ import { readPackageJson, writePackageJson } from "./common.js";
  * This script depends on all relevant .ts files to be present in the "src" directory.
  */
 
-const sourceFiles = readdirSync("src", { recursive: true, encoding: "utf-8" })
-  .filter((f) => f.includes("/"))
-  .filter((f) => f.endsWith(".ts"));
+const sourceFiles = readdirSync("src", {
+  recursive: true,
+  encoding: "utf-8",
+}).filter((f) => f.endsWith(".ts"));
 
 const exports = {};
 const typesVersions = {
