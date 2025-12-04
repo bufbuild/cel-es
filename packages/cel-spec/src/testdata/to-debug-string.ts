@@ -404,7 +404,6 @@ function quoteBytes(bytes: Uint8Array) {
 }
 
 function quoteString(text: string): string {
-  console.error('"' + escapeString(text) + '"', JSON.stringify(text));
   return '"' + escapeString(text) + '"';
 }
 
