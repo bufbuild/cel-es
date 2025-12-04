@@ -18,7 +18,6 @@
   "scripts": {
     "generate": "cd ./src && peggy cel.peggy --format bare --extra-options '{\"typescript\":true}' --plugin peggy-ts -o parser.ts",
     "postgenerate": "biome format src/parser.ts --write",
-    "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
@@ -40,11 +39,16 @@
     "./ext/strings": {
       "import": "./dist/esm/ext/strings/index.js",
       "require": "./dist/cjs/ext/strings/index.js"
+    },
+    "./internal": {
+      "import": "./dist/esm/internal.js",
+      "require": "./dist/cjs/internal.js"
     }
   },
   "typesVersions": {
     "*": {
-      "ext/strings": ["./dist/cjs/ext/strings/index.d.ts"]
+      "ext/strings": ["./dist/cjs/ext/strings/index.d.ts"],
+      "internal": ["./dist/cjs/internal.d.ts"]
     }
   },
   "peerDependencies": {

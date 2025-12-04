@@ -12,8 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type CelResult, isCelMap, plan } from "./index.js";
-import { STRINGS_EXT_FUNCS } from "./ext/strings/index.js";
+import {
+  type CelResult,
+  isCelMap,
+  plan,
+  parse,
+  celList,
+  isCelList,
+  celMap,
+  celUint,
+  isCelUint,
+  type CelUint,
+  CelScalar,
+  isCelType,
+  listType,
+  mapType,
+  objectType,
+  type CelInput,
+  type CelValue,
+  celEnv,
+  isCelError,
+} from "@bufbuild/cel";
+import { getMsgDesc } from "@bufbuild/cel/internal";
+import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
 import type {
   SimpleTest,
   SimpleTestFile,
@@ -27,27 +48,11 @@ import {
 } from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
 import { suite, test } from "node:test";
-import { parse } from "./parser.js";
 import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";
-import { celList, isCelList } from "./list.js";
-import { celMap } from "./map.js";
-import { celUint, isCelUint, type CelUint } from "./uint.js";
-import {
-  CelScalar,
-  isCelType,
-  listType,
-  mapType,
-  objectType,
-  type CelInput,
-  type CelValue,
-} from "./type.js";
-import { getMsgDesc } from "./eval.js";
 import type { SimpleNameTuples } from "@bufbuild/cel-spec/testdata/simple.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { celEnv } from "./env.js";
-import { isCelError } from "./error.js";
 
 export function testSimpleTestFile(
   simpleTestFile: SimpleTestFile,

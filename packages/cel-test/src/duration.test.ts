@@ -18,7 +18,7 @@ import * as assert from "node:assert/strict";
 import { isMessage } from "@bufbuild/protobuf";
 import { DurationSchema } from "@bufbuild/protobuf/wkt";
 
-import { createDuration } from "./duration.js";
+import { createDuration } from "@bufbuild/cel/internal";
 
 void suite("duration", () => {
   void test("createDuration()", () => {

@@ -17,17 +17,19 @@ import {
   CelScalar,
   listType,
   mapType,
-  type CelValueTuple,
-  type CelValue,
-  type CelType,
-  type CelInput,
   objectType,
-} from "./type.js";
-import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
+  type CelInput,
+  type CelType,
+  type CelValue,
+} from "@bufbuild/cel";
+import type {
+  CelList,
+  CelMap,
+  CelUint,
+  CelValueTuple,
+} from "@bufbuild/cel/internal";
 import { expectTypeOf } from "expect-type";
-import type { CelList } from "./list.js";
-import type { CelMap } from "./map.js";
-import type { CelUint } from "./uint.js";
+import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
 import type {
   ReflectList,
   ReflectMap,

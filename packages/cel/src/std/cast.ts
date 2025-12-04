@@ -38,6 +38,7 @@ import { celUint } from "../uint.js";
 import { getMsgDesc } from "../eval.js";
 import { parseDuration } from "../duration.js";
 
+import { TextEncoder, TextDecoder } from "@bufbuild/cel-spec/encoding.js";
 const encoder = new TextEncoder();
 
 const INT = "int";

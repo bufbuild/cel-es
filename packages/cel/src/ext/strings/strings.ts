@@ -27,6 +27,8 @@ import { type CelMap, isCelMap } from "../../map.js";
 import { isCelUint } from "../../uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
+import { TextEncoder, TextDecoder } from "@bufbuild/cel-spec/encoding.js";
+
 const charAt = celFunc("charAt", [
   celOverload(
     [CelScalar.STRING, CelScalar.INT],

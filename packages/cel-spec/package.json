@@ -44,6 +44,10 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./encoding.js": {
+      "import": "./dist/esm/encoding.js",
+      "require": "./dist/cjs/encoding.js"
+    },
     "./testdata/conformance.js": {
       "import": "./dist/esm/testdata/conformance.js",
       "require": "./dist/cjs/testdata/conformance.js"
@@ -123,6 +127,7 @@
   },
   "typesVersions": {
     "*": {
+      "encoding.js": ["./dist/cjs/encoding.d.ts"],
       "testdata/conformance.js": ["./dist/cjs/testdata/conformance.d.ts"],
       "testdata/parser-comprehensions.js": [
         "./dist/cjs/testdata/parser-comprehensions.d.ts"
