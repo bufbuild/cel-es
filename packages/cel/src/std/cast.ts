@@ -39,6 +39,8 @@ import { getMsgDesc } from "../eval.js";
 import { parseDuration } from "../duration.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 
+const encoder = new TextEncoder();
+
 const INT = "int";
 const UINT = "uint";
 const DOUBLE = "double";
@@ -142,7 +144,7 @@ const boolFunc = celFunc(BOOL, [
 
 const bytesFunc = celFunc(BYTES, [
   celOverload(olc.BYTES_TO_BYTES, [CelScalar.BYTES], CelScalar.BYTES, (x) => x),
-  celOverload(olc.STRING_TO_BYTES, [CelScalar.STRING], CelScalar.BYTES, (x) => Buffer.from(x)),
+  celOverload(olc.STRING_TO_BYTES, [CelScalar.STRING], CelScalar.BYTES, (x) => encoder.encode(x)),
 ]);
 
 const stringFunc = celFunc(STRING, [
