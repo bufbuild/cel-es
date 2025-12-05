@@ -52,6 +52,8 @@ console.log(result); // true
 
 const similar = celFunc("similar", [
   celOverload(
+    // Overload name.
+    "similar_string_string",
     // Parameter types.
     [CelScalar.STRING, CelScalar.STRING],
     // Return type.

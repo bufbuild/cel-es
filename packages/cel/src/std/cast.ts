@@ -37,6 +37,7 @@ import {
 import { celUint } from "../uint.js";
 import { getMsgDesc } from "../eval.js";
 import { parseDuration } from "../duration.js";
+import * as olc from "../gen/dev/cel/expr/overload_const.js";
 
 const encoder = new TextEncoder();
 
@@ -52,35 +53,35 @@ const TYPE = "type";
 const DYN = "dyn";
 
 const intFunc = celFunc(INT, [
-  celOverload([CelScalar.INT], CelScalar.INT, (x) => x),
-  celOverload([CelScalar.UINT], CelScalar.INT, (x) => {
+  celOverload(olc.INT_TO_INT, [CelScalar.INT], CelScalar.INT, (x) => x),
+  celOverload(olc.UINT_TO_INT, [CelScalar.UINT], CelScalar.INT, (x) => {
     const val = x.value;
     if (isOverflowInt(val)) {
       throw overflow(INT, CelScalar.INT);
     }
     return x.value;
   }),
-  celOverload([CelScalar.DOUBLE], CelScalar.INT, (x) => {
+  celOverload(olc.DOUBLE_TO_INT, [CelScalar.DOUBLE], CelScalar.INT, (x) => {
     if (isOverflowIntNum(x)) {
       throw overflow(INT, CelScalar.INT);
     }
     return BigInt(Math.trunc(x));
   }),
-  celOverload([CelScalar.STRING], CelScalar.INT, (x) => {
+  celOverload(olc.STRING_TO_INT, [CelScalar.STRING], CelScalar.INT, (x) => {
     const val = BigInt(x);
     if (isOverflowInt(val)) {
       throw overflow(INT, CelScalar.INT);
     }
     return val;
   }),
-  celOverload([TIMESTAMP_TYPE], CelScalar.INT, (x) => {
+  celOverload(olc.TIMESTAMP_TO_INT, [TIMESTAMP_TYPE], CelScalar.INT, (x) => {
     const val = x.message.seconds;
     if (isOverflowInt(val)) {
       throw overflow(INT, CelScalar.INT);
     }
     return BigInt(val);
   }),
-  celOverload([DURATION_TYPE], CelScalar.INT, (x) => {
+  celOverload(olc.DURATION_TO_INT, [DURATION_TYPE], CelScalar.INT, (x) => {
     const val = x.message.seconds;
     if (isOverflowInt(val)) {
       throw overflow(INT, CelScalar.INT);
@@ -90,20 +91,20 @@ const intFunc = celFunc(INT, [
 ]);
 
 const uintFunc = celFunc(UINT, [
-  celOverload([CelScalar.UINT], CelScalar.UINT, (x) => x),
-  celOverload([CelScalar.INT], CelScalar.UINT, (x) => {
+  celOverload(olc.UINT_TO_UINT, [CelScalar.UINT], CelScalar.UINT, (x) => x),
+  celOverload(olc.INT_TO_UINT, [CelScalar.INT], CelScalar.UINT, (x) => {
     if (isOverflowUint(x)) {
       throw overflow(UINT, CelScalar.UINT);
     }
     return celUint(x);
   }),
-  celOverload([CelScalar.DOUBLE], CelScalar.UINT, (x) => {
+  celOverload(olc.DOUBLE_TO_UINT, [CelScalar.DOUBLE], CelScalar.UINT, (x) => {
     if (isOverflowUintNum(x)) {
       throw overflow(UINT, CelScalar.UINT);
     }
     return celUint(BigInt(Math.trunc(x)));
   }),
-  celOverload([CelScalar.STRING], CelScalar.UINT, (x) => {
+  celOverload(olc.STRING_TO_UINT, [CelScalar.STRING], CelScalar.UINT, (x) => {
     const val = BigInt(x);
     if (isOverflowUint(val)) {
       throw overflow(UINT, CelScalar.UINT);
@@ -113,15 +114,26 @@ const uintFunc = celFunc(UINT, [
 ]);
 
 const doubleFunc = celFunc(DOUBLE, [
-  celOverload([CelScalar.DOUBLE], CelScalar.DOUBLE, (x) => x),
-  celOverload([CelScalar.INT], CelScalar.DOUBLE, (x) => Number(x)),
-  celOverload([CelScalar.UINT], CelScalar.DOUBLE, (x) => Number(x.value)),
-  celOverload([CelScalar.STRING], CelScalar.DOUBLE, (x) => Number(x)),
+  celOverload(
+    olc.DOUBLE_TO_DOUBLE,
+    [CelScalar.DOUBLE],
+    CelScalar.DOUBLE,
+    (x) => x,
+  ),
+  celOverload(olc.INT_TO_DOUBLE, [CelScalar.INT], CelScalar.DOUBLE, (x) =>
+    Number(x),
+  ),
+  celOverload(olc.DOUBLE_TO_UINT, [CelScalar.UINT], CelScalar.DOUBLE, (x) =>
+    Number(x.value),
+  ),
+  celOverload(olc.STRING_TO_DOUBLE, [CelScalar.STRING], CelScalar.DOUBLE, (x) =>
+    Number(x),
+  ),
 ]);
 
 const boolFunc = celFunc(BOOL, [
-  celOverload([CelScalar.BOOL], CelScalar.BOOL, (x) => x),
-  celOverload([CelScalar.STRING], CelScalar.BOOL, (x) => {
+  celOverload(olc.BOOL_TO_BOOL, [CelScalar.BOOL], CelScalar.BOOL, (x) => x),
+  celOverload(olc.STRING_TO_BOOL, [CelScalar.STRING], CelScalar.BOOL, (x) => {
     switch (x) {
       case "true":
       case "True":
@@ -142,19 +154,30 @@ const boolFunc = celFunc(BOOL, [
 ]);
 
 const bytesFunc = celFunc(BYTES, [
-  celOverload([CelScalar.BYTES], CelScalar.BYTES, (x) => x),
-  celOverload([CelScalar.STRING], CelScalar.BYTES, (x) => encoder.encode(x)),
+  celOverload(olc.BYTES_TO_BYTES, [CelScalar.BYTES], CelScalar.BYTES, (x) => x),
+  celOverload(olc.STRING_TO_BYTES, [CelScalar.STRING], CelScalar.BYTES, (x) => encoder.encode(x)),
 ]);
 
 const stringFunc = celFunc(STRING, [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (x) => x),
-  celOverload([CelScalar.BOOL], CelScalar.STRING, (x) =>
+  celOverload(
+    olc.STRING_TO_STRING,
+    [CelScalar.STRING],
+    CelScalar.STRING,
+    (x) => x,
+  ),
+  celOverload(olc.BOOL_TO_STRING, [CelScalar.BOOL], CelScalar.STRING, (x) =>
     x ? "true" : "false",
   ),
-  celOverload([CelScalar.INT], CelScalar.STRING, (x) => x.toString()),
-  celOverload([CelScalar.UINT], CelScalar.STRING, (x) => x.value.toString()),
-  celOverload([CelScalar.DOUBLE], CelScalar.STRING, (x) => x.toString()),
-  celOverload([CelScalar.BYTES], CelScalar.STRING, (x) => {
+  celOverload(olc.INT_TO_STRING, [CelScalar.INT], CelScalar.STRING, (x) =>
+    x.toString(),
+  ),
+  celOverload(olc.UINT_TO_STRING, [CelScalar.UINT], CelScalar.STRING, (x) =>
+    x.value.toString(),
+  ),
+  celOverload(olc.DOUBLE_TO_STRING, [CelScalar.DOUBLE], CelScalar.STRING, (x) =>
+    x.toString(),
+  ),
+  celOverload(olc.BYTES_TO_STRING, [CelScalar.BYTES], CelScalar.STRING, (x) => {
     const coder = new TextDecoder(undefined, { fatal: true });
     try {
       return coder.decode(x);
@@ -162,38 +185,61 @@ const stringFunc = celFunc(STRING, [
       throw new Error(`Failed to decode bytes as string: ${e}`);
     }
   }),
-  celOverload([TIMESTAMP_TYPE], CelScalar.STRING, (x) =>
-    toJson(TimestampSchema, x.message),
+  celOverload(
+    olc.TIMESTAMP_TO_STRING,
+    [TIMESTAMP_TYPE],
+    CelScalar.STRING,
+    (x) => toJson(TimestampSchema, x.message),
   ),
-  celOverload([DURATION_TYPE], CelScalar.STRING, (x) =>
+  celOverload(olc.DURATION_TO_STRING, [DURATION_TYPE], CelScalar.STRING, (x) =>
     toJson(DurationSchema, x.message),
   ),
 ]);
 
 const timestampFunc = celFunc(TIMESTAMP, [
-  celOverload([TIMESTAMP_TYPE], TIMESTAMP_TYPE, (x) => x),
-  celOverload([CelScalar.STRING], TIMESTAMP_TYPE, (x) => {
-    try {
-      return fromJson(TimestampSchema, x);
-    } catch (e) {
-      throw new Error(`Failed to parse timestamp: ${e}`);
-    }
-  }),
-  celOverload([CelScalar.INT], TIMESTAMP_TYPE, (x) =>
+  celOverload(
+    olc.TIMESTAMP_TO_TIMESTAMP,
+    [TIMESTAMP_TYPE],
+    TIMESTAMP_TYPE,
+    (x) => x,
+  ),
+  celOverload(
+    olc.STRING_TO_TIMESTAMP,
+    [CelScalar.STRING],
+    TIMESTAMP_TYPE,
+    (x) => {
+      try {
+        return fromJson(TimestampSchema, x);
+      } catch (e) {
+        throw new Error(`Failed to parse timestamp: ${e}`);
+      }
+    },
+  ),
+  celOverload(olc.INT_TO_TIMESTAMP, [CelScalar.INT], TIMESTAMP_TYPE, (x) =>
     timestampFromMs(Number(x)),
   ),
 ]);
 
 const durationFunc = celFunc(DURATION, [
-  celOverload([DURATION_TYPE], DURATION_TYPE, (x) => x),
-  celOverload([CelScalar.STRING], DURATION_TYPE, parseDuration),
-  celOverload([CelScalar.INT], DURATION_TYPE, (x) =>
+  celOverload(
+    olc.DURATION_TO_DURATION,
+    [DURATION_TYPE],
+    DURATION_TYPE,
+    (x) => x,
+  ),
+  celOverload(
+    olc.STRING_TO_DURATION,
+    [CelScalar.STRING],
+    DURATION_TYPE,
+    parseDuration,
+  ),
+  celOverload(olc.INT_TO_DURATION, [CelScalar.INT], DURATION_TYPE, (x) =>
     create(DurationSchema, { seconds: x }),
   ),
 ]);
 
 const typeFunc = celFunc(TYPE, [
-  celOverload([CelScalar.DYN], CelScalar.TYPE, (v) => {
+  celOverload(olc.TYPE_CONVERT_TYPE, [CelScalar.DYN], CelScalar.TYPE, (v) => {
     if (isMessage(v)) {
       return objectType(getMsgDesc(v.$typeName));
     }
@@ -202,7 +248,7 @@ const typeFunc = celFunc(TYPE, [
 ]);
 
 const dynFunc = celFunc(DYN, [
-  celOverload([CelScalar.DYN], CelScalar.DYN, (x) => x),
+  celOverload(olc.TO_DYN, [CelScalar.DYN], CelScalar.DYN, (x) => x),
 ]);
 
 export function addCasts(funcs: FuncRegistry) {

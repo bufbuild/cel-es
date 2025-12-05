@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import type { Expr } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+
 export class Namespace {
   private readonly _name: string;
   private readonly _aliases: Map<string, string>;
@@ -75,4 +77,27 @@ export class Namespace {
     }
     return alias + qualifier;
   }
+}
+
+/**
+ * ToQualifiedName converts an expression AST into a qualified name if possible, with a boolean
+ * 'found' value that indicates if the conversion is successful.
+ */
+export function toQualifiedName(e: Expr): [string, boolean] {
+  switch (e.exprKind.case) {
+    case "identExpr":
+      return [e.exprKind.value.name, true];
+    case "selectExpr":
+      const sel = e.exprKind.value;
+      // Test only expressions are not valid as qualified names.
+      if (sel.testOnly || !sel.operand) {
+        return ["", false];
+      }
+      const [qual, found] = toQualifiedName(sel.operand);
+      if (found) {
+        return [qual + "." + sel.field, true];
+      }
+      break;
+  }
+  return ["", false];
 }
