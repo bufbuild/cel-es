@@ -114,10 +114,21 @@ const uintFunc = celFunc(UINT, [
 ]);
 
 const doubleFunc = celFunc(DOUBLE, [
-  celOverload(olc.DOUBLE_TO_DOUBLE, [CelScalar.DOUBLE], CelScalar.DOUBLE, (x) => x),
-  celOverload(olc.INT_TO_DOUBLE, [CelScalar.INT], CelScalar.DOUBLE, (x) => Number(x)),
-  celOverload(olc.DOUBLE_TO_UINT, [CelScalar.UINT], CelScalar.DOUBLE, (x) => Number(x.value)),
-  celOverload(olc.STRING_TO_DOUBLE, [CelScalar.STRING], CelScalar.DOUBLE, (x) => Number(x)),
+  celOverload(
+    olc.DOUBLE_TO_DOUBLE,
+    [CelScalar.DOUBLE],
+    CelScalar.DOUBLE,
+    (x) => x,
+  ),
+  celOverload(olc.INT_TO_DOUBLE, [CelScalar.INT], CelScalar.DOUBLE, (x) =>
+    Number(x),
+  ),
+  celOverload(olc.DOUBLE_TO_UINT, [CelScalar.UINT], CelScalar.DOUBLE, (x) =>
+    Number(x.value),
+  ),
+  celOverload(olc.STRING_TO_DOUBLE, [CelScalar.STRING], CelScalar.DOUBLE, (x) =>
+    Number(x),
+  ),
 ]);
 
 const boolFunc = celFunc(BOOL, [
@@ -148,13 +159,24 @@ const bytesFunc = celFunc(BYTES, [
 ]);
 
 const stringFunc = celFunc(STRING, [
-  celOverload(olc.STRING_TO_STRING, [CelScalar.STRING], CelScalar.STRING, (x) => x),
+  celOverload(
+    olc.STRING_TO_STRING,
+    [CelScalar.STRING],
+    CelScalar.STRING,
+    (x) => x,
+  ),
   celOverload(olc.BOOL_TO_STRING, [CelScalar.BOOL], CelScalar.STRING, (x) =>
     x ? "true" : "false",
   ),
-  celOverload(olc.INT_TO_STRING, [CelScalar.INT], CelScalar.STRING, (x) => x.toString()),
-  celOverload(olc.UINT_TO_STRING, [CelScalar.UINT], CelScalar.STRING, (x) => x.value.toString()),
-  celOverload(olc.DOUBLE_TO_STRING, [CelScalar.DOUBLE], CelScalar.STRING, (x) => x.toString()),
+  celOverload(olc.INT_TO_STRING, [CelScalar.INT], CelScalar.STRING, (x) =>
+    x.toString(),
+  ),
+  celOverload(olc.UINT_TO_STRING, [CelScalar.UINT], CelScalar.STRING, (x) =>
+    x.value.toString(),
+  ),
+  celOverload(olc.DOUBLE_TO_STRING, [CelScalar.DOUBLE], CelScalar.STRING, (x) =>
+    x.toString(),
+  ),
   celOverload(olc.BYTES_TO_STRING, [CelScalar.BYTES], CelScalar.STRING, (x) => {
     const coder = new TextDecoder(undefined, { fatal: true });
     try {
@@ -163,8 +185,11 @@ const stringFunc = celFunc(STRING, [
       throw new Error(`Failed to decode bytes as string: ${e}`);
     }
   }),
-  celOverload(olc.TIMESTAMP_TO_STRING, [TIMESTAMP_TYPE], CelScalar.STRING, (x) =>
-    toJson(TimestampSchema, x.message),
+  celOverload(
+    olc.TIMESTAMP_TO_STRING,
+    [TIMESTAMP_TYPE],
+    CelScalar.STRING,
+    (x) => toJson(TimestampSchema, x.message),
   ),
   celOverload(olc.DURATION_TO_STRING, [DURATION_TYPE], CelScalar.STRING, (x) =>
     toJson(DurationSchema, x.message),
@@ -172,22 +197,42 @@ const stringFunc = celFunc(STRING, [
 ]);
 
 const timestampFunc = celFunc(TIMESTAMP, [
-  celOverload(olc.TIMESTAMP_TO_TIMESTAMP, [TIMESTAMP_TYPE], TIMESTAMP_TYPE, (x) => x),
-  celOverload(olc.STRING_TO_TIMESTAMP, [CelScalar.STRING], TIMESTAMP_TYPE, (x) => {
-    try {
-      return fromJson(TimestampSchema, x);
-    } catch (e) {
-      throw new Error(`Failed to parse timestamp: ${e}`);
-    }
-  }),
+  celOverload(
+    olc.TIMESTAMP_TO_TIMESTAMP,
+    [TIMESTAMP_TYPE],
+    TIMESTAMP_TYPE,
+    (x) => x,
+  ),
+  celOverload(
+    olc.STRING_TO_TIMESTAMP,
+    [CelScalar.STRING],
+    TIMESTAMP_TYPE,
+    (x) => {
+      try {
+        return fromJson(TimestampSchema, x);
+      } catch (e) {
+        throw new Error(`Failed to parse timestamp: ${e}`);
+      }
+    },
+  ),
   celOverload(olc.INT_TO_TIMESTAMP, [CelScalar.INT], TIMESTAMP_TYPE, (x) =>
     timestampFromMs(Number(x)),
   ),
 ]);
 
 const durationFunc = celFunc(DURATION, [
-  celOverload(olc.DURATION_TO_DURATION, [DURATION_TYPE], DURATION_TYPE, (x) => x),
-  celOverload(olc.STRING_TO_DURATION, [CelScalar.STRING], DURATION_TYPE, parseDuration),
+  celOverload(
+    olc.DURATION_TO_DURATION,
+    [DURATION_TYPE],
+    DURATION_TYPE,
+    (x) => x,
+  ),
+  celOverload(
+    olc.STRING_TO_DURATION,
+    [CelScalar.STRING],
+    DURATION_TYPE,
+    parseDuration,
+  ),
   celOverload(olc.INT_TO_DURATION, [CelScalar.INT], DURATION_TYPE, (x) =>
     create(DurationSchema, { seconds: x }),
   ),

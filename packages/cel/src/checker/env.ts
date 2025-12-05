@@ -1,10 +1,25 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { _CelChecker } from "./checker.js";
-import { type Registry } from "@bufbuild/protobuf";
+import type { Registry } from "@bufbuild/protobuf";
 import { Namespace } from "../namespace.js";
 import { Group, Scopes } from "./scopes.js";
-import { type CelFunc } from "../func.js";
-import { celConstant, type CelIdent, celVariable } from "../ident.js";
+import type { CelFunc } from "../func.js";
+import type { CelIdent } from "../ident.js";
+import { celConstant, celVariable } from "../ident.js";
 import { createRegistryWithWKT } from "../registry.js";
 import { CelScalar, objectType } from "../type.js";
 import { STD_FUNCS } from "../std/std.js";
@@ -186,7 +201,7 @@ export function celCheckerEnv(options?: CelCheckerEnvOptions): CelCheckerEnv {
       : createRegistryWithWKT(),
     declarations,
     aggLitElemType,
-    filteredOverloadIds
+    filteredOverloadIds,
   );
 }
 
@@ -197,7 +212,7 @@ class _CelCheckerEnv implements CelCheckerEnv {
     public readonly registry: Registry,
     public readonly declarations: Scopes,
     public readonly aggregateLiteralElementType: AggregateLiteralElementType,
-    public readonly filteredOverloadIds: Set<string>
+    public readonly filteredOverloadIds: Set<string>,
   ) {}
 
   /**
@@ -259,7 +274,7 @@ class _CelCheckerEnv implements CelCheckerEnv {
         const enumType = this.registry.getEnum(enumTypeName);
         if (enumType) {
           const enumValueDesc = enumType.values.find(
-            (v) => v.name === enumValueName
+            (v) => v.name === enumValueName,
           );
           if (enumValueDesc) {
             return celConstant(candidate, CelScalar.INT, enumValueDesc.number);
@@ -292,14 +307,14 @@ class _CelCheckerEnv implements CelCheckerEnv {
   #setFunction(fn: CelFunc): string[] {
     const errMsgs: string[] = [];
     let current = this.declarations.findFunction(fn.name);
-    if (current) {
+    if (!current) {
+      current = fn;
+    } else {
       // TODO: merge overloads
       // current = current.merge(fn)
       return [
         `function ${fn.name} already declared. merging overloads not yet supported`,
       ];
-    } else {
-      current = fn;
     }
     // TODO: check macros
     // for (const overload of current.overloads) {
@@ -358,7 +373,7 @@ class _CelCheckerEnv implements CelCheckerEnv {
       this.registry,
       this.declarations.push(),
       this.aggregateLiteralElementType,
-      this.filteredOverloadIds
+      this.filteredOverloadIds,
     );
   }
 
@@ -371,7 +386,7 @@ class _CelCheckerEnv implements CelCheckerEnv {
       this.registry,
       this.declarations.pop(),
       this.aggregateLiteralElementType,
-      this.filteredOverloadIds
+      this.filteredOverloadIds,
     );
   }
 }

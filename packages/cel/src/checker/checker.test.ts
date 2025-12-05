@@ -1,19 +1,28 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import { celVariable } from "../ident.js";
-import {
-  type Expr,
-  type ParsedExpr,
+import type {
+  Expr,
+  ParsedExpr,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import * as assert from "node:assert/strict";
 import { suite, test } from "node:test";
 import { _CelChecker } from "./checker.js";
 import { parse } from "../parse.js";
-import {
-  CelScalar,
-  listType,
-  mapType,
-  objectType,
-  type CelType,
-} from "../type.js";
+import { CelScalar, listType, mapType, objectType } from "../type.js";
+import type { CelType } from "../type.js";
 import { celCheckerEnv } from "./env.js";
 import { createRegistry } from "@bufbuild/protobuf";
 import { TestAllTypes_NestedMessageSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto3/test_all_types_pb.js";
@@ -35,7 +44,10 @@ import {
 } from "@bufbuild/protobuf/wkt";
 import { celFunc, celMemberOverload, celOverload } from "../func.js";
 
-function internal__checkForTest(expr: Expr): CelType {
+function internal__checkForTest(expr: Expr | undefined): CelType {
+  if (expr === undefined) {
+    throw new Error("expr is undefined");
+  }
   const checker = new _CelChecker(
     celCheckerEnv({
       registry: createRegistry(TestAllTypes_NestedMessageSchema),
@@ -48,7 +60,7 @@ function internal__checkForTest(expr: Expr): CelType {
             "fi_s_s_0",
             [CelScalar.STRING],
             CelScalar.STRING,
-            (s) => ""
+            (s) => "",
           ),
         ]),
       ],
@@ -63,12 +75,12 @@ function internal__checkForTest(expr: Expr): CelType {
         celVariable("b", listType(CelScalar.STRING)),
         celVariable("c", mapType(CelScalar.STRING, CelScalar.BOOL)),
       ],
-    })
+    }),
   );
   checker.checkExpr(expr);
   if (checker.errors.length > 0) {
     throw new Error(
-      `type checking failed: ${checker.errors.map((e) => e.message).join("\n")}`
+      `type checking failed: ${checker.errors.map((e) => e.message).join("\n")}`,
     );
   }
   return checker.getType(expr) as CelType;
@@ -87,7 +99,7 @@ void suite("checker", () => {
       { expr: parse("null"), want: CelScalar.NULL },
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
@@ -105,7 +117,7 @@ void suite("checker", () => {
       { expr: parse("c"), want: mapType(CelScalar.STRING, CelScalar.BOOL) },
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
@@ -120,7 +132,7 @@ void suite("checker", () => {
       { expr: parse('["a", 1, 1.0]'), want: listType(CelScalar.DYN) },
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
@@ -173,7 +185,7 @@ void suite("checker", () => {
       },
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
@@ -186,19 +198,19 @@ void suite("checker", () => {
       },
       {
         expr: parse(
-          "cel.expr.conformance.proto3.TestAllTypes.NestedMessage{bb: 1}"
+          "cel.expr.conformance.proto3.TestAllTypes.NestedMessage{bb: 1}",
         ),
         want: objectType(TestAllTypes_NestedMessageSchema),
       },
       {
         expr: parse(
-          "cel.expr.conformance.proto3.TestAllTypes.NestedMessage{}.bb"
+          "cel.expr.conformance.proto3.TestAllTypes.NestedMessage{}.bb",
         ),
         want: CelScalar.INT,
       },
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
@@ -311,7 +323,7 @@ void suite("checker", () => {
       },
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
@@ -337,7 +349,7 @@ void suite("checker", () => {
       // }
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
@@ -381,7 +393,7 @@ void suite("checker", () => {
         want: CelScalar.BOOL,
       },
       {
-        expr: parse('fg_s()'),
+        expr: parse("fg_s()"),
         want: CelScalar.STRING,
       },
       {
@@ -427,48 +439,48 @@ void suite("checker", () => {
       {
         expr: parse('{ "1": 2, "3": 4.0 }["1"]'),
         want: CelScalar.DYN,
-      }
+      },
     ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
   });
 
-  void test('macros', () => {
+  void test("macros", () => {
     const cases = [
       {
-        expr: parse('[1, 2, 3].all(e, e > 0)'),
+        expr: parse("[1, 2, 3].all(e, e > 0)"),
         want: CelScalar.BOOL,
       },
       {
-        expr: parse('[1, 2, 3].exists(e, e > 0)'),
+        expr: parse("[1, 2, 3].exists(e, e > 0)"),
         want: CelScalar.BOOL,
       },
       {
-        expr: parse('[1, 2, 3].exists_one(e, e > 2)'),
+        expr: parse("[1, 2, 3].exists_one(e, e > 2)"),
         want: CelScalar.BOOL,
       },
       {
-        expr: parse('[1, 2, 3].filter(e, e > 2)'),
+        expr: parse("[1, 2, 3].filter(e, e > 2)"),
         want: listType(CelScalar.INT),
       },
       {
-        expr: parse('[1, 2.0, 3u].filter(e, e > 2)'),
+        expr: parse("[1, 2.0, 3u].filter(e, e > 2)"),
         want: listType(CelScalar.DYN),
       },
       {
-        expr: parse('[1, 2, 3].map(e, e + 1)'),
+        expr: parse("[1, 2, 3].map(e, e + 1)"),
         want: listType(CelScalar.INT),
       },
       {
-        expr: parse('[1, 2.0, 3u].map(e, e + 1)'),
+        expr: parse("[1, 2.0, 3u].map(e, e + 1)"),
         want: listType(CelScalar.INT),
       },
-    ]
+    ];
     for (const c of cases) {
-      const got = internal__checkForTest(c.expr.expr!);
+      const got = internal__checkForTest(c.expr.expr);
       assert.equal(got.toString(), c.want.toString(), `case ${c.expr}`);
     }
-  })
+  });
 });

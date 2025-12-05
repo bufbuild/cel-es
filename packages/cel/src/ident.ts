@@ -1,4 +1,23 @@
-import { type CelValue, type CelType, isEquivalentCelType, typeTypeWithParam } from "./type.js";
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import {
+  type CelValue,
+  type CelType,
+  isEquivalentCelType,
+  typeTypeWithParam,
+} from "./type.js";
 
 const privateIdentSymbol = Symbol.for("@bufbuild/cel/ident");
 
@@ -29,7 +48,7 @@ export interface CelIdent {
 export function celVariable(
   name: string,
   type: CelType,
-  doc?: string
+  doc?: string,
 ): CelIdent {
   return new Ident(name, type, undefined, doc);
 }
@@ -37,10 +56,7 @@ export function celVariable(
 /**
  * Creates a new type identifier
  */
-export function celTypeVariable(
-  type: CelType,
-  doc?: string
-): CelIdent {
+export function celTypeVariable(type: CelType, doc?: string): CelIdent {
   return new Ident(type.name, typeTypeWithParam(type), undefined, doc);
 }
 
@@ -51,7 +67,7 @@ export function celConstant(
   name: string,
   type: CelType,
   value: CelValue,
-  doc?: string
+  doc?: string,
 ): CelIdent {
   return new Ident(name, type, value, doc);
 }
@@ -63,7 +79,7 @@ class Ident implements CelIdent {
     public readonly name: string,
     public readonly type: CelType,
     public readonly value?: CelValue,
-    public readonly doc?: string
+    public readonly doc?: string,
   ) {}
 
   declarationIsEquivalent(other: CelIdent): boolean {

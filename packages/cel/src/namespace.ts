@@ -85,9 +85,9 @@ export class Namespace {
  */
 export function toQualifiedName(e: Expr): [string, boolean] {
   switch (e.exprKind.case) {
-    case 'identExpr':
+    case "identExpr":
       return [e.exprKind.value.name, true];
-    case 'selectExpr':
+    case "selectExpr":
       const sel = e.exprKind.value;
       // Test only expressions are not valid as qualified names.
       if (sel.testOnly || !sel.operand) {

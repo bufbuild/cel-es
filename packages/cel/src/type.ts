@@ -12,7 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ScalarType, type DescField, type DescMessage, type Message, type MessageShape } from "@bufbuild/protobuf";
+import {
+  ScalarType,
+  type DescField,
+  type DescMessage,
+  type Message,
+  type MessageShape,
+} from "@bufbuild/protobuf";
 import { isCelList, type CelList } from "./list.js";
 import { isCelMap, type CelMap } from "./map.js";
 import { isCelUint, type CelUint } from "./uint.js";
@@ -22,7 +28,11 @@ import {
   type ReflectMap,
   type ReflectMessage,
 } from "@bufbuild/protobuf/reflect";
-import { TimestampSchema, DurationSchema, AnySchema } from "@bufbuild/protobuf/wkt";
+import {
+  TimestampSchema,
+  DurationSchema,
+  AnySchema,
+} from "@bufbuild/protobuf/wkt";
 import { isCelError, type CelError } from "./error.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/type");
@@ -44,7 +54,7 @@ export type CelType =
 
 export type CelNullableType<T extends CelType = CelType> = T & {
   readonly wrapped: T;
-}
+};
 
 /**
  * Scalar CEL value types.
@@ -117,7 +127,7 @@ export interface CelOpaqueType<T extends CelType = CelType>
   extends celTypeShared {
   readonly kind: "opaque";
   readonly name: string;
-  readonly parameters: T[]
+  readonly parameters: T[];
 }
 
 export interface CelTypeParamType extends celTypeShared {
@@ -224,9 +234,7 @@ export function errorType(error: CelError): CelErrorType {
   };
 }
 
-export function opaqueType<
-  const T extends CelType = CelType,
->(
+export function opaqueType<const T extends CelType = CelType>(
   name: string,
   parameters: T[],
 ): CelOpaqueType<T> {
@@ -244,17 +252,15 @@ export function opaqueType<
   };
 }
 
-export function typeParamType(
-  name: string,
-): CelTypeParamType {
+export function typeParamType(name: string): CelTypeParamType {
   return {
     [privateSymbol]: {},
     kind: "type_param",
     name,
     toString() {
       return name;
-    }
-  }
+    },
+  };
 }
 
 /**
@@ -401,11 +407,13 @@ export function isObjectCelType(v: NonNullable<object>): v is CelType {
   return privateSymbol in v;
 }
 
-export function isDynCelType(v: CelType): v is typeof CelScalar.DYN | CelObjectType {
+export function isDynCelType(
+  v: CelType,
+): v is typeof CelScalar.DYN | CelObjectType {
   switch (v.kind) {
-    case 'scalar':
-      return v.scalar === 'dyn';
-    case 'object':
+    case "scalar":
+      return v.scalar === "dyn";
+    case "object":
       return v.desc.typeName === AnySchema.typeName;
     default:
       return false;
@@ -413,21 +421,23 @@ export function isDynCelType(v: CelType): v is typeof CelScalar.DYN | CelObjectT
 }
 
 export function isErrorCelType(v: CelType): v is CelErrorType {
-  return isCelType(v) && v.kind === 'error';
+  return isCelType(v) && v.kind === "error";
 }
 
-export function isDynOrErrorCelType(v: CelType): v is CelErrorType | typeof CelScalar.DYN | CelObjectType {
+export function isDynOrErrorCelType(
+  v: CelType,
+): v is CelErrorType | typeof CelScalar.DYN | CelObjectType {
   return isErrorCelType(v) || isDynCelType(v);
 }
 
 export function optionalCelType(paramType: CelType): CelOpaqueType {
-  return opaqueType('optional_type', [paramType]);
+  return opaqueType("optional_type", [paramType]);
 }
 
 export function isOptionalCelType(v: CelType): v is CelOpaqueType {
   switch (v.kind) {
-    case 'opaque':
-      return v.name === 'optional_type'
+    case "opaque":
+      return v.name === "optional_type";
     default:
       return false;
   }
@@ -442,7 +452,7 @@ export function maybeUnwrapOptionalCelType(v: CelType): CelType {
 
 /**
  * Creates an instance of a nullable type with the provided wrapped type.
- * 
+ *
  * Note: only primitive types are supported as wrapped types.
  */
 export function nullableType(paramType: CelType): CelNullableType {
@@ -453,7 +463,7 @@ export function nullableType(paramType: CelType): CelNullableType {
 }
 
 export function isNullableCelType(v: CelType): v is CelNullableType {
-  return isCelType(v) && 'wrapped' in v && isCelType(v.wrapped);
+  return isCelType(v) && "wrapped" in v && isCelType(v.wrapped);
 }
 
 /**
@@ -472,30 +482,49 @@ export function isEquivalentCelType(self: CelType, other: CelType): boolean {
   return _isTypeInternal(self, other, false);
 }
 
-function _isTypeInternal(self: CelType, other: CelType, checkTypeParamName: boolean): boolean {
+function _isTypeInternal(
+  self: CelType,
+  other: CelType,
+  checkTypeParamName: boolean,
+): boolean {
   if (self === other) {
     return true;
   }
   if (self.kind !== other.kind) {
     return false;
   }
-  if (
-    (checkTypeParamName || self.kind != 'type') &&
-    self.name != other.name
-  ) {
+  if ((checkTypeParamName || self.kind != "type") && self.name != other.name) {
     return false;
   }
   switch (self.kind) {
-    case 'list':
-      return _isTypeInternal(self.element, (other as CelListType).element, checkTypeParamName);
-    case 'map':
-      return _isTypeInternal(self.key, (other as CelMapType).key, checkTypeParamName) &&
-              _isTypeInternal(self.value, (other as CelMapType).value, checkTypeParamName);
-    case 'type':
-      return _isTypeInternal(self.type, (other as CelTypeType).type, checkTypeParamName);
-    case 'object':
+    case "list":
+      return _isTypeInternal(
+        self.element,
+        (other as CelListType).element,
+        checkTypeParamName,
+      );
+    case "map":
+      return (
+        _isTypeInternal(
+          self.key,
+          (other as CelMapType).key,
+          checkTypeParamName,
+        ) &&
+        _isTypeInternal(
+          self.value,
+          (other as CelMapType).value,
+          checkTypeParamName,
+        )
+      );
+    case "type":
+      return _isTypeInternal(
+        self.type,
+        (other as CelTypeType).type,
+        checkTypeParamName,
+      );
+    case "object":
       return self.desc.typeName === (other as CelObjectType).desc.typeName;
-    case 'scalar':
+    case "scalar":
       return (self as CelScalarType).scalar === (other as CelScalarType).scalar;
     default:
       return false;
@@ -526,54 +555,54 @@ export const ProtoScalarCELPrimitives = {
 
 export const CheckedWellKnownCELTypes: Record<string, CelType> = {
   // Wrapper types.
-  "google.protobuf.BoolValue":   nullableType(CelScalar.BOOL),
-  "google.protobuf.BytesValue":  nullableType(CelScalar.BYTES),
+  "google.protobuf.BoolValue": nullableType(CelScalar.BOOL),
+  "google.protobuf.BytesValue": nullableType(CelScalar.BYTES),
   "google.protobuf.DoubleValue": nullableType(CelScalar.DOUBLE),
-  "google.protobuf.FloatValue":  nullableType(CelScalar.DOUBLE),
-  "google.protobuf.Int64Value":  nullableType(CelScalar.INT),
-  "google.protobuf.Int32Value":  nullableType(CelScalar.INT),
+  "google.protobuf.FloatValue": nullableType(CelScalar.DOUBLE),
+  "google.protobuf.Int64Value": nullableType(CelScalar.INT),
+  "google.protobuf.Int32Value": nullableType(CelScalar.INT),
   "google.protobuf.UInt64Value": nullableType(CelScalar.UINT),
   "google.protobuf.UInt32Value": nullableType(CelScalar.UINT),
   "google.protobuf.StringValue": nullableType(CelScalar.STRING),
   // Well-known types.
-  'google.protobuf.Any': objectType(AnySchema),
-  'google.protobuf.Timestamp': TIMESTAMP,
-  'google.protobuf.Duration': DURATION,
+  "google.protobuf.Any": objectType(AnySchema),
+  "google.protobuf.Timestamp": TIMESTAMP,
+  "google.protobuf.Duration": DURATION,
   // Json types.
-	"google.protobuf.ListValue": listType(CelScalar.DYN),
-	"google.protobuf.NullValue": CelScalar.NULL,
-	"google.protobuf.Struct":    mapType(CelScalar.STRING, CelScalar.DYN),
-	"google.protobuf.Value":     CelScalar.DYN,
+  "google.protobuf.ListValue": listType(CelScalar.DYN),
+  "google.protobuf.NullValue": CelScalar.NULL,
+  "google.protobuf.Struct": mapType(CelScalar.STRING, CelScalar.DYN),
+  "google.protobuf.Value": CelScalar.DYN,
 } as const;
 
 export function fieldDescToCelType(field: DescField) {
   switch (field.fieldKind) {
-    case 'scalar': 
-      return ProtoScalarCELPrimitives[field.scalar]
-    case 'enum':
+    case "scalar":
+      return ProtoScalarCELPrimitives[field.scalar];
+    case "enum":
       return CelScalar.INT;
-    case 'message':
+    case "message":
       if (CheckedWellKnownCELTypes[field.message.typeName]) {
         return CheckedWellKnownCELTypes[field.message.typeName];
       }
       return objectType(field.message);
-    case 'list':
+    case "list":
       switch (field.listKind) {
-        case 'enum':
-            return listType(CelScalar.INT);
-        case 'message':
-            return listType(objectType(field.message));
-        case 'scalar':
-            return listType(ProtoScalarCELPrimitives[field.scalar]);
+        case "enum":
+          return listType(CelScalar.INT);
+        case "message":
+          return listType(objectType(field.message));
+        case "scalar":
+          return listType(ProtoScalarCELPrimitives[field.scalar]);
       }
-    case 'map':
+    case "map":
       const keyType = ProtoScalarCELPrimitives[field.mapKey];
       switch (field.mapKind) {
-        case 'enum':
+        case "enum":
           return mapType(keyType, CelScalar.INT);
-        case 'message':
+        case "message":
           return mapType(keyType, objectType(field.message));
-        case 'scalar':
+        case "scalar":
           return mapType(keyType, ProtoScalarCELPrimitives[field.scalar]);
       }
   }
@@ -592,7 +621,6 @@ export function isAssignableType(t: CelType, fromType: CelType): boolean {
   return defaultIsAssignableType(t, fromType);
 }
 
-
 /**
  * defaultIsAssignableType provides the standard definition of what it means for one type to be assignable to another
  * where any of the following may return a true result:
@@ -609,24 +637,26 @@ function defaultIsAssignableType(t: CelType, fromType: CelType): boolean {
     return false;
   }
   switch (t.kind) {
-    case 'list':
-      if (fromType.kind !== 'list') {
+    case "list":
+      if (fromType.kind !== "list") {
         return false;
       }
       return isAssignableType(t.element, fromType.element);
-    case 'map':
-      if (fromType.kind !== 'map') {
+    case "map":
+      if (fromType.kind !== "map") {
         return false;
       }
-      return isAssignableType(t.key, fromType.key) &&
-             isAssignableType(t.value, fromType.value);
-    case 'type':
-      if (fromType.kind !== 'type') {
+      return (
+        isAssignableType(t.key, fromType.key) &&
+        isAssignableType(t.value, fromType.value)
+      );
+    case "type":
+      if (fromType.kind !== "type") {
         return false;
       }
       return isAssignableType(t.type, fromType.type);
-    case 'opaque':
-      if (fromType.kind !== 'opaque') {
+    case "opaque":
+      if (fromType.kind !== "opaque") {
         return false;
       }
       if (t.parameters.length !== fromType.parameters.length) {

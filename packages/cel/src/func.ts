@@ -205,13 +205,13 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
   typeParams(): string[] {
     function collectParamNames(paramNames: string[], arg: CelType) {
       switch (arg.kind) {
-        case 'type_param':
+        case "type_param":
           paramNames.push(arg.name);
           break;
-        case 'list':
+        case "list":
           collectParamNames(paramNames, arg.element);
           break;
-        case 'map':
+        case "map":
           collectParamNames(paramNames, arg.key);
           collectParamNames(paramNames, arg.value);
           break;

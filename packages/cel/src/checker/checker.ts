@@ -1,17 +1,39 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import { AggregateLiteralElementType, type CelCheckerEnv } from "./env.js";
 import { Mapping } from "./mapping.js";
-import type { CheckedExpr } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
-import { CheckedExprSchema } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import {
+  type CheckedExpr,
+  type Reference,
+  type Type,
+  CheckedExprSchema,
+  ReferenceSchema,
+} from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
+import {
+  ConstantSchema,
   Expr_CallSchema,
   Expr_CreateStructSchema,
   Expr_IdentSchema,
+  type Constant,
   type Expr,
   type Expr_CreateStruct,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { create } from "@bufbuild/protobuf";
 import { celError, type CelError } from "../error.js";
 import {
+  celTypeToProtoType,
   functionType,
   isAssignable,
   isAssignableList,
@@ -21,7 +43,9 @@ import {
 import {
   type CelOpaqueType,
   CelScalar,
+  celType,
   type CelType,
+  type CelValue,
   DURATION,
   errorType,
   fieldDescToCelType,
@@ -55,19 +79,20 @@ import {
 import { celVariable } from "../ident.js";
 
 export interface CelChecker {
-  //
+  check(expr: Expr): void;
 }
 
 /**
- * TODO: this should return a CheckedExpr. We need functions to convert
- * types and references to protobuf first.
+ * Takes a CEL expression and environment and produces a checked expression.
  */
 export function check(expr: Expr, env: CelCheckerEnv): CheckedExpr {
   const checker = new _CelChecker(env);
   checker.check(expr);
   return create(CheckedExprSchema, {
     expr,
-    // TODO: typeMap, referenceMap, sourceInfo
+    typeMap: checker.protoTypeMap(),
+    referenceMap: checker.protoReferenceMap(),
+    // TODO: sourceInfo
   });
 }
 
@@ -78,7 +103,7 @@ interface OverloadResolution {
 
 function overloadResolution(
   type: CelType,
-  reference: ReferenceInfo
+  reference: ReferenceInfo,
 ): OverloadResolution {
   return { type, reference };
 }
@@ -90,8 +115,13 @@ export class _CelChecker implements CelChecker {
   errors: CelError[] = [];
   mappings: Mapping = new Mapping();
   freeTypeVarCounter = 0;
+  #containerName = "";
 
-  constructor(private env: CelCheckerEnv) {}
+  constructor(private env: CelCheckerEnv) {
+    if (this.env.namespace) {
+      this.#containerName = this.env.namespace.name();
+    }
+  }
 
   check(expr: Expr): void {
     this.checkExpr(expr);
@@ -105,22 +135,30 @@ export class _CelChecker implements CelChecker {
   checkExpr(expr: Expr): void {
     switch (expr.exprKind.case) {
       case "constExpr":
-        return this.checkConstExpr(expr);
+        this.checkConstExpr(expr);
+        break;
       case "identExpr":
-        return this.checkIdentExpr(expr);
+        this.checkIdentExpr(expr);
+        break;
       case "selectExpr":
-        return this.checkSelectExpr(expr);
+        this.checkSelectExpr(expr);
+        break;
       case "callExpr":
-        return this.checkCallExpr(expr);
+        this.checkCallExpr(expr);
+        break;
       case "listExpr":
-        return this.checkCreateListExpr(expr);
+        this.checkCreateListExpr(expr);
+        break;
       case "structExpr":
         if (!expr.exprKind.value.messageName) {
-          return this.checkCreateMapExpr(expr);
+          this.checkCreateMapExpr(expr);
+          break;
         }
-        return this.checkCreateStructExpr(expr);
+        this.checkCreateStructExpr(expr);
+        break;
       case "comprehensionExpr":
-        return this.checkComprehensionExpr(expr);
+        this.checkComprehensionExpr(expr);
+        break;
       default:
         throw new Error(`unexpected expression kind: ${expr.exprKind.case}`);
     }
@@ -134,26 +172,35 @@ export class _CelChecker implements CelChecker {
     const constant = expr.exprKind.value;
     switch (constant.constantKind.case) {
       case "boolValue":
-        return this.setType(expr, CelScalar.BOOL);
+        this.setType(expr, CelScalar.BOOL);
+        break;
       case "bytesValue":
-        return this.setType(expr, CelScalar.BYTES);
+        this.setType(expr, CelScalar.BYTES);
+        break;
       case "doubleValue":
-        return this.setType(expr, CelScalar.DOUBLE);
+        this.setType(expr, CelScalar.DOUBLE);
+        break;
       case "durationValue":
-        return this.setType(expr, DURATION);
+        this.setType(expr, DURATION);
+        break;
       case "int64Value":
-        return this.setType(expr, CelScalar.INT);
+        this.setType(expr, CelScalar.INT);
+        break;
       case "nullValue":
-        return this.setType(expr, CelScalar.NULL);
+        this.setType(expr, CelScalar.NULL);
+        break;
       case "stringValue":
-        return this.setType(expr, CelScalar.STRING);
+        this.setType(expr, CelScalar.STRING);
+        break;
       case "timestampValue":
-        return this.setType(expr, TIMESTAMP);
+        this.setType(expr, TIMESTAMP);
+        break;
       case "uint64Value":
-        return this.setType(expr, CelScalar.UINT);
+        this.setType(expr, CelScalar.UINT);
+        break;
       default:
         throw new Error(
-          `unexpected constant kind: ${constant.constantKind.case}`
+          `unexpected constant kind: ${constant.constantKind.case}`,
         );
     }
   }
@@ -179,8 +226,8 @@ export class _CelChecker implements CelChecker {
     const error = celError(
       `undeclared reference to '${
         ident.name
-      }' (in container '${this.env.namespace!.name()}')`,
-      expr.id
+      }' (in container '${this.#containerName}')`,
+      expr.id,
     );
     this.setType(expr, errorType(error));
     this.errors.push(error);
@@ -231,7 +278,7 @@ export class _CelChecker implements CelChecker {
         call.target ? " member call with" : ""
       } argument count: ${call.args.length}`;
       this.errors.push(
-        celError(`unsupported optional field selection: ${msg}`)
+        celError(`unsupported optional field selection: ${msg}`),
       );
       return;
     }
@@ -243,7 +290,7 @@ export class _CelChecker implements CelChecker {
       field.exprKind.value.constantKind.case !== "stringValue"
     ) {
       this.errors.push(
-        celError(`unsupported optional field selection: ${field}`, field.id)
+        celError(`unsupported optional field selection: ${field}`, field.id),
       );
       return;
     }
@@ -252,7 +299,7 @@ export class _CelChecker implements CelChecker {
       expr,
       operand,
       field.exprKind.value.constantKind.value,
-      true
+      true,
     );
     this.setType(expr, substitute(this.mappings, resultType, false));
     this.setReference(expr, functionReference(["select_optional_field"]));
@@ -262,7 +309,7 @@ export class _CelChecker implements CelChecker {
     expr: Expr,
     operand: Expr | undefined,
     field: string,
-    optional: boolean
+    optional: boolean,
   ): CelType {
     if (!operand) {
       this.errors.push(celError(`expected select operand`, expr.id));
@@ -273,7 +320,7 @@ export class _CelChecker implements CelChecker {
     let operandType = this.getType(operand);
     if (!operandType) {
       this.errors.push(
-        celError(`unable to determine type of operand`, expr.id)
+        celError(`unable to determine type of operand`, expr.id),
       );
       return errorType(celError(`invalid select operand`, expr.id));
     }
@@ -286,8 +333,8 @@ export class _CelChecker implements CelChecker {
     let resultType: CelType = errorType(
       celError(
         `type '${operandType.toString()}' does not support field selection`,
-        expr.id
-      )
+        expr.id,
+      ),
     );
     switch (targetType.kind) {
       case "map":
@@ -299,7 +346,7 @@ export class _CelChecker implements CelChecker {
         const fieldType = this.lookupFieldType(
           expr.id,
           targetType.desc.typeName,
-          field
+          field,
         );
         if (fieldType) {
           resultType = fieldType;
@@ -320,8 +367,8 @@ export class _CelChecker implements CelChecker {
           this.errors.push(
             celError(
               `type '${operandType.toString()}' does not support field selection`,
-              expr.id
-            )
+              expr.id,
+            ),
           );
         }
         resultType = CelScalar.DYN;
@@ -343,7 +390,8 @@ export class _CelChecker implements CelChecker {
     const call = expr.exprKind.value;
     const fnName = call.function;
     if (fnName === OPT_SELECT) {
-      return this.checkOptSelect(expr);
+      this.checkOptSelect(expr);
+      return;
     }
 
     const args = call.args;
@@ -358,8 +406,8 @@ export class _CelChecker implements CelChecker {
       const fn = this.env.lookupFunction(fnName);
       if (!fn) {
         const err = celError(
-          `undeclared reference to '${fnName}' (in container '${this.env.namespace!.name()}')`,
-          expr.id
+          `undeclared reference to '${fnName}' (in container '${this.#containerName}')`,
+          expr.id,
         );
         this.errors.push(err);
         this.setType(expr, errorType(err));
@@ -413,8 +461,8 @@ export class _CelChecker implements CelChecker {
     }
     // Function name not declared, record error.
     const err = celError(
-      `undeclared reference to '${fnName}' (in container '${this.env.namespace!.name()}')`,
-      expr.id
+      `undeclared reference to '${fnName}' (in container '${this.#containerName}')`,
+      expr.id,
     );
     this.errors.push(err);
     this.setType(expr, errorType(err));
@@ -424,7 +472,7 @@ export class _CelChecker implements CelChecker {
     call: Expr,
     fn: CelFunc,
     target?: Expr,
-    args: Expr[] = []
+    args: Expr[] = [],
   ) {
     // Attempt to resolve the overload.
     const resolution = this.resolveOverload(call, fn, target, args);
@@ -443,14 +491,14 @@ export class _CelChecker implements CelChecker {
     call: Expr,
     fn: CelFunc,
     target?: Expr,
-    args: Expr[] = []
+    args: Expr[] = [],
   ): OverloadResolution | undefined {
     const argTypes: CelType[] = [];
     if (target) {
       const targetType = this.getType(target);
       if (!targetType) {
         this.errors.push(
-          celError(`unable to determine type of target`, call.id)
+          celError(`unable to determine type of target`, call.id),
         );
         return;
       }
@@ -460,7 +508,7 @@ export class _CelChecker implements CelChecker {
       const argType = this.getType(arg);
       if (!argType) {
         this.errors.push(
-          celError(`unable to determine type of argument`, call.id)
+          celError(`unable to determine type of argument`, call.id),
         );
         return;
       }
@@ -492,7 +540,7 @@ export class _CelChecker implements CelChecker {
           if (!this.isAssignable(argType, CelScalar.BOOL)) {
             const err = celError(
               `expected type 'bool' but got '${argType.toString()}'`,
-              call.id
+              call.id,
             );
             this.errors.push(err);
             resultType = errorType(err);
@@ -506,7 +554,7 @@ export class _CelChecker implements CelChecker {
 
       let overloadType: CelOpaqueType = functionType(
         overload.result,
-        ...overload.parameters
+        ...overload.parameters,
       );
       let typeParams = overload.typeParams();
       if (typeParams.length > 0) {
@@ -518,7 +566,7 @@ export class _CelChecker implements CelChecker {
         overloadType = substitute(
           substitutions,
           overloadType,
-          false
+          false,
         ) as CelOpaqueType;
       }
 
@@ -533,7 +581,7 @@ export class _CelChecker implements CelChecker {
         const fnResultType = substitute(
           this.mappings,
           overloadType.parameters[0],
-          false
+          false,
         );
         if (!resultType) {
           resultType = fnResultType;
@@ -555,8 +603,8 @@ export class _CelChecker implements CelChecker {
           `no matching overload for '${fn.name}' applied to '(${argTypes
             .map((t) => t.toString())
             .join(", ")})'`,
-          call.id
-        )
+          call.id,
+        ),
       );
       return;
     }
@@ -586,10 +634,10 @@ export class _CelChecker implements CelChecker {
           this.errors.push(
             celError(
               `expected type '${optionalCelType(
-                elemType
+                elemType,
               ).toString()}' but got '${elemType.toString()}'`,
-              e.id
-            )
+              e.id,
+            ),
           );
           return;
         }
@@ -626,17 +674,17 @@ export class _CelChecker implements CelChecker {
         return;
       }
       this.checkExpr(val);
-      let valType = this.getType(val);
+      let valType = this.getType(val) as CelType;
       if (entry.optionalEntry) {
-        let isOptional = isOptionalCelType(valType!);
-        valType = maybeUnwrapOptionalCelType(valType!);
-        if (!isOptional && !isDynCelType(valType!)) {
-          const expected = optionalCelType(valType!);
+        let isOptional = isOptionalCelType(valType);
+        valType = maybeUnwrapOptionalCelType(valType);
+        if (!isOptional && !isDynCelType(valType)) {
+          const expected = optionalCelType(valType);
           this.errors.push(
             celError(
-              `expected type '${expected.toString()}' but got '${valType!.toString()}'`,
-              val.id
-            )
+              `expected type '${expected.toString()}' but got '${valType.toString()}'`,
+              val.id,
+            ),
           );
         }
       }
@@ -649,7 +697,7 @@ export class _CelChecker implements CelChecker {
     }
     this.setType(
       expr,
-      mapType(mapKeyType as mapKeyType, mapValueType as CelType)
+      mapType(mapKeyType as mapKeyType, mapValueType as CelType),
     );
   }
 
@@ -661,15 +709,15 @@ export class _CelChecker implements CelChecker {
     let msgVal = expr.exprKind.value;
     // Determine the type of the message.
     let resultType: CelType = errorType(
-      celError(`'${msgVal.messageName}' is not a message type`, expr.id)
+      celError(`'${msgVal.messageName}' is not a message type`, expr.id),
     );
     const ident = this.env.lookupIdent(msgVal.messageName);
     if (!ident) {
       const error = celError(
         `undeclared reference to '${
           msgVal.messageName
-        }' (in container '${this.env.namespace!.name()}')`,
-        expr.id
+        }' (in container '${this.#containerName}')`,
+        expr.id,
       );
       this.setType(expr, errorType(error));
       this.errors.push(error);
@@ -692,7 +740,7 @@ export class _CelChecker implements CelChecker {
     if (identKind !== "error") {
       if (identKind !== "object") {
         this.errors.push(
-          celError(`'${ident.type.name}' is not a type`, expr.id)
+          celError(`'${ident.type.name}' is not a type`, expr.id),
         );
       } else {
         resultType = objectType(ident.type.desc);
@@ -700,13 +748,13 @@ export class _CelChecker implements CelChecker {
         // In this context, the type is being instantiated by its protobuf name which
         // is not ideal or recommended, but some users expect this to work.
         if (isWellKnownType(resultType)) {
-          typeName = getWellKnownTypeName(resultType)!;
+          typeName = getWellKnownTypeName(resultType) as string;
         } else if (resultType.kind === "object") {
           typeName = resultType.desc.typeName;
         } else {
           const error = celError(
             `'${ident.type.name}' is not a message type`,
-            expr.id
+            expr.id,
           );
           this.errors.push(error);
           resultType = errorType(error);
@@ -730,33 +778,33 @@ export class _CelChecker implements CelChecker {
       this.checkExpr(value);
 
       let fieldType: CelType = errorType(
-        celError(`unable to determine type of field '${fieldName}'`, field.id)
+        celError(`unable to determine type of field '${fieldName}'`, field.id),
       );
       const ft = this.lookupFieldType(field.id, typeName, fieldName);
       if (ft) {
         fieldType = ft;
       }
 
-      const valType = this.getType(value);
+      const valType = this.getType(value) as CelType;
       if (field.optionalEntry) {
-        let isOptional = isOptionalCelType(valType!);
-        const unwrapped = maybeUnwrapOptionalCelType(valType!);
+        let isOptional = isOptionalCelType(valType);
+        const unwrapped = maybeUnwrapOptionalCelType(valType);
         if (!isOptional && !isDynCelType(unwrapped)) {
           const expected = optionalCelType(unwrapped);
           this.errors.push(
             celError(
               `expected type '${expected.toString()}' but got '${unwrapped.toString()}'`,
-              value.id
-            )
+              value.id,
+            ),
           );
         }
       }
-      if (!this.isAssignable(fieldType, valType!)) {
+      if (!this.isAssignable(fieldType, valType)) {
         this.errors.push(
           celError(
-            `expected type '${fieldType.toString()}' but got '${valType?.toString()}'`,
-            value.id
-          )
+            `expected type '${fieldType.toString()}' but got '${valType.toString()}'`,
+            value.id,
+          ),
         );
       }
     }
@@ -786,8 +834,8 @@ export class _CelChecker implements CelChecker {
       this.errors.push(
         celError(
           `unable to determine type of comprehension iter_range`,
-          expr.id
-        )
+          expr.id,
+        ),
       );
       return;
     }
@@ -799,7 +847,10 @@ export class _CelChecker implements CelChecker {
     if (!accuType) {
       // This should not happen, anyway, report an error.
       this.errors.push(
-        celError(`unable to determine type of comprehension accu_init`, expr.id)
+        celError(
+          `unable to determine type of comprehension accu_init`,
+          expr.id,
+        ),
       );
       return;
     }
@@ -832,7 +883,7 @@ export class _CelChecker implements CelChecker {
       case "scalar":
         if (rangeType.kind === "scalar" && rangeType.scalar !== "dyn") {
           const err = celError(
-            `expression of type '${rangeType.kind}' cannot be range of a comprehension (must be list, map, or dynamic)`
+            `expression of type '${rangeType.kind}' cannot be range of a comprehension (must be list, map, or dynamic)`,
           );
           this.errors.push(err);
           varType = errorType(err);
@@ -854,7 +905,7 @@ export class _CelChecker implements CelChecker {
       default:
         const err = celError(
           `expression of type '${rangeType.kind}' cannot be range of a comprehension (must be list, map, or dynamic)`,
-          expr.id
+          expr.id,
         );
         this.errors.push(err);
         varType = errorType(err);
@@ -868,12 +919,12 @@ export class _CelChecker implements CelChecker {
     this.env = this.env.enterScope();
     this.env.addIdents([celVariable(comp.iterVar, varType)]);
     if (comp.iterVar2) {
-      this.env.addIdents([celVariable(comp.iterVar2, var2Type!)]);
+      this.env.addIdents([celVariable(comp.iterVar2, var2Type as CelType)]);
     }
     // Check the variable references in the condition and step.
     if (!comp.loopCondition) {
       this.errors.push(
-        celError(`expected comprehension loop_condition`, expr.id)
+        celError(`expected comprehension loop_condition`, expr.id),
       );
       return;
     }
@@ -898,7 +949,7 @@ export class _CelChecker implements CelChecker {
     const resultType = this.getType(comp.result);
     if (!resultType) {
       this.errors.push(
-        celError(`unable to determine type of comprehension result`, expr.id)
+        celError(`unable to determine type of comprehension result`, expr.id),
       );
       return;
     }
@@ -908,13 +959,16 @@ export class _CelChecker implements CelChecker {
   joinTypes(
     expr: Expr,
     previous: CelType | undefined,
-    current: CelType | undefined
+    current: CelType | undefined,
   ): CelType | undefined {
     if (!previous) {
       return current;
     }
-    if (this.isAssignable(previous, current!)) {
-      return mostGeneral(previous, current!);
+    if (!current) {
+      return previous;
+    }
+    if (this.isAssignable(previous, current)) {
+      return mostGeneral(previous, current);
     }
     if (
       this.env.aggregateLiteralElementType ===
@@ -924,7 +978,7 @@ export class _CelChecker implements CelChecker {
     }
     const err = celError(
       `expected type '${previous.toString()}' but got '${current?.toString()}'`,
-      expr.id
+      expr.id,
     );
     this.errors.push(err);
     return errorType(err);
@@ -958,7 +1012,7 @@ export class _CelChecker implements CelChecker {
     const found = this.typeMap.get(expr.id);
     if (found && found.kind !== type.kind) {
       this.errors.push(
-        celError(`incompatible type already exists for expression`, expr.id)
+        celError(`incompatible type already exists for expression`, expr.id),
       );
       return;
     }
@@ -975,8 +1029,8 @@ export class _CelChecker implements CelChecker {
       this.errors.push(
         celError(
           `reference already exists for expression: ${expr}(${expr.id}) old:${old}, new:${ref}`,
-          expr.id
-        )
+          expr.id,
+        ),
       );
       return;
     }
@@ -987,7 +1041,7 @@ export class _CelChecker implements CelChecker {
     const exprType = this.getType(expr);
     if (!exprType) {
       this.errors.push(
-        celError(`unable to determine type of expression`, expr.id)
+        celError(`unable to determine type of expression`, expr.id),
       );
       return;
     }
@@ -995,8 +1049,8 @@ export class _CelChecker implements CelChecker {
       this.errors.push(
         celError(
           `expected type '${t.toString()}' but got '${exprType.toString()}'`,
-          expr.id
-        )
+          expr.id,
+        ),
       );
     }
   }
@@ -1004,13 +1058,13 @@ export class _CelChecker implements CelChecker {
   lookupFieldType(
     id: bigint,
     structType: string,
-    fieldName: string
+    fieldName: string,
   ): CelType | undefined {
     const msg = this.env.registry.getMessage(structType);
     if (!msg) {
       // This should not happen, anyway, report an error.
       this.errors.push(
-        celError(`unexpected failed resolution of '${structType}'`, id)
+        celError(`unexpected failed resolution of '${structType}'`, id),
       );
       return undefined;
     }
@@ -1020,6 +1074,23 @@ export class _CelChecker implements CelChecker {
       return undefined;
     }
     return fieldDescToCelType(field);
+  }
+
+  protoTypeMap(): Record<string, Type> {
+    const result: Record<string, Type> = {};
+    const mappings = this.mappings.copy();
+    for (const [id, t] of this.typeMap.entries()) {
+      result[id.toString()] = celTypeToProtoType(substitute(mappings, t, true));
+    }
+    return result;
+  }
+
+  protoReferenceMap(): Record<string, Reference> {
+    const result: Record<string, Reference> = {};
+    for (const [id, ref] of this.referenceMap.entries()) {
+      result[id.toString()] = referenceInfoToProtoReference(ref);
+    }
+    return result;
   }
 }
 
@@ -1097,4 +1168,30 @@ function getWellKnownTypeName(t: CelType): string | undefined {
     default:
       return undefined;
   }
+}
+
+function valToConstant(val: CelValue): Constant {
+  const t = celType(val);
+  switch (t.kind) {
+    case "scalar":
+      switch (t.scalar) {
+        case "bool":
+          return create(ConstantSchema, {
+            constantKind: {
+              case: "boolValue",
+              value: val as boolean,
+            },
+          });
+      }
+  }
+  throw new Error(`unsupported constant type: ${t.toString()}`);
+}
+
+function referenceInfoToProtoReference(ref: ReferenceInfo): Reference {
+  const protoRef = create(ReferenceSchema, {
+    name: ref.name,
+    overloadId: Array.from(ref.overloadIds),
+    value: ref.value ? valToConstant(ref.value) : undefined,
+  });
+  return protoRef;
 }

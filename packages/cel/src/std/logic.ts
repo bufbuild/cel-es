@@ -44,16 +44,15 @@ const notStrictlyFalse = celFunc(opc.NOT_STRICTLY_FALSE, [
     [CelScalar.BOOL],
     CelScalar.BOOL,
     (x) => true, // Irrelevant because we overwrite dispatch below
-  )
-])
+  ),
+]);
 notStrictlyFalse.dispatch = (_, args) => {
   const raw = args[0];
   if (isCelError(raw)) {
     return true;
   }
   return raw !== false;
-}
-
+};
 
 const notFunc = celFunc(opc.LOGICAL_NOT, [
   celOverload(olc.LOGICAL_NOT, [CelScalar.BOOL], CelScalar.BOOL, (x) => !x),
@@ -65,8 +64,8 @@ const and = celFunc(opc.LOGICAL_AND, [
     [CelScalar.BOOL, CelScalar.BOOL],
     CelScalar.BOOL,
     (x, y) => x && y, // Irrelevant because we overwrite dispatch below
-  )
-])
+  ),
+]);
 and.dispatch = (_id, args) => {
   let allBools = true;
   const errors: CelError[] = [];
@@ -88,7 +87,7 @@ and.dispatch = (_id, args) => {
     return celErrorMerge(errors[0], ...errors.slice(1));
   }
   return undefined;
-}
+};
 
 const or = celFunc(opc.LOGICAL_OR, [
   celOverload(
@@ -96,8 +95,8 @@ const or = celFunc(opc.LOGICAL_OR, [
     [CelScalar.BOOL, CelScalar.BOOL],
     CelScalar.BOOL,
     (x, y) => x || y, // Irrelevant because we overwrite dispatch below
-  )
-])
+  ),
+]);
 or.dispatch = (_, args) => {
   let allBools = true;
   const errors: CelError[] = [];
@@ -119,7 +118,7 @@ or.dispatch = (_, args) => {
     return celErrorMerge(errors[0], ...errors.slice(1));
   }
   return undefined;
-}
+};
 
 /**
  * This is not actually used by the planner since it handles conditionals
@@ -142,28 +141,23 @@ const conditional = celFunc(opc.CONDITIONAL, [
  * but it is defined here for type checking.
  */
 const index = celFunc(opc.INDEX, [
-  celOverload(
-    olc.INDEX_LIST,
-    [listOfA, CelScalar.INT],
-    paramA,
-    (lst, idx) => {
-      // Irrelevant because dispatch is never called by the planner for indexing
-      return lst.get(Number(idx)) ?? null;
-    },
-  ),
-  celOverload(
-    olc.INDEX_MAP,
-    [mapOfAB, paramA],
-    paramB,
-    (mp, key) => {
-      // Irrelevant because dispatch is never called by the planner for indexing
-      return mp.get(key as string) ?? null;
-    },
-  )
+  celOverload(olc.INDEX_LIST, [listOfA, CelScalar.INT], paramA, (lst, idx) => {
+    // Irrelevant because dispatch is never called by the planner for indexing
+    return lst.get(Number(idx)) ?? null;
+  }),
+  celOverload(olc.INDEX_MAP, [mapOfAB, paramA], paramB, (mp, key) => {
+    // Irrelevant because dispatch is never called by the planner for indexing
+    return mp.get(key as string) ?? null;
+  }),
 ]);
 
 const eqFunc = celFunc(opc.EQUALS, [
-  celOverload(olc.EQUALS, [CelScalar.DYN, CelScalar.DYN], CelScalar.BOOL, equals),
+  celOverload(
+    olc.EQUALS,
+    [CelScalar.DYN, CelScalar.DYN],
+    CelScalar.BOOL,
+    equals,
+  ),
 ]);
 
 const neFunc = celFunc(opc.NOT_EQUALS, [
@@ -262,20 +256,29 @@ const geFunc = celFunc(opc.GREATER_EQUALS, [
 ]);
 
 const containsFunc = celFunc(olc.CONTAINS, [
-  celMemberOverload(olc.CONTAINS_STRING, [CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
-    x.includes(y),
+  celMemberOverload(
+    olc.CONTAINS_STRING,
+    [CelScalar.STRING, CelScalar.STRING],
+    CelScalar.BOOL,
+    (x, y) => x.includes(y),
   ),
 ]);
 
 const endsWithFunc = celFunc(olc.ENDS_WITH, [
-  celMemberOverload(olc.ENDS_WITH_STRING, [CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
-    x.endsWith(y),
+  celMemberOverload(
+    olc.ENDS_WITH_STRING,
+    [CelScalar.STRING, CelScalar.STRING],
+    CelScalar.BOOL,
+    (x, y) => x.endsWith(y),
   ),
 ]);
 
 const startsWithFunc = celFunc(olc.STARTS_WITH, [
-  celMemberOverload(olc.STARTS_WITH_STRING, [CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
-    x.startsWith(y),
+  celMemberOverload(
+    olc.STARTS_WITH_STRING,
+    [CelScalar.STRING, CelScalar.STRING],
+    CelScalar.BOOL,
+    (x, y) => x.startsWith(y),
   ),
 ]);
 
@@ -352,19 +355,35 @@ const sizeFunc = celFunc(olc.SIZE, [
     }
     return BigInt(size);
   }),
-  celMemberOverload(olc.SIZE_STRING_INST, [CelScalar.STRING], CelScalar.INT, (x) => {
-    let size = 0;
-    for (const _ of x) {
-      size++;
-    }
-    return BigInt(size);
-  }),
-  celOverload(olc.SIZE_BYTES, [CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
-  celMemberOverload(olc.SIZE_BYTES_INST, [CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
+  celMemberOverload(
+    olc.SIZE_STRING_INST,
+    [CelScalar.STRING],
+    CelScalar.INT,
+    (x) => {
+      let size = 0;
+      for (const _ of x) {
+        size++;
+      }
+      return BigInt(size);
+    },
+  ),
+  celOverload(olc.SIZE_BYTES, [CelScalar.BYTES], CelScalar.INT, (x) =>
+    BigInt(x.length),
+  ),
+  celMemberOverload(
+    olc.SIZE_BYTES_INST,
+    [CelScalar.BYTES],
+    CelScalar.INT,
+    (x) => BigInt(x.length),
+  ),
   celOverload(olc.SIZE_LIST, [listOfA], CelScalar.INT, (x) => BigInt(x.size)),
-  celMemberOverload(olc.SIZE_LIST_INST, [listOfA], CelScalar.INT, (x) => BigInt(x.size)),
+  celMemberOverload(olc.SIZE_LIST_INST, [listOfA], CelScalar.INT, (x) =>
+    BigInt(x.size),
+  ),
   celOverload(olc.SIZE_MAP, [mapOfAB], CelScalar.INT, (x) => BigInt(x.size)),
-  celMemberOverload(olc.SIZE_MAP_INST, [mapOfAB], CelScalar.INT, (x) => BigInt(x.size)),
+  celMemberOverload(olc.SIZE_MAP_INST, [mapOfAB], CelScalar.INT, (x) =>
+    BigInt(x.size),
+  ),
 ]);
 
 function mapInOp(x: CelValue, y: CelMap) {
@@ -395,19 +414,19 @@ const inFunc = celFunc(opc.IN, [
     mapInOp,
   ),
   celOverload(
-    olc.IN_MAP + '_int_key',
+    olc.IN_MAP + "_int_key",
     [CelScalar.DYN, mapType(CelScalar.INT, CelScalar.DYN)],
     CelScalar.BOOL,
     mapInOp,
   ),
   celOverload(
-    olc.IN_MAP + '_uint_key',
+    olc.IN_MAP + "_uint_key",
     [CelScalar.DYN, mapType(CelScalar.UINT, CelScalar.DYN)],
     CelScalar.BOOL,
     mapInOp,
   ),
   celOverload(
-    olc.IN_MAP + '_bool_key',
+    olc.IN_MAP + "_bool_key",
     [CelScalar.DYN, mapType(CelScalar.BOOL, CelScalar.DYN)],
     CelScalar.BOOL,
     mapInOp,

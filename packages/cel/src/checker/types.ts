@@ -1,20 +1,43 @@
+// Copyright 2024-2025 Buf Technologies, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import {
-  type CelListType,
-  type CelMapType,
-  type CelOpaqueType,
+  Type_PrimitiveType,
+  TypeSchema,
+} from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
+import type { Type } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
+import {
   CelScalar,
-  type CelType,
   isAssignableType,
   isDynCelType,
   isDynOrErrorCelType,
   isExactCelType,
   listType,
-  type mapKeyType,
   mapType,
   opaqueType,
   typeTypeWithParam,
 } from "../type.js";
-import { Mapping } from "./mapping.js";
+import type {
+  CelListType,
+  CelMapType,
+  CelOpaqueType,
+  CelType,
+  mapKeyType,
+} from "../type.js";
+import type { Mapping } from "./mapping.js";
+import { create } from "@bufbuild/protobuf";
+import { NullValue } from "@bufbuild/protobuf/wkt";
 
 /**
  * isEqualOrLessSpecific checks whether one type is equal or less specific than the other one.
@@ -48,7 +71,7 @@ function isEqualOrLessSpecific(t1: CelType, t2: CelType): boolean {
         if (
           !isEqualOrLessSpecific(
             t1.parameters[i],
-            (t2 as CelOpaqueType).parameters[i]
+            (t2 as CelOpaqueType).parameters[i],
           )
         ) {
           return false;
@@ -151,7 +174,7 @@ function internalIsAssignable(m: Mapping, t1: CelType, t2: CelType): boolean {
 function isValidTypeSubstitution(
   m: Mapping,
   t1: CelType,
-  t2: CelType
+  t2: CelType,
 ): [boolean, boolean] {
   // Early return if the t1 and t2 are the same instance.
   const kind1 = t1.kind;
@@ -193,7 +216,7 @@ function isValidTypeSubstitution(
 function internalIsAssignableList(
   m: Mapping,
   l1: CelType[],
-  l2: CelType[]
+  l2: CelType[],
 ): boolean {
   if (l1.length !== l2.length) {
     return false;
@@ -233,7 +256,7 @@ function isLegacyNullable(t: CelType): boolean {
 export function isAssignable(
   m: Mapping,
   t1: CelType,
-  t2: CelType
+  t2: CelType,
 ): Mapping | undefined {
   const mCopy = m.copy();
   if (internalIsAssignable(mCopy, t1, t2)) {
@@ -248,7 +271,7 @@ export function isAssignable(
 export function isAssignableList(
   m: Mapping,
   l1: CelType[],
-  l2: CelType[]
+  l2: CelType[],
 ): Mapping | undefined {
   const mCopy = m.copy();
   if (internalIsAssignableList(mCopy, l1, l2)) {
@@ -311,7 +334,11 @@ function notReferencedIn(m: Mapping, t: CelType, withinType: CelType): boolean {
  * substitute replaces all direct and indirect occurrences of bound type parameters. Unbound type
  * parameters are replaced by DYN if typeParamToDyn is true.
  */
-export function substitute(m: Mapping, t: CelType, typeParamToDyn: boolean): CelType {
+export function substitute(
+  m: Mapping,
+  t: CelType,
+  typeParamToDyn: boolean,
+): CelType {
   const tSub = m.find(t);
   if (tSub) {
     return substitute(m, tSub, typeParamToDyn);
@@ -323,14 +350,14 @@ export function substitute(m: Mapping, t: CelType, typeParamToDyn: boolean): Cel
     case "opaque":
       return opaqueType(
         t.name,
-        substituteParams(m, t.parameters, typeParamToDyn)
+        substituteParams(m, t.parameters, typeParamToDyn),
       );
     case "list":
       return listType(substitute(m, t.element, typeParamToDyn));
     case "map":
       return mapType(
         substitute(m, t.key, typeParamToDyn) as mapKeyType,
-        substitute(m, t.value, typeParamToDyn)
+        substitute(m, t.value, typeParamToDyn),
       );
     case "type":
       if (t.type) {
@@ -345,7 +372,7 @@ export function substitute(m: Mapping, t: CelType, typeParamToDyn: boolean): Cel
 function substituteParams(
   m: Mapping,
   typeParams: CelType[],
-  typeParamToDyn: boolean
+  typeParamToDyn: boolean,
 ): CelType[] {
   const subParams: CelType[] = [];
   for (let i = 0; i < typeParams.length; i++) {
@@ -359,4 +386,121 @@ export function functionType(
   ...argTypes: CelType[]
 ): CelOpaqueType {
   return opaqueType("function", [resultType, ...argTypes]);
+}
+
+/**
+ * Converts a primitive CelType to its protobuf Type representation.
+ */
+function primitiveProtoType(type: Type_PrimitiveType): Type {
+  return create(TypeSchema, {
+    typeKind: {
+      case: "primitive",
+      value: type,
+    },
+  });
+}
+
+/**
+ * Converts a CelType to its protobuf Type representation.
+ */
+export function celTypeToProtoType(t: CelType): Type {
+  switch (t.kind) {
+    case "error":
+      return create(TypeSchema, {
+        typeKind: {
+          case: "error",
+          // TODO: should we include more info here?
+          value: {},
+        },
+      });
+    case "list":
+      return create(TypeSchema, {
+        typeKind: {
+          case: "listType",
+          value: {
+            elemType: celTypeToProtoType(t.element),
+          },
+        },
+      });
+    case "map":
+      return create(TypeSchema, {
+        typeKind: {
+          case: "mapType",
+          value: {
+            keyType: celTypeToProtoType(t.key),
+            valueType: celTypeToProtoType(t.value),
+          },
+        },
+      });
+    case "object":
+      return create(TypeSchema, {
+        typeKind: {
+          case: "messageType",
+          value: t.name,
+        },
+      });
+    case "opaque":
+      return create(TypeSchema, {
+        typeKind: {
+          case: "abstractType",
+          value: {
+            name: t.name,
+            parameterTypes: t.parameters.map((pt) => celTypeToProtoType(pt)),
+          },
+        },
+      });
+    case "scalar":
+      switch (t.scalar) {
+        case "bool":
+          return primitiveProtoType(Type_PrimitiveType.BOOL);
+        case "bytes":
+          return primitiveProtoType(Type_PrimitiveType.BYTES);
+        case "double":
+          return primitiveProtoType(Type_PrimitiveType.DOUBLE);
+        case "int":
+          return primitiveProtoType(Type_PrimitiveType.INT64);
+        case "string":
+          return primitiveProtoType(Type_PrimitiveType.STRING);
+        case "uint":
+          return primitiveProtoType(Type_PrimitiveType.UINT64);
+        case "null_type":
+          return create(TypeSchema, {
+            typeKind: {
+              case: "null",
+              value: NullValue.NULL_VALUE,
+            },
+          });
+        case "dyn":
+          return create(TypeSchema, {
+            typeKind: {
+              case: "dyn",
+              value: {},
+            },
+          });
+        case "type":
+          // TODO: is this right?
+          return create(TypeSchema, {
+            typeKind: {
+              case: "typeParam",
+              value: t.name,
+            },
+          });
+      }
+    case "type": {
+      return create(TypeSchema, {
+        typeKind: {
+          case: "type",
+          value: celTypeToProtoType(t.type),
+        },
+      });
+    }
+    case "type_param": {
+      return create(TypeSchema, {
+        typeKind: {
+          case: "typeParam",
+          value: t.name,
+        },
+      });
+    }
+  }
 }

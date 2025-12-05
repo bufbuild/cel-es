@@ -264,7 +264,7 @@ const getSecondsFunc = celFunc(olc.TIME_GET_SECONDS, [
     olc.DURATION_TO_SECONDS,
     [DURATION],
     CelScalar.INT,
-    (dur) => dur.message.seconds
+    (dur) => dur.message.seconds,
   ),
 ]);
 
@@ -285,7 +285,7 @@ const getMinutesFunc = celFunc(olc.TIME_GET_MINUTES, [
     olc.DURATION_TO_MINUTES,
     [DURATION],
     CelScalar.INT,
-    (dur) => dur.message.seconds / 60n
+    (dur) => dur.message.seconds / 60n,
   ),
 ]);
 
@@ -306,7 +306,7 @@ const getHoursFunc = celFunc(olc.TIME_GET_HOURS, [
     olc.DURATION_TO_HOURS,
     [DURATION],
     CelScalar.INT,
-    (dur) => dur.message.seconds / 3600n
+    (dur) => dur.message.seconds / 3600n,
   ),
 ]);
 
