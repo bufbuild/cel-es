@@ -48,14 +48,6 @@ await Promise.all(
   ),
 );
 
-// Write to TypeScript
-await fs.writeFile(
-  "src/testdata/conformance.ts",
-  `// Generated from github.com/google/cel-spec ${upstreamCelSpecRef} by scripts/fetch-testdata.js
-
-export const testdata = ${JSON.stringify(testdataJsonFiles, null, 2)} as const;`,
-);
-
 /**
  * @param {[string, Uint8Array|string][]} testData
  * @param {string} module

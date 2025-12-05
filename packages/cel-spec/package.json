@@ -19,13 +19,13 @@
     "fetch-proto": "node scripts/fetch-proto.js",
     "postfetch-proto": "license-header proto",
     "fetch-testdata": "node scripts/fetch-testdata.js",
-    "postfetch-testdata": "biome format --write src/testdata/conformance.ts src/testdata/json/*.json && license-header src/testdata/conformance.ts",
-    "fetch-parser": "go run -C scripts gen_parser_tests.go -output ../src/testdata/parser.ts parser/parser_test.go",
-    "postfetch-parser": "biome format --write src/testdata/parser.ts && license-header src/testdata/parser.ts",
-    "fetch-parser-comprehensions": "go run -C scripts gen_parser_tests.go -output ../src/testdata/parser-comprehensions.ts ext/comprehensions_test.go",
-    "postfetch-parser-comprehensions": "biome format --write src/testdata/parser-comprehensions.ts && license-header src/testdata/parser-comprehensions.ts",
-    "fetch-parser-conformance": "go run -C scripts gen_parser_tests.go -output ../src/testdata/parser-conformance.ts ../src/testdata/json",
-    "postfetch-parser-conformance": "biome format --write src/testdata/parser-conformance.ts && license-header src/testdata/parser-conformance.ts",
+    "postfetch-testdata": "biome format --write src/testdata/json/*.json",
+    "fetch-parsing": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/parsing.ts parser/parser_test.go",
+    "postfetch-parsing": "biome format --write src/testdata/parsing.ts && license-header src/testdata/parsing.ts",
+    "fetch-comprehension": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/comprehension.ts ext/comprehensions_test.go",
+    "postfetch-comprehension": "biome format --write src/testdata/comprehension.ts && license-header src/testdata/comprehension.ts",
+    "fetch-conformance": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/conformance.ts ../src/testdata/json",
+    "postfetch-conformance": "biome format --write src/testdata/conformance.ts && license-header src/testdata/conformance.ts",
     "update-exports": "node scripts/update-exports.js",
     "postupdate-exports": "biome format --write package.json",
     "update-readme": "node scripts/update-readme.js",
@@ -44,29 +44,25 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./testdata/comprehension.js": {
+      "import": "./dist/esm/testdata/comprehension.js",
+      "require": "./dist/cjs/testdata/comprehension.js"
+    },
     "./testdata/conformance.js": {
       "import": "./dist/esm/testdata/conformance.js",
       "require": "./dist/cjs/testdata/conformance.js"
     },
-    "./testdata/parser-comprehensions.js": {
-      "import": "./dist/esm/testdata/parser-comprehensions.js",
-      "require": "./dist/cjs/testdata/parser-comprehensions.js"
-    },
-    "./testdata/parser-conformance.js": {
-      "import": "./dist/esm/testdata/parser-conformance.js",
-      "require": "./dist/cjs/testdata/parser-conformance.js"
-    },
-    "./testdata/parser.js": {
-      "import": "./dist/esm/testdata/parser.js",
-      "require": "./dist/cjs/testdata/parser.js"
+    "./testdata/parsing.js": {
+      "import": "./dist/esm/testdata/parsing.js",
+      "require": "./dist/cjs/testdata/parsing.js"
     },
     "./testdata/registry.js": {
       "import": "./dist/esm/testdata/registry.js",
       "require": "./dist/cjs/testdata/registry.js"
     },
-    "./testdata/simple.js": {
-      "import": "./dist/esm/testdata/simple.js",
-      "require": "./dist/cjs/testdata/simple.js"
+    "./testdata/tests.js": {
+      "import": "./dist/esm/testdata/tests.js",
+      "require": "./dist/cjs/testdata/tests.js"
     },
     "./testdata/to-debug-string.js": {
       "import": "./dist/esm/testdata/to-debug-string.js",
@@ -123,16 +119,11 @@
   },
   "typesVersions": {
     "*": {
+      "testdata/comprehension.js": ["./dist/cjs/testdata/comprehension.d.ts"],
       "testdata/conformance.js": ["./dist/cjs/testdata/conformance.d.ts"],
-      "testdata/parser-comprehensions.js": [
-        "./dist/cjs/testdata/parser-comprehensions.d.ts"
-      ],
-      "testdata/parser-conformance.js": [
-        "./dist/cjs/testdata/parser-conformance.d.ts"
-      ],
-      "testdata/parser.js": ["./dist/cjs/testdata/parser.d.ts"],
+      "testdata/parsing.js": ["./dist/cjs/testdata/parsing.d.ts"],
       "testdata/registry.js": ["./dist/cjs/testdata/registry.d.ts"],
-      "testdata/simple.js": ["./dist/cjs/testdata/simple.d.ts"],
+      "testdata/tests.js": ["./dist/cjs/testdata/tests.d.ts"],
       "testdata/to-debug-string.js": [
         "./dist/cjs/testdata/to-debug-string.d.ts"
       ],

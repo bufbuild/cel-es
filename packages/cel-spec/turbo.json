@@ -14,36 +14,36 @@
       "dependsOn": ["fetch-proto"],
       "outputLogs": "new-only"
     },
-    "fetch-parser": {
+    "fetch-parsing": {
       "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
-      "outputs": ["src/testdata/parser.ts"],
+      "outputs": ["src/testdata/parsing.ts"],
       "dependsOn": ["fetch-testdata"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
-    "fetch-parser-comprehensions": {
+    "fetch-comprehensions": {
       "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
-      "outputs": ["src/testdata/parser-comprehensions.ts"],
+      "outputs": ["src/testdata/comprehensions.ts"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
-    "fetch-parser-conformance": {
+    "fetch-conformance": {
       "inputs": [
         "scripts/*.go",
         "scripts/go.*",
         "package.json",
         "src/testdata/json/*.json"
       ],
-      "outputs": ["src/testdata/parser-conformance.ts"],
+      "outputs": ["src/testdata/conformance.ts"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
     "update-exports": {
       "dependsOn": [
         "generate",
-        "fetch-parser",
-        "fetch-parser-comprehensions",
-        "fetch-parser-conformance"
+        "fetch-parsing",
+        "fetch-comprehensions",
+        "fetch-conformance"
       ],
       "inputs": ["src/**", "scripts/**"],
       "outputs": ["package.json"],

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { suite } from "node:test";
-import { createTestFilter, testSimpleTestFile } from "./testing.js";
-import { getSimpleTestFiles } from "@bufbuild/cel-spec/testdata/simple.js";
-import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
+import {
+  createPathFilter,
+  runSimpleTestCase,
+  runTestSuite,
+} from "./testing.js";
+import { getConformanceSuite } from "@bufbuild/cel-spec/testdata/tests.js";
 
-const files = getSimpleTestFiles();
-
-const failures = createTestFilter([
+const filter = createPathFilter([
   // Requires update to the parser to support quoted fields.
   ["fields", "quoted_map_fields"],
   ["proto2", "quoted_fields"],
@@ -268,9 +268,4 @@ const failures = createTestFilter([
   ["optionals", "optionals", "map_optional_entry_has"],
 ]);
 
-void suite("Conformance Tests", () => {
-  const typeRegistry = getTestRegistry();
-  for (const file of files) {
-    testSimpleTestFile(file, typeRegistry, failures);
-  }
-});
+runTestSuite(getConformanceSuite(), runSimpleTestCase, [], filter);

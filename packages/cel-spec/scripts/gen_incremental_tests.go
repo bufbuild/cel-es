@@ -30,26 +30,112 @@ import (
 	goparser "go/parser"
 	gotoken "go/token"
 
-	_ "cel.dev/expr/conformance/proto2"
-	_ "cel.dev/expr/conformance/proto3"
-	"cel.dev/expr/conformance/test"
+	// "cel.dev/expr"
+	test2pb "cel.dev/expr/conformance/proto2"
+	test3pb "cel.dev/expr/conformance/proto3"
+	testpb "cel.dev/expr/conformance/test"
 
+	"github.com/google/cel-go/cel"
 	"github.com/google/cel-go/common"
 	"github.com/google/cel-go/common/ast"
 	"github.com/google/cel-go/common/debug"
 	"github.com/google/cel-go/common/types"
+	"github.com/google/cel-go/ext"
 	"github.com/google/cel-go/parser"
 
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-type ParserTest struct {
-	Expression string `json:"expr"`
-	Ast        string `json:"ast,omitempty"`
-	Error      string `json:"error,omitempty"`
+var (
+	parserInstance *parser.Parser
+	envWithMacros  *cel.Env
+	envNoMacros    *cel.Env
+)
+
+type OriginalTest struct {
+	Test *testpb.SimpleTest
+}
+
+type IncrementalSuite struct {
+	Name   string              `json:"name"`
+	Suites []*IncrementalSuite `json:"suites,omitempty"`
+	Tests  []*IncrementalTest  `json:"tests,omitempty"`
+}
+
+type IncrementalTest struct {
+	Original OriginalTest `json:"original"`
+	Section  string       `json:"section,omitempty"`
+	Ast      string       `json:"ast,omitempty"`
+	Type     string       `json:"type,omitempty"`
+	Error    string       `json:"error,omitempty"`
+}
+
+func wrapTest(test *testpb.SimpleTest) *IncrementalTest {
+	t := &IncrementalTest{
+		Original: OriginalTest{Test: test},
+	}
+
+	supplementTest(t)
+
+	return t
+}
+
+func wrapString(expr string) *IncrementalTest {
+	return wrapTest(&testpb.SimpleTest{Expr: expr})
+}
+
+func (t *IncrementalTest) unwrap() *testpb.SimpleTest {
+	return t.Original.Test
+}
+
+func (o *OriginalTest) MarshalJSON() ([]byte, error) {
+	return protojson.Marshal(o.Test)
 }
 
 const celGoModule = "github.com/google/cel-go"
+
+func init() {
+	var err error
+
+	parserOpts := []parser.Option{
+		parser.Macros(parser.AllMacros...),
+		parser.MaxRecursionDepth(32),
+		parser.ErrorRecoveryLimit(4),
+		parser.ErrorRecoveryLookaheadTokenLimit(4),
+		parser.PopulateMacroCalls(true),
+		parser.EnableVariadicOperatorASTs(false),
+	}
+
+	parserInstance, err = parser.NewParser(parserOpts...)
+	if err != nil {
+		log.Fatalf("parser.NewParser() = %v", err)
+	}
+
+	stdOpts := []cel.EnvOption{
+		cel.StdLib(),
+		cel.ClearMacros(),
+		cel.OptionalTypes(),
+		cel.EagerlyValidateDeclarations(true),
+		cel.EnableErrorOnBadPresenceTest(true),
+		cel.Types(&test2pb.TestAllTypes{}, &test2pb.Proto2ExtensionScopedMessage{}, &test3pb.TestAllTypes{}),
+		ext.Bindings(),
+		ext.Encoders(),
+		ext.Math(),
+		ext.Protos(),
+		ext.Strings(),
+		cel.Lib(celBlockLib{}),
+		cel.EnableIdentifierEscapeSyntax(),
+	}
+
+	envNoMacros, err = cel.NewCustomEnv(stdOpts...)
+	if err != nil {
+		log.Fatalf("cel.NewCustomEnv() = %v", err)
+	}
+	envWithMacros, err = envNoMacros.Extend(cel.Macros(cel.StandardMacros...))
+	if err != nil {
+		log.Fatalf("cel.NewCustomEnv() = %v", err)
+	}
+}
 
 // Examples:
 // go run ./main.go -output=parser.json parser/parser_test.go
@@ -62,11 +148,13 @@ func main() {
 		log.Fatalf("must provide path to a cel-go source file or testdata JSON directory")
 	}
 	sourcePath := flag.Args()[0]
-	var expressions []string
+	suite := &IncrementalSuite{}
 	var sourceId = sourcePath
 
 	simpleTestFilePaths, err := os.ReadDir(sourcePath)
 	if err == nil {
+		suite.Name = "conformance"
+
 		for _, path := range simpleTestFilePaths {
 			name := path.Name()
 
@@ -76,17 +164,25 @@ func main() {
 					log.Fatalf("failed to read file: %v", err)
 				}
 
-				var file test.SimpleTestFile
+				var file testpb.SimpleTestFile
 				err = protojson.Unmarshal(simpleTestFile, &file)
 				if err != nil {
 					log.Fatalf("failed to unmarshal file: %v", err)
 				}
 
+				fileSuite := &IncrementalSuite{Name: file.GetName()}
+
 				for _, section := range file.Section {
+					sectionSuite := &IncrementalSuite{Name: section.GetName()}
+
 					for _, test := range section.Test {
-						expressions = append(expressions, test.Expr)
+						sectionSuite.Tests = append(sectionSuite.Tests, wrapTest(test))
 					}
+
+					fileSuite.Suites = append(fileSuite.Suites, sectionSuite)
 				}
+
+				suite.Suites = append(suite.Suites, fileSuite)
 			}
 		}
 	} else {
@@ -97,73 +193,78 @@ func main() {
 			log.Fatalf("failed to parse source: %v", err)
 		}
 
-		var filter func(file *goast.File) ([]string, error)
+		var filter func(file *goast.File) ([]*IncrementalTest, error)
 		if strings.HasSuffix(sourcePath, "parser_test.go") {
-			filter = findParserTestExpressions
+			filter = findParserTests
+			suite.Name = "parsing"
 		} else if strings.HasSuffix(sourcePath, "comprehensions_test.go") {
-			filter = findComprehensionTestExpressions
+			filter = findComprehensionTests
+			suite.Name = "comprehension"
 		} else {
 			log.Fatalf("do not know what to extract from %s", sourcePath)
 		}
 
-		expressions, err = filter(file)
+		suite.Tests, err = filter(file)
 
 		if err != nil {
 			log.Fatalf("failed to extract expressions: %v", err)
 		}
 	}
 
-	parserTests, err := parseExpressions(expressions)
-	if err != nil {
-		log.Fatalf("failed to parse expressions: %v", err)
-	}
-	err = write(parserTests, sourceId, *outputPath)
+	err = write(suite, sourceId, *outputPath)
 	if err != nil {
 		log.Fatalf("failed to write output: %v", err)
 	}
 }
 
-func parseExpressions(expressions []string) ([]*ParserTest, error) {
-	celParser, err := parser.NewParser(
-		parser.Macros(parser.AllMacros...),
-		parser.MaxRecursionDepth(32),
-		parser.ErrorRecoveryLimit(4),
-		parser.ErrorRecoveryLookaheadTokenLimit(4),
-		parser.PopulateMacroCalls(true),
-		parser.EnableVariadicOperatorASTs(false),
-	)
-	if err != nil {
-		return nil, err
-	}
-	var parserTests []*ParserTest
-	for _, test := range expressions {
-		result := exprToParserTest(celParser, test)
-		if result != nil {
-			parserTests = append(parserTests, result)
-		}
-	}
-	return parserTests, nil
-}
-
-func exprToParserTest(p *parser.Parser, expression string) *ParserTest {
-	s := common.NewTextSource(expression)
-	a, errors := p.Parse(s)
-	if len(errors.GetErrors()) == 0 {
-		return &ParserTest{
-			expression,
-			debug.ToAdornedDebugString(
-				a.Expr(),
-				&kindAdorner{},
-			),
-			"",
-		}
+func supplementTest(test *IncrementalTest) {
+	var env *cel.Env
+	if test.unwrap().GetDisableMacros() {
+		env = envNoMacros
 	} else {
-		return &ParserTest{
-			expression,
-			"",
-			errors.ToDisplayString(),
-		}
+		env = envWithMacros
 	}
+
+	src := common.NewStringSource(test.unwrap().GetExpr(), test.unwrap().GetName())
+	ast, errors := parserInstance.Parse(src)
+	if len(errors.GetErrors()) > 0 {
+		test.Error = errors.ToDisplayString()
+		return
+	}
+
+	test.Ast = debug.ToAdornedDebugString(
+		ast.Expr(),
+		&kindAdorner{},
+	)
+
+	var opts []cel.EnvOption
+	if test.unwrap().GetContainer() != "" {
+		opts = append(opts, cel.Container(test.unwrap().GetContainer()))
+	}
+
+	for _, d := range test.unwrap().GetTypeEnv() {
+		opt, err := cel.ProtoAsDeclaration(d)
+		if err != nil {
+			test.Error = err.Error()
+			return
+		}
+		opts = append(opts, opt)
+	}
+
+	var err error
+	env, err = env.Extend(opts...)
+	if err != nil {
+		test.Error = err.Error()
+		return
+	}
+
+	checked, iss := env.Compile(test.unwrap().GetExpr())
+	if err := iss.Err(); err != nil {
+		test.Error = err.Error()
+		return
+	}
+
+	test.Type = cel.FormatCELType(checked.OutputType())
 }
 
 type kindAdorner struct {
@@ -263,8 +364,8 @@ func parseCelGoSourceFile(goModPath string, filePath string) (*goast.File, strin
 // Find CEL expressions from cel-go's comprehensions_test.go
 // Returns the unquoted string values from each `expr` defined in a `Test` func.
 // See https://github.com/google/cel-go/blob/98789f34a481044a0ad4b8a77f298d2ec3623bdb/ext/comprehensions_test.go
-func findComprehensionTestExpressions(file *goast.File) ([]string, error) {
-	var inputs []string
+func findComprehensionTests(file *goast.File) ([]*IncrementalTest, error) {
+	var tests []*IncrementalTest
 	for _, decl := range file.Decls {
 		funcDecl, ok := decl.(*goast.FuncDecl)
 		if !ok {
@@ -310,20 +411,20 @@ func findComprehensionTestExpressions(file *goast.File) ([]string, error) {
 					if err != nil {
 						return nil, fmt.Errorf("cannot unquote %s: %w", valLit.Value, err)
 					}
-					inputs = append(inputs, unquotedInput)
+					tests = append(tests, wrapString(unquotedInput))
 				}
 			}
 		}
 	}
-	return inputs, nil
+	return tests, nil
 }
 
 // Find CEL expressions from cel-go's parser_test.go
 // Returns the unquoted string values from each `testInfo.I` of the `testCases`
 // slice.
 // See https://github.com/google/cel-go/blob/98789f34a481044a0ad4b8a77f298d2ec3623bdb/parser/parser_test.go
-func findParserTestExpressions(file *goast.File) ([]string, error) {
-	var inputs []string
+func findParserTests(file *goast.File) ([]*IncrementalTest, error) {
+	var tests []*IncrementalTest
 	for _, decl := range file.Decls {
 		genDecl, ok := decl.(*goast.GenDecl)
 		if !ok {
@@ -368,34 +469,40 @@ func findParserTestExpressions(file *goast.File) ([]string, error) {
 							if err != nil {
 								return nil, fmt.Errorf("cannot unquote %s: %w", valLit.Value, err)
 							}
-							inputs = append(inputs, unquotedInput)
+							tests = append(tests, wrapString(unquotedInput))
 						}
 					}
 				}
 			}
 		}
 	}
-	return inputs, nil
+	return tests, nil
 }
 
-func write(parserTests []*ParserTest, sourceId string, outputPath string) error {
+func write(suite *IncrementalSuite, sourceId string, outputPath string) error {
 	var output []byte
 	if strings.HasSuffix(outputPath, ".ts") {
 		buf := strings.Builder{}
 		buf.WriteString("// Generated from cel-go " + sourceId + "\n")
-		buf.WriteString("export const parserTests = ")
-		j, _ := json.Marshal(parserTests)
+		buf.WriteString("import type { SerializedIncrementalTestSuite } from './tests.js';")
+		buf.WriteString("export const tests: SerializedIncrementalTestSuite = ")
+		j, err := json.Marshal(suite)
+		if err != nil {
+			log.Fatal(err)
+		}
 		buf.Write(j)
 		buf.WriteString(" as const;\n")
 		output = []byte(buf.String())
 	} else {
-		output, _ = json.Marshal(parserTests)
+		output, _ = json.Marshal(suite)
 	}
 	return os.WriteFile(outputPath, output, 0644)
 }
 
-// GOMODCACHE is not always guaranteed to set.
-// We can fallback to using `go env`
+// The code below was adapted from: https://github.com/google/cel-go/blob/8890f56dd657d3f4746ad1c53f55b65574457d29/conformance/conformance_test.go
+// This code is also licensed under the Apache License, Version 2.0.
+// However, the copyright is as follows: Copyright 2024-2025 Google, LLC.
+
 func getGoModCache() string {
 	goModCache := os.Getenv("GOMODCACHE")
 	if goModCache != "" {
@@ -412,4 +519,84 @@ func getGoModCache() string {
 		return ""
 	}
 	return strings.TrimSpace(sb.String())
+}
+
+type celBlockLib struct{}
+
+func (celBlockLib) LibraryName() string {
+	return "cel.lib.ext.cel.block.conformance"
+}
+
+func (celBlockLib) CompileOptions() []cel.EnvOption {
+	maxIndices := 30
+	indexOpts := make([]cel.EnvOption, maxIndices)
+	for i := 0; i < maxIndices; i++ {
+		indexOpts[i] = cel.Variable(fmt.Sprintf("@index%d", i), cel.DynType)
+	}
+	return append([]cel.EnvOption{
+		cel.Macros(
+			cel.ReceiverMacro("block", 2, celBlock),
+			cel.ReceiverMacro("index", 1, celIndex),
+			cel.ReceiverMacro("iterVar", 2, celCompreVar("cel.iterVar", "@it")),
+			cel.ReceiverMacro("accuVar", 2, celCompreVar("cel.accuVar", "@ac")),
+		),
+	}, indexOpts...)
+}
+
+func (celBlockLib) ProgramOptions() []cel.ProgramOption {
+	return []cel.ProgramOption{}
+}
+
+func celBlock(mef cel.MacroExprFactory, target ast.Expr, args []ast.Expr) (ast.Expr, *cel.Error) {
+	if !isCELNamespace(target) {
+		return nil, nil
+	}
+	bindings := args[0]
+	if bindings.Kind() != ast.ListKind {
+		return bindings, mef.NewError(bindings.ID(), "cel.block requires the first arg to be a list literal")
+	}
+	return mef.NewCall("cel.@block", args...), nil
+}
+
+func celIndex(mef cel.MacroExprFactory, target ast.Expr, args []ast.Expr) (ast.Expr, *cel.Error) {
+	if !isCELNamespace(target) {
+		return nil, nil
+	}
+	index := args[0]
+	if !isNonNegativeInt(index) {
+		return index, mef.NewError(index.ID(), "cel.index requires a single non-negative int constant arg")
+	}
+	indexVal := index.AsLiteral().(types.Int)
+	return mef.NewIdent(fmt.Sprintf("@index%d", indexVal)), nil
+}
+
+func celCompreVar(funcName, varPrefix string) cel.MacroFactory {
+	return func(mef cel.MacroExprFactory, target ast.Expr, args []ast.Expr) (ast.Expr, *cel.Error) {
+		if !isCELNamespace(target) {
+			return nil, nil
+		}
+		depth := args[0]
+		if !isNonNegativeInt(depth) {
+			return depth, mef.NewError(depth.ID(), fmt.Sprintf("%s requires two non-negative int constant args", funcName))
+		}
+		unique := args[1]
+		if !isNonNegativeInt(unique) {
+			return unique, mef.NewError(unique.ID(), fmt.Sprintf("%s requires two non-negative int constant args", funcName))
+		}
+		depthVal := depth.AsLiteral().(types.Int)
+		uniqueVal := unique.AsLiteral().(types.Int)
+		return mef.NewIdent(fmt.Sprintf("%s:%d:%d", varPrefix, depthVal, uniqueVal)), nil
+	}
+}
+
+func isCELNamespace(target ast.Expr) bool {
+	return target.Kind() == ast.IdentKind && target.AsIdent() == "cel"
+}
+
+func isNonNegativeInt(expr ast.Expr) bool {
+	if expr.Kind() != ast.LiteralKind {
+		return false
+	}
+	val := expr.AsLiteral()
+	return val.Type() == cel.IntType && val.(types.Int) >= 0
 }
