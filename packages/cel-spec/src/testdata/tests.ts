@@ -41,11 +41,27 @@ export interface SerializedIncrementalTestSuite {
   tests?: SerializedIncrementalTest[];
 }
 
+// An `IncrementalTest` supplements a test extracted from the conformance suite
+// or from the `cel-go` source code with additional information derived from the
+// `cel-go` implementation.
 export interface IncrementalTest {
-  name: string;
+  // The original test as a `cel.expr.conformance.test.SimpleTest` message
+  // https://buf.build/google/cel-spec/docs/main:cel.expr.conformance.test#cel.expr.conformance.test.SimpleTest
+  // For conformance tests, every field may be used; for tests extracte from the
+  // `cel-go` source code, only `expr` is present.
   original: SimpleTest;
+  // The test name is either taken from the original test or derived from the
+  // input expression.
+  name: string;
+  // The AST as produced by the `ToDebugString()` function provided by `cel-go`:
+  // https://pkg.go.dev/github.com/google/cel-go/common/debug#ToDebugString
   ast?: string;
+  // The original test may separately have an expected type; this one is derived
+  // from `cel-go` when tests are extracted from upstream. Where the two types
+  // disagree, the type embedded in the original test should be deemed correct.
   type?: string;
+  // This is the error, if any, produced by `cel-go`; it is only informational,
+  // not something that should be tested against.
   error?: string;
 }
 
