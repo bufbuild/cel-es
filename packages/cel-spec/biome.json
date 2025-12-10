@@ -2,6 +2,14 @@
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "extends": ["../../biome.base.json"],
   "files": {
-    "ignore": ["dist", "src/wkt/gen", "src/testdata/conformance.ts"]
+    "ignore": ["dist"],
+    "maxSize": 2000000
+  },
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noApproximativeNumericConstant": "off"
+      }
+    }
   }
 }
