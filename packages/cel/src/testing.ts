@@ -14,11 +14,6 @@
 
 import { type CelResult, isCelMap, plan } from "./index.js";
 import { STRINGS_EXT_FUNCS } from "./ext/strings/index.js";
-import type {
-  SimpleTest,
-  SimpleTestFile,
-  SimpleTestSection,
-} from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
 import {
   create,
   equals,
@@ -44,85 +39,96 @@ import {
   type CelValue,
 } from "./type.js";
 import { getMsgDesc } from "./eval.js";
-import type { SimpleNameTuples } from "@bufbuild/cel-spec/testdata/simple.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { celEnv } from "./env.js";
 import { isCelError } from "./error.js";
+import type {
+  IncrementalTest,
+  IncrementalTestSuite,
+} from "../../cel-spec/dist/cjs/testdata/tests.js";
+import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
+import {
+  KindAdorner,
+  toDebugString,
+} from "@bufbuild/cel-spec/testdata/to-debug-string.js";
 
-export function testSimpleTestFile(
-  simpleTestFile: SimpleTestFile,
-  registry: Registry,
-  failureFn?: TestFilterFn,
+type TestRunner = (t: IncrementalTest, r: Registry) => void;
+
+export function runTestSuite(
+  testSuite: IncrementalTestSuite,
+  runner: TestRunner,
+  prefix: string[] = [],
+  filter?: TestFilter,
+  registry = getTestRegistry(),
 ) {
-  const fileFail = failureFn?.(simpleTestFile);
-  void suite(name(simpleTestFile), () => {
-    for (const section of simpleTestFile.section) {
-      const sectionFail = fileFail || failureFn?.(simpleTestFile, section);
-      void suite(name(section), (t) => {
-        for (const simpleTest of section.test) {
-          const fail =
-            sectionFail || failureFn?.(simpleTestFile, section, simpleTest);
-          void test(name(simpleTest), (t) => {
-            // Just run like a regular test if we don't expect a failure.
-            if (fail !== true) {
-              runSimpleTestCase(simpleTest, registry);
-              return;
-            }
-            try {
-              runSimpleTestCase(simpleTest, registry);
-            } catch (ex) {
-              // We got a failure as expected lets mark the test as todo.
-              t.todo(`TODO ${ex}`);
-              return;
-            }
-            assert.fail(
-              `Expected [${name(simpleTestFile)}, ${name(section)}, ${name(simpleTest)}] to fail but it succeeded.`,
-            );
-          });
+  void suite(testSuite.name, () => {
+    for (const s of testSuite.suites) {
+      runTestSuite(s, runner, [...prefix, s.name], filter, registry);
+    }
+    for (const t of testSuite.tests) {
+      void test(t.name, (c) => {
+        const path = [...prefix, t.original.name];
+        if (filter?.(path, t) ?? true) {
+          runner(t, registry);
+          return;
         }
+
+        try {
+          runner(t, registry);
+        } catch (ex) {
+          // We got a failure as expected lets mark the test as todo.
+          c.todo(`TODO ${ex}`);
+          return;
+        }
+
+        assert.fail(`Expected [${path.join(", ")}] to fail but it succeeded.`);
       });
     }
   });
 }
 
-type TestFilterFn = (
-  file: SimpleTestFile,
-  section?: SimpleTestSection,
-  test?: SimpleTest,
-) => boolean;
+type TestFilter = (path: string[], test: IncrementalTest) => boolean;
 
-/**
- * Creates a TestFilterFn that returns true for tests that match the given list.
- */
-export function createTestFilter(list: SimpleNameTuples[]): TestFilterFn {
-  const filter = new Set<string>();
-  for (const testCase of list) {
-    const name = testCase.join("/");
-    if (filter.has(name)) {
-      throw new Error(`Invalid filter list: duplicate: "${name}"`);
-    }
-    filter.add(name);
-  }
-  return (file, section, test): boolean => {
-    let got = file.name;
-    if (section !== undefined) {
-      got += `/${section.name}`;
-      if (test !== undefined) {
-        got += `/${test.name}`;
-      }
-    }
-    return filter.has(got);
+function normalExpr(expr: string): string {
+  return expr.replace(/\s+/g, " ").trim();
+}
+
+export function createExpressionFilter(
+  failureExpressions: string[],
+): TestFilter {
+  return (_, test: IncrementalTest): boolean => {
+    return (
+      failureExpressions.find(
+        (p) => normalExpr(p) === normalExpr(test.original.expr),
+      ) === undefined
+    );
   };
 }
 
-function name(obj: { name: string; description: string }): string {
-  if (obj.name.length > 0) {
-    return obj.name;
+export function runParsingTest(test: IncrementalTest) {
+  if (test.ast) {
+    const actual = toDebugString(
+      parse(test.original.expr),
+      KindAdorner.singleton,
+    );
+    const expected = test.ast;
+    assert.deepStrictEqual(actual, expected);
+  } else {
+    assert.throws(() => parse(test.original.expr));
   }
-  return obj.description;
 }
 
-function runSimpleTestCase(testCase: SimpleTest, registry: Registry) {
+export function createPathFilter(failurePaths: string[][]): TestFilter {
+  const stringPaths = failurePaths.map((p) => `${p.join("/")}/`);
+  return (path: string[]): boolean => {
+    return (
+      stringPaths.find((p) => `${path.join("/")}/`.startsWith(p)) === undefined
+    );
+  };
+}
+
+export function runSimpleTestCase(test: IncrementalTest, registry: Registry) {
+  const testCase = test.original;
   const parsed = parse(testCase.expr);
   const env = celEnv({
     registry,
