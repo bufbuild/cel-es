@@ -86,6 +86,11 @@ export interface CelOverload<P extends readonly CelType[], R extends CelType> {
    * Implementation for this overload.
    */
   readonly impl: (...args: CelValueTuple<P>) => CelInput<R>;
+  /**
+   * Whether the overload is a cross-type numeric comparison, which may need to
+   * be disabled for some environments.
+   */
+  readonly isCrossTypeNumericComparison: boolean;
 }
 
 /**
@@ -98,8 +103,15 @@ export function celOverload<
   parameters: P,
   result: R,
   impl: (...args: CelValueTuple<P>) => CelInput<R>,
+  flags: CelOverloadFlags[] = [],
 ): CelOverload<P, R> {
-  return new FuncOverload(parameters, result, impl);
+  return new FuncOverload(
+    crypto.randomUUID(),
+    parameters,
+    result,
+    impl,
+    new Set(flags),
+  );
 }
 
 class Func implements CelFunc {
@@ -147,15 +159,29 @@ class Func implements CelFunc {
   }
 }
 
+export enum CelOverloadFlags {
+  CROSS_TYPE_NUMERIC_COMPARISON = 1,
+}
+
 class FuncOverload<const P extends readonly CelType[], const R extends CelType>
   implements CelOverload<P, R>
 {
   [privateOverloadSymbol] = {};
   constructor(
+    private readonly _id: string,
     private readonly _parameters: P,
     private readonly _result: R,
     private readonly _impl: (...args: CelValueTuple<P>) => CelInput<R>,
+    private readonly _flags: Set<CelOverloadFlags>,
   ) {}
+
+  get id() {
+    return this._id;
+  }
+
+  get isCrossTypeNumericComparison() {
+    return this._flags.has(CelOverloadFlags.CROSS_TYPE_NUMERIC_COMPARISON);
+  }
 
   get parameters() {
     return this._parameters;
