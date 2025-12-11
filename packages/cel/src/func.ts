@@ -103,7 +103,7 @@ export function celOverload<
   parameters: P,
   result: R,
   impl: (...args: CelValueTuple<P>) => CelInput<R>,
-  flags: CelOverloadFlags[] = [],
+  flags: CelOverloadFlag[] = [],
 ): CelOverload<P, R> {
   return new FuncOverload(
     crypto.randomUUID(),
@@ -159,7 +159,7 @@ class Func implements CelFunc {
   }
 }
 
-export enum CelOverloadFlags {
+export enum CelOverloadFlag {
   CROSS_TYPE_NUMERIC_COMPARISON = 1,
 }
 
@@ -172,7 +172,7 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
     private readonly _parameters: P,
     private readonly _result: R,
     private readonly _impl: (...args: CelValueTuple<P>) => CelInput<R>,
-    private readonly _flags: Set<CelOverloadFlags>,
+    private readonly _flags: Set<CelOverloadFlag>,
   ) {}
 
   get id() {
@@ -180,7 +180,7 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
   }
 
   get isCrossTypeNumericComparison() {
-    return this._flags.has(CelOverloadFlags.CROSS_TYPE_NUMERIC_COMPARISON);
+    return this._flags.has(CelOverloadFlag.CROSS_TYPE_NUMERIC_COMPARISON);
   }
 
   get parameters() {
