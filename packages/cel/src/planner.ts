@@ -31,7 +31,7 @@ import {
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
 import type { CallDispatch, Dispatcher } from "./func.js";
-import * as opc from "./gen/dev/cel/expr/operator_const.js";
+import { Operator } from "./std/operator.js";
 import { Namespace } from "./namespace.js";
 import {
   celError,
@@ -243,12 +243,12 @@ export class Planner {
       : call.args.map((arg) => this.plan(arg));
 
     switch (call.function) {
-      case opc.INDEX:
+      case Operator.INDEX:
         return this.planCallIndex(call, args, false);
-      case opc.OPT_INDEX:
-      case opc.OPT_SELECT:
+      case Operator.OPT_INDEX:
+      case Operator.OPT_SELECT:
         return this.planCallIndex(call, args, true);
-      case opc.CONDITIONAL:
+      case Operator.CONDITIONAL:
         return this.planCallConditional(id, call, args);
       default:
         break;

@@ -19,8 +19,7 @@ import {
   type CallDispatch,
   CelOverloadFlags,
 } from "../func.js";
-import * as opc from "../gen/dev/cel/expr/operator_const.js";
-import * as olc from "../gen/dev/cel/expr/overload_const.js";
+import { Operator } from "./operator.js";
 import { type CelError, celErrorMerge, isCelError } from "../error.js";
 import {
   CelScalar,
@@ -48,7 +47,7 @@ const notStrictlyFalse: CallDispatch = {
   },
 };
 
-const notFunc = celFunc(opc.LOGICAL_NOT, [
+const notFunc = celFunc(Operator.LOGICAL_NOT, [
   celOverload([CelScalar.BOOL], CelScalar.BOOL, (x) => !x),
 ]);
 
@@ -102,11 +101,11 @@ const or: CallDispatch = {
   },
 };
 
-const eqFunc = celFunc(opc.EQUALS, [
+const eqFunc = celFunc(Operator.EQUALS, [
   celOverload([CelScalar.DYN, CelScalar.DYN], CelScalar.BOOL, equals),
 ]);
 
-const neFunc = celFunc(opc.NOT_EQUALS, [
+const neFunc = celFunc(Operator.NOT_EQUALS, [
   celOverload(
     [CelScalar.DYN, CelScalar.DYN],
     CelScalar.BOOL,
@@ -118,7 +117,7 @@ function ltOp<T>(lhs: T, rhs: T) {
   return lhs < rhs;
 }
 // biome-ignore format: Easier to read it like a table
-const ltFunc = celFunc(opc.LESS, [
+const ltFunc = celFunc(Operator.LESS, [
   celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, ltOp),
   celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) < 0),
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, ltOp),
@@ -141,7 +140,7 @@ function lteOp<T>(lhs: T, rhs: T) {
   return lhs <= rhs;
 }
 // biome-ignore format: Easier to read it like a table
-const leFunc = celFunc(opc.LESS_EQUALS, [
+const leFunc = celFunc(Operator.LESS_EQUALS, [
   celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, lteOp),
   celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) <= 0),
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, lteOp),
@@ -162,7 +161,7 @@ function gtOp<T>(lhs: T, rhs: T) {
   return lhs > rhs;
 }
 // biome-ignore format: Easier to read it like a table
-const gtFunc = celFunc(opc.GREATER, [
+const gtFunc = celFunc(Operator.GREATER, [
   celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gtOp),
   celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) > 0),
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gtOp),
@@ -183,7 +182,7 @@ function gteOp<T>(lhs: T, rhs: T) {
   return lhs >= rhs;
 }
 // biome-ignore format: Easier to read it like a table
-const geFunc = celFunc(opc.GREATER_EQUALS, [
+const geFunc = celFunc(Operator.GREATER_EQUALS, [
   celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gteOp),
   celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) >= 0),
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gteOp),
@@ -200,19 +199,19 @@ const geFunc = celFunc(opc.GREATER_EQUALS, [
   celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) >= 0),
 ]);
 
-const containsFunc = celFunc(olc.CONTAINS, [
+const containsFunc = celFunc("contains", [
   celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
     x.includes(y),
   ),
 ]);
 
-const endsWithFunc = celFunc(olc.ENDS_WITH, [
+const endsWithFunc = celFunc("endsWith", [
   celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
     x.endsWith(y),
   ),
 ]);
 
-const startsWithFunc = celFunc(olc.STARTS_WITH, [
+const startsWithFunc = celFunc("startsWith", [
   celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
     x.startsWith(y),
   ),
@@ -274,7 +273,7 @@ export function matchesString(x: string, y: string): boolean {
   return re.test(x);
 }
 
-const matchesFunc = celFunc(olc.MATCHES, [
+const matchesFunc = celFunc("matches", [
   celOverload(
     [CelScalar.STRING, CelScalar.STRING],
     CelScalar.BOOL,
@@ -282,7 +281,7 @@ const matchesFunc = celFunc(olc.MATCHES, [
   ),
 ]);
 
-const sizeFunc = celFunc(olc.SIZE, [
+const sizeFunc = celFunc("size", [
   celOverload([CelScalar.STRING], CelScalar.INT, (x) => {
     let size = 0;
     for (const _ of x) {
@@ -310,7 +309,7 @@ function mapInOp(x: CelValue, y: CelMap) {
   return y.has(x as string);
 }
 
-const inFunc = celFunc(opc.IN, [
+const inFunc = celFunc(Operator.IN, [
   celOverload(
     [CelScalar.DYN, listType(CelScalar.DYN)],
     CelScalar.BOOL,
@@ -346,9 +345,9 @@ const inFunc = celFunc(opc.IN, [
 ]);
 
 export function addLogic(funcs: FuncRegistry) {
-  funcs.add(opc.NOT_STRICTLY_FALSE, notStrictlyFalse);
-  funcs.add(opc.LOGICAL_AND, and);
-  funcs.add(opc.LOGICAL_OR, or);
+  funcs.add(Operator.NOT_STRICTLY_FALSE, notStrictlyFalse);
+  funcs.add(Operator.LOGICAL_AND, and);
+  funcs.add(Operator.LOGICAL_OR, or);
   funcs.add(notFunc);
   funcs.add(eqFunc);
   funcs.add(neFunc);

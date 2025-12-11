@@ -16,9 +16,8 @@ import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 
-import * as opc from "../gen/dev/cel/expr/operator_const.js";
-
 import { addLogic, matchesString } from "./logic.js";
+import { Operator } from "./operator.js";
 import { FuncRegistry, type CelFunc } from "../func.js";
 import { isCelNumericType } from "../type.js";
 
@@ -41,10 +40,10 @@ void suite("logic", () => {
       addLogic(registry);
 
       for (const name of [
-        opc.GREATER,
-        opc.GREATER_EQUALS,
-        opc.LESS,
-        opc.LESS_EQUALS,
+        Operator.GREATER,
+        Operator.GREATER_EQUALS,
+        Operator.LESS,
+        Operator.LESS_EQUALS,
       ]) {
         const func = registry.find(name) as CelFunc;
         assert.ok(func !== undefined, `expected function ${name} to exist`);
