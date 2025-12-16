@@ -67,7 +67,7 @@ export function addMath(funcs: FuncRegistry) {
 
 function addTimestamp(
   lhs: CelValue<typeof TIMESTAMP>,
-  rhs: CelValue<typeof TIMESTAMP> | CelValue<typeof DURATION>,
+  rhs: CelValue<typeof DURATION>,
 ) {
   let seconds = lhs.message.seconds + rhs.message.seconds;
   let nanos = lhs.message.nanos + rhs.message.nanos;
@@ -141,7 +141,6 @@ const add = celFunc(Operator.ADD, [
       return val;
     },
   ),
-  celOverload([TIMESTAMP, TIMESTAMP], TIMESTAMP, addTimestamp),
   celOverload([TIMESTAMP, DURATION], TIMESTAMP, addTimestamp),
   celOverload([DURATION, TIMESTAMP], TIMESTAMP, (lhs, rhs) =>
     addTimestamp(rhs, lhs),

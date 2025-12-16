@@ -20,7 +20,7 @@ import {
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import { celOverload, celFunc } from "../../func.js";
+import { celOverload, celMethodOverload, celFunc } from "../../func.js";
 import { CelScalar, isCelType, listType, type CelValue } from "../../type.js";
 import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
@@ -28,8 +28,9 @@ import { isCelUint } from "../../uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
 const charAt = celFunc("charAt", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.INT],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.INT],
     CelScalar.STRING,
     (str, index) => {
       const i = Number(index);
@@ -42,13 +43,15 @@ const charAt = celFunc("charAt", [
 ]);
 
 const indexOf = celFunc("indexOf", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING],
     CelScalar.INT,
     (str, substr) => BigInt(str.indexOf(substr)),
   ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING, CelScalar.INT],
     CelScalar.INT,
     (str, substr, startN) => {
       const start = Number(startN);
@@ -61,13 +64,15 @@ const indexOf = celFunc("indexOf", [
 ]);
 
 const lastIndexOf = celFunc("lastIndexOf", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING],
     CelScalar.INT,
     (str, substr) => BigInt(str.lastIndexOf(substr)),
   ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING, CelScalar.INT],
     CelScalar.INT,
     (str, substr, startN) => {
       const start = Number(startN);
@@ -80,7 +85,7 @@ const lastIndexOf = celFunc("lastIndexOf", [
 ]);
 
 const lowerAscii = celFunc("lowerAscii", [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+  celMethodOverload(CelScalar.STRING, [], CelScalar.STRING, (str) => {
     // Only lower case ascii characters.
     let result = "";
     for (let i = 0; i < str.length; i++) {
@@ -96,7 +101,7 @@ const lowerAscii = celFunc("lowerAscii", [
 ]);
 
 const upperAscii = celFunc("upperAscii", [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+  celMethodOverload(CelScalar.STRING, [], CelScalar.STRING, (str) => {
     let result = "";
     for (let i = 0; i < str.length; i++) {
       const c = str.charCodeAt(i);
@@ -128,13 +133,15 @@ function replaceOp(str: string, substr: string, repl: string, num: number) {
 }
 
 const replace = celFunc("replace", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING, CelScalar.STRING],
     CelScalar.STRING,
     (str, substr, repl) => replaceOp(str, substr, repl, str.length),
   ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
     CelScalar.STRING,
     (str, substr, repl, num) => replaceOp(str, substr, repl, Number(num)),
   ),
@@ -148,13 +155,15 @@ function splitOp(str: string, sep: string, num?: number) {
 }
 
 const split = celFunc("split", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING],
     listType(CelScalar.STRING),
     splitOp,
   ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.STRING, CelScalar.INT],
     listType(CelScalar.STRING),
     (str, sep, num) => splitOp(str, sep, Number(num)),
   ),
@@ -183,9 +192,15 @@ function substringOp(str: string, start: bigint, end?: bigint) {
 }
 
 const substring = celFunc("substring", [
-  celOverload([CelScalar.STRING, CelScalar.INT], CelScalar.STRING, substringOp),
-  celOverload(
-    [CelScalar.STRING, CelScalar.INT, CelScalar.INT],
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.INT],
+    CelScalar.STRING,
+    substringOp,
+  ),
+  celMethodOverload(
+    CelScalar.STRING,
+    [CelScalar.INT, CelScalar.INT],
     CelScalar.STRING,
     substringOp,
   ),
@@ -199,7 +214,7 @@ const WHITE_SPACE = new Set([
 ]);
 
 const trim = celFunc("trim", [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
+  celMethodOverload(CelScalar.STRING, [], CelScalar.STRING, (str) => {
     // Trim using the unicode white space definition.
     let start = 0;
     let end = str.length - 1;
@@ -229,9 +244,10 @@ function joinOp(list: CelList, sep = "") {
 }
 
 const join = celFunc("join", [
-  celOverload([listType(CelScalar.DYN)], CelScalar.STRING, joinOp),
-  celOverload(
-    [listType(CelScalar.DYN), CelScalar.STRING],
+  celMethodOverload(listType(CelScalar.DYN), [], CelScalar.STRING, joinOp),
+  celMethodOverload(
+    listType(CelScalar.DYN),
+    [CelScalar.STRING],
     CelScalar.STRING,
     joinOp,
   ),
@@ -562,8 +578,9 @@ function formatImpl(format: string, args: CelList) {
 }
 
 const format = celFunc("format", [
-  celOverload(
-    [CelScalar.STRING, listType(CelScalar.DYN)],
+  celMethodOverload(
+    CelScalar.STRING,
+    [listType(CelScalar.DYN)],
     CelScalar.STRING,
     formatImpl,
   ),
