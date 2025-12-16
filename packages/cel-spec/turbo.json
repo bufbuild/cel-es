@@ -8,6 +8,18 @@
       "dependsOn": [],
       "outputLogs": "new-only"
     },
+    "fetch-enum-operator": {
+      "inputs": ["scripts/enum/main.go", "scripts/go.*", "package.json"],
+      "outputs": ["src/enum/operator.ts"],
+      "env": ["GO*"],
+      "outputLogs": "new-only"
+    },
+    "fetch-enum-overload": {
+      "inputs": ["scripts/enum/main.go", "scripts/go.*", "package.json"],
+      "outputs": ["src/enum/overload.ts"],
+      "env": ["GO*"],
+      "outputLogs": "new-only"
+    },
     "fetch-testdata": {
       "inputs": ["scripts/fetch-testdata.js", "package.json"],
       "outputs": ["src/testdata/conformance.ts", "src/testdata/json/*.json"],
@@ -41,6 +53,8 @@
     "update-exports": {
       "dependsOn": [
         "generate",
+        "fetch-enum-operator",
+        "fetch-enum-overload",
         "fetch-parsing",
         "fetch-comprehensions",
         "fetch-conformance"

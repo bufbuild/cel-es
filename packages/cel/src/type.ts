@@ -220,11 +220,11 @@ type mapKeyType =
  * CEL values corresponding to their type.
  */
 // biome-ignore format: Ternaries
-export type CelValue<T extends CelType = CelType> = 
+export type CelValue<T extends CelType = CelType> =
   T extends typeof CelScalar.DYN ? celValue : celValue<T>; // Avoids the infinite recursion.
 
 // biome-ignore format: Ternaries
-type celValue<T extends CelType = CelType> = 
+type celValue<T extends CelType = CelType> =
     T extends typeof CelScalar.TYPE       ? CelType
   : T extends typeof CelScalar.INT        ? bigint
   : T extends typeof CelScalar.UINT       ? CelUint
@@ -243,13 +243,13 @@ type celValue<T extends CelType = CelType> =
  * Values that are accepted as CEL values.
  */
 // biome-ignore format: Ternaries
-export type CelInput<T extends CelType = CelType> = 
+export type CelInput<T extends CelType = CelType> =
   T extends typeof CelScalar.DYN ? celInput : celInput<T>; // Avoids the infinite recursion.
 
 // biome-ignore format: Ternaries
-type celInput<T extends CelType = CelType> = 
+type celInput<T extends CelType = CelType> =
     T extends CelListType       ? CelList | readonly celInput[] | ReflectList
-  : T extends CelMapType        ? CelMap  | ReadonlyMap<celInput<mapKeyType>, celInput> | ReflectMap | { [key: string]: celInput } 
+  : T extends CelMapType        ? CelMap  | ReadonlyMap<celInput<mapKeyType>, celInput> | ReflectMap | { [key: string]: celInput }
   : T extends CelObjectType     ? ReflectMessage | Message
   : celValue<T>;
 
@@ -260,7 +260,7 @@ export type CelValueTuple<T extends readonly CelType[]> =
     ...infer Rest extends CelType[],
   ]
     ? [CelValue<First>, ...CelValueTuple<Rest>]
-    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>     
+    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>
     : CelType[] extends T ? any[] : [];
 
 /**
@@ -306,6 +306,17 @@ export function celType(v: CelValue): CelType {
  */
 export function isCelType(v: unknown): v is CelType {
   return typeof v === "object" && v !== null && isObjectCelType(v);
+}
+
+/**
+ * Returns true if the given value is a numeric CelType.
+ */
+export function isCelNumericType(
+  t: CelType,
+): t is typeof CelScalar.INT | typeof CelScalar.UINT | typeof CelScalar.DOUBLE {
+  return (
+    [CelScalar.INT, CelScalar.UINT, CelScalar.DOUBLE] as CelType[]
+  ).includes(t);
 }
 
 export function isObjectCelType(v: NonNullable<object>): v is CelType {

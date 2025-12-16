@@ -1,0 +1,11 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "inputs": ["src/cel.peggy"],
+      "outputs": ["src/parser.ts"],
+      "outputLogs": "new-only"
+    }
+  }
+}
