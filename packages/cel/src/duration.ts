@@ -15,21 +15,25 @@
 import { type Duration, DurationSchema } from "@bufbuild/protobuf/wkt";
 import { create } from "@bufbuild/protobuf";
 
+const ONE_SECOND = 1000000000;
+const MAX_DURATION_NANOS = 9223372036854775807n;
+const MIN_DURATION_NANOS = -9223372036854775808n;
+
 /**
  * Create a new Duration, validating the fields are in range.
  */
 export function createDuration(seconds: bigint, nanos: number): Duration {
-  if (nanos >= 1000000000) {
-    seconds += BigInt(nanos / 1000000000);
-    nanos = nanos % 1000000000;
+  if (nanos >= ONE_SECOND) {
+    seconds += BigInt(nanos / ONE_SECOND);
+    nanos = nanos % ONE_SECOND;
   } else if (nanos < 0) {
-    const negSeconds = Math.ceil(-nanos / 1000000000);
+    const negSeconds = Math.ceil(-nanos / ONE_SECOND);
     seconds -= BigInt(negSeconds);
-    nanos = nanos + negSeconds * 1000000000;
+    nanos = nanos + negSeconds * ONE_SECOND;
   }
   // Must fit in 64 bits of nanoseconds for compatibility with golang
-  const totalNanos = seconds * 1000000000n + BigInt(nanos);
-  if (totalNanos > 9223372036854775807n || totalNanos < -9223372036854775808n) {
+  const totalNanos = seconds * BigInt(ONE_SECOND) + BigInt(nanos);
+  if (totalNanos > MAX_DURATION_NANOS || totalNanos < MIN_DURATION_NANOS) {
     throw new Error("duration out of range");
   }
   return create(DurationSchema, { seconds: seconds, nanos: nanos });

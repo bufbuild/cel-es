@@ -26,11 +26,13 @@ import type { CelInput, CelValue } from "./type.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/map");
 
+export type CelMapKey = bigint | string | boolean | CelUint;
+export type CelMapIndex = CelMapKey | number;
+
 /**
  * A common abstraction for maps.
  */
-export interface CelMap
-  extends ReadonlyMap<bigint | string | boolean | CelUint, CelValue> {
+export interface CelMap extends ReadonlyMap<CelMapKey, CelValue> {
   [privateSymbol]: unknown;
 
   /**

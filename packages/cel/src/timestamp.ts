@@ -15,19 +15,23 @@
 import { create } from "@bufbuild/protobuf";
 import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
 
+const ONE_SECOND = 1000000000;
+const MAX_TIMESTAMP_SECONDS = 253402300799n;
+const MIN_TIMESTAMP_SECONDS = -62135596800n;
+
 /**
  * Creates a new Timestamp, validating the fields are in range.
  */
 export function createTimestamp(seconds: bigint, nanos: number): Timestamp {
-  if (nanos >= 1000000000) {
-    seconds += BigInt(nanos / 1000000000);
-    nanos = nanos % 1000000000;
+  if (nanos >= ONE_SECOND) {
+    seconds += BigInt(Math.floor(nanos / ONE_SECOND));
+    nanos = nanos % ONE_SECOND;
   } else if (nanos < 0) {
-    const negSeconds = Math.floor(-nanos / 1000000000);
+    const negSeconds = Math.floor(-nanos / ONE_SECOND);
     seconds -= BigInt(negSeconds);
-    nanos = nanos + negSeconds * 1000000000;
+    nanos = nanos + negSeconds * ONE_SECOND;
   }
-  if (seconds > 253402300799n || seconds < -62135596800n) {
+  if (seconds > MAX_TIMESTAMP_SECONDS || seconds < MIN_TIMESTAMP_SECONDS) {
     throw new Error("timestamp out of range");
   }
   return create(TimestampSchema, { seconds: seconds, nanos: nanos });

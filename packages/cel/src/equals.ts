@@ -72,7 +72,7 @@ export function equals(lhs: CelValue, rhs: CelValue): boolean {
     }
     // see https://github.com/bufbuild/protobuf-es/pull/1029
     return equalsMessage(lhs.desc, lhs.message, rhs.message, {
-      registry: getEvalContext().registry,
+      registry: getEvalContext().protoRegistry,
       unpackAny: true,
       unknown: true,
       extensions: true,

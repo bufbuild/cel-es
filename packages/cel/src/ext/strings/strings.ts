@@ -20,98 +20,76 @@ import {
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import { celOverload, celFunc } from "../../func.js";
+import { celFunc, celMethod } from "../../func.js";
 import { CelScalar, isCelType, listType, type CelValue } from "../../type.js";
 import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
 import { isCelUint } from "../../uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 
-const charAt = celFunc("charAt", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.INT],
-    CelScalar.STRING,
-    (str, index) => {
-      const i = Number(index);
-      if (i < 0 || i > str.length) {
-        throw indexOutOfBounds(i, str.length);
-      }
-      return str.charAt(i);
-    },
-  ),
-]);
+function charAt(s: string, index: bigint) {
+  const i = Number(index);
+  if (i < 0 || i > s.length) {
+    throw indexOutOfBounds(i, s.length);
+  }
+  return s.charAt(i);
+}
 
-const indexOf = celFunc("indexOf", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
-    CelScalar.INT,
-    (str, substr) => BigInt(str.indexOf(substr)),
-  ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
-    CelScalar.INT,
-    (str, substr, startN) => {
-      const start = Number(startN);
-      if (start !== undefined && (start < 0 || start >= str.length)) {
-        throw indexOutOfBounds(start, str.length);
-      }
-      return BigInt(str.indexOf(substr, start));
-    },
-  ),
-]);
+function indexOf(str: string, substr: string) {
+  return BigInt(str.indexOf(substr));
+}
 
-const lastIndexOf = celFunc("lastIndexOf", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
-    CelScalar.INT,
-    (str, substr) => BigInt(str.lastIndexOf(substr)),
-  ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
-    CelScalar.INT,
-    (str, substr, startN) => {
-      const start = Number(startN);
-      if (start !== undefined && (start < 0 || start >= str.length)) {
-        throw indexOutOfBounds(start, str.length);
-      }
-      return BigInt(str.lastIndexOf(substr, start));
-    },
-  ),
-]);
+function indexOfStart(str: string, substr: string, startN: bigint) {
+  const start = Number(startN);
+  if (start !== undefined && (start < 0 || start >= str.length)) {
+    throw indexOutOfBounds(start, str.length);
+  }
+  return BigInt(str.indexOf(substr, start));
+}
 
-const lowerAscii = celFunc("lowerAscii", [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
-    // Only lower case ascii characters.
-    let result = "";
-    for (let i = 0; i < str.length; i++) {
-      const code = str.charCodeAt(i);
-      if (code >= 65 && code <= 90) {
-        result += String.fromCharCode(code + 32);
-      } else {
-        result += str.charAt(i);
-      }
+function lastIndexOf(str: string, substr: string) {
+  return BigInt(str.lastIndexOf(substr));
+}
+
+function lastIndexOfEnd(str: string, substr: string, startN: bigint) {
+  const end = Number(startN);
+  if (end !== undefined && (end < 0 || end >= str.length)) {
+    throw indexOutOfBounds(end, str.length);
+  }
+  return BigInt(str.lastIndexOf(substr, end));
+}
+
+function lowerAscii(str: string) {
+  // Only lower-case ASCII characters.
+  let result = "";
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i);
+    if (code >= 65 && code <= 90) {
+      result += String.fromCharCode(code + 32);
+    } else {
+      result += str.charAt(i);
     }
-    return result;
-  }),
-]);
+  }
+  return result;
+}
 
-const upperAscii = celFunc("upperAscii", [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
-    let result = "";
-    for (let i = 0; i < str.length; i++) {
-      const c = str.charCodeAt(i);
-      if (c >= 97 && c <= 122) {
-        result += String.fromCharCode(c - 32);
-      } else {
-        result += str.charAt(i);
-      }
+function upperAscii(str: string) {
+  // Only upper-case ASCII characters.
+  let result = "";
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    if (c >= 97 && c <= 122) {
+      result += String.fromCharCode(c - 32);
+    } else {
+      result += str.charAt(i);
     }
-    return result;
-  }),
-]);
+  }
+  return result;
+}
 
-function replaceOp(str: string, substr: string, repl: string, num: number) {
+function replace(str: string, substr: string, repl: string, n?: bigint) {
   // Replace the first num occurrences of substr with repl.
+  let num = Number(n ?? str.length);
   let result = str;
   let offset = 0;
   let index = result.indexOf(substr, offset);
@@ -127,40 +105,15 @@ function replaceOp(str: string, substr: string, repl: string, num: number) {
   return result;
 }
 
-const replace = celFunc("replace", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING],
-    CelScalar.STRING,
-    (str, substr, repl) => replaceOp(str, substr, repl, str.length),
-  ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
-    CelScalar.STRING,
-    (str, substr, repl, num) => replaceOp(str, substr, repl, Number(num)),
-  ),
-]);
-
-function splitOp(str: string, sep: string, num?: number) {
+function split(str: string, sep: string, n?: bigint) {
+  const num = n !== undefined ? Number(n) : undefined;
   if (num === 1) {
     return celList([str]);
   }
   return celList(str.split(sep, num));
 }
 
-const split = celFunc("split", [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
-    listType(CelScalar.STRING),
-    splitOp,
-  ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING, CelScalar.INT],
-    listType(CelScalar.STRING),
-    (str, sep, num) => splitOp(str, sep, Number(num)),
-  ),
-]);
-
-function substringOp(str: string, start: bigint, end?: bigint) {
+function substring(str: string, start: bigint, end?: bigint) {
   if (end === undefined) {
     const i = Number(start);
     if (i < 0 || i > str.length) {
@@ -182,15 +135,6 @@ function substringOp(str: string, start: bigint, end?: bigint) {
   return str.substring(Number(start), Number(end));
 }
 
-const substring = celFunc("substring", [
-  celOverload([CelScalar.STRING, CelScalar.INT], CelScalar.STRING, substringOp),
-  celOverload(
-    [CelScalar.STRING, CelScalar.INT, CelScalar.INT],
-    CelScalar.STRING,
-    substringOp,
-  ),
-]);
-
 // The set of white space characters defined by the unicode standard.
 const WHITE_SPACE = new Set([
   0x20, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x85, 0xa0, 0x1680, 0x2000, 0x2001,
@@ -198,22 +142,20 @@ const WHITE_SPACE = new Set([
   0x2028, 0x2029, 0x202f, 0x205f, 0x3000,
 ]);
 
-const trim = celFunc("trim", [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
-    // Trim using the unicode white space definition.
-    let start = 0;
-    let end = str.length - 1;
-    while (start < str.length && WHITE_SPACE.has(str.charCodeAt(start))) {
-      start++;
-    }
-    while (end > start && WHITE_SPACE.has(str.charCodeAt(end))) {
-      end--;
-    }
-    return str.substring(start, end + 1);
-  }),
-]);
+function trim(str: string) {
+  // Trim using the unicode white space definition.
+  let start = 0;
+  let end = str.length - 1;
+  while (start < str.length && WHITE_SPACE.has(str.charCodeAt(start))) {
+    start++;
+  }
+  while (end > start && WHITE_SPACE.has(str.charCodeAt(end))) {
+    end--;
+  }
+  return str.substring(start, end + 1);
+}
 
-function joinOp(list: CelList, sep = "") {
+function join(list: CelList, sep = "") {
   let result = "";
   for (let i = 0; i < list.size; i++) {
     const item = list.get(i);
@@ -228,15 +170,6 @@ function joinOp(list: CelList, sep = "") {
   return result;
 }
 
-const join = celFunc("join", [
-  celOverload([listType(CelScalar.DYN)], CelScalar.STRING, joinOp),
-  celOverload(
-    [listType(CelScalar.DYN), CelScalar.STRING],
-    CelScalar.STRING,
-    joinOp,
-  ),
-]);
-
 const QUOTE_MAP: Map<number, string> = new Map([
   [0x00, "\\0"],
   [0x07, "\\a"],
@@ -250,17 +183,15 @@ const QUOTE_MAP: Map<number, string> = new Map([
   [0x5c, "\\\\"],
 ]);
 
-const quote = celFunc("strings.quote", [
-  celOverload([CelScalar.STRING], CelScalar.STRING, (str) => {
-    let result = '"';
-    for (let i = 0; i < str.length; i++) {
-      const c = str.charCodeAt(i);
-      result += QUOTE_MAP.get(c) ?? str.charAt(i);
-    }
-    result += '"';
-    return result;
-  }),
-]);
+function quote(str: string) {
+  let result = '"';
+  for (let i = 0; i < str.length; i++) {
+    const c = str.charCodeAt(i);
+    result += QUOTE_MAP.get(c) ?? str.charAt(i);
+  }
+  result += '"';
+  return result;
+}
 
 function formatFloatString(val: string) {
   switch (val) {
@@ -276,16 +207,7 @@ function formatFloatString(val: string) {
 function formatFloating(val: CelValue, precision: number | undefined) {
   switch (true) {
     case typeof val === "number":
-      if (Number.isNaN(val)) {
-        return "NaN";
-      }
-      if (val === Infinity) {
-        return "Infinity";
-      }
-      if (val === -Infinity) {
-        return "-Infinity";
-      }
-      if (precision === undefined) {
+      if (!Number.isFinite(val) || precision === undefined) {
         return val.toString();
       }
 
@@ -309,15 +231,10 @@ function formatFloating(val: CelValue, precision: number | undefined) {
 function formatExponent(val: CelValue, precision: number | undefined) {
   switch (true) {
     case typeof val === "number":
-      if (Number.isNaN(val)) {
-        return "NaN";
+      if (!Number.isFinite(val)) {
+        return val.toString();
       }
-      if (val === Infinity) {
-        return "Infinity";
-      }
-      if (val === -Infinity) {
-        return "-Infinity";
-      }
+
       let str = val.toExponential(precision);
       // toExponential returns 1 or 2 digits after the `+`.
       // CEL spec mandates 2. So we insert a 0 if we find only
@@ -370,12 +287,8 @@ function formatDecimal(val: CelValue) {
       return val.toString(10);
     case isCelUint(val):
       return val.value.toString(10);
-    case typeof val === "number" && Number.isNaN(val):
-      return "NaN";
-    case val === Infinity:
-      return "Infinity";
-    case val === -Infinity:
-      return "-Infinity";
+    case typeof val === "number" && !Number.isFinite(val):
+      return val.toString();
     default:
       throw invalidArgument("format", "invalid integer value");
   }
@@ -480,7 +393,23 @@ function formatString(val: CelValue) {
   throw invalidArgument("format", "invalid string value");
 }
 
-function formatImpl(format: string, args: CelList) {
+// biome-ignore format: table
+function getFormatter(c: string): (v: CelValue, precision?: number) => string {
+  switch (c) {
+    case "e": return formatExponent;
+    case "f": return formatFloating;
+    case "b": return formatBinary;
+    case "d": return formatDecimal;
+    case "s": return formatString;
+    case "x": return formatHex;
+    case "X": return formatHeX;
+    case "o": return formatOctal;
+  }
+
+  throw invalidArgument("format", `unrecognized formatting clause: %${c}`);
+}
+
+function format(format: string, args: CelList) {
   let result = "";
   let i = 0;
   let j = 0;
@@ -521,53 +450,14 @@ function formatImpl(format: string, args: CelList) {
     if (val === undefined) {
       throw invalidArgument("format", "too few arguments for format string");
     }
-    let str: string;
-    switch (c) {
-      case "e":
-        str = formatExponent(val, precision);
-        break;
-      case "f":
-        str = formatFloating(val, precision);
-        break;
-      case "b":
-        str = formatBinary(val);
-        break;
-      case "d":
-        str = formatDecimal(val);
-        break;
-      case "s":
-        str = formatString(val);
-        break;
-      case "x":
-        str = formatHex(val);
-        break;
-      case "X":
-        str = formatHeX(val);
-        break;
-      case "o":
-        str = formatOctal(val);
-        break;
-      default:
-        throw invalidArgument(
-          "format",
-          `could not parse formatting clause: unrecognized formatting clause: ${c}`,
-        );
-    }
-    result += str;
+
+    result += getFormatter(c)(val, precision);
   }
   if (j < args.size) {
     throw invalidArgument("format", "too many arguments for format string");
   }
   return result;
 }
-
-const format = celFunc("format", [
-  celOverload(
-    [CelScalar.STRING, listType(CelScalar.DYN)],
-    CelScalar.STRING,
-    formatImpl,
-  ),
-]);
 
 function invalidArgument(func: string, issue: string) {
   return new Error(`invalid argument to function ${func}: ${issue}`);
@@ -577,20 +467,41 @@ function indexOutOfBounds(index: number, length: number) {
   return new Error(`index ${index} out of bounds [0, ${length})`);
 }
 
+const LIST_DYN = listType(CelScalar.DYN);
+const LIST_STRING = listType(CelScalar.STRING);
+
+// biome-ignore format: table
 /**
  * Provides the strings extension - CEL functions for string manipulation.
  */
 export const STRINGS_EXT_FUNCS = [
-  charAt,
-  indexOf,
-  lastIndexOf,
-  lowerAscii,
-  upperAscii,
-  replace,
-  split,
-  substring,
-  trim,
-  join,
-  quote,
-  format,
+  celMethod("charAt",       CelScalar.STRING, [CelScalar.INT], CelScalar.STRING, charAt),
+
+  celMethod("indexOf",      CelScalar.STRING, [CelScalar.STRING], CelScalar.INT, indexOf),
+  celMethod("indexOf",      CelScalar.STRING, [CelScalar.STRING, CelScalar.INT], CelScalar.INT, indexOfStart),
+
+  celMethod("lastIndexOf",  CelScalar.STRING, [CelScalar.STRING], CelScalar.INT, lastIndexOf),
+  celMethod("lastIndexOf",  CelScalar.STRING, [CelScalar.STRING, CelScalar.INT], CelScalar.INT, lastIndexOfEnd),
+
+  celMethod("lowerAscii",   CelScalar.STRING, [], CelScalar.STRING, lowerAscii),
+
+  celMethod("upperAscii",   CelScalar.STRING, [], CelScalar.STRING, upperAscii),
+
+  celMethod("replace",      CelScalar.STRING, [CelScalar.STRING, CelScalar.STRING], CelScalar.STRING, replace),
+  celMethod("replace",      CelScalar.STRING, [CelScalar.STRING, CelScalar.STRING, CelScalar.INT], CelScalar.STRING, replace),
+
+  celMethod("split",        CelScalar.STRING, [CelScalar.STRING], LIST_STRING, split),
+  celMethod("split",        CelScalar.STRING, [CelScalar.STRING, CelScalar.INT], LIST_STRING, split),
+
+  celMethod("substring",    CelScalar.STRING, [CelScalar.INT], CelScalar.STRING, substring),
+  celMethod("substring",    CelScalar.STRING, [CelScalar.INT, CelScalar.INT], CelScalar.STRING, substring),
+
+  celMethod("trim",         CelScalar.STRING, [], CelScalar.STRING, trim),
+
+  celMethod("join",         LIST_STRING,      [], CelScalar.STRING, join),
+  celMethod("join",         LIST_STRING,      [CelScalar.STRING], CelScalar.STRING, join),
+
+  celMethod("format",       CelScalar.STRING, [LIST_DYN], CelScalar.STRING, format),
+
+  celFunc("strings.quote",                    [CelScalar.STRING], CelScalar.STRING, quote),
 ];

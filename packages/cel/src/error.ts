@@ -12,12 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { CelValue } from "./type.js";
+import { isReflectMessage } from "@bufbuild/protobuf/reflect";
+import { isCelList } from "./list.js";
+import { isCelMap } from "./map.js";
+import {
+  CelScalar,
+  celType,
+  isCelType,
+  type CelType,
+  type CelValue,
+  type CelValueTuple,
+} from "./type.js";
+import { unwrapAny } from "./value.js";
 
 /**
  * Result type that represents either a successful value or a CEL error.
  **/
 export type CelResult<T = CelValue> = T | CelError;
+export type CelResultValue<T extends CelType> = CelResult<CelValue<T>>;
 
 const privateSymbol = Symbol.for("@bufbuild/cel/error");
 
@@ -35,6 +47,8 @@ export interface CelError extends Error {
    * The underlying cause of this error, if any.
    */
   readonly cause: unknown;
+
+  causes(value: unknown, exprId?: bigint | number): CelError;
 }
 
 /**
@@ -61,14 +75,6 @@ export function celError(value: unknown, exprId?: bigint | number): CelError {
 }
 
 /**
- * Merges CelErrors into one. Uses the message and exprId from the first error and
- * add the rest as the cause.
- */
-export function celErrorMerge(first: CelError, ...rest: CelError[]): CelError {
-  return new _CelError(first.message, rest, first.exprId);
-}
-
-/**
  * Returns true if the given value is a CelError.
  */
 export function isCelError(v: unknown): v is CelError {
@@ -79,8 +85,8 @@ class _CelError extends Error implements CelError {
   [privateSymbol] = {};
   constructor(
     message: string,
-    private readonly _cause: unknown,
-    private readonly _exprId: bigint | undefined,
+    override readonly cause: unknown,
+    private readonly _exprId?: bigint | undefined,
   ) {
     super(message);
   }
@@ -88,7 +94,78 @@ class _CelError extends Error implements CelError {
   get exprId() {
     return this._exprId;
   }
-  override get cause() {
-    return this._cause;
+
+  causes(value: unknown, exprId?: bigint | number) {
+    const e = celError(value, exprId);
+    return new _CelError(e.message, this, e.exprId);
   }
+}
+
+function isOfType<T extends CelType>(
+  value: CelValue,
+  type: T,
+): value is CelValue<T> {
+  return (
+    type === CelScalar.DYN ||
+    type === celType(value) ||
+    (type.kind == "list" && isCelList(value)) ||
+    (type.kind == "map" && isCelMap(value)) ||
+    (type.kind == "object" && isReflectMessage(value, type.desc)) ||
+    (type.kind == "type" && isCelType(value))
+  );
+}
+
+export function unwrapResult<T extends CelType>(
+  result: CelResult<CelValue<T>>,
+): CelResult<CelValue<T>>;
+export function unwrapResult<T extends CelType>(
+  result: CelResult,
+  type: T,
+  position?: number,
+): CelResult<CelValue<T>>;
+export function unwrapResult(
+  result: CelResult,
+  type?: CelType,
+  position?: number,
+): CelResult {
+  if (isCelError(result)) return result;
+  if (type && !isOfType(result, type)) {
+    return celError(
+      position ? `type mismatch at position ${position}` : "type mismatch",
+    );
+  }
+
+  try {
+    return unwrapAny(result);
+  } catch (ex) {
+    return celError(ex);
+  }
+}
+
+export function unwrapResultTuple<T extends readonly CelType[]>(
+  results: CelResult[],
+): CelValue[] | CelError;
+export function unwrapResultTuple<T extends readonly CelType[]>(
+  results: readonly CelResult[],
+  types: T,
+): CelValueTuple<T> | CelError;
+export function unwrapResultTuple(
+  results: readonly CelResult[],
+  types?: readonly CelType[],
+): readonly CelValue[] | CelError {
+  if (types)
+    if (results.length !== types.length)
+      return celError("value count mismatch");
+
+  const unwrapped = results.reduce((u, r, i) => {
+    return u.concat([
+      types ? unwrapResult(r, types[i], i + 1) : unwrapResult(r),
+    ]);
+  }, [] as CelResult[]);
+
+  const errors = unwrapped.filter((r) => isCelError(r));
+
+  if (errors.length) return errors[0].causes(errors.slice(1));
+
+  return results as CelValue[];
 }

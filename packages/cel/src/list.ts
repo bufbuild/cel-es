@@ -22,6 +22,7 @@ import type { DescField } from "@bufbuild/protobuf";
 import { celFromScalar } from "./proto.js";
 import { reflectMsgToCel, toCel } from "./value.js";
 import type { CelInput, CelValue } from "./type.js";
+import { equals } from "./equals.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/list");
 
@@ -38,6 +39,14 @@ export interface CelList extends Iterable<CelValue> {
    * is out of range.
    */
   get(index: number): CelValue | undefined;
+  /**
+   * Determines if a value is in a list.
+   */
+  has(value: CelValue): boolean;
+  /**
+   * Determines if a value in the list yields true for a callback.
+   */
+  some(callback: (v: CelValue) => boolean): boolean;
 
   [Symbol.iterator](): IterableIterator<CelValue>;
   values(): IterableIterator<CelValue>;
@@ -74,9 +83,29 @@ export function isCelList(v: unknown): v is CelList {
   return typeof v === "object" && v !== null && privateSymbol in v;
 }
 
-class ArrayList implements CelList {
+abstract class BaseList implements Iterable<CelValue>, Partial<CelList> {
+  has(value: CelValue) {
+    return this.some((v) => equals(v, value));
+  }
+  some(callback: (v: CelValue) => boolean) {
+    for (const v of this) {
+      if (callback(v)) return true;
+    }
+    return false;
+  }
+
+  abstract values(): IterableIterator<CelValue>;
+
+  [Symbol.iterator]() {
+    return this.values();
+  }
+}
+
+class ArrayList extends BaseList implements CelList {
   [privateSymbol] = {};
-  constructor(private readonly _array: readonly CelInput[]) {}
+  constructor(private readonly _array: readonly CelInput[]) {
+    super();
+  }
   get size(): number {
     return this._array.length;
   }
@@ -86,19 +115,19 @@ class ArrayList implements CelList {
     }
     return toCel(this._array[index]);
   }
+
   *values() {
     for (const element of this._array.values()) {
       yield toCel(element);
     }
   }
-  [Symbol.iterator]() {
-    return this.values();
-  }
 }
 
-class RepeatedFieldList implements CelList {
+class RepeatedFieldList extends BaseList implements CelList {
   [privateSymbol] = {};
-  constructor(private readonly _list: ReflectList) {}
+  constructor(private readonly _list: ReflectList) {
+    super();
+  }
 
   get size(): number {
     return this._list.size;
@@ -117,16 +146,13 @@ class RepeatedFieldList implements CelList {
       yield celFromListElem(this._list.field(), val);
     }
   }
-
-  [Symbol.iterator]() {
-    return this.values();
-  }
 }
 
-class ConcatList implements CelList {
+class ConcatList extends BaseList implements CelList {
   [privateSymbol] = {};
   private readonly _size: number;
   constructor(private readonly _lists: readonly CelList[]) {
+    super();
     let size = 0;
     for (const list of _lists) {
       size += list.size;
@@ -155,10 +181,6 @@ class ConcatList implements CelList {
     for (const list of this._lists) {
       yield* list.values();
     }
-  }
-
-  [Symbol.iterator]() {
-    return this.values();
   }
 }
 

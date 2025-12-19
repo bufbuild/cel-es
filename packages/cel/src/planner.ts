@@ -30,31 +30,35 @@ import {
   ErrorAttr,
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
-import type { CallDispatch, Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { Namespace } from "./namespace.js";
 import {
   celError,
   type CelError,
-  celErrorMerge,
   type CelResult,
   isCelError,
+  unwrapResultTuple,
+  unwrapResult,
 } from "./error.js";
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { celObject } from "./object.js";
 import { celType, type CelValue } from "./type.js";
-import type { Registry } from "@bufbuild/protobuf";
+import type { Registry as ProtoRegistry } from "@bufbuild/protobuf";
+import type { FuncRegistry } from "./func.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
-    private readonly functions: Dispatcher,
-    private readonly registry: Registry,
+    private readonly funcRegistry: FuncRegistry,
+    private readonly protoRegistry: ProtoRegistry,
     private readonly namespace: Namespace = Namespace.ROOT,
   ) {
-    this.factory = new ConcreteAttributeFactory(this.registry, this.namespace);
+    this.factory = new ConcreteAttributeFactory(
+      this.protoRegistry,
+      this.namespace,
+    );
   }
 
   public plan(expr: Expr): Interpretable {
@@ -216,31 +220,7 @@ export class Planner {
   }
 
   private planCall(id: number, call: Expr_Call): Interpretable {
-    // Check if the function is a qualified name.
-    if (call.target !== undefined) {
-      const qualName = toQualifiedName(call.target);
-      if (qualName !== undefined) {
-        const funcName = qualName + "." + call.function;
-        for (const candidate of this.namespace.resolveCandidateNames(
-          funcName,
-        )) {
-          const func = this.functions.find(candidate);
-          if (func !== undefined) {
-            return new EvalCall(
-              id,
-              candidate,
-              "",
-              func,
-              call.args.map((arg) => this.plan(arg)),
-            );
-          }
-        }
-      }
-    }
-
-    const args = call.target
-      ? [this.plan(call.target), ...call.args.map((arg) => this.plan(arg))]
-      : call.args.map((arg) => this.plan(arg));
+    const args = call.args.map((arg) => this.plan(arg));
 
     switch (call.function) {
       case opc.INDEX:
@@ -253,12 +233,30 @@ export class Planner {
       default:
         break;
     }
+
+    // Check if the function is a qualified name.
+    if (call.target) {
+      const qualifier = toQualifiedName(call.target);
+      if (qualifier) {
+        const candidates = this.namespace.resolveCandidateNames(
+          `${qualifier}.${call.function}`,
+        );
+        for (const name of candidates) {
+          const registry = this.funcRegistry.narrowedByName(name);
+
+          if (!registry.empty()) {
+            return new EvalCall(id, call.function, registry, args);
+          }
+        }
+      }
+    }
+
     return new EvalCall(
       id,
       call.function,
-      "",
-      this.functions.find(call.function),
+      this.funcRegistry.narrowedByName(call.function),
       args,
+      call.target !== undefined ? this.plan(call.target) : undefined,
     );
   }
 
@@ -358,7 +356,7 @@ export class Planner {
       case "google.protobuf.Any":
         return true;
       default:
-        return this.registry.getMessage(name) !== undefined;
+        return this.protoRegistry.getMessage(name) !== undefined;
     }
   }
 }
@@ -465,27 +463,44 @@ export class EvalCall implements Interpretable {
   constructor(
     public readonly id: number,
     public readonly name: string,
-    public readonly overload: string,
-    private readonly call: CallDispatch | undefined,
+    private readonly funcRegistry: FuncRegistry,
     public readonly args: Interpretable[],
+    public readonly target?: Interpretable,
   ) {}
 
   public eval(ctx: Activation): CelResult {
-    if (this.call === undefined) {
-      return celError(`unbound function: ${this.name}`, this.id);
-    }
-    const argVals = this.args.map((x) => x.eval(ctx));
-    const result = this.call.dispatch(this.id, argVals);
+    const targetResult = this.target?.eval(ctx);
+    const argResults = this.args.map((x) => x.eval(ctx));
+
+    const callable = (
+      targetResult !== undefined
+        ? this.funcRegistry.narrowedByArgs(targetResult, argResults)
+        : this.funcRegistry.narrowedByArgs(argResults)
+    ).first();
+
+    const result = callable?.call(
+      this.id,
+      targetResult !== undefined ? [targetResult, ...argResults] : argResults,
+    );
     if (result !== undefined) {
       return result;
     }
 
-    const vals = coerceToValues(argVals);
-    if (isCelError(vals)) {
-      return vals;
+    const target =
+      targetResult !== undefined ? unwrapResult(targetResult) : undefined;
+    if (isCelError(target)) {
+      return target;
     }
+
+    const values = unwrapResultTuple(argResults);
+    if (isCelError(values)) {
+      return values;
+    }
+
     return celError(
-      `found no matching overload for '${this.name}' applied to '(${vals
+      `found no matching overload for ${
+        target ? `${celType(target).name}.` : ""
+      }${this.name}(${values
         .map((x) => celType(x))
         .map((x) => x.name)
         .join(", ")})'`,
@@ -506,7 +521,7 @@ export class EvalObj implements InterpretableCtor {
     return this.values;
   }
   eval(ctx: Activation): CelResult {
-    const vals = coerceToValues(this.values.map((x) => x.eval(ctx)));
+    const vals = unwrapResultTuple(this.values.map((x) => x.eval(ctx)));
     if (isCelError(vals)) {
       return vals;
     }
@@ -713,18 +728,4 @@ function toQualifiedName(expr: Expr): string | undefined {
 
 function unsupportedKeyType(id: number): CelError {
   return celError(`unsupported key type`, id);
-}
-
-function coerceToValues(args: CelResult[]): CelResult<CelValue[]> {
-  const errors: CelError[] = [];
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (isCelError(arg)) {
-      errors.push(arg);
-    }
-  }
-  if (errors.length > 0) {
-    return celErrorMerge(errors[0], ...errors.slice(1));
-  }
-  return args as CelValue[];
 }

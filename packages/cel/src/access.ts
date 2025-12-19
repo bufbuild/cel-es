@@ -31,7 +31,7 @@ import {
   type CelValue,
   objectType,
 } from "./type.js";
-import type { Registry } from "@bufbuild/protobuf";
+import type { Registry as ProtoRegistry } from "@bufbuild/protobuf";
 
 export interface AttributeFactory {
   createAbsolute(id: number, names: string[]): NamespacedAttribute;
@@ -157,7 +157,7 @@ class AbsoluteAttr implements NamespacedAttribute {
     public readonly id: number,
     readonly nsNames: string[],
     public accesses_: Access[],
-    readonly registry: Registry,
+    readonly protoRegistry: ProtoRegistry,
     readonly factory: AttributeFactory,
   ) {
     if (nsNames.length === 0) {
@@ -215,7 +215,7 @@ class AbsoluteAttr implements NamespacedAttribute {
   }
 
   private findIdent(ident: string) {
-    const desc = this.registry.getMessage(ident);
+    const desc = this.protoRegistry.getMessage(ident);
     if (desc) {
       return objectType(desc);
     }
@@ -224,7 +224,7 @@ class AbsoluteAttr implements NamespacedAttribute {
       const lastDot = ident.lastIndexOf(".");
       const enumName = ident.substring(0, lastDot);
       const valueName = ident.substring(lastDot + 1);
-      const descEnum = this.registry.getEnum(enumName);
+      const descEnum = this.protoRegistry.getEnum(enumName);
       if (descEnum) {
         const enumValue = descEnum.values.find((v) => v.name === valueName);
         if (enumValue) {
@@ -672,12 +672,12 @@ class EvalAccess implements Access {
 
 export class ConcreteAttributeFactory implements AttributeFactory {
   constructor(
-    public registry: Registry,
+    public protoRegistry: ProtoRegistry,
     public container: Namespace,
   ) {}
 
   createAbsolute(id: number, names: string[]): NamespacedAttribute {
-    return new AbsoluteAttr(id, names, [], this.registry, this);
+    return new AbsoluteAttr(id, names, [], this.protoRegistry, this);
   }
 
   createConditional(

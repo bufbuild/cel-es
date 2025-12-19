@@ -12,15 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { Registry } from "@bufbuild/protobuf";
-import { createRegistryWithWKT } from "./registry.js";
-import {
-  FuncRegistry,
-  OrderedDispatcher,
-  type CelFunc,
-  type Dispatcher,
-} from "./func.js";
-import { STD_FUNCS } from "./std/std.js";
+import type { Registry as ProtoRegistry } from "@bufbuild/protobuf";
+import { createProtoRegistry } from "./proto.js";
+import { funcRegistry, type Callable, type FuncRegistry } from "./func.js";
+import { StdRegistry } from "./std/std.js";
 import { Namespace } from "./namespace.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
@@ -38,13 +33,13 @@ export interface CelEnv {
    */
   readonly namespace: Namespace | undefined;
   /**
-   * The protobuf registry to use.
+   * The Protobuf registry to use.
    */
-  readonly registry: Registry;
+  readonly protoRegistry: ProtoRegistry;
   /**
-   * The dispatcher to use.
+   * The function/method registry to use.
    */
-  readonly dispatcher: Dispatcher;
+  readonly funcRegistry: FuncRegistry;
 }
 
 export interface CelEnvOptions {
@@ -55,13 +50,13 @@ export interface CelEnvOptions {
   /**
    * The protobuf registry to use.
    */
-  registry?: Registry;
+  protoRegistry?: ProtoRegistry;
   /**
-   * Additional functions to add.
+   * Additional functions and methods to add.
    *
-   * All functions must be unique. This can be used to override any std function.
+   * This can be used to override any standard function or method.
    */
-  funcs?: CelFunc[];
+  funcs?: Callable[];
 }
 
 /**
@@ -70,10 +65,13 @@ export interface CelEnvOptions {
 export function celEnv(options?: CelEnvOptions): CelEnv {
   return new _CelEnv(
     options?.namespace ? new Namespace(options?.namespace) : undefined,
-    options?.registry
-      ? createRegistryWithWKT(options.registry)
-      : createRegistryWithWKT(),
-    new OrderedDispatcher([new FuncRegistry(options?.funcs), STD_FUNCS]),
+    options?.protoRegistry
+      ? createProtoRegistry(options.protoRegistry)
+      : createProtoRegistry(),
+
+    options?.funcs
+      ? funcRegistry(...options.funcs).withFallback(StdRegistry)
+      : StdRegistry,
   );
 }
 
@@ -81,17 +79,17 @@ class _CelEnv implements CelEnv {
   [privateSymbol] = {};
   constructor(
     private readonly _namespace: Namespace | undefined,
-    private readonly _registry: Registry,
-    private readonly _dispatcher: Dispatcher,
+    private readonly _protoRegistry: ProtoRegistry,
+    private readonly _funcRegistry: FuncRegistry,
   ) {}
 
   get namespace() {
     return this._namespace;
   }
-  get registry() {
-    return this._registry;
+  get protoRegistry() {
+    return this._protoRegistry;
   }
-  get dispatcher() {
-    return this._dispatcher;
+  get funcRegistry() {
+    return this._funcRegistry;
   }
 }

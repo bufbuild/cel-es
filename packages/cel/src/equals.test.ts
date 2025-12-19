@@ -23,7 +23,7 @@ import { celList } from "./list.js";
 import { celMap } from "./map.js";
 import { celUint } from "./uint.js";
 import { celType, type CelValue } from "./type.js";
-import { createRegistryWithWKT } from "./registry.js";
+import { createProtoRegistry } from "./proto.js";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -31,7 +31,7 @@ import { createRegistryWithWKT } from "./registry.js";
 void suite("equals()", () => {
   before(() =>
     setEvalContext({
-      registry: createRegistryWithWKT(TestAllTypesSchema),
+      protoRegistry: createProtoRegistry(TestAllTypesSchema),
     }),
   );
   void suite("must be true", () => {

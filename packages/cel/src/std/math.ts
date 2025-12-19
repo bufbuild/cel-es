@@ -12,262 +12,153 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { create } from "@bufbuild/protobuf";
-import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
-
-import { type FuncRegistry, celOverload, celFunc } from "../func.js";
+import { funcRegistry, celFunc } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import {
-  CelScalar,
-  DURATION,
   listType,
-  TIMESTAMP,
-  type CelType,
-  type CelValue,
+  CelScalar,
+  CelDuration,
+  CelTimestamp,
+  type CelDurationType,
+  type CelTimestampType,
 } from "../type.js";
 import { celListConcat } from "../list.js";
-import { celUint } from "../uint.js";
+import { celUint, type CelUint } from "../uint.js";
 import { createDuration } from "../duration.js";
 import { createTimestamp } from "../timestamp.js";
+import { celError } from "../error.js";
 
 const MAX_INT = 9223372036854775807n;
-// biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
-const MAX_INT_NUM = 9223372036854775807.0;
 const MIN_INT = -9223372036854775808n;
-// biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
-const MIN_INT_NUM = -9223372036854775808.0;
 const MAX_UINT = 18446744073709551615n;
-// biome-ignore lint/correctness/noPrecisionLoss: No symbol exists in the std.
-const MAX_UINT_NUM = 18446744073709551616.0;
-const MIN_UINT = 0n;
-const MIN_UINT_NUM = 0.0;
 
-export function isOverflowInt(val: bigint): boolean {
-  return val < MIN_INT || val > MAX_INT;
-}
-export function isOverflowIntNum(val: number): boolean {
-  return Number.isNaN(val) || val <= MIN_INT_NUM || val >= MAX_INT_NUM;
-}
+export function safeInt(
+  value: bigint | number | string,
+  op = "type conversion",
+): bigint {
+  const numeric = typeof value === "string" ? BigInt(value) : value;
+  if (typeof numeric === "bigint") {
+    if (numeric >= MIN_INT && numeric <= MAX_INT) {
+      return numeric;
+    }
+  } else if (Number.isFinite(numeric)) {
+    // We have to handle doubles separately because BigInt() does not honor the
+    // IEEE753 interpretation of the double approximation of MIN_INT and MIN_INT
+    if (numeric > Number(MIN_INT) && numeric < Number(MAX_INT)) {
+      return BigInt(Math.trunc(numeric));
+    }
+  }
 
-export function isOverflowUint(val: bigint): boolean {
-  return val < MIN_UINT || val > MAX_UINT;
-}
-export function isOverflowUintNum(val: number): boolean {
-  return Number.isNaN(val) || val < MIN_UINT_NUM || val > MAX_UINT_NUM;
-}
-
-export function addMath(funcs: FuncRegistry) {
-  funcs.add(add);
-  funcs.add(subtract);
-  funcs.add(multiply);
-  funcs.add(divide);
-  funcs.add(modulo);
-  funcs.add(negate);
+  throw celError(`int overflow during ${op}`);
 }
 
-function addTimestamp(
-  lhs: CelValue<typeof TIMESTAMP>,
-  rhs: CelValue<typeof TIMESTAMP> | CelValue<typeof DURATION>,
+export function safeUint(
+  value: bigint | number | string,
+  op = "type conversion",
+): CelUint {
+  const numeric = typeof value === "string" ? BigInt(value) : value;
+  if (typeof numeric === "bigint" || Number.isFinite(numeric)) {
+    const int =
+      typeof numeric === "number" ? BigInt(Math.trunc(numeric)) : numeric;
+    // Note we test the non-truncated value against 0.
+    if (numeric >= 0 && int <= MAX_UINT) {
+      return celUint(int);
+    }
+  }
+
+  throw celError(`uint overflow during ${op}`);
+}
+
+function bytesConcat(l: Uint8Array, r: Uint8Array) {
+  const val = new Uint8Array(l.length + r.length);
+  val.set(l);
+  val.set(r, l.length);
+  return val;
+}
+
+function timestampSum<T extends CelTimestampType | CelDurationType>(
+  l: T,
+  r: T extends CelTimestampType ? CelDurationType : CelTimestampType,
 ) {
-  let seconds = lhs.message.seconds + rhs.message.seconds;
-  let nanos = lhs.message.nanos + rhs.message.nanos;
-  if (nanos > 999999999) {
-    seconds += BigInt(Math.floor(nanos / 1000000000));
-    nanos = nanos % 1000000000;
-  }
-  if (seconds > 253402300799 || seconds < -62135596800) {
-    throw overflow(opc.ADD, TIMESTAMP);
-  }
-  return create(TimestampSchema, { seconds: seconds, nanos: nanos });
-}
-
-function addDuration(
-  lhs: CelValue<typeof DURATION>,
-  rhs: CelValue<typeof DURATION>,
-) {
-  let seconds = lhs.message.seconds + rhs.message.seconds;
-  let nanos = lhs.message.nanos + rhs.message.nanos;
-  if (nanos > 999999999) {
-    seconds += BigInt(Math.floor(nanos / 1000000000));
-    nanos = nanos % 1000000000;
-  }
-  if (seconds > 315576000000 || seconds < -315576000000) {
-    throw overflow(opc.ADD, DURATION);
-  }
-  return create(DurationSchema, { seconds: seconds, nanos: nanos });
-}
-
-function subtractDurationOrTimestamp<
-  T extends CelValue<typeof TIMESTAMP> | CelValue<typeof DURATION>,
->(lhs: T, rhs: T) {
-  return createDuration(
-    lhs.message.seconds - rhs.message.seconds,
-    lhs.message.nanos - rhs.message.nanos,
+  return createTimestamp(
+    l.message.seconds + r.message.seconds,
+    l.message.nanos + r.message.nanos,
   );
 }
 
-const add = celFunc(opc.ADD, [
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.INT, (lhs, rhs) => {
-    const val = lhs + rhs;
-    if (isOverflowInt(val)) {
-      throw overflow(opc.SUBTRACT, CelScalar.INT);
-    }
-    return val;
-  }),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (lhs, rhs) => {
-    const val = lhs.value + rhs.value;
-    if (isOverflowUint(val)) {
-      throw overflow(opc.SUBTRACT, CelScalar.UINT);
-    }
-    return celUint(val);
-  }),
-  celOverload(
-    [CelScalar.DOUBLE, CelScalar.DOUBLE],
-    CelScalar.DOUBLE,
-    (lhs, rhs) => lhs + rhs,
-  ),
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
-    CelScalar.STRING,
-    (lhs, rhs) => lhs + rhs,
-  ),
-  celOverload(
-    [CelScalar.BYTES, CelScalar.BYTES],
-    CelScalar.BYTES,
-    (lhs, rhs) => {
-      const val = new Uint8Array(lhs.length + rhs.length);
-      val.set(lhs);
-      val.set(rhs, lhs.length);
-      return val;
-    },
-  ),
-  celOverload([TIMESTAMP, TIMESTAMP], TIMESTAMP, addTimestamp),
-  celOverload([TIMESTAMP, DURATION], TIMESTAMP, addTimestamp),
-  celOverload([DURATION, TIMESTAMP], TIMESTAMP, (lhs, rhs) =>
-    addTimestamp(rhs, lhs),
-  ),
-  celOverload([DURATION, DURATION], DURATION, addDuration),
-  celOverload(
-    [listType(CelScalar.DYN), listType(CelScalar.DYN)],
-    listType(CelScalar.DYN),
-    celListConcat,
-  ),
-]);
-
-const subtract = celFunc(opc.SUBTRACT, [
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.INT, (lhs, rhs) => {
-    const val = lhs - rhs;
-    if (isOverflowInt(val)) {
-      throw overflow(opc.SUBTRACT, CelScalar.INT);
-    }
-    return val;
-  }),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (lhs, rhs) => {
-    const val = lhs.value - rhs.value;
-    if (isOverflowUint(val)) {
-      throw overflow(opc.SUBTRACT, CelScalar.UINT);
-    }
-    return celUint(val);
-  }),
-  celOverload(
-    [CelScalar.DOUBLE, CelScalar.DOUBLE],
-    CelScalar.DOUBLE,
-    (lhs, rhs) => lhs - rhs,
-  ),
-  celOverload([TIMESTAMP, TIMESTAMP], DURATION, subtractDurationOrTimestamp),
-  celOverload([DURATION, DURATION], DURATION, subtractDurationOrTimestamp),
-  celOverload([TIMESTAMP, DURATION], TIMESTAMP, (lhs, rhs) =>
-    createTimestamp(
-      lhs.message.seconds - rhs.message.seconds,
-      lhs.message.nanos - rhs.message.nanos,
-    ),
-  ),
-]);
-
-const multiply = celFunc(opc.MULTIPLY, [
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.INT, (lhs, rhs) => {
-    const product = lhs * rhs;
-    if (isOverflowInt(product)) {
-      throw overflow(opc.MULTIPLY, CelScalar.INT);
-    }
-    return product;
-  }),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (lhs, rhs) => {
-    const product = lhs.value * rhs.value;
-    if (isOverflowUint(product)) {
-      throw overflow(opc.MULTIPLY, CelScalar.UINT);
-    }
-    return celUint(product);
-  }),
-  celOverload(
-    [CelScalar.DOUBLE, CelScalar.DOUBLE],
-    CelScalar.DOUBLE,
-    (lhs, rhs) => lhs * rhs,
-  ),
-]);
-
-const divide = celFunc(opc.DIVIDE, [
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.INT, (lhs, rhs) => {
-    if (rhs === 0n) {
-      throw divisionByZero(CelScalar.INT);
-    }
-    if (lhs === MIN_INT && rhs === -1n) {
-      throw overflow(opc.DIVIDE, CelScalar.INT);
-    }
-    return lhs / rhs;
-  }),
-  celOverload(
-    [CelScalar.DOUBLE, CelScalar.DOUBLE],
-    CelScalar.DOUBLE,
-    (lhs, rhs) => lhs / rhs,
-  ),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (lhs, rhs) => {
-    if (rhs.value === 0n) {
-      throw divisionByZero(CelScalar.UINT);
-    }
-    return celUint(lhs.value / rhs.value);
-  }),
-]);
-
-const modulo = celFunc(opc.MODULO, [
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.INT, (lhs, rhs) => {
-    if (rhs === 0n) {
-      throw moduloByZero(CelScalar.INT);
-    }
-    return lhs % rhs;
-  }),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (lhs, rhs) => {
-    if (rhs.value === 0n) {
-      throw moduloByZero(CelScalar.UINT);
-    }
-    return celUint(lhs.value % rhs.value);
-  }),
-]);
-
-const negate = celFunc(opc.NEGATE, [
-  celOverload([CelScalar.INT], CelScalar.INT, (arg) => {
-    const val = -arg;
-    if (isOverflowInt(val)) {
-      throw overflow(opc.NEGATE, CelScalar.INT);
-    }
-    return val;
-  }),
-  celOverload([CelScalar.DOUBLE], CelScalar.DOUBLE, (arg) => -arg),
-]);
-
-function overflow(op: string, type: CelType) {
-  return new Error(`${type.name} return error for overflow during ${op}`);
+function durationSum(l: CelDurationType, r: CelDurationType) {
+  return createDuration(
+    l.message.seconds + r.message.seconds,
+    l.message.nanos + r.message.nanos,
+  );
 }
 
-function divisionByZero(type: NumType) {
-  return new Error(`${type.name} divide by zero`);
+function durationDifference<T extends CelTimestampType | CelDurationType>(
+  l: T,
+  r: T,
+) {
+  return createDuration(
+    l.message.seconds - r.message.seconds,
+    l.message.nanos - r.message.nanos,
+  );
 }
 
-function moduloByZero(type: NumType) {
-  return new Error(`${type.name} modulus by zero`);
+function timestampDifference(l: CelTimestampType, r: CelDurationType) {
+  return createTimestamp(
+    l.message.seconds - r.message.seconds,
+    l.message.nanos - r.message.nanos,
+  );
+}
+
+function safeDivide(type: NumType, l: bigint, r: bigint) {
+  if (r === 0n) throw celError(`${type.name} divide by zero`);
+
+  // overflow possible if l = -9223372036854775808n, r = -1n
+  return safeInt(l / r, `divide by ${r}`);
+}
+
+function safeModulo(type: NumType, l: bigint, r: bigint) {
+  if (r === 0n) throw celError(`${type.name} modulus by zero`);
+  return l % r;
 }
 
 type NumType =
   | typeof CelScalar.INT
   | typeof CelScalar.UINT
   | typeof CelScalar.DOUBLE;
+
+const LIST_DYN = listType(CelScalar.DYN);
+
+// biome-ignore format: table
+export const mathRegistry = funcRegistry(
+  celFunc(opc.ADD, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeInt(l + r, opc.ADD)),
+  celFunc(opc.ADD, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => safeUint(l.value + r.value, opc.ADD)),
+  celFunc(opc.ADD, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l + r),
+  celFunc(opc.ADD, [CelDuration, CelDuration], CelDuration, durationSum),
+  celFunc(opc.ADD, [CelTimestamp, CelDuration], CelTimestamp, timestampSum),
+  celFunc(opc.ADD, [CelDuration, CelTimestamp], CelTimestamp, timestampSum),
+  celFunc(opc.ADD, [CelScalar.STRING, CelScalar.STRING], CelScalar.STRING, (l, r) => l + r),
+  celFunc(opc.ADD, [CelScalar.BYTES, CelScalar.BYTES], CelScalar.BYTES, bytesConcat),
+  celFunc(opc.ADD, [LIST_DYN, LIST_DYN], LIST_DYN, celListConcat),
+
+  celFunc(opc.SUBTRACT, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeInt(l - r, opc.SUBTRACT)),
+  celFunc(opc.SUBTRACT, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => safeUint(l.value - r.value, opc.SUBTRACT)),
+  celFunc(opc.SUBTRACT, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l - r),
+  celFunc(opc.SUBTRACT, [CelTimestamp, CelTimestamp], CelDuration, durationDifference),
+  celFunc(opc.SUBTRACT, [CelDuration, CelDuration], CelDuration, durationDifference),
+  celFunc(opc.SUBTRACT, [CelTimestamp, CelDuration], CelTimestamp, timestampDifference),
+
+  celFunc(opc.MULTIPLY, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeInt(l * r, opc.MULTIPLY)),
+  celFunc(opc.MULTIPLY, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => safeUint(l.value * r.value, opc.MULTIPLY)),
+  celFunc(opc.MULTIPLY, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l * r),
+
+  celFunc(opc.DIVIDE, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeDivide(CelScalar.INT, l, r)),
+  celFunc(opc.DIVIDE, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => celUint(safeDivide(CelScalar.UINT, l.value, r.value))),
+  celFunc(opc.DIVIDE, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l / r),
+
+  celFunc(opc.MODULO, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeModulo(CelScalar.INT, l, r)),
+  celFunc(opc.MODULO, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => celUint(safeModulo(CelScalar.UINT, l.value, r.value))),
+
+  celFunc(opc.NEGATE, [CelScalar.INT], CelScalar.INT, x => safeInt(-x)),
+  celFunc(opc.NEGATE, [CelScalar.DOUBLE], CelScalar.DOUBLE, x => -x),
+);

@@ -40,18 +40,25 @@ import {
   type Struct,
   type Value,
 } from "@bufbuild/protobuf/wkt";
-import { type CelInput, type CelValue, isCelType } from "./type.js";
+import {
+  type CelInput,
+  type CelValue,
+  isCelType,
+  type CelType,
+} from "./type.js";
 
 /**
  * Converts a CelInput to a CelValue.
  */
-export function toCel(v: CelInput): CelValue {
+export function toCel<T extends CelType = CelType>(
+  v: CelInput<T>,
+): CelValue<T> {
   switch (typeof v) {
     case "bigint":
     case "boolean":
     case "number":
     case "string":
-      return v;
+      return v as CelValue<T>;
     case "object":
       break;
     default:
@@ -64,26 +71,26 @@ export function toCel(v: CelInput): CelValue {
     case isCelMap(v):
     case isCelUint(v):
     case isCelType(v):
-      return v;
+      return v as CelValue<T>;
   }
   if (isArray(v) || isReflectList(v)) {
-    return celList(v);
+    return celList(v) as CelValue<T>;
   }
   if (isMap(v) || isReflectMap(v)) {
-    return celMap(v);
+    return celMap(v) as CelValue<T>;
   }
   if (isMessage(v)) {
     const value = wktToCel(v);
     if (value !== undefined) {
-      return value;
+      return value as CelValue<T>;
     }
-    return reflect(getMsgDesc(v.$typeName), v);
+    return reflect(getMsgDesc(v.$typeName), v) as CelValue<T>;
   }
   if (isReflectMessage(v)) {
-    return reflectMsgToCel(v);
+    return reflectMsgToCel(v) as CelValue<T>;
   }
   if (v.constructor.name === "Object") {
-    return celMap(new Map(Object.entries(v)));
+    return celMap(new Map(Object.entries(v))) as CelValue<T>;
   }
   throw new Error(`Unsupported input ${v}`);
 }
@@ -98,7 +105,7 @@ export function unwrapAny(v: CelValue): CelValue {
   if (!isReflectAny(v)) {
     return v;
   }
-  const unpacked = anyUnpack(v.message, getEvalContext().registry);
+  const unpacked = anyUnpack(v.message, getEvalContext().protoRegistry);
   if (unpacked === undefined) {
     throw new Error(
       `invalid Any or ${v.message.typeUrl} not found in registry`,

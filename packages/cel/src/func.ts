@@ -12,282 +12,333 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isCelList } from "./list.js";
-import {
-  type CelType,
-  type CelValueTuple,
-  CelScalar,
-  isCelType,
-  type CelValue,
-  type CelInput,
+import type {
+  CelType,
+  CelValueTuple,
+  CelValue,
+  CelInput,
+  CelResultTuple,
 } from "./type.js";
 import {
   type CelResult,
-  type CelError,
+  type CelResultValue,
   isCelError,
-  celErrorMerge,
+  unwrapResultTuple,
+  unwrapResult,
   celError,
 } from "./error.js";
-import { isCelMap } from "./map.js";
-import { isCelUint } from "./uint.js";
-import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { unwrapAny, toCel } from "./value.js";
+import { toCel } from "./value.js";
 
-const privateFuncSymbol = Symbol.for("@bufbuild/cel/func");
-const privateOverloadSymbol = Symbol.for("@bufbuild/cel/overload");
+const privateCallableSymbol = Symbol.for("@bufbuild/cel/callable");
+const privateFuncRegistrySymbol = Symbol.for("@bufbuild/cel/callable/registry");
 
-export interface CallDispatch {
-  dispatch(id: number, args: CelResult[]): CelResult | undefined;
+type TypeTuple = readonly CelType[];
+
+export interface Callable {
+  [privateCallableSymbol]: true;
+
+  matchName(name: string): boolean;
+
+  // TODO:
+  // matchParams<MP extends TypeTuple>(params: MP): this is Signature<MP>;
+  // matchParams<MT extends CelType, MP extends TypeTuple>(target: MT, params: MP): this is Signature<[MT, ...MP]>;
+
+  matchArgs<MP extends TypeTuple>(
+    params: CelResultTuple<MP>,
+  ): this is Signature<MP>;
+  matchArgs<MT extends CelType, MP extends TypeTuple>(
+    target: CelResultValue<MT>,
+    params: CelResultTuple<MP>,
+  ): this is Signature<[MT, ...MP]>;
+
+  call(id: number, args: CelResult[]): CelResult;
+  result: CelType;
+  overloadId: string;
 }
 
-export interface Dispatcher {
-  find(name: string): CallDispatch | undefined;
+interface Signature<P extends TypeTuple, R extends CelType = CelType>
+  extends Callable {
+  [privateCallableSymbol]: true;
+  call(id: number, args: CelResultTuple<P>): CelResultValue<R>;
+  result: R;
+  overloadId: string;
 }
 
-/**
- * A CEL function definition.
- */
-export interface CelFunc extends CallDispatch {
-  [privateFuncSymbol]: unknown;
-  /**
-   * Name of the function.
-   */
-  readonly name: string;
-  /**
-   * All the overloads of this function.
-   */
-  readonly overloads: CelOverload<readonly CelType[], CelType>[];
-}
+abstract class BaseCallable<R extends CelType> implements Callable {
+  readonly [privateCallableSymbol] = true;
+  protected abstract readonly _params: TypeTuple;
 
-/**
- * Creates a new CelFunc.
- */
-export function celFunc(
-  name: string,
-  overloads: CelOverload<readonly CelType[], CelType>[],
-): CelFunc {
-  return new Func(name, overloads);
-}
-
-/**
- * A CEL function overload.
- */
-export interface CelOverload<P extends readonly CelType[], R extends CelType> {
-  [privateOverloadSymbol]: unknown;
-  /**
-   * Array of parameter types.
-   */
-  readonly parameters: P;
-  /**
-   * The result type.
-   */
-  readonly result: R;
-  /**
-   * Implementation for this overload.
-   */
-  readonly impl: (...args: CelValueTuple<P>) => CelInput<R>;
-}
-
-/**
- * Creates a new CelOverload.
- */
-export function celOverload<
-  const P extends readonly CelType[],
-  const R extends CelType,
->(
-  parameters: P,
-  result: R,
-  impl: (...args: CelValueTuple<P>) => CelInput<R>,
-): CelOverload<P, R> {
-  return new FuncOverload(parameters, result, impl);
-}
-
-class Func implements CelFunc {
-  [privateFuncSymbol] = {};
   constructor(
-    private readonly _name: string,
-    private readonly _overloads: CelOverload<readonly CelType[], CelType>[],
+    protected readonly _scope: string,
+    protected readonly _name: string,
+    protected readonly _result: R,
   ) {}
 
-  get name() {
-    return this._name;
+  matchName(name: string) {
+    return name === this._name;
   }
 
-  get overloads() {
-    return this._overloads;
-  }
+  abstract matchArgs<MP extends TypeTuple>(
+    ...args: [CelResultTuple<TypeTuple>] | [CelResult, CelResult[]]
+  ): this is Signature<MP>;
 
-  dispatch(id: number, args: CelResult[]): CelResult | undefined {
-    const vals = unwrapResults(args);
-    if (isCelError(vals)) {
-      return vals;
-    }
-    for (const overload of this._overloads) {
-      if (overload.parameters.length !== vals.length) {
-        continue;
-      }
-      const checkedVals = [];
-      for (let i = 0; i < vals.length; i++) {
-        const celValue = unwrapAny(vals[i]);
-        if (!isOfType(celValue, overload.parameters[i])) {
-          break;
-        }
-        checkedVals.push(celValue);
-      }
-      if (checkedVals.length !== vals.length) {
-        continue;
-      }
-      try {
-        return toCel(overload.impl(...checkedVals));
-      } catch (ex) {
-        return celError(ex, id);
-      }
-    }
-    return undefined;
-  }
-}
-
-class FuncOverload<const P extends readonly CelType[], const R extends CelType>
-  implements CelOverload<P, R>
-{
-  [privateOverloadSymbol] = {};
-  constructor(
-    private readonly _parameters: P,
-    private readonly _result: R,
-    private readonly _impl: (...args: CelValueTuple<P>) => CelInput<R>,
-  ) {}
-
-  get parameters() {
-    return this._parameters;
-  }
   get result() {
     return this._result;
   }
-  get impl() {
-    return this._impl;
+
+  get overloadId() {
+    const params = this._params.map((p) => p.toString());
+    const result = this._result.toString();
+
+    return `${this._scope}.${this._name}(${params.join(", ")}): ${result}`;
+  }
+
+  abstract call(id: number, args: CelResult[]): CelResult;
+}
+
+type FuncImpl<P extends TypeTuple, R extends CelType> = (
+  ...args: CelValueTuple<P>
+) => CelInput<R>;
+
+export function celFunc<const P extends TypeTuple, const R extends CelType>(
+  name: string,
+  params: P,
+  result: R,
+  impl: FuncImpl<P, R>,
+): Callable {
+  return new Func(name, params, result, impl);
+}
+
+class Func<P extends TypeTuple, R extends CelType>
+  extends BaseCallable<R>
+  implements Signature<P, R>
+{
+  constructor(
+    name: string,
+    protected readonly _params: P,
+    result: R,
+    protected readonly _impl: FuncImpl<P, R>,
+  ) {
+    super("@global", name, result);
+  }
+
+  matchArgs<MP extends TypeTuple>(
+    ...args: [CelResultTuple<MP>] | [CelResult, CelResult[]]
+  ): this is Signature<MP> {
+    return (
+      args.length === 1 && !isCelError(unwrapResultTuple(args[0], this._params))
+    );
+  }
+
+  call(id: number, args: CelResultTuple<P>): CelResultValue<R> {
+    const values = unwrapResultTuple(args, this._params);
+    if (isCelError(values)) {
+      return values.causes(
+        `incorrect argument types provided for ${this.overloadId}`,
+        id,
+      );
+    }
+
+    try {
+      return toCel(this._impl(...values));
+    } catch (ex) {
+      return celError(ex, id);
+    }
   }
 }
 
-/**
- * Set of functions uniquely identified by their name.
- */
-export class FuncRegistry implements Dispatcher {
-  private functions = new Map<string, CallDispatch>();
+type MethodImpl<T extends CelType, P extends TypeTuple, R extends CelType> = (
+  target: CelValue<T>,
+  ...args: CelValueTuple<P>
+) => CelInput<R>;
 
-  constructor(funcs?: CelFunc[]) {
-    funcs && this.add(funcs);
+export function celMethod<
+  const T extends CelType,
+  const P extends TypeTuple,
+  const R extends CelType,
+>(
+  name: string,
+  target: T,
+  params: P,
+  result: R,
+  impl: MethodImpl<T, P, R>,
+): Callable {
+  return new Method(name, target, params, result, impl);
+}
+
+class Method<
+    T extends CelType = CelType,
+    P extends TypeTuple = CelType[],
+    R extends CelType = CelType,
+  >
+  extends BaseCallable<R>
+  implements Signature<[T, ...P], R>
+{
+  constructor(
+    name: string,
+    protected readonly _target: T,
+    protected readonly _params: P,
+    result: R,
+    protected readonly _impl: MethodImpl<T, P, R>,
+  ) {
+    super(_target.toString(), name, result);
   }
 
-  /**
-   * Adds a new function to the registry.
-   *
-   * Throws an error if the function with the same name is already added.
-   */
-  add(func: CelFunc): void;
-  add(funcs: CelFunc[]): void;
-  /**
-   * Adds a function by name and the call.
-   */
-  add(name: string, call: CallDispatch): void;
-  add(nameOrFunc: CelFunc | CelFunc[] | string, call?: CallDispatch) {
-    if (typeof nameOrFunc !== "string") {
-      if (Array.isArray(nameOrFunc)) {
-        for (const func of nameOrFunc) {
-          this.add(func);
-        }
-        return;
-      }
-      call = nameOrFunc;
-      nameOrFunc = nameOrFunc.name;
-    }
-    if (call === undefined) {
-      throw new Error("dispatch is required with name");
-    }
-    this.addCall(nameOrFunc, call);
+  matchArgs<MT extends CelType, MP extends TypeTuple>(
+    ...args: [CelResultValue<MT>, CelResultTuple<MP>] | [CelResult[]]
+  ): this is Signature<MP> {
+    return (
+      args.length === 2 &&
+      !isCelError(unwrapResult(args[0], this._target)) &&
+      !isCelError(unwrapResultTuple(args[1], this._params))
+    );
   }
 
-  /**
-   * Find a function by name.
-   */
-  find(name: string) {
-    return this.functions.get(name);
-  }
-
-  private addCall(name: string, call: CallDispatch): void {
-    if (this.functions.has(name)) {
-      throw new Error(`Function ${name} already registered`);
+  call(id: number, args: CelResultTuple<[T, ...P]>): CelResultValue<R> {
+    const target = unwrapResult(args[0], this._target);
+    if (isCelError(target)) {
+      return target.causes(`bad target for ${this.overloadId}`, id);
     }
-    this.functions.set(name, call);
+
+    const values = unwrapResultTuple(args.slice(1), this._params);
+    if (isCelError(values)) {
+      return values.causes(`bad args for ${this.overloadId}`, id);
+    }
+
+    try {
+      return toCel(this._impl(target, ...values));
+    } catch (ex) {
+      return celError(ex, id);
+    }
   }
 }
 
-export class OrderedDispatcher implements Dispatcher {
-  constructor(private readonly dispatchers: Dispatcher[]) {}
+interface CustomFuncMatchers {
+  args?: (args: CelResult[]) => boolean;
+}
 
-  public add(dispatcher: Dispatcher): void {
-    this.dispatchers.unshift(dispatcher);
+type CustomFuncCall<R extends CelType> = (
+  id: number,
+  args: CelResultTuple<TypeTuple>,
+) => CelResultValue<R>;
+
+export function celCustomFunc<
+  const P extends TypeTuple,
+  const R extends CelType,
+>(
+  name: string,
+  params: P,
+  result: R,
+  call: CustomFuncCall<R>,
+  matchers?: CustomFuncMatchers,
+): Callable {
+  return new CustomFunc(name, params, result, call, matchers ?? {});
+}
+
+class CustomFunc<P extends TypeTuple, R extends CelType> extends Func<P, R> {
+  constructor(
+    name: string,
+    params: P,
+    result: R,
+    protected readonly _call: CustomFuncCall<R>,
+    protected readonly _matchers: CustomFuncMatchers,
+  ) {
+    super(name, params, result, () => {
+      throw new Error("not implemented");
+    });
   }
 
-  public find(name: string): CallDispatch | undefined {
-    for (const dispatcher of this.dispatchers) {
-      const result = dispatcher.find(name);
-      if (result !== undefined) {
-        return result;
-      }
-    }
-    return undefined;
+  override matchArgs<MP extends TypeTuple>(
+    ...args: [CelResultTuple<MP>] | [CelResult, CelResult[]]
+  ): this is Signature<MP> {
+    return (
+      args.length === 1 &&
+      (this._matchers.args
+        ? this._matchers.args(args[0])
+        : super.matchArgs(args[0]))
+    );
+  }
+
+  override call(id: number, args: CelType[]): CelResultValue<R> {
+    return this._call(id, args);
   }
 }
 
-function isOfType<T extends CelType>(
-  val: CelValue,
-  type: T,
-): val is CelValue<T> {
-  switch (type.kind) {
-    case "list":
-      return isCelList(val);
-    case "map":
-      return isCelMap(val);
-    case "object":
-      return isReflectMessage(val, type.desc);
-    case "type":
-      return isCelType(val);
-    case "scalar":
-      switch (type) {
-        case CelScalar.DYN:
-          return true;
-        case CelScalar.INT:
-          return typeof val === "bigint";
-        case CelScalar.UINT:
-          return isCelUint(val);
-        case CelScalar.BOOL:
-          return typeof val === "boolean";
-        case CelScalar.DOUBLE:
-          return typeof val === "number";
-        case CelScalar.NULL:
-          return val === null;
-        case CelScalar.STRING:
-          return typeof val === "string";
-        case CelScalar.BYTES:
-          return val instanceof Uint8Array;
-      }
-  }
-  return false;
+// biome-ignore format: long lines
+export interface FuncRegistry {
+  readonly [privateFuncRegistrySymbol]: true;
+
+  first(): Callable | undefined;
+  empty(): boolean;
+
+  narrowedByName(name: string): FuncRegistry;
+  narrowedByArgs(...args: [CelResult[]] | [CelResult, CelResult[]]): FuncRegistry;
+  // TODO: narrowedByParams(...args: [CelType[]] | [CelType, CelType[]]): FuncRegistry;
+
+  withFallback(registry: FuncRegistry): FuncRegistry;
 }
 
-function unwrapResults<V = CelValue>(args: CelResult<V>[]) {
-  const errors: CelError[] = [];
-  const vals: V[] = [];
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (isCelError(arg)) {
-      errors.push(arg);
-    } else {
-      vals.push(arg);
+export function funcRegistry(...callables: Callable[]): FuncRegistry {
+  return new Registry(callables);
+}
+
+class Registry implements FuncRegistry {
+  readonly [privateFuncRegistrySymbol] = true;
+  protected readonly _callables: Callable[];
+  protected readonly _fallback?: FuncRegistry;
+
+  constructor(callables: Callable[] = [], fallback?: FuncRegistry) {
+    this._callables = callables;
+    this._fallback = fallback;
+
+    if (this.empty() && this._fallback) {
+      // should be impossible per the code below.
+      throw new Error("invalid registry");
     }
   }
-  if (errors.length > 0) {
-    return celErrorMerge(errors[0], ...errors.slice(1));
+
+  first(): Callable | undefined {
+    return this._callables[0] ?? this._fallback?.first();
   }
-  return vals;
+
+  empty() {
+    return this._callables.length === 0;
+  }
+
+  narrowedByName(name: string) {
+    const narrowed = this._callables.filter((c) => c.matchName(name));
+    const fallback = this._fallback?.narrowedByName(name);
+
+    if (!narrowed.length) {
+      return fallback ?? new Registry([]);
+    }
+
+    return new Registry(
+      this._callables.filter((c) => c.matchName(name)),
+      this._fallback?.narrowedByName(name),
+    );
+  }
+
+  narrowedByArgs(...args: [CelResult[]] | [CelResult, CelResult[]]) {
+    const narrowed = this._callables.filter((c) =>
+      args.length === 1 ? c.matchArgs(args[0]) : c.matchArgs(args[0], args[1]),
+    );
+    const fallback = this._fallback?.narrowedByArgs(...args);
+
+    if (!narrowed.length) {
+      return fallback ?? new Registry([]);
+    }
+
+    return new Registry(narrowed, fallback);
+  }
+
+  withFallback(fallback: FuncRegistry) {
+    if (fallback.empty()) return this;
+    if (this.empty()) return fallback;
+
+    return new Registry(
+      this._callables,
+      this._fallback?.withFallback(fallback) ?? fallback,
+    );
+  }
 }
