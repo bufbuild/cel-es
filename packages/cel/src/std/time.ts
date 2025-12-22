@@ -25,131 +25,178 @@ import { funcRegistry, celMethod } from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { toJson } from "@bufbuild/protobuf";
 
-interface LocalizedDate {
-  year: bigint; // e.g., 2025n
-  month: bigint; // 1n-12n
-  date: bigint; // 1n-31n
-  hours: bigint; // 0n-23n
-  minutes: bigint; // 0n-59n
-  seconds: bigint; // 0n-59n
-  milliseconds: bigint; // 0n-999n
-}
-
-function extractPart(parts: Intl.DateTimeFormatPart[], type: string): bigint {
-  const part = parts.find((p) => p.type === type);
-  if (!part) throw new Error(`could not convert date`);
-  return BigInt(parseInt(part.value));
-}
-
 function celTimeMethod(
   name: string,
   params: CelType[],
-  func: (d: LocalizedDate) => bigint,
+  func: (d: Date) => number,
 ) {
   return celMethod(
     name,
     CelTimestamp,
     params,
     CelScalar.INT,
-    (timestamp: CelTimestampType, tz = "UTC") => {
-      const date = timestampDate(timestamp.message);
-      // Timezone can either be Fixed or IANA or "UTC".
-      // Ref: https://github.com/google/cel-spec/blob/master/doc/langdef.md#timezones
-      if (/^[+-]\d\d(\d\d)?$/.test(tz)) {
-        throw new Error("invalid timezone offset");
+    (msg: CelTimestampType, tz?: string) => {
+      const ts = msg.message;
+      let val = timestampDate(ts);
+      if (tz !== undefined) {
+        // Timezone can either be Fixed or IANA or "UTC".
+        // We first check for the fixed offset case.
+        //
+        // Ref: https://github.com/google/cel-spec/blob/master/doc/langdef.md#timezones
+        const timeOffset = tz.match(
+          /^(?<sign>[+-]?)(?<hours>\d\d):(?<minutes>\d\d)$/,
+        );
+        if (timeOffset?.groups) {
+          const sign = timeOffset.groups.sign == "-" ? 1 : -1;
+          const hours = parseInt(timeOffset.groups.hours);
+          const minutes = parseInt(timeOffset.groups.minutes);
+          const offset = sign * (hours * 60 * 60 * 1000 + minutes * 60 * 1000);
+          val = new Date(val.getTime() - offset);
+          val = new Date(
+            val.getUTCFullYear(),
+            val.getUTCMonth(),
+            val.getUTCDate(),
+            val.getUTCHours(),
+            val.getUTCMinutes(),
+            val.getUTCSeconds(),
+            val.getUTCMilliseconds(),
+          );
+        } else {
+          // Must be an IANA timezone, so we use the Intl API to format the string
+          // in the desired timezone and extract the parts from that.
+          //
+          // The APIs are part of baseline 2020.
+          const format = new Intl.DateTimeFormat("en-US", {
+            hourCycle: "h23",
+            hour12: false,
+            timeZone: tz,
+            year: "numeric",
+            month: "numeric",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          });
+          let year: number | undefined,
+            month: number | undefined,
+            day: number | undefined,
+            hour: number | undefined,
+            minute: number | undefined,
+            second: number | undefined;
+          for (const part of format.formatToParts(val)) {
+            switch (part.type) {
+              case "year":
+                year = parseInt(part.value);
+                break;
+              case "month":
+                month = parseInt(part.value) - 1;
+                break;
+              case "day":
+                day = parseInt(part.value);
+                break;
+              case "hour":
+                hour = parseInt(part.value);
+                break;
+              case "minute":
+                minute = parseInt(part.value);
+                break;
+              case "second":
+                second = parseInt(part.value);
+                break;
+            }
+          }
+          if (
+            year === undefined ||
+            month === undefined ||
+            day === undefined ||
+            hour === undefined ||
+            minute === undefined ||
+            second === undefined
+          ) {
+            throw new Error(
+              `Error converting ${toJson(TimestampSchema, ts)} to IANA timezone ${tz}`,
+            );
+          }
+          val = new Date(
+            year,
+            month,
+            day,
+            hour,
+            minute,
+            second,
+            val.getUTCMilliseconds(),
+          );
+        }
+      } else {
+        val = new Date(
+          val.getUTCFullYear(),
+          val.getUTCMonth(),
+          val.getUTCDate(),
+          val.getUTCHours(),
+          val.getUTCMinutes(),
+          val.getUTCSeconds(),
+          val.getUTCMilliseconds(),
+        );
       }
-
-      const timeZone = /^\d\d:\d\d$/.test(tz) ? `+${tz}` : tz;
-      // We use the Intl API to format the string
-      // in the desired timezone and extract the parts from that.
-      const format = new Intl.DateTimeFormat("en-US", {
-        hourCycle: "h23",
-        timeZone,
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        second: "numeric",
-      });
-      const parts = format.formatToParts(date);
-      const localized: LocalizedDate = {
-        year: extractPart(parts, "year"),
-        month: extractPart(parts, "month") - 1n,
-        date: extractPart(parts, "day"),
-        hours: extractPart(parts, "hour"),
-        minutes: extractPart(parts, "minute"),
-        seconds: extractPart(parts, "second"),
-        milliseconds: BigInt(date.getUTCMilliseconds()),
-      };
-      const result = func(localized);
+      const result = func(val);
       try {
-        return result;
-      } catch (_) {
+        return BigInt(result);
+      } catch (_e) {
         throw new Error(
-          `Error converting ${result} of ${String(date)} of ${toJson(TimestampSchema, timestamp.message)} to BigInt`,
+          `Error converting ${result} of ${String(val)} of ${toJson(TimestampSchema, ts)} to BigInt`,
         );
       }
     },
   );
 }
 
-const ONE_DAY = 1000n * 60n * 60n * 24n;
+const ONE_DAY = 1000 * 60 * 60 * 24;
 
-function getDayOfYear(date: LocalizedDate): bigint {
+function getDayOfYear(date: Date): number {
   // We need to do this all in UTC or we'll have DST bugs
   const january1 = new Date();
-  january1.setUTCFullYear(Number(date.year));
+  january1.setUTCFullYear(date.getFullYear());
   january1.setUTCMonth(0);
   january1.setUTCDate(1);
   january1.setUTCHours(12); // Eliminate leap-second bugs
   const target = new Date(january1.getTime());
-  target.setUTCMonth(Number(date.month));
-  target.setUTCDate(Number(date.date));
+  target.setUTCMonth(date.getMonth());
+  target.setUTCDate(date.getDate());
 
-  return BigInt(target.getTime() - january1.getTime()) / ONE_DAY;
-}
-
-function getDayOfWeek(date: LocalizedDate) {
-  const target = new Date();
-  target.setUTCFullYear(Number(date.year));
-  target.setUTCMonth(Number(date.month));
-  target.setUTCDate(Number(date.date));
-
-  return BigInt(target.getUTCDay());
+  return (target.getTime() - january1.getTime()) / ONE_DAY;
 }
 
 // biome-ignore format: table
 export const timeRegistry = funcRegistry(
-  celTimeMethod(olc.TIME_GET_FULL_YEAR, [], (x) => x.year),
-  celTimeMethod(olc.TIME_GET_FULL_YEAR, [CelScalar.STRING], (x) => x.year),
+  celTimeMethod(olc.TIME_GET_FULL_YEAR, [], (x) => x.getFullYear()),
+  celTimeMethod(olc.TIME_GET_FULL_YEAR, [CelScalar.STRING], (x) => x.getFullYear()),
 
-  celTimeMethod(olc.TIME_GET_MONTH, [], (x) => x.month),
-  celTimeMethod(olc.TIME_GET_MONTH, [CelScalar.STRING], (x) => x.month),
+  celTimeMethod(olc.TIME_GET_MONTH, [], (x) => x.getMonth()),
+  celTimeMethod(olc.TIME_GET_MONTH, [CelScalar.STRING], (x) => x.getMonth()),
 
-  celTimeMethod(olc.TIME_GET_DATE, [], (x) => x.date),
-  celTimeMethod(olc.TIME_GET_DATE, [CelScalar.STRING], (x) => x.date),
+  celTimeMethod(olc.TIME_GET_DATE, [], (x) => x.getDate()),
+  celTimeMethod(olc.TIME_GET_DATE, [CelScalar.STRING], (x) => x.getDate()),
 
-  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH, [], (x) => x.date - 1n),
-  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH, [CelScalar.STRING], (x) => x.date - 1n),
+  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH, [], (x) => x.getDate() - 1),
+  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH, [CelScalar.STRING], (x) => x.getDate() - 1),
 
-  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK, [], (x) => getDayOfWeek(x)),
-  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK, [CelScalar.STRING], (x) => getDayOfWeek(x)),
+  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK, [], (x) => x.getDay()),
+  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK, [CelScalar.STRING], (x) => x.getDay()),
 
   celTimeMethod(olc.TIME_GET_DAY_OF_YEAR, [], (x) => getDayOfYear(x)),
   celTimeMethod(olc.TIME_GET_DAY_OF_YEAR, [CelScalar.STRING], (x) => getDayOfYear(x)),
 
-  celTimeMethod(olc.TIME_GET_SECONDS, [], (x) => x.seconds),
-  celTimeMethod(olc.TIME_GET_SECONDS, [CelScalar.STRING], (x) => x.seconds),
+  celTimeMethod(olc.TIME_GET_SECONDS, [], (x) => x.getSeconds()),
+  celTimeMethod(olc.TIME_GET_SECONDS, [CelScalar.STRING], (x) => x.getSeconds()),
 
-  celTimeMethod(olc.TIME_GET_MINUTES, [], (x) => x.minutes),
-  celTimeMethod(olc.TIME_GET_MINUTES, [CelScalar.STRING], (x) => x.minutes),
+  celTimeMethod(olc.TIME_GET_MINUTES, [], (x) => x.getMinutes()),
+  celTimeMethod(olc.TIME_GET_MINUTES, [CelScalar.STRING], (x) => x.getMinutes()),
 
-  celTimeMethod(olc.TIME_GET_HOURS, [], (x) => x.hours),
-  celTimeMethod(olc.TIME_GET_HOURS, [CelScalar.STRING], (x) => x.hours),
+  celTimeMethod(olc.TIME_GET_HOURS, [], (x) => x.getHours()),
+  celTimeMethod(olc.TIME_GET_HOURS, [CelScalar.STRING], (x) => x.getHours()),
 
-  celTimeMethod(olc.TIME_GET_MILLISECONDS, [], (x) => x.milliseconds),
-  celTimeMethod(olc.TIME_GET_MILLISECONDS, [CelScalar.STRING], (x) => x.milliseconds),
+  celTimeMethod(olc.TIME_GET_MILLISECONDS, [], (x) => x.getMilliseconds()),
+  celTimeMethod(olc.TIME_GET_MILLISECONDS, [CelScalar.STRING], (x) => x.getMilliseconds()),
 
   celMethod(olc.TIME_GET_SECONDS, CelDuration, [], CelScalar.INT, (x) => x.message.seconds),
   celMethod(olc.TIME_GET_MINUTES, CelDuration, [], CelScalar.INT, (x) => x.message.seconds / 60n),
