@@ -18,15 +18,17 @@ import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { celError, isCelError, type CelResult } from "../error.js";
 import {
   CelScalar,
-  CelDuration,
+  CelDuration as DURATION,
   type CelDurationType,
   listType,
   mapType,
-  CelTimestamp,
+  CelTimestamp as TIMESTAMP,
   type CelTimestampType,
+  type CelValue,
 } from "../type.js";
 import { equals } from "../equals.js";
 import type { CelMapIndex } from "../map.js";
+import type { CelList } from "../list.js";
 
 function and(id: number, args: CelResult<boolean>[]) {
   if (args.some((a) => a === false)) return false;
@@ -108,9 +110,6 @@ export function matches(x: string, y: string): boolean {
   return re.test(x);
 }
 
-const LIST_DYN = listType(CelScalar.DYN);
-const MAP_DYN_DYN = mapType(CelScalar.DYN, CelScalar.DYN);
-
 function compareDuration(lhs: CelDurationType, rhs: CelDurationType) {
   const cmp = lhs.message.seconds - rhs.message.seconds;
   if (cmp == 0n) {
@@ -140,87 +139,102 @@ function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
   return lhs.length - rhs.length;
 }
 
+function inList(value: CelValue, list: CelList) {
+  for (const v of list) {
+    if (equals(v, value)) return true;
+  }
+
+  return false;
+}
+
+const LIST = listType(CelScalar.DYN);
+const MAP = mapType(CelScalar.DYN, CelScalar.DYN);
+
+const { BOOL, BYTES, DOUBLE, DYN, INT, STRING, UINT } = CelScalar;
+
 // biome-ignore format: table
 export const LOGIC_FUNCS: Callable[] = [
-  celFunc(opc.LOGICAL_NOT, [CelScalar.BOOL], CelScalar.BOOL, x => !x),
-  celCustomFunc(opc.LOGICAL_AND, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, and, { args: () => true }),
-  celCustomFunc(opc.LOGICAL_OR, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, or, { args: () => true }),
-  celCustomFunc(opc.NOT_STRICTLY_FALSE, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, (_, [x]) => x !== false, { args: () => true }),
+  celFunc(opc.LOGICAL_NOT,    [BOOL],                 BOOL, (x)     =>  !x),
 
-  celFunc(opc.EQUALS, [CelScalar.DYN, CelScalar.DYN], CelScalar.BOOL, equals),
-  celFunc(opc.NOT_EQUALS, [CelScalar.DYN, CelScalar.DYN], CelScalar.BOOL, (l, r) => !equals(l, r)),
+  celFunc(opc.EQUALS,         [DYN, DYN],             BOOL,             equals),
+  celFunc(opc.NOT_EQUALS,     [DYN, DYN],             BOOL, (l, r)  =>  !equals(l, r)),
 
-  celFunc(opc.LESS, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, (l, r) => l < r),
-  celFunc(opc.LESS, [CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) < 0),
-  celFunc(opc.LESS, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => l < r),
-  celFunc(opc.LESS, [CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (l, r) => l < r),
-  celFunc(opc.LESS, [CelScalar.INT, CelScalar.INT], CelScalar.BOOL, (l, r) => l < r),
-  celFunc(opc.LESS, [CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < r.value),
-  celFunc(opc.LESS, [CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value < r),
-  celFunc(opc.LESS, [CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value < r.value),
+  celFunc(opc.LESS,           [BOOL, BOOL],           BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) < 0),
+  celFunc(opc.LESS,           [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [STRING, STRING],       BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [INT, INT],             BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [INT, UINT],            BOOL, (l, r)  =>  l < r.value),
+  celFunc(opc.LESS,           [UINT, INT],            BOOL, (l, r)  =>  l.value < r),
+  celFunc(opc.LESS,           [UINT, UINT],           BOOL, (l, r)  =>  l.value < r.value),
   // TODO investigate: ECMAScript relational operators support mixed bigint/number operands,
   // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
-  celFunc(opc.LESS, [CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) < r),
-  celFunc(opc.LESS, [CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l < Number(r)),
-  celFunc(opc.LESS, [CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < Number(r.value)),
-  celFunc(opc.LESS, [CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) < r),
-  celFunc(opc.LESS, [CelDuration, CelDuration], CelScalar.BOOL, (l, r) => compareDuration(l, r) < 0),
-  celFunc(opc.LESS, [CelTimestamp, CelTimestamp], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) < 0),
+  celFunc(opc.LESS,           [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) < r),
+  celFunc(opc.LESS,           [DOUBLE, INT],          BOOL, (l, r)  =>  l < Number(r)),
+  celFunc(opc.LESS,           [DOUBLE, UINT],         BOOL, (l, r)  =>  l < Number(r.value)),
+  celFunc(opc.LESS,           [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) < r),
+  celFunc(opc.LESS,           [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) < 0),
+  celFunc(opc.LESS,           [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) < 0),
 
-  celFunc(opc.LESS_EQUALS, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, (l, r) => l <= r),
-  celFunc(opc.LESS_EQUALS, [CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) <= 0),
-  celFunc(opc.LESS_EQUALS, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => l <= r),
-  celFunc(opc.LESS_EQUALS, [CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (l, r) => l <= r),
-  celFunc(opc.LESS_EQUALS, [CelScalar.INT, CelScalar.INT], CelScalar.BOOL, (l, r) => l <= r),
-  celFunc(opc.LESS_EQUALS, [CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= r.value),
-  celFunc(opc.LESS_EQUALS, [CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value <= r),
-  celFunc(opc.LESS_EQUALS, [CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value <= r.value),
-  celFunc(opc.LESS_EQUALS, [CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) <= r),
-  celFunc(opc.LESS_EQUALS, [CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l <= Number(r)),
-  celFunc(opc.LESS_EQUALS, [CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= Number(r.value)),
-  celFunc(opc.LESS_EQUALS, [CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) <= r),
-  celFunc(opc.LESS_EQUALS, [CelDuration, CelDuration], CelScalar.BOOL, (l, r) => compareDuration(l, r) <= 0),
-  celFunc(opc.LESS_EQUALS, [CelTimestamp, CelTimestamp], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) <= 0),
+  celFunc(opc.LESS_EQUALS,    [BOOL, BOOL],           BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) <= 0),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [STRING, STRING],       BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [INT, INT],             BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [INT, UINT],            BOOL, (l, r)  =>  l <= r.value),
+  celFunc(opc.LESS_EQUALS,    [UINT, INT],            BOOL, (l, r)  =>  l.value <= r),
+  celFunc(opc.LESS_EQUALS,    [UINT, UINT],           BOOL, (l, r)  =>  l.value <= r.value),
+  celFunc(opc.LESS_EQUALS,    [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) <= r),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, INT],          BOOL, (l, r)  =>  l <= Number(r)),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, UINT],         BOOL, (l, r)  =>  l <= Number(r.value)),
+  celFunc(opc.LESS_EQUALS,    [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) <= r),
+  celFunc(opc.LESS_EQUALS,    [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) <= 0),
+  celFunc(opc.LESS_EQUALS,    [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) <= 0),
 
-  celFunc(opc.GREATER, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, (l, r) => l > r),
-  celFunc(opc.GREATER, [CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) > 0),
-  celFunc(opc.GREATER, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => l > r),
-  celFunc(opc.GREATER, [CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (l, r) => l > r),
-  celFunc(opc.GREATER, [CelScalar.INT, CelScalar.INT], CelScalar.BOOL, (l, r) => l > r),
-  celFunc(opc.GREATER, [CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > r.value),
-  celFunc(opc.GREATER, [CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value > r),
-  celFunc(opc.GREATER, [CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value > r.value),
-  celFunc(opc.GREATER, [CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) > r),
-  celFunc(opc.GREATER, [CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l > Number(r)),
-  celFunc(opc.GREATER, [CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > Number(r.value)),
-  celFunc(opc.GREATER, [CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) > r),
-  celFunc(opc.GREATER, [CelDuration, CelDuration], CelScalar.BOOL, (l, r) => compareDuration(l, r) > 0),
-  celFunc(opc.GREATER, [CelTimestamp, CelTimestamp], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) > 0),
+  celFunc(opc.GREATER,        [BOOL, BOOL],           BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) > 0),
+  celFunc(opc.GREATER,        [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [STRING, STRING],       BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [INT, INT],             BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [INT, UINT],            BOOL, (l, r)  =>  l > r.value),
+  celFunc(opc.GREATER,        [UINT, INT],            BOOL, (l, r)  =>  l.value > r),
+  celFunc(opc.GREATER,        [UINT, UINT],           BOOL, (l, r)  =>  l.value > r.value),
+  celFunc(opc.GREATER,        [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) > r),
+  celFunc(opc.GREATER,        [DOUBLE, INT],          BOOL, (l, r)  =>  l > Number(r)),
+  celFunc(opc.GREATER,        [DOUBLE, UINT],         BOOL, (l, r)  =>  l > Number(r.value)),
+  celFunc(opc.GREATER,        [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) > r),
+  celFunc(opc.GREATER,        [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) > 0),
+  celFunc(opc.GREATER,        [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) > 0),
 
-  celFunc(opc.GREATER_EQUALS, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, (l, r) => l >= r),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) >= 0),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => l >= r),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (l, r) => l >= r),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.INT, CelScalar.INT], CelScalar.BOOL, (l, r) => l >= r),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= r.value),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value >= r),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value >= r.value),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) >= r),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l >= Number(r)),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= Number(r.value)),
-  celFunc(opc.GREATER_EQUALS, [CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) >= r),
-  celFunc(opc.GREATER_EQUALS, [CelDuration, CelDuration], CelScalar.BOOL, (l, r) => compareDuration(l, r) >= 0),
-  celFunc(opc.GREATER_EQUALS, [CelTimestamp, CelTimestamp], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) >= 0),
+  celFunc(opc.GREATER_EQUALS, [BOOL, BOOL],           BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) >= 0),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [STRING, STRING],       BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [INT, INT],             BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [INT, UINT],            BOOL, (l, r)  =>  l >= r.value),
+  celFunc(opc.GREATER_EQUALS, [UINT, INT],            BOOL, (l, r)  =>  l.value >= r),
+  celFunc(opc.GREATER_EQUALS, [UINT, UINT],           BOOL, (l, r)  =>  l.value >= r.value),
+  celFunc(opc.GREATER_EQUALS, [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) >= r),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, INT],          BOOL, (l, r)  =>  l >= Number(r)),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, UINT],         BOOL, (l, r)  =>  l >= Number(r.value)),
+  celFunc(opc.GREATER_EQUALS, [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) >= r),
+  celFunc(opc.GREATER_EQUALS, [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) >= 0),
+  celFunc(opc.GREATER_EQUALS, [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) >= 0),
 
-  celMethod(olc.CONTAINS, CelScalar.STRING, [CelScalar.STRING], CelScalar.BOOL, (haystack, needle) => haystack.includes(needle)),
-  celMethod(olc.ENDS_WITH, CelScalar.STRING, [CelScalar.STRING], CelScalar.BOOL, (haystack, needle) => haystack.endsWith(needle)),
-  celMethod(olc.STARTS_WITH, CelScalar.STRING, [CelScalar.STRING], CelScalar.BOOL, (haystack, needle) => haystack.startsWith(needle)),
-  celMethod(olc.MATCHES, CelScalar.STRING, [CelScalar.STRING], CelScalar.BOOL, matches),
-  celFunc(olc.SIZE, [CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
-  celFunc(olc.SIZE, [LIST_DYN], CelScalar.INT, (x) => BigInt(x.size)),
-  celFunc(olc.SIZE, [CelScalar.STRING], CelScalar.INT, (x) => BigInt([...x].length)),
-  celFunc(olc.SIZE, [MAP_DYN_DYN], CelScalar.INT, (x) => BigInt(x.size)),
+  celFunc(olc.SIZE,           [BYTES],                INT,  (x)     =>  BigInt(x.length)),
+  celFunc(olc.SIZE,           [LIST],                 INT,  (x)     =>  BigInt(x.size)),
+  celFunc(olc.SIZE,           [STRING],               INT,  (x)     =>  BigInt([...x].length)),
+  celFunc(olc.SIZE,           [MAP],                  INT,  (x)     =>  BigInt(x.size)),
 
-  celFunc(opc.IN, [CelScalar.DYN, LIST_DYN], CelScalar.BOOL, (needle, haystack) => haystack.has(needle)),
-  celFunc(opc.IN, [CelScalar.DYN, MAP_DYN_DYN], CelScalar.BOOL, (needle, haystack) => haystack.has(needle as CelMapIndex)),
+  celFunc(opc.IN,             [DYN, LIST],            BOOL,             inList),
+  celFunc(opc.IN,             [DYN, MAP],             BOOL, (n, h)  =>  h.has(n as CelMapIndex)),
+
+  celMethod(olc.CONTAINS,     STRING, [STRING],       BOOL, (h, n)  =>  h.includes(n)),
+  celMethod(olc.ENDS_WITH,    STRING, [STRING],       BOOL, (h, n)  =>  h.endsWith(n)),
+  celMethod(olc.STARTS_WITH,  STRING, [STRING],       BOOL, (h, n)  =>  h.startsWith(n)),
+  celMethod(olc.MATCHES,      STRING, [STRING],       BOOL,             matches),
+
+  celCustomFunc(opc.LOGICAL_AND,        [BOOL, BOOL], BOOL,             and,          { args: () => true }),
+  celCustomFunc(opc.LOGICAL_OR,         [BOOL, BOOL], BOOL,             or,           { args: () => true }),
+  celCustomFunc(opc.NOT_STRICTLY_FALSE, [BOOL, BOOL], BOOL, (_, [x]) => x !== false,  { args: () => true }),
 ];

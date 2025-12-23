@@ -16,8 +16,8 @@ import { timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import {
   CelScalar,
-  CelTimestamp,
-  CelDuration,
+  CelTimestamp as TIMESTAMP,
+  CelDuration as DURATION,
   type CelTimestampType,
   type CelType,
 } from "../type.js";
@@ -32,7 +32,7 @@ function celTimeMethod(
 ) {
   return celMethod(
     name,
-    CelTimestamp,
+    TIMESTAMP,
     params,
     CelScalar.INT,
     (msg: CelTimestampType, tz?: string) => {
@@ -166,40 +166,42 @@ function getDayOfYear(date: Date): number {
   return (target.getTime() - january1.getTime()) / ONE_DAY;
 }
 
+const { INT, STRING } = CelScalar;
+
 // biome-ignore format: table
 export const TIME_FUNCS: Callable[] = [
-  celTimeMethod(olc.TIME_GET_FULL_YEAR, [], (x) => x.getFullYear()),
-  celTimeMethod(olc.TIME_GET_FULL_YEAR, [CelScalar.STRING], (x) => x.getFullYear()),
+  celMethod(olc.TIME_GET_SECONDS,           DURATION, [],       INT,  (x) => x.message.seconds),
+  celMethod(olc.TIME_GET_MINUTES,           DURATION, [],       INT,  (x) => x.message.seconds / 60n),
+  celMethod(olc.TIME_GET_HOURS,             DURATION, [],       INT,  (x) => x.message.seconds / 3600n),
+  celMethod(olc.TIME_GET_MILLISECONDS,      DURATION, [],       INT,  (x) => BigInt(x.message.nanos) / 1000000n),
 
-  celTimeMethod(olc.TIME_GET_MONTH, [], (x) => x.getMonth()),
-  celTimeMethod(olc.TIME_GET_MONTH, [CelScalar.STRING], (x) => x.getMonth()),
+  celTimeMethod(olc.TIME_GET_FULL_YEAR,               [],             (x) => x.getFullYear()),
+  celTimeMethod(olc.TIME_GET_FULL_YEAR,               [STRING],       (x) => x.getFullYear()),
 
-  celTimeMethod(olc.TIME_GET_DATE, [], (x) => x.getDate()),
-  celTimeMethod(olc.TIME_GET_DATE, [CelScalar.STRING], (x) => x.getDate()),
+  celTimeMethod(olc.TIME_GET_MONTH,                   [],             (x) => x.getMonth()),
+  celTimeMethod(olc.TIME_GET_MONTH,                   [STRING],       (x) => x.getMonth()),
 
-  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH, [], (x) => x.getDate() - 1),
-  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH, [CelScalar.STRING], (x) => x.getDate() - 1),
+  celTimeMethod(olc.TIME_GET_DATE,                    [],             (x) => x.getDate()),
+  celTimeMethod(olc.TIME_GET_DATE,                    [STRING],       (x) => x.getDate()),
 
-  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK, [], (x) => x.getDay()),
-  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK, [CelScalar.STRING], (x) => x.getDay()),
+  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH,            [],             (x) => x.getDate() - 1),
+  celTimeMethod(olc.TIME_GET_DAY_OF_MONTH,            [STRING],       (x) => x.getDate() - 1),
 
-  celTimeMethod(olc.TIME_GET_DAY_OF_YEAR, [], (x) => getDayOfYear(x)),
-  celTimeMethod(olc.TIME_GET_DAY_OF_YEAR, [CelScalar.STRING], (x) => getDayOfYear(x)),
+  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK,             [],             (x) => x.getDay()),
+  celTimeMethod(olc.TIME_GET_DAY_OF_WEEK,             [STRING],       (x) => x.getDay()),
 
-  celTimeMethod(olc.TIME_GET_SECONDS, [], (x) => x.getSeconds()),
-  celTimeMethod(olc.TIME_GET_SECONDS, [CelScalar.STRING], (x) => x.getSeconds()),
+  celTimeMethod(olc.TIME_GET_DAY_OF_YEAR,             [],             (x) => getDayOfYear(x)),
+  celTimeMethod(olc.TIME_GET_DAY_OF_YEAR,             [STRING],       (x) => getDayOfYear(x)),
 
-  celTimeMethod(olc.TIME_GET_MINUTES, [], (x) => x.getMinutes()),
-  celTimeMethod(olc.TIME_GET_MINUTES, [CelScalar.STRING], (x) => x.getMinutes()),
+  celTimeMethod(olc.TIME_GET_SECONDS,                 [],             (x) => x.getSeconds()),
+  celTimeMethod(olc.TIME_GET_SECONDS,                 [STRING],       (x) => x.getSeconds()),
 
-  celTimeMethod(olc.TIME_GET_HOURS, [], (x) => x.getHours()),
-  celTimeMethod(olc.TIME_GET_HOURS, [CelScalar.STRING], (x) => x.getHours()),
+  celTimeMethod(olc.TIME_GET_MINUTES,                 [],             (x) => x.getMinutes()),
+  celTimeMethod(olc.TIME_GET_MINUTES,                 [STRING],       (x) => x.getMinutes()),
 
-  celTimeMethod(olc.TIME_GET_MILLISECONDS, [], (x) => x.getMilliseconds()),
-  celTimeMethod(olc.TIME_GET_MILLISECONDS, [CelScalar.STRING], (x) => x.getMilliseconds()),
+  celTimeMethod(olc.TIME_GET_HOURS,                   [],             (x) => x.getHours()),
+  celTimeMethod(olc.TIME_GET_HOURS,                   [STRING],       (x) => x.getHours()),
 
-  celMethod(olc.TIME_GET_SECONDS, CelDuration, [], CelScalar.INT, (x) => x.message.seconds),
-  celMethod(olc.TIME_GET_MINUTES, CelDuration, [], CelScalar.INT, (x) => x.message.seconds / 60n),
-  celMethod(olc.TIME_GET_HOURS, CelDuration, [], CelScalar.INT, (x) => x.message.seconds / 3600n),
-  celMethod(olc.TIME_GET_MILLISECONDS, CelDuration, [], CelScalar.INT, (x) => BigInt(x.message.nanos) / 1000000n),
+  celTimeMethod(olc.TIME_GET_MILLISECONDS,            [],             (x) => x.getMilliseconds()),
+  celTimeMethod(olc.TIME_GET_MILLISECONDS,            [STRING],       (x) => x.getMilliseconds()),
 ];

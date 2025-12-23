@@ -17,8 +17,8 @@ import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import {
   listType,
   CelScalar,
-  CelDuration,
-  CelTimestamp,
+  CelDuration as DURATION,
+  CelTimestamp as TIMESTAMP,
   type CelDurationType,
   type CelTimestampType,
 } from "../type.js";
@@ -127,38 +127,40 @@ type NumType =
   | typeof CelScalar.UINT
   | typeof CelScalar.DOUBLE;
 
-const LIST_DYN = listType(CelScalar.DYN);
+const LIST = listType(CelScalar.DYN);
+
+const { BYTES, DOUBLE, INT, STRING, UINT } = CelScalar;
 
 // biome-ignore format: table
 export const MATH_FUNCS: Callable[] = [
-  celFunc(opc.ADD, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeInt(l + r, opc.ADD)),
-  celFunc(opc.ADD, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => safeUint(l.value + r.value, opc.ADD)),
-  celFunc(opc.ADD, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l + r),
-  celFunc(opc.ADD, [CelDuration, CelDuration], CelDuration, durationSum),
-  celFunc(opc.ADD, [CelTimestamp, CelDuration], CelTimestamp, timestampSum),
-  celFunc(opc.ADD, [CelDuration, CelTimestamp], CelTimestamp, timestampSum),
-  celFunc(opc.ADD, [CelScalar.STRING, CelScalar.STRING], CelScalar.STRING, (l, r) => l + r),
-  celFunc(opc.ADD, [CelScalar.BYTES, CelScalar.BYTES], CelScalar.BYTES, bytesConcat),
-  celFunc(opc.ADD, [LIST_DYN, LIST_DYN], LIST_DYN, celListConcat),
+  celFunc(opc.ADD,      [INT, INT],             INT,        (l, r)  => safeInt(l + r, opc.ADD)),
+  celFunc(opc.ADD,      [UINT, UINT],           UINT,       (l, r)  => safeUint(l.value + r.value, opc.ADD)),
+  celFunc(opc.ADD,      [DOUBLE, DOUBLE],       DOUBLE,     (l, r)  => l + r),
+  celFunc(opc.ADD,      [DURATION, DURATION],   DURATION,              durationSum),
+  celFunc(opc.ADD,      [TIMESTAMP, DURATION],  TIMESTAMP,             timestampSum),
+  celFunc(opc.ADD,      [DURATION, TIMESTAMP],  TIMESTAMP,             timestampSum),
+  celFunc(opc.ADD,      [STRING, STRING],       STRING,     (l, r)  => l + r),
+  celFunc(opc.ADD,      [BYTES, BYTES],         BYTES,                 bytesConcat),
+  celFunc(opc.ADD,      [LIST, LIST],           LIST,                  celListConcat),
 
-  celFunc(opc.SUBTRACT, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeInt(l - r, opc.SUBTRACT)),
-  celFunc(opc.SUBTRACT, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => safeUint(l.value - r.value, opc.SUBTRACT)),
-  celFunc(opc.SUBTRACT, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l - r),
-  celFunc(opc.SUBTRACT, [CelTimestamp, CelTimestamp], CelDuration, durationDifference),
-  celFunc(opc.SUBTRACT, [CelDuration, CelDuration], CelDuration, durationDifference),
-  celFunc(opc.SUBTRACT, [CelTimestamp, CelDuration], CelTimestamp, timestampDifference),
+  celFunc(opc.SUBTRACT, [INT, INT],             INT,        (l, r)  => safeInt(l - r, opc.SUBTRACT)),
+  celFunc(opc.SUBTRACT, [UINT, UINT],           UINT,       (l, r)  => safeUint(l.value - r.value, opc.SUBTRACT)),
+  celFunc(opc.SUBTRACT, [DOUBLE, DOUBLE],       DOUBLE,     (l, r)  => l - r),
+  celFunc(opc.SUBTRACT, [TIMESTAMP, TIMESTAMP], DURATION,              durationDifference),
+  celFunc(opc.SUBTRACT, [DURATION, DURATION],   DURATION,              durationDifference),
+  celFunc(opc.SUBTRACT, [TIMESTAMP, DURATION],  TIMESTAMP,             timestampDifference),
 
-  celFunc(opc.MULTIPLY, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeInt(l * r, opc.MULTIPLY)),
-  celFunc(opc.MULTIPLY, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => safeUint(l.value * r.value, opc.MULTIPLY)),
-  celFunc(opc.MULTIPLY, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l * r),
+  celFunc(opc.MULTIPLY, [INT, INT],             INT,        (l, r)  => safeInt(l * r, opc.MULTIPLY)),
+  celFunc(opc.MULTIPLY, [UINT, UINT],           UINT,       (l, r)  => safeUint(l.value * r.value, opc.MULTIPLY)),
+  celFunc(opc.MULTIPLY, [DOUBLE, DOUBLE],       DOUBLE,     (l, r)  => l * r),
 
-  celFunc(opc.DIVIDE, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeDivide(CelScalar.INT, l, r)),
-  celFunc(opc.DIVIDE, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => celUint(safeDivide(CelScalar.UINT, l.value, r.value))),
-  celFunc(opc.DIVIDE, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l / r),
+  celFunc(opc.DIVIDE,   [INT, INT],             INT,        (l, r)  => safeDivide(INT, l, r)),
+  celFunc(opc.DIVIDE,   [UINT, UINT],           UINT,       (l, r)  => celUint(safeDivide(UINT, l.value, r.value))),
+  celFunc(opc.DIVIDE,   [DOUBLE, DOUBLE],       DOUBLE,     (l, r)  => l / r),
 
-  celFunc(opc.MODULO, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeModulo(CelScalar.INT, l, r)),
-  celFunc(opc.MODULO, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => celUint(safeModulo(CelScalar.UINT, l.value, r.value))),
+  celFunc(opc.MODULO,   [INT, INT],             INT,        (l, r)  => safeModulo(INT, l, r)),
+  celFunc(opc.MODULO,   [UINT, UINT],           UINT,       (l, r)  => celUint(safeModulo(UINT, l.value, r.value))),
 
-  celFunc(opc.NEGATE, [CelScalar.INT], CelScalar.INT, x => safeInt(-x)),
-  celFunc(opc.NEGATE, [CelScalar.DOUBLE], CelScalar.DOUBLE, x => -x),
+  celFunc(opc.NEGATE,   [INT],                  INT,        (x)     => safeInt(-x)),
+  celFunc(opc.NEGATE,   [DOUBLE],               DOUBLE,     (x)     => -x),
 ];

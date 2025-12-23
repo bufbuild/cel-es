@@ -467,41 +467,43 @@ function indexOutOfBounds(index: number, length: number) {
   return new Error(`index ${index} out of bounds [0, ${length})`);
 }
 
-const LIST_DYN = listType(CelScalar.DYN);
+const LIST = listType(CelScalar.DYN);
 const LIST_STRING = listType(CelScalar.STRING);
+
+const { INT, STRING } = CelScalar;
 
 // biome-ignore format: table
 /**
  * Provides the strings extension - CEL functions for string manipulation.
  */
 export const STRINGS_EXT_FUNCS: Callable[] = [
-  celMethod("charAt",       CelScalar.STRING, [CelScalar.INT], CelScalar.STRING, charAt),
+  celMethod("charAt",       STRING,       [INT],                  STRING,       charAt),
 
-  celMethod("indexOf",      CelScalar.STRING, [CelScalar.STRING], CelScalar.INT, indexOf),
-  celMethod("indexOf",      CelScalar.STRING, [CelScalar.STRING, CelScalar.INT], CelScalar.INT, indexOfStart),
+  celMethod("indexOf",      STRING,       [STRING],               INT,          indexOf),
+  celMethod("indexOf",      STRING,       [STRING, INT],          INT,          indexOfStart),
 
-  celMethod("lastIndexOf",  CelScalar.STRING, [CelScalar.STRING], CelScalar.INT, lastIndexOf),
-  celMethod("lastIndexOf",  CelScalar.STRING, [CelScalar.STRING, CelScalar.INT], CelScalar.INT, lastIndexOfEnd),
+  celMethod("lastIndexOf",  STRING,       [STRING],               INT,          lastIndexOf),
+  celMethod("lastIndexOf",  STRING,       [STRING, INT],          INT,          lastIndexOfEnd),
 
-  celMethod("lowerAscii",   CelScalar.STRING, [], CelScalar.STRING, lowerAscii),
+  celMethod("lowerAscii",   STRING,       [],                     STRING,       lowerAscii),
 
-  celMethod("upperAscii",   CelScalar.STRING, [], CelScalar.STRING, upperAscii),
+  celMethod("upperAscii",   STRING,       [],                     STRING,       upperAscii),
 
-  celMethod("replace",      CelScalar.STRING, [CelScalar.STRING, CelScalar.STRING], CelScalar.STRING, replace),
-  celMethod("replace",      CelScalar.STRING, [CelScalar.STRING, CelScalar.STRING, CelScalar.INT], CelScalar.STRING, replace),
+  celMethod("replace",      STRING,       [STRING, STRING],       STRING,       replace),
+  celMethod("replace",      STRING,       [STRING, STRING, INT],  STRING,       replace),
 
-  celMethod("split",        CelScalar.STRING, [CelScalar.STRING], LIST_STRING, split),
-  celMethod("split",        CelScalar.STRING, [CelScalar.STRING, CelScalar.INT], LIST_STRING, split),
+  celMethod("split",        STRING,       [STRING],               LIST_STRING,  split),
+  celMethod("split",        STRING,       [STRING, INT],          LIST_STRING,  split),
 
-  celMethod("substring",    CelScalar.STRING, [CelScalar.INT], CelScalar.STRING, substring),
-  celMethod("substring",    CelScalar.STRING, [CelScalar.INT, CelScalar.INT], CelScalar.STRING, substring),
+  celMethod("substring",    STRING,       [INT],                  STRING,       substring),
+  celMethod("substring",    STRING,       [INT, INT],             STRING,       substring),
 
-  celMethod("trim",         CelScalar.STRING, [], CelScalar.STRING, trim),
+  celMethod("trim",         STRING,       [],                     STRING,       trim),
 
-  celMethod("join",         LIST_STRING,      [], CelScalar.STRING, join),
-  celMethod("join",         LIST_STRING,      [CelScalar.STRING], CelScalar.STRING, join),
+  celMethod("join",         LIST_STRING,  [],                     STRING,       join),
+  celMethod("join",         LIST_STRING,  [STRING],               STRING,       join),
 
-  celMethod("format",       CelScalar.STRING, [LIST_DYN], CelScalar.STRING, format),
+  celMethod("format",       STRING,       [LIST],                 STRING,       format),
 
-  celFunc("strings.quote",                    [CelScalar.STRING], CelScalar.STRING, quote),
+  celFunc("strings.quote",                [STRING],               STRING,       quote),
 ];

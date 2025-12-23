@@ -23,8 +23,8 @@ import { celFunc, type Callable } from "../func.js";
 import { safeInt, safeUint } from "./math.js";
 import {
   CelScalar,
-  CelTimestamp,
-  CelDuration,
+  CelTimestamp as TIMESTAMP,
+  CelDuration as DURATION,
   celType,
   objectType,
   type CelValue,
@@ -65,49 +65,51 @@ function toType(x: CelValue) {
   return celType(x);
 }
 
+const { BOOL, BYTES, DOUBLE, DYN, INT, STRING, TYPE, UINT } = CelScalar;
+
 // biome-ignore format: table
 export const CAST_FUNCS: Callable[] = [
-  celFunc("int", [CelScalar.INT], CelScalar.INT, x => x),
-  celFunc("int", [CelScalar.UINT], CelScalar.INT, x => safeInt(x.value)),
-  celFunc("int", [CelScalar.DOUBLE], CelScalar.INT, x => safeInt(x)),
-  celFunc("int", [CelScalar.STRING], CelScalar.INT, x => safeInt(x)),
-  celFunc("int", [CelTimestamp], CelScalar.INT, x => safeInt(x.message.seconds)),
-  celFunc("int", [CelDuration], CelScalar.INT, x => safeInt(x.message.seconds)),
+  celFunc("int",        [INT],        INT,        (x) =>  x),
+  celFunc("int",        [UINT],       INT,        (x) =>  safeInt(x.value)),
+  celFunc("int",        [DOUBLE],     INT,        (x) =>  safeInt(x)),
+  celFunc("int",        [STRING],     INT,        (x) =>  safeInt(x)),
+  celFunc("int",        [TIMESTAMP],  INT,        (x) =>  safeInt(x.message.seconds)),
+  celFunc("int",        [DURATION],   INT,        (x) =>  safeInt(x.message.seconds)),
 
-  celFunc("uint", [CelScalar.UINT], CelScalar.UINT, x => x),
-  celFunc("uint", [CelScalar.INT], CelScalar.UINT, x => safeUint(x)),
-  celFunc("uint", [CelScalar.DOUBLE], CelScalar.UINT, x => safeUint(x)),
-  celFunc("uint", [CelScalar.STRING], CelScalar.UINT, x => safeUint(x)),
+  celFunc("uint",       [UINT],       UINT,       (x) =>  x),
+  celFunc("uint",       [INT],        UINT,       (x) =>  safeUint(x)),
+  celFunc("uint",       [DOUBLE],     UINT,       (x) =>  safeUint(x)),
+  celFunc("uint",       [STRING],     UINT,       (x) =>  safeUint(x)),
 
-  celFunc("double", [CelScalar.DOUBLE], CelScalar.DOUBLE, x => x),
-  celFunc("double", [CelScalar.INT], CelScalar.DOUBLE, (x) => Number(x)),
-  celFunc("double", [CelScalar.UINT], CelScalar.DOUBLE, (x) => Number(x.value)),
-  celFunc("double", [CelScalar.STRING], CelScalar.DOUBLE, (x) => Number(x)),
+  celFunc("double",     [DOUBLE],     DOUBLE,     (x) =>  x),
+  celFunc("double",     [INT],        DOUBLE,     (x) =>  Number(x)),
+  celFunc("double",     [UINT],       DOUBLE,     (x) =>  Number(x.value)),
+  celFunc("double",     [STRING],     DOUBLE,     (x) =>  Number(x)),
 
-  celFunc("bool", [CelScalar.BOOL], CelScalar.BOOL, x => x),
-  celFunc("bool", [CelScalar.STRING], CelScalar.BOOL, stringToBool),
+  celFunc("bool",       [BOOL],       BOOL,       (x) =>  x),
+  celFunc("bool",       [STRING],     BOOL,               stringToBool),
 
-  celFunc("bytes", [CelScalar.BYTES], CelScalar.BYTES, x => x),
-  celFunc("bytes", [CelScalar.STRING], CelScalar.BYTES, x => encoder.encode(x)),
+  celFunc("bytes",      [BYTES],      BYTES,      (x) =>  x),
+  celFunc("bytes",      [STRING],     BYTES,      (x) =>  encoder.encode(x)),
 
-  celFunc("string", [CelScalar.STRING], CelScalar.STRING, x => x),
-  celFunc("string", [CelScalar.BOOL], CelScalar.STRING, x => x.toString()),
-  celFunc("string", [CelScalar.INT], CelScalar.STRING, x => x.toString()),
-  celFunc("string", [CelScalar.UINT], CelScalar.STRING, x => x.value.toString()),
-  celFunc("string", [CelScalar.DOUBLE], CelScalar.STRING, x => x.toString()),
-  celFunc("string", [CelScalar.BYTES], CelScalar.STRING, bytesToString),
-  celFunc("string", [CelTimestamp], CelScalar.STRING, x => toJson(TimestampSchema, x.message)),
-  celFunc("string", [CelDuration], CelScalar.STRING, x => toJson(DurationSchema, x.message)),
+  celFunc("string",     [STRING],     STRING,     (x) =>  x),
+  celFunc("string",     [BOOL],       STRING,     (x) =>  x.toString()),
+  celFunc("string",     [INT],        STRING,     (x) =>  x.toString()),
+  celFunc("string",     [UINT],       STRING,     (x) =>  x.value.toString()),
+  celFunc("string",     [DOUBLE],     STRING,     (x) =>  x.toString()),
+  celFunc("string",     [BYTES],      STRING,             bytesToString),
+  celFunc("string",     [TIMESTAMP],  STRING,     (x) =>  toJson(TimestampSchema, x.message)),
+  celFunc("string",     [DURATION],   STRING,     (x) =>  toJson(DurationSchema, x.message)),
 
-  celFunc("timestamp", [CelTimestamp], CelTimestamp, x => x),
-  celFunc("timestamp", [CelScalar.STRING], CelTimestamp, stringToTimestamp),
-  celFunc("timestamp", [CelScalar.INT], CelTimestamp, x => timestampFromMs(Number(x))),
+  celFunc("timestamp",  [TIMESTAMP],  TIMESTAMP,  (x) =>  x),
+  celFunc("timestamp",  [STRING],     TIMESTAMP,          stringToTimestamp),
+  celFunc("timestamp",  [INT],        TIMESTAMP,  (x) =>  timestampFromMs(Number(x))),
 
-  celFunc("duration", [CelDuration], CelDuration, x => x),
-  celFunc("duration", [CelScalar.STRING], CelDuration, parseDuration),
-  celFunc("duration", [CelScalar.INT], CelDuration, x => create(DurationSchema, { seconds: x })),
+  celFunc("duration",   [DURATION],   DURATION,   (x) =>  x),
+  celFunc("duration",   [STRING],     DURATION,           parseDuration),
+  celFunc("duration",   [INT],        DURATION,   (x) =>  create(DurationSchema, { seconds: x })),
 
-  celFunc("type", [CelScalar.DYN], CelScalar.TYPE, toType),
+  celFunc("type",       [DYN],        TYPE,               toType),
 
-  celFunc("dyn", [CelScalar.DYN], CelScalar.DYN, x => x),
+  celFunc("dyn",        [DYN],        DYN,        (x) =>  x),
 ];
