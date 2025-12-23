@@ -40,25 +40,18 @@ import {
   type Struct,
   type Value,
 } from "@bufbuild/protobuf/wkt";
-import {
-  type CelInput,
-  type CelValue,
-  isCelType,
-  type CelType,
-} from "./type.js";
+import { type CelInput, type CelValue, isCelType } from "./type.js";
 
 /**
  * Converts a CelInput to a CelValue.
  */
-export function toCel<T extends CelType = CelType>(
-  v: CelInput<T>,
-): CelValue<T> {
+export function toCel(v: CelInput): CelValue {
   switch (typeof v) {
     case "bigint":
     case "boolean":
     case "number":
     case "string":
-      return v as CelValue<T>;
+      return v;
     case "object":
       break;
     default:
@@ -71,26 +64,26 @@ export function toCel<T extends CelType = CelType>(
     case isCelMap(v):
     case isCelUint(v):
     case isCelType(v):
-      return v as CelValue<T>;
+      return v;
   }
   if (isArray(v) || isReflectList(v)) {
-    return celList(v) as CelValue<T>;
+    return celList(v);
   }
   if (isMap(v) || isReflectMap(v)) {
-    return celMap(v) as CelValue<T>;
+    return celMap(v);
   }
   if (isMessage(v)) {
     const value = wktToCel(v);
     if (value !== undefined) {
-      return value as CelValue<T>;
+      return value;
     }
-    return reflect(getMsgDesc(v.$typeName), v) as CelValue<T>;
+    return reflect(getMsgDesc(v.$typeName), v);
   }
   if (isReflectMessage(v)) {
-    return reflectMsgToCel(v) as CelValue<T>;
+    return reflectMsgToCel(v);
   }
   if (v.constructor.name === "Object") {
-    return celMap(new Map(Object.entries(v))) as CelValue<T>;
+    return celMap(new Map(Object.entries(v)));
   }
   throw new Error(`Unsupported input ${v}`);
 }

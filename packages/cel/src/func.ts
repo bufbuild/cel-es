@@ -115,7 +115,7 @@ class Func<R extends CelType> extends BaseCallable<R> {
     }
 
     try {
-      return toCel(this._impl(...values));
+      return toCel(this._impl(...values)) as CelValue<R>;
     } catch (ex) {
       return celError(ex, id);
     }
@@ -175,7 +175,7 @@ class Method<
     }
 
     try {
-      return toCel(this._impl(target, ...values));
+      return toCel(this._impl(target, ...values)) as CelValue<R>;
     } catch (ex) {
       return celError(ex, id);
     }
