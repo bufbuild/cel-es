@@ -19,10 +19,8 @@ export {
   isCelError,
 } from "./error.js";
 export {
-  type CelFunc,
-  type CelOverload,
   celFunc,
-  celOverload,
+  celMethod,
 } from "./func.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
 export { type CelList, celList, isCelList, celListConcat } from "./list.js";

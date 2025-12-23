@@ -74,9 +74,19 @@ export function isCelList(v: unknown): v is CelList {
   return typeof v === "object" && v !== null && privateSymbol in v;
 }
 
-class ArrayList implements CelList {
+abstract class BaseList implements Iterable<CelValue>, Partial<CelList> {
+  abstract values(): IterableIterator<CelValue>;
+
+  [Symbol.iterator]() {
+    return this.values();
+  }
+}
+
+class ArrayList extends BaseList implements CelList {
   [privateSymbol] = {};
-  constructor(private readonly _array: readonly CelInput[]) {}
+  constructor(private readonly _array: readonly CelInput[]) {
+    super();
+  }
   get size(): number {
     return this._array.length;
   }
@@ -86,19 +96,19 @@ class ArrayList implements CelList {
     }
     return toCel(this._array[index]);
   }
+
   *values() {
     for (const element of this._array.values()) {
       yield toCel(element);
     }
   }
-  [Symbol.iterator]() {
-    return this.values();
-  }
 }
 
-class RepeatedFieldList implements CelList {
+class RepeatedFieldList extends BaseList implements CelList {
   [privateSymbol] = {};
-  constructor(private readonly _list: ReflectList) {}
+  constructor(private readonly _list: ReflectList) {
+    super();
+  }
 
   get size(): number {
     return this._list.size;
@@ -117,16 +127,13 @@ class RepeatedFieldList implements CelList {
       yield celFromListElem(this._list.field(), val);
     }
   }
-
-  [Symbol.iterator]() {
-    return this.values();
-  }
 }
 
-class ConcatList implements CelList {
+class ConcatList extends BaseList implements CelList {
   [privateSymbol] = {};
   private readonly _size: number;
   constructor(private readonly _lists: readonly CelList[]) {
+    super();
     let size = 0;
     for (const list of _lists) {
       size += list.size;
@@ -155,10 +162,6 @@ class ConcatList implements CelList {
     for (const list of this._lists) {
       yield* list.values();
     }
-  }
-
-  [Symbol.iterator]() {
-    return this.values();
   }
 }
 

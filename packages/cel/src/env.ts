@@ -14,12 +14,7 @@
 
 import type { Registry } from "@bufbuild/protobuf";
 import { createRegistryWithWKT } from "./registry.js";
-import {
-  FuncRegistry,
-  OrderedDispatcher,
-  type CelFunc,
-  type Dispatcher,
-} from "./func.js";
+import { Dispatcher, type Callable } from "./func.js";
 import { STD_FUNCS } from "./std/std.js";
 import { Namespace } from "./namespace.js";
 
@@ -53,15 +48,15 @@ export interface CelEnvOptions {
    */
   namespace?: string;
   /**
-   * The protobuf registry to use.
+   * The protobuf Registry to use.
    */
   registry?: Registry;
   /**
-   * Additional functions to add.
+   * Additional functions and methods to add.
    *
-   * All functions must be unique. This can be used to override any std function.
+   * This can be used to override any standard function or method.
    */
-  funcs?: CelFunc[];
+  funcs?: Callable[];
 }
 
 /**
@@ -73,7 +68,9 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
-    new OrderedDispatcher([new FuncRegistry(options?.funcs), STD_FUNCS]),
+    options?.funcs
+      ? new Dispatcher(options.funcs).withFallbacks(STD_FUNCS)
+      : new Dispatcher(STD_FUNCS),
   );
 }
 

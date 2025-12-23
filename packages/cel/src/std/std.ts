@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { FuncRegistry } from "../func.js";
-import { addCasts } from "./cast.js";
-import { addLogic } from "./logic.js";
-import { addMath } from "./math.js";
-import { addTime } from "./time.js";
+import { CAST_FUNCS } from "./cast.js";
+import { LOGIC_FUNCS } from "./logic.js";
+import { MATH_FUNCS } from "./math.js";
+import { TIME_FUNCS } from "./time.js";
 
-export function addStd(funcs: FuncRegistry) {
-  addLogic(funcs);
-  addMath(funcs);
-  addCasts(funcs);
-  addTime(funcs);
-}
-
-export const STD_FUNCS = new FuncRegistry();
-addStd(STD_FUNCS);
+export const STD_FUNCS = CAST_FUNCS.concat(
+  CAST_FUNCS,
+  LOGIC_FUNCS,
+  MATH_FUNCS,
+  TIME_FUNCS,
+);
