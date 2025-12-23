@@ -21,7 +21,7 @@ import {
   type CelTimestampType,
   type CelType,
 } from "../type.js";
-import { funcRegistry, celMethod } from "../func.js";
+import { celMethod, type Callable } from "../func.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { toJson } from "@bufbuild/protobuf";
 
@@ -167,7 +167,7 @@ function getDayOfYear(date: Date): number {
 }
 
 // biome-ignore format: table
-export const timeRegistry = funcRegistry(
+export const TIME_FUNCS: Callable[] = [
   celTimeMethod(olc.TIME_GET_FULL_YEAR, [], (x) => x.getFullYear()),
   celTimeMethod(olc.TIME_GET_FULL_YEAR, [CelScalar.STRING], (x) => x.getFullYear()),
 
@@ -202,4 +202,4 @@ export const timeRegistry = funcRegistry(
   celMethod(olc.TIME_GET_MINUTES, CelDuration, [], CelScalar.INT, (x) => x.message.seconds / 60n),
   celMethod(olc.TIME_GET_HOURS, CelDuration, [], CelScalar.INT, (x) => x.message.seconds / 3600n),
   celMethod(olc.TIME_GET_MILLISECONDS, CelDuration, [], CelScalar.INT, (x) => BigInt(x.message.nanos) / 1000000n),
-);
+];

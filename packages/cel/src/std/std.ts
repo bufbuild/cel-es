@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { castRegistry } from "./cast.js";
-import { logicRegistry } from "./logic.js";
-import { mathRegistry } from "./math.js";
-import { timeRegistry } from "./time.js";
+import { CAST_FUNCS } from "./cast.js";
+import { LOGIC_FUNCS } from "./logic.js";
+import { MATH_FUNCS } from "./math.js";
+import { TIME_FUNCS } from "./time.js";
 
-export const StdRegistry = castRegistry
-  .withFallback(logicRegistry)
-  .withFallback(mathRegistry)
-  .withFallback(timeRegistry);
+export const STD_FUNCS = CAST_FUNCS.concat(
+  CAST_FUNCS,
+  LOGIC_FUNCS,
+  MATH_FUNCS,
+  TIME_FUNCS,
+);

@@ -29,7 +29,7 @@ import { unwrapAny } from "./value.js";
  * Result type that represents either a successful value or a CEL error.
  **/
 export type CelResult<T = CelValue> = T | CelError;
-export type CelResultValue<T extends CelType> = CelResult<CelValue<T>>;
+export type CelResultFromType<T extends CelType> = CelResult<CelValue<T>>;
 
 const privateSymbol = Symbol.for("@bufbuild/cel/error");
 

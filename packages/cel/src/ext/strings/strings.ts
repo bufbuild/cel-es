@@ -20,7 +20,7 @@ import {
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import { celFunc, celMethod } from "../../func.js";
+import { celFunc, celMethod, type Callable } from "../../func.js";
 import { CelScalar, isCelType, listType, type CelValue } from "../../type.js";
 import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
@@ -474,7 +474,7 @@ const LIST_STRING = listType(CelScalar.STRING);
 /**
  * Provides the strings extension - CEL functions for string manipulation.
  */
-export const STRINGS_EXT_FUNCS = [
+export const STRINGS_EXT_FUNCS: Callable[] = [
   celMethod("charAt",       CelScalar.STRING, [CelScalar.INT], CelScalar.STRING, charAt),
 
   celMethod("indexOf",      CelScalar.STRING, [CelScalar.STRING], CelScalar.INT, indexOf),

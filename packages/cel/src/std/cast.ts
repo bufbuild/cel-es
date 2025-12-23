@@ -19,7 +19,7 @@ import {
   TimestampSchema,
 } from "@bufbuild/protobuf/wkt";
 
-import { celFunc, funcRegistry } from "../func.js";
+import { celFunc, type Callable } from "../func.js";
 import { safeInt, safeUint } from "./math.js";
 import {
   CelScalar,
@@ -66,7 +66,7 @@ function toType(x: CelValue) {
 }
 
 // biome-ignore format: table
-export const castRegistry = funcRegistry(
+export const CAST_FUNCS: Callable[] = [
   celFunc("int", [CelScalar.INT], CelScalar.INT, x => x),
   celFunc("int", [CelScalar.UINT], CelScalar.INT, x => safeInt(x.value)),
   celFunc("int", [CelScalar.DOUBLE], CelScalar.INT, x => safeInt(x)),
@@ -110,4 +110,4 @@ export const castRegistry = funcRegistry(
   celFunc("type", [CelScalar.DYN], CelScalar.TYPE, toType),
 
   celFunc("dyn", [CelScalar.DYN], CelScalar.DYN, x => x),
-);
+];

@@ -30,6 +30,7 @@ import {
   ErrorAttr,
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
+import type { Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { Namespace } from "./namespace.js";
 import {
@@ -38,7 +39,6 @@ import {
   type CelResult,
   isCelError,
   unwrapResultTuple,
-  unwrapResult,
 } from "./error.js";
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
@@ -46,12 +46,11 @@ import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { celObject } from "./object.js";
 import { celType, type CelValue } from "./type.js";
 import type { Registry } from "@bufbuild/protobuf";
-import type { FuncRegistry } from "./func.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
-    private readonly funcRegistry: FuncRegistry,
+    private readonly functions: Dispatcher,
     private readonly registry: Registry,
     private readonly namespace: Namespace = Namespace.ROOT,
   ) {
@@ -239,10 +238,10 @@ export class Planner {
           `${qualifier}.${call.function}`,
         );
         for (const name of candidates) {
-          const registry = this.funcRegistry.narrowedByName(name);
+          const dispatcher = this.functions.narrowedByName(name);
 
-          if (!registry.empty()) {
-            return new EvalCall(id, call.function, registry, args);
+          if (dispatcher) {
+            return new EvalCall(id, call.function, args, undefined, dispatcher);
           }
         }
       }
@@ -251,9 +250,9 @@ export class Planner {
     return new EvalCall(
       id,
       call.function,
-      this.funcRegistry.narrowedByName(call.function),
       args,
       call.target !== undefined ? this.plan(call.target) : undefined,
+      this.functions.narrowedByName(call.function),
     );
   }
 
@@ -460,44 +459,38 @@ export class EvalCall implements Interpretable {
   constructor(
     public readonly id: number,
     public readonly name: string,
-    private readonly funcRegistry: FuncRegistry,
     public readonly args: Interpretable[],
     public readonly target?: Interpretable,
+    private readonly dispatcher?: Dispatcher,
   ) {}
 
   public eval(ctx: Activation): CelResult {
-    const targetResult = this.target?.eval(ctx);
-    const argResults = this.args.map((x) => x.eval(ctx));
-
-    const callable = (
-      targetResult !== undefined
-        ? this.funcRegistry.narrowedByArgs(targetResult, argResults)
-        : this.funcRegistry.narrowedByArgs(argResults)
-    ).first();
-
-    const result = callable?.call(
-      this.id,
-      targetResult !== undefined ? [targetResult, ...argResults] : argResults,
-    );
-    if (result !== undefined) {
-      return result;
+    if (this.dispatcher === undefined) {
+      return celError(`unbound function: ${this.name}`, this.id);
     }
 
-    const target =
-      targetResult !== undefined ? unwrapResult(targetResult) : undefined;
-    if (isCelError(target)) {
-      return target;
+    const target = this.target?.eval(ctx);
+    const args = this.args.map((x) => x.eval(ctx));
+
+    const callable =
+      target !== undefined
+        ? this.dispatcher.findByArgs(target, args)
+        : this.dispatcher.findByArgs(args);
+
+    if (callable) {
+      return callable?.call(
+        this.id,
+        target !== undefined ? [target, ...args] : args,
+      );
     }
 
-    const values = unwrapResultTuple(argResults);
-    if (isCelError(values)) {
-      return values;
-    }
+    if (isCelError(target)) return target;
+
+    const values = unwrapResultTuple(args);
+    if (isCelError(values)) return values;
 
     return celError(
-      `found no matching overload for ${
-        target ? `${celType(target).name}.` : ""
-      }${this.name}(${values
+      `found no matching overload for ${target ? `${celType(target).name}.` : ""}${this.name}(${values
         .map((x) => celType(x))
         .map((x) => x.name)
         .join(", ")})'`,

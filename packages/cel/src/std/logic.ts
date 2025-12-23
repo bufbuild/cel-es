@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { celFunc, funcRegistry, celCustomFunc, celMethod } from "../func.js";
+import { celFunc, celCustomFunc, celMethod, type Callable } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { celError, isCelError, type CelResult } from "../error.js";
@@ -141,7 +141,7 @@ function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
 }
 
 // biome-ignore format: table
-export const logicRegistry = funcRegistry(
+export const LOGIC_FUNCS: Callable[] = [
   celFunc(opc.LOGICAL_NOT, [CelScalar.BOOL], CelScalar.BOOL, x => !x),
   celCustomFunc(opc.LOGICAL_AND, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, and, { args: () => true }),
   celCustomFunc(opc.LOGICAL_OR, [CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, or, { args: () => true }),
@@ -223,4 +223,4 @@ export const logicRegistry = funcRegistry(
 
   celFunc(opc.IN, [CelScalar.DYN, LIST_DYN], CelScalar.BOOL, (needle, haystack) => haystack.has(needle)),
   celFunc(opc.IN, [CelScalar.DYN, MAP_DYN_DYN], CelScalar.BOOL, (needle, haystack) => haystack.has(needle as CelMapIndex)),
-);
+];

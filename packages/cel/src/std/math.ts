@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { funcRegistry, celFunc } from "../func.js";
+import { celFunc, type Callable } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import {
   listType,
@@ -130,7 +130,7 @@ type NumType =
 const LIST_DYN = listType(CelScalar.DYN);
 
 // biome-ignore format: table
-export const mathRegistry = funcRegistry(
+export const MATH_FUNCS: Callable[] = [
   celFunc(opc.ADD, [CelScalar.INT, CelScalar.INT], CelScalar.INT, (l, r) => safeInt(l + r, opc.ADD)),
   celFunc(opc.ADD, [CelScalar.UINT, CelScalar.UINT], CelScalar.UINT, (l, r) => safeUint(l.value + r.value, opc.ADD)),
   celFunc(opc.ADD, [CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.DOUBLE, (l, r) => l + r),
@@ -161,4 +161,4 @@ export const mathRegistry = funcRegistry(
 
   celFunc(opc.NEGATE, [CelScalar.INT], CelScalar.INT, x => safeInt(-x)),
   celFunc(opc.NEGATE, [CelScalar.DOUBLE], CelScalar.DOUBLE, x => -x),
-);
+];

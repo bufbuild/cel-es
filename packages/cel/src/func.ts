@@ -21,7 +21,7 @@ import type {
 } from "./type.js";
 import {
   type CelResult,
-  type CelResultValue,
+  type CelResultFromType,
   isCelError,
   unwrapResultTuple,
   unwrapResult,
@@ -30,41 +30,23 @@ import {
 import { toCel } from "./value.js";
 
 const privateCallableSymbol = Symbol.for("@bufbuild/cel/callable");
-const privateFuncRegistrySymbol = Symbol.for("@bufbuild/cel/callable/registry");
 
 type TypeTuple = readonly CelType[];
 
-export interface Callable {
+export interface Callable<R extends CelType = CelType> {
   [privateCallableSymbol]: true;
 
-  matchName(name: string): boolean;
-
-  // TODO:
-  // matchParams<MP extends TypeTuple>(params: MP): this is Signature<MP>;
-  // matchParams<MT extends CelType, MP extends TypeTuple>(target: MT, params: MP): this is Signature<[MT, ...MP]>;
-
-  matchArgs<MP extends TypeTuple>(
-    params: CelResultTuple<MP>,
-  ): this is Signature<MP>;
-  matchArgs<MT extends CelType, MP extends TypeTuple>(
-    target: CelResultValue<MT>,
-    params: CelResultTuple<MP>,
-  ): this is Signature<[MT, ...MP]>;
-
-  call(id: number, args: CelResult[]): CelResult;
-  result: CelType;
-  overloadId: string;
-}
-
-interface Signature<P extends TypeTuple, R extends CelType = CelType>
-  extends Callable {
-  [privateCallableSymbol]: true;
-  call(id: number, args: CelResultTuple<P>): CelResultValue<R>;
+  name: string;
   result: R;
   overloadId: string;
+
+  matchArgs(args: CelResult[]): boolean;
+  matchArgs(target: CelResult, args: CelResult[]): boolean;
+
+  call(id: number, args: CelResult[]): CelResultFromType<R>;
 }
 
-abstract class BaseCallable<R extends CelType> implements Callable {
+abstract class BaseCallable<R extends CelType> implements Callable<R> {
   readonly [privateCallableSymbol] = true;
   protected abstract readonly _params: TypeTuple;
 
@@ -74,13 +56,13 @@ abstract class BaseCallable<R extends CelType> implements Callable {
     protected readonly _result: R,
   ) {}
 
-  matchName(name: string) {
-    return name === this._name;
-  }
+  abstract matchArgs<MP extends TypeTuple>(args: CelResult[]): boolean;
+  abstract matchArgs(target: CelResult, args: CelResult[]): boolean;
+  abstract call(id: number, args: CelResult[]): CelResultFromType<R>;
 
-  abstract matchArgs<MP extends TypeTuple>(
-    ...args: [CelResultTuple<TypeTuple>] | [CelResult, CelResult[]]
-  ): this is Signature<MP>;
+  get name() {
+    return this._name;
+  }
 
   get result() {
     return this._result;
@@ -92,8 +74,6 @@ abstract class BaseCallable<R extends CelType> implements Callable {
 
     return `${this._scope}.${this._name}(${params.join(", ")}): ${result}`;
   }
-
-  abstract call(id: number, args: CelResult[]): CelResult;
 }
 
 type FuncImpl<P extends TypeTuple, R extends CelType> = (
@@ -105,32 +85,27 @@ export function celFunc<const P extends TypeTuple, const R extends CelType>(
   params: P,
   result: R,
   impl: FuncImpl<P, R>,
-): Callable {
+): Callable<R> {
   return new Func(name, params, result, impl);
 }
 
-class Func<P extends TypeTuple, R extends CelType>
-  extends BaseCallable<R>
-  implements Signature<P, R>
-{
+class Func<R extends CelType> extends BaseCallable<R> {
   constructor(
     name: string,
-    protected readonly _params: P,
+    protected readonly _params: TypeTuple,
     result: R,
-    protected readonly _impl: FuncImpl<P, R>,
+    protected readonly _impl: FuncImpl<CelType[], R>,
   ) {
     super("@global", name, result);
   }
 
-  matchArgs<MP extends TypeTuple>(
-    ...args: [CelResultTuple<MP>] | [CelResult, CelResult[]]
-  ): this is Signature<MP> {
+  matchArgs(...args: [CelResult[]] | [CelResult, CelResult[]]) {
     return (
       args.length === 1 && !isCelError(unwrapResultTuple(args[0], this._params))
     );
   }
 
-  call(id: number, args: CelResultTuple<P>): CelResultValue<R> {
+  call(id: number, args: CelResult[]): CelResultFromType<R> {
     const values = unwrapResultTuple(args, this._params);
     if (isCelError(values)) {
       return values.causes(
@@ -162,31 +137,25 @@ export function celMethod<
   params: P,
   result: R,
   impl: MethodImpl<T, P, R>,
-): Callable {
+): Callable<R> {
   return new Method(name, target, params, result, impl);
 }
 
 class Method<
-    T extends CelType = CelType,
-    P extends TypeTuple = CelType[],
-    R extends CelType = CelType,
-  >
-  extends BaseCallable<R>
-  implements Signature<[T, ...P], R>
-{
+  T extends CelType = CelType,
+  R extends CelType = CelType,
+> extends BaseCallable<R> {
   constructor(
     name: string,
     protected readonly _target: T,
-    protected readonly _params: P,
+    protected readonly _params: TypeTuple,
     result: R,
-    protected readonly _impl: MethodImpl<T, P, R>,
+    protected readonly _impl: MethodImpl<T, CelType[], R>,
   ) {
     super(_target.toString(), name, result);
   }
 
-  matchArgs<MT extends CelType, MP extends TypeTuple>(
-    ...args: [CelResultValue<MT>, CelResultTuple<MP>] | [CelResult[]]
-  ): this is Signature<MP> {
+  matchArgs(...args: [CelResult, CelResult[]] | [CelResult[]]) {
     return (
       args.length === 2 &&
       !isCelError(unwrapResult(args[0], this._target)) &&
@@ -194,7 +163,7 @@ class Method<
     );
   }
 
-  call(id: number, args: CelResultTuple<[T, ...P]>): CelResultValue<R> {
+  call(id: number, args: CelResult[]): CelResultFromType<R> {
     const target = unwrapResult(args[0], this._target);
     if (isCelError(target)) {
       return target.causes(`bad target for ${this.overloadId}`, id);
@@ -202,7 +171,7 @@ class Method<
 
     const values = unwrapResultTuple(args.slice(1), this._params);
     if (isCelError(values)) {
-      return values.causes(`bad args for ${this.overloadId}`, id);
+      return values.causes(`bad arguments for ${this.overloadId}`, id);
     }
 
     try {
@@ -217,10 +186,10 @@ interface CustomFuncMatchers {
   args?: (args: CelResult[]) => boolean;
 }
 
-type CustomFuncCall<R extends CelType> = (
+type CustomFuncCall<P extends TypeTuple, R extends CelType> = (
   id: number,
-  args: CelResultTuple<TypeTuple>,
-) => CelResultValue<R>;
+  args: CelResultTuple<P>,
+) => CelResultFromType<R>;
 
 export function celCustomFunc<
   const P extends TypeTuple,
@@ -229,18 +198,21 @@ export function celCustomFunc<
   name: string,
   params: P,
   result: R,
-  call: CustomFuncCall<R>,
+  call: CustomFuncCall<P, R>,
   matchers?: CustomFuncMatchers,
-): Callable {
+): Callable<R> {
   return new CustomFunc(name, params, result, call, matchers ?? {});
 }
 
-class CustomFunc<P extends TypeTuple, R extends CelType> extends Func<P, R> {
+class CustomFunc<
+  const P extends TypeTuple,
+  const R extends CelType,
+> extends Func<R> {
   constructor(
     name: string,
     params: P,
     result: R,
-    protected readonly _call: CustomFuncCall<R>,
+    protected readonly _call: CustomFuncCall<P, R>,
     protected readonly _matchers: CustomFuncMatchers,
   ) {
     super(name, params, result, () => {
@@ -248,9 +220,9 @@ class CustomFunc<P extends TypeTuple, R extends CelType> extends Func<P, R> {
     });
   }
 
-  override matchArgs<MP extends TypeTuple>(
-    ...args: [CelResultTuple<MP>] | [CelResult, CelResult[]]
-  ): this is Signature<MP> {
+  override matchArgs(
+    ...args: [CelResult[]] | [CelResult, CelResult[]]
+  ): boolean {
     return (
       args.length === 1 &&
       (this._matchers.args
@@ -259,86 +231,51 @@ class CustomFunc<P extends TypeTuple, R extends CelType> extends Func<P, R> {
     );
   }
 
-  override call(id: number, args: CelType[]): CelResultValue<R> {
+  override call(id: number, args: CelResultTuple<P>): CelResultFromType<R> {
     return this._call(id, args);
   }
 }
 
-// biome-ignore format: long lines
-export interface FuncRegistry {
-  readonly [privateFuncRegistrySymbol]: true;
+export class Dispatcher {
+  readonly #callables: Callable[];
+  readonly #nameCache: Map<string, Dispatcher | undefined> = new Map();
+  readonly #overloadIdCache: Map<string, Callable | undefined> = new Map();
 
-  first(): Callable | undefined;
-  empty(): boolean;
-
-  narrowedByName(name: string): FuncRegistry;
-  narrowedByArgs(...args: [CelResult[]] | [CelResult, CelResult[]]): FuncRegistry;
-  // TODO: narrowedByParams(...args: [CelType[]] | [CelType, CelType[]]): FuncRegistry;
-
-  withFallback(registry: FuncRegistry): FuncRegistry;
-}
-
-export function funcRegistry(...callables: Callable[]): FuncRegistry {
-  return new Registry(callables);
-}
-
-class Registry implements FuncRegistry {
-  readonly [privateFuncRegistrySymbol] = true;
-  protected readonly _callables: Callable[];
-  protected readonly _fallback?: FuncRegistry;
-
-  constructor(callables: Callable[] = [], fallback?: FuncRegistry) {
-    this._callables = callables;
-    this._fallback = fallback;
-
-    if (this.empty() && this._fallback) {
-      // should be impossible per the code below.
-      throw new Error("invalid registry");
-    }
-  }
-
-  first(): Callable | undefined {
-    return this._callables[0] ?? this._fallback?.first();
-  }
-
-  empty() {
-    return this._callables.length === 0;
+  constructor(callables: Callable[] = []) {
+    this.#callables = callables;
   }
 
   narrowedByName(name: string) {
-    const narrowed = this._callables.filter((c) => c.matchName(name));
-    const fallback = this._fallback?.narrowedByName(name);
+    if (this.#nameCache.has(name)) return this.#nameCache.get(name);
 
-    if (!narrowed.length) {
-      return fallback ?? new Registry([]);
+    const narrowed = this.#callables.filter((c) => c.name === name);
+    if (narrowed.length) {
+      this.#nameCache.set(name, new Dispatcher(narrowed));
     }
 
-    return new Registry(
-      this._callables.filter((c) => c.matchName(name)),
-      this._fallback?.narrowedByName(name),
-    );
+    return this.#nameCache.get(name);
   }
 
-  narrowedByArgs(...args: [CelResult[]] | [CelResult, CelResult[]]) {
-    const narrowed = this._callables.filter((c) =>
+  findByArgs(...args: [CelResult[]] | [CelResult, CelResult[]]) {
+    return this.#callables.find((c) =>
       args.length === 1 ? c.matchArgs(args[0]) : c.matchArgs(args[0], args[1]),
     );
-    const fallback = this._fallback?.narrowedByArgs(...args);
-
-    if (!narrowed.length) {
-      return fallback ?? new Registry([]);
-    }
-
-    return new Registry(narrowed, fallback);
   }
 
-  withFallback(fallback: FuncRegistry) {
-    if (fallback.empty()) return this;
-    if (this.empty()) return fallback;
-
-    return new Registry(
-      this._callables,
-      this._fallback?.withFallback(fallback) ?? fallback,
+  findByOverloadId(overloadId: string) {
+    if (this.#nameCache.has(overloadId))
+      return this.#overloadIdCache.get(overloadId);
+    this.#overloadIdCache.set(
+      overloadId,
+      this.#callables.find((c) => c.overloadId === overloadId),
     );
+
+    return this.#overloadIdCache.get(overloadId);
+  }
+
+  withFallbacks(fallbacks: Callable[]) {
+    if (fallbacks.length === 0) return this;
+
+    return new Dispatcher(this.#callables.concat(fallbacks));
   }
 }

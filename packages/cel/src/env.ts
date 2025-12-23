@@ -14,8 +14,8 @@
 
 import type { Registry } from "@bufbuild/protobuf";
 import { createRegistryWithWKT } from "./registry.js";
-import { funcRegistry, type Callable, type FuncRegistry } from "./func.js";
-import { StdRegistry } from "./std/std.js";
+import { Dispatcher, type Callable } from "./func.js";
+import { STD_FUNCS } from "./std/std.js";
 import { Namespace } from "./namespace.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
@@ -33,13 +33,13 @@ export interface CelEnv {
    */
   readonly namespace: Namespace | undefined;
   /**
-   * The Protobuf registry to use.
+   * The protobuf registry to use.
    */
   readonly registry: Registry;
   /**
-   * The function/method Registry to use.
+   * The dispatcher to use.
    */
-  readonly funcRegistry: FuncRegistry;
+  readonly dispatcher: Dispatcher;
 }
 
 export interface CelEnvOptions {
@@ -68,10 +68,9 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
-
     options?.funcs
-      ? funcRegistry(...options.funcs).withFallback(StdRegistry)
-      : StdRegistry,
+      ? new Dispatcher(options.funcs).withFallbacks(STD_FUNCS)
+      : new Dispatcher(STD_FUNCS),
   );
 }
 
@@ -80,7 +79,7 @@ class _CelEnv implements CelEnv {
   constructor(
     private readonly _namespace: Namespace | undefined,
     private readonly _registry: Registry,
-    private readonly _funcRegistry: FuncRegistry,
+    private readonly _dispatcher: Dispatcher,
   ) {}
 
   get namespace() {
@@ -89,7 +88,7 @@ class _CelEnv implements CelEnv {
   get registry() {
     return this._registry;
   }
-  get funcRegistry() {
-    return this._funcRegistry;
+  get dispatcher() {
+    return this._dispatcher;
   }
 }
