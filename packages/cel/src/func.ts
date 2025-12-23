@@ -36,9 +36,9 @@ type TypeTuple = readonly CelType[];
 export interface Callable<R extends CelType = CelType> {
   [privateCallableSymbol]: true;
 
-  name: string;
-  result: R;
-  overloadId: string;
+  readonly name: string;
+  readonly result: R;
+  readonly overloadId: string;
 
   matchArgs(args: CelResult[]): boolean;
   matchArgs(target: CelResult, args: CelResult[]): boolean;
