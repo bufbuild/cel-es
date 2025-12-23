@@ -18,7 +18,7 @@ import {
   create,
   equals,
   type MessageInitShape,
-  type Registry as ProtoRegistry,
+  type Registry,
 } from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
 import { suite, test } from "node:test";
@@ -52,29 +52,29 @@ import {
   toDebugString,
 } from "@bufbuild/cel-spec/testdata/to-debug-string.js";
 
-type TestRunner = (t: IncrementalTest, r: ProtoRegistry) => void;
+type TestRunner = (t: IncrementalTest, r: Registry) => void;
 
 export function runTestSuite(
   testSuite: IncrementalTestSuite,
   runner: TestRunner,
   prefix: string[] = [],
   filter?: TestFilter,
-  protoRegistry = getTestRegistry(),
+  registry = getTestRegistry(),
 ) {
   void suite(testSuite.name, () => {
     for (const s of testSuite.suites) {
-      runTestSuite(s, runner, [...prefix, s.name], filter, protoRegistry);
+      runTestSuite(s, runner, [...prefix, s.name], filter, registry);
     }
     for (const t of testSuite.tests) {
       void test(t.name, (c) => {
         const path = [...prefix, t.original.name];
         if (filter?.(path, t) ?? true) {
-          runner(t, protoRegistry);
+          runner(t, registry);
           return;
         }
 
         try {
-          runner(t, protoRegistry);
+          runner(t, registry);
         } catch (ex) {
           // We got a failure as expected lets mark the test as todo.
           c.todo(`TODO ${ex}`);
@@ -127,14 +127,11 @@ export function createPathFilter(failurePaths: string[][]): TestFilter {
   };
 }
 
-export function runSimpleTestCase(
-  test: IncrementalTest,
-  protoRegistry: ProtoRegistry,
-) {
+export function runSimpleTestCase(test: IncrementalTest, registry: Registry) {
   const testCase = test.original;
   const parsed = parse(testCase.expr);
   const env = celEnv({
-    protoRegistry,
+    registry,
     namespace: testCase.container,
     funcs: STRINGS_EXT_FUNCS,
   });
@@ -144,12 +141,12 @@ export function runSimpleTestCase(
     if (v.kind.case !== "value") {
       throw new Error(`unimplemented binding conversion: ${v.kind.case}`);
     }
-    bindings[k] = valueToCelValue(v.kind.value, protoRegistry);
+    bindings[k] = valueToCelValue(v.kind.value, registry);
   }
   const result = celEval(bindings);
   switch (testCase.resultMatcher.case) {
     case "value":
-      assertResultEqual(protoRegistry, result, testCase.resultMatcher.value);
+      assertResultEqual(registry, result, testCase.resultMatcher.value);
       break;
     case "evalError":
     case "anyEvalErrors":
@@ -168,19 +165,19 @@ export function runSimpleTestCase(
 }
 
 function assertResultEqual(
-  protoRegistry: ProtoRegistry,
+  registry: Registry,
   result: CelResult,
   value: Value,
 ) {
   if (isCelError(result)) {
     assert.deepEqual(result, value);
   } else {
-    const actual = create(ValueSchema, celValueToValue(result, protoRegistry));
+    const actual = create(ValueSchema, celValueToValue(result, registry));
     sortMapValueDeep(actual);
     sortMapValueDeep(value);
     if (
       !equals(ValueSchema, actual, value, {
-        registry: protoRegistry,
+        registry: registry,
         unpackAny: true,
       })
     ) {
@@ -192,7 +189,7 @@ function assertResultEqual(
 
 function celValueToValue(
   value: CelValue,
-  protoRegistry: ProtoRegistry,
+  registry: Registry,
 ): MessageInitShape<typeof ValueSchema> {
   switch (typeof value) {
     case "number":
@@ -225,9 +222,7 @@ function celValueToValue(
       kind: {
         case: "listValue",
         value: {
-          values: Array.from(value).map((e) =>
-            celValueToValue(e, protoRegistry),
-          ),
+          values: Array.from(value).map((e) => celValueToValue(e, registry)),
         },
       },
     };
@@ -238,8 +233,8 @@ function celValueToValue(
         case: "mapValue",
         value: {
           entries: Array.from(value.entries()).map((pair) => ({
-            key: celValueToValue(pair[0], protoRegistry),
-            value: celValueToValue(pair[1], protoRegistry),
+            key: celValueToValue(pair[0], registry),
+            value: celValueToValue(pair[1], registry),
           })),
         },
       },
@@ -256,7 +251,7 @@ function celValueToValue(
   throw new Error(`unrecognised cel type: ${value}`);
 }
 
-function valueToCelValue(value: Value, protoRegistry: ProtoRegistry): CelInput {
+function valueToCelValue(value: Value, registry: Registry): CelInput {
   switch (value.kind.case) {
     case "nullValue":
       return null;
@@ -264,10 +259,10 @@ function valueToCelValue(value: Value, protoRegistry: ProtoRegistry): CelInput {
       return celUint(value.kind.value);
     case "listValue":
       return celList(
-        value.kind.value.values.map((e) => valueToCelValue(e, protoRegistry)),
+        value.kind.value.values.map((e) => valueToCelValue(e, registry)),
       );
     case "objectValue":
-      const unpacked = anyUnpack(value.kind.value, protoRegistry);
+      const unpacked = anyUnpack(value.kind.value, registry);
       if (unpacked === undefined) {
         throw new Error(`Unknownd object: ${value.kind.value.typeUrl}`);
       }
@@ -279,8 +274,8 @@ function valueToCelValue(value: Value, protoRegistry: ProtoRegistry): CelInput {
           throw new Error("Invalid map entry");
         }
         map.set(
-          valueToCelValue(entry.key, protoRegistry) as string,
-          valueToCelValue(entry.value, protoRegistry),
+          valueToCelValue(entry.key, registry) as string,
+          valueToCelValue(entry.value, registry),
         );
       }
       return celMap(map);

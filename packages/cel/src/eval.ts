@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { Registry as ProtoRegistry } from "@bufbuild/protobuf";
+import type { Registry } from "@bufbuild/protobuf";
 import type { Interpretable } from "./planner.js";
 
 /**
@@ -22,7 +22,7 @@ export interface EvalContext {
   /**
    * The protobuf registry.
    */
-  readonly protoRegistry: ProtoRegistry;
+  readonly registry: Registry;
   // TODO(srikrsna): Investigate adding activation here.
 }
 
@@ -73,9 +73,9 @@ export function withEvalContext(
  * from the evaluation context.
  */
 export function getMsgDesc(typeName: string) {
-  const schema = getEvalContext().protoRegistry.getMessage(typeName);
+  const schema = getEvalContext().registry.getMessage(typeName);
   if (!schema) {
-    throw new Error(`Message ${typeName} not found in Protobuf registry`);
+    throw new Error(`Message ${typeName} not found in registry`);
   }
   return schema;
 }

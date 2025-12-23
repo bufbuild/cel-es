@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { Registry as ProtoRegistry } from "@bufbuild/protobuf";
-import { createProtoRegistry } from "./proto.js";
+import type { Registry } from "@bufbuild/protobuf";
+import { createRegistryWithWKT } from "./registry.js";
 import { funcRegistry, type Callable, type FuncRegistry } from "./func.js";
 import { StdRegistry } from "./std/std.js";
 import { Namespace } from "./namespace.js";
@@ -35,9 +35,9 @@ export interface CelEnv {
   /**
    * The Protobuf registry to use.
    */
-  readonly protoRegistry: ProtoRegistry;
+  readonly registry: Registry;
   /**
-   * The function/method registry to use.
+   * The function/method Registry to use.
    */
   readonly funcRegistry: FuncRegistry;
 }
@@ -48,9 +48,9 @@ export interface CelEnvOptions {
    */
   namespace?: string;
   /**
-   * The protobuf registry to use.
+   * The protobuf Registry to use.
    */
-  protoRegistry?: ProtoRegistry;
+  registry?: Registry;
   /**
    * Additional functions and methods to add.
    *
@@ -65,9 +65,9 @@ export interface CelEnvOptions {
 export function celEnv(options?: CelEnvOptions): CelEnv {
   return new _CelEnv(
     options?.namespace ? new Namespace(options?.namespace) : undefined,
-    options?.protoRegistry
-      ? createProtoRegistry(options.protoRegistry)
-      : createProtoRegistry(),
+    options?.registry
+      ? createRegistryWithWKT(options.registry)
+      : createRegistryWithWKT(),
 
     options?.funcs
       ? funcRegistry(...options.funcs).withFallback(StdRegistry)
@@ -79,15 +79,15 @@ class _CelEnv implements CelEnv {
   [privateSymbol] = {};
   constructor(
     private readonly _namespace: Namespace | undefined,
-    private readonly _protoRegistry: ProtoRegistry,
+    private readonly _registry: Registry,
     private readonly _funcRegistry: FuncRegistry,
   ) {}
 
   get namespace() {
     return this._namespace;
   }
-  get protoRegistry() {
-    return this._protoRegistry;
+  get registry() {
+    return this._registry;
   }
   get funcRegistry() {
     return this._funcRegistry;

@@ -105,7 +105,7 @@ export function unwrapAny(v: CelValue): CelValue {
   if (!isReflectAny(v)) {
     return v;
   }
-  const unpacked = anyUnpack(v.message, getEvalContext().protoRegistry);
+  const unpacked = anyUnpack(v.message, getEvalContext().registry);
   if (unpacked === undefined) {
     throw new Error(
       `invalid Any or ${v.message.typeUrl} not found in registry`,

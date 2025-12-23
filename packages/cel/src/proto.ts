@@ -16,31 +16,6 @@ import { ScalarType } from "@bufbuild/protobuf";
 import { celUint } from "./uint.js";
 import type { ScalarValue } from "@bufbuild/protobuf/reflect";
 import type { CelValue } from "./type.js";
-import { createRegistry } from "@bufbuild/protobuf";
-import {
-  AnySchema,
-  DurationSchema,
-  file_google_protobuf_struct,
-  file_google_protobuf_wrappers,
-  TimestampSchema,
-} from "@bufbuild/protobuf/wkt";
-
-const wktRegistry = createRegistry(
-  TimestampSchema,
-  DurationSchema,
-  AnySchema,
-  file_google_protobuf_wrappers,
-  file_google_protobuf_struct,
-);
-
-/**
- * Creates a new registry with CEL supported WKTs.
- */
-export function createProtoRegistry(
-  ...inputs: Parameters<typeof createRegistry>
-) {
-  return createRegistry(wktRegistry, ...inputs);
-}
 
 /**
  * Converts a protobuf scalar value to a CEL value.

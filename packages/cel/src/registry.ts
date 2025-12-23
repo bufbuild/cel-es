@@ -32,7 +32,7 @@ const wktRegistry = createRegistry(
 /**
  * Creates a new registry with CEL supported WKTs.
  */
-export function createProtoRegistry(
+export function createRegistryWithWKT(
   ...inputs: Parameters<typeof createRegistry>
 ) {
   return createRegistry(wktRegistry, ...inputs);

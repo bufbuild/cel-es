@@ -45,20 +45,17 @@ import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
 import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { celObject } from "./object.js";
 import { celType, type CelValue } from "./type.js";
-import type { Registry as ProtoRegistry } from "@bufbuild/protobuf";
+import type { Registry } from "@bufbuild/protobuf";
 import type { FuncRegistry } from "./func.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
     private readonly funcRegistry: FuncRegistry,
-    private readonly protoRegistry: ProtoRegistry,
+    private readonly registry: Registry,
     private readonly namespace: Namespace = Namespace.ROOT,
   ) {
-    this.factory = new ConcreteAttributeFactory(
-      this.protoRegistry,
-      this.namespace,
-    );
+    this.factory = new ConcreteAttributeFactory(this.registry, this.namespace);
   }
 
   public plan(expr: Expr): Interpretable {
@@ -356,7 +353,7 @@ export class Planner {
       case "google.protobuf.Any":
         return true;
       default:
-        return this.protoRegistry.getMessage(name) !== undefined;
+        return this.registry.getMessage(name) !== undefined;
     }
   }
 }
