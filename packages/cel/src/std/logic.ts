@@ -18,11 +18,11 @@ import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { celError, isCelError, type CelResult } from "../error.js";
 import {
   CelScalar,
-  CelDuration as DURATION,
+  DURATION,
   type CelDurationType,
   listType,
   mapType,
-  CelTimestamp as TIMESTAMP,
+  TIMESTAMP,
   type CelTimestampType,
   type CelValue,
 } from "../type.js";

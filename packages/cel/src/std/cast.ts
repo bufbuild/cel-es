@@ -23,8 +23,8 @@ import { celFunc, type Callable } from "../func.js";
 import { safeInt, safeUint } from "./math.js";
 import {
   CelScalar,
-  CelTimestamp as TIMESTAMP,
-  CelDuration as DURATION,
+  TIMESTAMP,
+  DURATION,
   celType,
   objectType,
   type CelValue,

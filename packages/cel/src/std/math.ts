@@ -17,8 +17,8 @@ import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import {
   listType,
   CelScalar,
-  CelDuration as DURATION,
-  CelTimestamp as TIMESTAMP,
+  DURATION,
+  TIMESTAMP,
   type CelDurationType,
   type CelTimestampType,
 } from "../type.js";

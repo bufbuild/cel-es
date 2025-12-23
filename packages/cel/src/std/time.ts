@@ -16,8 +16,8 @@ import { timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import {
   CelScalar,
-  CelTimestamp as TIMESTAMP,
-  CelDuration as DURATION,
+  TIMESTAMP,
+  DURATION,
   type CelTimestampType,
   type CelType,
 } from "../type.js";

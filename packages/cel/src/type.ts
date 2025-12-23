@@ -112,14 +112,14 @@ interface celTypeShared {
 /**
  * Represents the CEL type google.protobuf.Timestamp.
  */
-export const CelTimestamp = objectType(TimestampSchema);
-export type CelTimestampType = CelValue<typeof CelTimestamp>;
+export const TIMESTAMP = objectType(TimestampSchema);
+export type CelTimestampType = CelValue<typeof TIMESTAMP>;
 
 /**
  * Represents the CEL type google.protobuf.Duration.
  */
-export const CelDuration = objectType(DurationSchema);
-export type CelDurationType = CelValue<typeof CelDuration>;
+export const DURATION = objectType(DurationSchema);
+export type CelDurationType = CelValue<typeof DURATION>;
 
 /**
  * Creates a new CelMapType.
