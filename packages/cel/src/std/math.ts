@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { create } from "@bufbuild/protobuf";
-import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
-
 import { type FuncRegistry, celOverload, celFunc } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import {
@@ -67,34 +64,22 @@ export function addMath(funcs: FuncRegistry) {
 
 function addTimestamp(
   lhs: CelValue<typeof TIMESTAMP>,
-  rhs: CelValue<typeof TIMESTAMP> | CelValue<typeof DURATION>,
+  rhs: CelValue<typeof DURATION>,
 ) {
-  let seconds = lhs.message.seconds + rhs.message.seconds;
-  let nanos = lhs.message.nanos + rhs.message.nanos;
-  if (nanos > 999999999) {
-    seconds += BigInt(Math.floor(nanos / 1000000000));
-    nanos = nanos % 1000000000;
-  }
-  if (seconds > 253402300799 || seconds < -62135596800) {
-    throw overflow(opc.ADD, TIMESTAMP);
-  }
-  return create(TimestampSchema, { seconds: seconds, nanos: nanos });
+  return createTimestamp(
+    lhs.message.seconds + rhs.message.seconds,
+    lhs.message.nanos + rhs.message.nanos,
+  );
 }
 
 function addDuration(
   lhs: CelValue<typeof DURATION>,
   rhs: CelValue<typeof DURATION>,
 ) {
-  let seconds = lhs.message.seconds + rhs.message.seconds;
-  let nanos = lhs.message.nanos + rhs.message.nanos;
-  if (nanos > 999999999) {
-    seconds += BigInt(Math.floor(nanos / 1000000000));
-    nanos = nanos % 1000000000;
-  }
-  if (seconds > 315576000000 || seconds < -315576000000) {
-    throw overflow(opc.ADD, DURATION);
-  }
-  return create(DurationSchema, { seconds: seconds, nanos: nanos });
+  return createDuration(
+    lhs.message.seconds + rhs.message.seconds,
+    lhs.message.nanos + rhs.message.nanos,
+  );
 }
 
 function subtractDurationOrTimestamp<
@@ -141,7 +126,6 @@ const add = celFunc(opc.ADD, [
       return val;
     },
   ),
-  celOverload([TIMESTAMP, TIMESTAMP], TIMESTAMP, addTimestamp),
   celOverload([TIMESTAMP, DURATION], TIMESTAMP, addTimestamp),
   celOverload([DURATION, TIMESTAMP], TIMESTAMP, (lhs, rhs) =>
     addTimestamp(rhs, lhs),
