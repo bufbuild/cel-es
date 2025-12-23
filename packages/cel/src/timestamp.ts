@@ -15,20 +15,28 @@
 import { create } from "@bufbuild/protobuf";
 import { TimestampSchema, type Timestamp } from "@bufbuild/protobuf/wkt";
 
+const MAX_TIMESTAMP_SECONDS = 253402300799n;
+const MIN_TIMESTAMP_SECONDS = -62135596800n;
+const ONE_SECOND = 1000000000n;
+
 /**
- * Creates a new Timestamp, validating the fields are in range.
+ * Create a new Timestamp, canonicalizing the representation
  */
-export function createTimestamp(seconds: bigint, nanos: number): Timestamp {
-  if (nanos >= 1000000000) {
-    seconds += BigInt(nanos / 1000000000);
-    nanos = nanos % 1000000000;
-  } else if (nanos < 0) {
-    const negSeconds = Math.floor(-nanos / 1000000000);
-    seconds -= BigInt(negSeconds);
-    nanos = nanos + negSeconds * 1000000000;
-  }
-  if (seconds > 253402300799n || seconds < -62135596800n) {
+export function createTimestamp(s = 0n, ns: bigint | number = 0n): Timestamp {
+  // fully express timestamp in nanoseconds
+  const fullNanos = s * ONE_SECOND + BigInt(ns);
+
+  // would `nanos` end up non-zero negative?
+  const shift = fullNanos % ONE_SECOND < 0n ? 1n : 0n;
+  // if so, subtract a second when computing `seconds`...
+  const seconds = fullNanos / ONE_SECOND - shift;
+  /// ...and add a second when computing `nanos`, so it will be positive
+  const nanos = Number((fullNanos % ONE_SECOND) + shift * ONE_SECOND);
+
+  // refer to https://buf.build/protocolbuffers/wellknowntypes/file/main:google/protobuf/timestamp.proto
+  if (seconds > MAX_TIMESTAMP_SECONDS || seconds < MIN_TIMESTAMP_SECONDS) {
     throw new Error("timestamp out of range");
   }
-  return create(TimestampSchema, { seconds: seconds, nanos: nanos });
+
+  return create(TimestampSchema, { seconds, nanos });
 }
