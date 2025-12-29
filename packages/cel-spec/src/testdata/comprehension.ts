@@ -15,7 +15,7 @@
 // Generated from cel-go github.com/google/cel-go@v0.26.1/ext/comprehensions_test.go
 import type { SerializedIncrementalTestSuite } from "./tests.js";
 export const tests: SerializedIncrementalTestSuite = {
-  name: "comprehensions",
+  name: "comprehension",
   tests: [
     {
       original: {

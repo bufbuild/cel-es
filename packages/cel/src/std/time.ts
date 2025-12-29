@@ -16,7 +16,7 @@ import { timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { CelScalar, TIMESTAMP, DURATION, type CelValue } from "../type.js";
 import { type FuncRegistry, celOverload, celFunc } from "../func.js";
-import * as olc from "../gen/dev/cel/expr/overload_const.js";
+import { Overload } from "@bufbuild/cel-spec/enum/overload.js";
 import { toJson } from "@bufbuild/protobuf";
 
 export function addTime(funcs: FuncRegistry): void {
@@ -157,7 +157,7 @@ function makeTimeOp(t: TimeFunc) {
 
 type TimeFunc = (date: Date) => number;
 
-const getFullYearFunc = celFunc(olc.TIME_GET_FULL_YEAR, [
+const getFullYearFunc = celFunc(Overload.TIME_GET_FULL_YEAR, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -170,7 +170,7 @@ const getFullYearFunc = celFunc(olc.TIME_GET_FULL_YEAR, [
   ),
 ]);
 
-const getMonthFunc = celFunc(olc.TIME_GET_MONTH, [
+const getMonthFunc = celFunc(Overload.TIME_GET_MONTH, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -183,7 +183,7 @@ const getMonthFunc = celFunc(olc.TIME_GET_MONTH, [
   ),
 ]);
 
-const getDateFunc = celFunc(olc.TIME_GET_DATE, [
+const getDateFunc = celFunc(Overload.TIME_GET_DATE, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -196,7 +196,7 @@ const getDateFunc = celFunc(olc.TIME_GET_DATE, [
   ),
 ]);
 
-const getDayOfMonthFunc = celFunc(olc.TIME_GET_DAY_OF_MONTH, [
+const getDayOfMonthFunc = celFunc(Overload.TIME_GET_DAY_OF_MONTH, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -209,7 +209,7 @@ const getDayOfMonthFunc = celFunc(olc.TIME_GET_DAY_OF_MONTH, [
   ),
 ]);
 
-const getDayOfWeekFunc = celFunc(olc.TIME_GET_DAY_OF_WEEK, [
+const getDayOfWeekFunc = celFunc(Overload.TIME_GET_DAY_OF_WEEK, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -222,7 +222,7 @@ const getDayOfWeekFunc = celFunc(olc.TIME_GET_DAY_OF_WEEK, [
   ),
 ]);
 
-const getDayOfYearFunc = celFunc(olc.TIME_GET_DAY_OF_YEAR, [
+const getDayOfYearFunc = celFunc(Overload.TIME_GET_DAY_OF_YEAR, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -235,7 +235,7 @@ const getDayOfYearFunc = celFunc(olc.TIME_GET_DAY_OF_YEAR, [
   ),
 ]);
 
-const getSecondsFunc = celFunc(olc.TIME_GET_SECONDS, [
+const getSecondsFunc = celFunc(Overload.TIME_GET_SECONDS, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -249,7 +249,7 @@ const getSecondsFunc = celFunc(olc.TIME_GET_SECONDS, [
   celOverload([DURATION], CelScalar.INT, (dur) => dur.message.seconds),
 ]);
 
-const getMinutesFunc = celFunc(olc.TIME_GET_MINUTES, [
+const getMinutesFunc = celFunc(Overload.TIME_GET_MINUTES, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -263,7 +263,7 @@ const getMinutesFunc = celFunc(olc.TIME_GET_MINUTES, [
   celOverload([DURATION], CelScalar.INT, (dur) => dur.message.seconds / 60n),
 ]);
 
-const getHoursFunc = celFunc(olc.TIME_GET_HOURS, [
+const getHoursFunc = celFunc(Overload.TIME_GET_HOURS, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -277,7 +277,7 @@ const getHoursFunc = celFunc(olc.TIME_GET_HOURS, [
   celOverload([DURATION], CelScalar.INT, (dur) => dur.message.seconds / 3600n),
 ]);
 
-const getMillisecondsFunc = celFunc(olc.TIME_GET_MILLISECONDS, [
+const getMillisecondsFunc = celFunc(Overload.TIME_GET_MILLISECONDS, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,

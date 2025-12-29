@@ -20,11 +20,15 @@
     "postfetch-proto": "license-header proto",
     "fetch-testdata": "node scripts/fetch-testdata.js",
     "postfetch-testdata": "biome format --write src/testdata/json/*.json",
-    "fetch-parsing": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/parsing.ts parser/parser_test.go",
+    "fetch-enum-operator": "go run -C scripts enum/fetch.go -output ../src/enum/operator.ts Operator common/operators/operators.go",
+    "postfetch-enum-operator": "biome format --write src/enum/operator.ts && license-header src/enum/operator.ts",
+    "fetch-enum-overload": "go run -C scripts enum/fetch.go -output ../src/enum/overload.ts Overload common/overloads/overloads.go",
+    "postfetch-enum-overload": "biome format --write src/enum/overload.ts && license-header src/enum/overload.ts",
+    "fetch-parsing": "go run -C scripts tests/fetch.go -output ../src/testdata/parsing.ts parser/parser_test.go",
     "postfetch-parsing": "biome format --write src/testdata/parsing.ts && license-header src/testdata/parsing.ts",
-    "fetch-comprehension": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/comprehension.ts ext/comprehensions_test.go",
+    "fetch-comprehension": "go run -C scripts tests/fetch.go -output ../src/testdata/comprehension.ts ext/comprehensions_test.go",
     "postfetch-comprehension": "biome format --write src/testdata/comprehension.ts && license-header src/testdata/comprehension.ts",
-    "fetch-conformance": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/conformance.ts ../src/testdata/json",
+    "fetch-conformance": "go run -C scripts tests/fetch.go -output ../src/testdata/conformance.ts ../src/testdata/json",
     "postfetch-conformance": "biome format --write src/testdata/conformance.ts && license-header src/testdata/conformance.ts",
     "update-exports": "node scripts/update-exports.js",
     "postupdate-exports": "biome format --write package.json",
@@ -44,6 +48,14 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./enum/operator.js": {
+      "import": "./dist/esm/enum/operator.js",
+      "require": "./dist/cjs/enum/operator.js"
+    },
+    "./enum/overload.js": {
+      "import": "./dist/esm/enum/overload.js",
+      "require": "./dist/cjs/enum/overload.js"
+    },
     "./testdata/comprehension.js": {
       "import": "./dist/esm/testdata/comprehension.js",
       "require": "./dist/cjs/testdata/comprehension.js"
@@ -119,6 +131,8 @@
   },
   "typesVersions": {
     "*": {
+      "enum/operator.js": ["./dist/cjs/enum/operator.d.ts"],
+      "enum/overload.js": ["./dist/cjs/enum/overload.d.ts"],
       "testdata/comprehension.js": ["./dist/cjs/testdata/comprehension.d.ts"],
       "testdata/conformance.js": ["./dist/cjs/testdata/conformance.d.ts"],
       "testdata/parsing.js": ["./dist/cjs/testdata/parsing.d.ts"],
