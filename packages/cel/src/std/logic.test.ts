@@ -16,10 +16,7 @@ import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 
-import { addLogic, matchesString } from "./logic.js";
-import { Operator } from "./operator.js";
-import { FuncRegistry, type CelFunc } from "../func.js";
-import { isCelNumericType } from "../type.js";
+import { matchesString } from "./logic.js";
 
 function durationOf(func: () => void, times = 5): number {
   const runs: number[] = [];
@@ -34,46 +31,6 @@ function durationOf(func: () => void, times = 5): number {
 }
 
 void suite("logic", () => {
-  void suite("matches(string, string) -> bool", () => {
-    void test("cross-type numeric comparisons", () => {
-      const registry = new FuncRegistry();
-      addLogic(registry);
-
-      for (const name of [
-        Operator.GREATER,
-        Operator.GREATER_EQUALS,
-        Operator.LESS,
-        Operator.LESS_EQUALS,
-      ]) {
-        const func = registry.find(name) as CelFunc;
-        assert.ok(func !== undefined, `expected function ${name} to exist`);
-        assert.ok(
-          Array.isArray(func.overloads),
-          `expected function ${name} to have overloads`,
-        );
-        const overloads = func.overloads;
-
-        for (const overload of overloads) {
-          assert.equal(overload.parameters.length, 2);
-
-          if (
-            overload.parameters.every(isCelNumericType) &&
-            overload.parameters[0] !== overload.parameters[1]
-          ) {
-            assert.ok(
-              overload.isCrossTypeNumericComparison,
-              `expected ${func.name}(${overload.parameters.join(", ")}) to be a cross-type numeric comparison`,
-            );
-          } else {
-            assert.ok(
-              !overload.isCrossTypeNumericComparison,
-              `did not expect ${func.name}(${overload.parameters.join(", ")}) to be a cross-type numeric comparison`,
-            );
-          }
-        }
-      }
-    });
-  });
   void suite("matches(string, string) -> bool", () => {
     void test.skip("doesn't evaluate simple ReDoS expressions in exponential time", () => {
       const maliciousRegex = "^(a*)*$";

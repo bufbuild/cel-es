@@ -16,6 +16,7 @@ import { timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { CelScalar, TIMESTAMP, DURATION, type CelValue } from "../type.js";
 import { type FuncRegistry, celOverload, celFunc } from "../func.js";
+import { Overload } from "@bufbuild/cel-spec/enum/overload.js";
 import { toJson } from "@bufbuild/protobuf";
 
 export function addTime(funcs: FuncRegistry): void {
@@ -156,7 +157,7 @@ function makeTimeOp(t: TimeFunc) {
 
 type TimeFunc = (date: Date) => number;
 
-const getFullYearFunc = celFunc("getFullYear", [
+const getFullYearFunc = celFunc(Overload.TIME_GET_FULL_YEAR, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -169,7 +170,7 @@ const getFullYearFunc = celFunc("getFullYear", [
   ),
 ]);
 
-const getMonthFunc = celFunc("getMonth", [
+const getMonthFunc = celFunc(Overload.TIME_GET_MONTH, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -182,7 +183,7 @@ const getMonthFunc = celFunc("getMonth", [
   ),
 ]);
 
-const getDateFunc = celFunc("getDate", [
+const getDateFunc = celFunc(Overload.TIME_GET_DATE, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -195,7 +196,7 @@ const getDateFunc = celFunc("getDate", [
   ),
 ]);
 
-const getDayOfMonthFunc = celFunc("getDayOfMonth", [
+const getDayOfMonthFunc = celFunc(Overload.TIME_GET_DAY_OF_MONTH, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -208,7 +209,7 @@ const getDayOfMonthFunc = celFunc("getDayOfMonth", [
   ),
 ]);
 
-const getDayOfWeekFunc = celFunc("getDayOfWeek", [
+const getDayOfWeekFunc = celFunc(Overload.TIME_GET_DAY_OF_WEEK, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -221,7 +222,7 @@ const getDayOfWeekFunc = celFunc("getDayOfWeek", [
   ),
 ]);
 
-const getDayOfYearFunc = celFunc("getDayOfYear", [
+const getDayOfYearFunc = celFunc(Overload.TIME_GET_DAY_OF_YEAR, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -234,7 +235,7 @@ const getDayOfYearFunc = celFunc("getDayOfYear", [
   ),
 ]);
 
-const getSecondsFunc = celFunc("getSeconds", [
+const getSecondsFunc = celFunc(Overload.TIME_GET_SECONDS, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -248,7 +249,7 @@ const getSecondsFunc = celFunc("getSeconds", [
   celOverload([DURATION], CelScalar.INT, (dur) => dur.message.seconds),
 ]);
 
-const getMinutesFunc = celFunc("getMinutes", [
+const getMinutesFunc = celFunc(Overload.TIME_GET_MINUTES, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -262,7 +263,7 @@ const getMinutesFunc = celFunc("getMinutes", [
   celOverload([DURATION], CelScalar.INT, (dur) => dur.message.seconds / 60n),
 ]);
 
-const getHoursFunc = celFunc("getHours", [
+const getHoursFunc = celFunc(Overload.TIME_GET_HOURS, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,
@@ -276,7 +277,7 @@ const getHoursFunc = celFunc("getHours", [
   celOverload([DURATION], CelScalar.INT, (dur) => dur.message.seconds / 3600n),
 ]);
 
-const getMillisecondsFunc = celFunc("getMilliseconds", [
+const getMillisecondsFunc = celFunc(Overload.TIME_GET_MILLISECONDS, [
   celOverload(
     [TIMESTAMP],
     CelScalar.INT,

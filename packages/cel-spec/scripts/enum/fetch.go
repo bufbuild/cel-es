@@ -22,6 +22,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -107,6 +108,19 @@ func parseCelGoSourceFile(goModPath string, filePath string) (*goast.File, strin
 	return file, celGoModule + "@" + ver + "/" + filePath, nil
 }
 
+func upperSnakeCase(str string) string {
+	upperSnakeRegexp := regexp.MustCompile(`(.)([A-Z])`)
+
+	return strings.ToUpper(
+		upperSnakeRegexp.ReplaceAllStringFunc(
+			str,
+			func(pair string) string {
+				return string([]byte{pair[0], '_', pair[1]})
+			},
+		),
+	)
+}
+
 func findConstants(file *goast.File) []*StringConstant {
 	constants := []*StringConstant{}
 
@@ -118,22 +132,21 @@ func findConstants(file *goast.File) []*StringConstant {
 
 		for _, spec := range constDecl.Specs {
 			valueSpec, ok := spec.(*goast.ValueSpec)
-
 			if !ok || len(valueSpec.Names) != len(valueSpec.Values) {
 				continue
 			}
 
 			for i := range len(valueSpec.Names) {
 				name, value := valueSpec.Names[i].Name, valueSpec.Values[i]
-
 				literal, ok := value.(*goast.BasicLit)
 				if !ok {
 					continue
 				}
 
+				upperSnakeName := upperSnakeCase(name)
 				unquotedValue, _ := strconv.Unquote(literal.Value)
 				constants = append(constants, &StringConstant{
-					Name:  name,
+					Name:  upperSnakeName,
 					Value: unquotedValue,
 				})
 			}
@@ -141,58 +154,6 @@ func findConstants(file *goast.File) []*StringConstant {
 	}
 
 	return constants
-
-	// for _, decl := range file.Decls {
-	// 	funcDecl, ok := decl.(*goast.De)
-	// 	if !ok {
-	// 		continue
-	// 	}
-	// 	if !strings.HasPrefix(funcDecl.Name.Name, "Test") {
-	// 		continue
-	// 	}
-	// 	if len(funcDecl.Body.List) < 1 {
-	// 		continue
-	// 	}
-	// 	assign, ok := funcDecl.Body.List[0].(*goast.AssignStmt)
-	// 	if !ok {
-	// 		continue
-	// 	}
-	// 	for _, rhs := range assign.Rhs {
-	// 		compLit, ok := rhs.(*goast.CompositeLit)
-	// 		if !ok {
-	// 			continue
-	// 		}
-	// 		for _, expr := range compLit.Elts {
-	// 			compLit, ok := expr.(*goast.CompositeLit)
-	// 			if !ok {
-	// 				continue
-	// 			}
-	// 			for _, expr := range compLit.Elts {
-	// 				keyValueExpr, ok := expr.(*goast.KeyValueExpr)
-	// 				if !ok {
-	// 					continue
-	// 				}
-	// 				keyIdent, ok := keyValueExpr.Key.(*goast.Ident)
-	// 				if !ok {
-	// 					continue
-	// 				}
-	// 				if keyIdent.Name != "expr" {
-	// 					continue
-	// 				}
-	// 				valLit, ok := keyValueExpr.Value.(*goast.BasicLit)
-	// 				if !ok {
-	// 					continue
-	// 				}
-	// 				unquotedInput, err := strconv.Unquote(valLit.Value)
-	// 				if err != nil {
-	// 					return nil, fmt.Errorf("cannot unquote %s: %w", valLit.Value, err)
-	// 				}
-	// 				tests = append(tests, wrapString(unquotedInput))
-	// 			}
-	// 		}
-	// 	}
-	// }
-	// return tests, nil
 }
 
 func write(enumName string, constants []*StringConstant, sourceId string, outputPath string) error {

@@ -21,20 +21,170 @@ import { DurationSchema } from "@bufbuild/protobuf/wkt";
 import { createDuration } from "./duration.js";
 
 void suite("duration", () => {
-  void test("createDuration()", () => {
-    let actual = createDuration(0n, -1);
-    assert.ok(isMessage(actual, DurationSchema));
-    assert.equal(actual.seconds, -1n);
-    assert.equal(actual.nanos, 999999999);
+  void suite("createDuration()", () => {
+    void test("0s, 0ns", () => {
+      let actual = createDuration(0n, 0);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("0s, 1ns", () => {
+      let actual = createDuration(0n, 1);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 1);
+    });
+    void test("0s, -1ns", () => {
+      let actual = createDuration(0n, -1);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, -1);
+    });
+    void test("0s, 999,999,999ns", () => {
+      let actual = createDuration(0n, 999999999);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 999999999);
+    });
+    void test("0s, -999,999,999ns", () => {
+      let actual = createDuration(0n, -999999999);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, -999999999);
+    });
+    void test("0s, 1,000,000,000ns", () => {
+      let actual = createDuration(0n, 1000000000);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 1n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("0s, -1,000,000,000ns", () => {
+      let actual = createDuration(0n, -1000000000);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, -1n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("0s, 1,000,000,001ns", () => {
+      let actual = createDuration(0n, 1000000001);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 1n);
+      assert.equal(actual.nanos, 1);
+    });
+    void test("0s, -1,000,000,001ns", () => {
+      let actual = createDuration(0n, -1000000001);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, -1n);
+      assert.equal(actual.nanos, -1);
+    });
 
-    actual = createDuration(0n, -999999999);
-    assert.ok(isMessage(actual, DurationSchema));
-    assert.equal(actual.seconds, -1n);
-    assert.equal(actual.nanos, 1);
+    void test("1s, 0ns", () => {
+      let actual = createDuration(1n, 0);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 1n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("1s, 1ns", () => {
+      let actual = createDuration(1n, 1);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 1n);
+      assert.equal(actual.nanos, 1);
+    });
+    void test("1s, -1ns", () => {
+      let actual = createDuration(1n, -1);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 999999999);
+    });
+    void test("1s, 999,999,999ns", () => {
+      let actual = createDuration(1n, 999999999);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 1n);
+      assert.equal(actual.nanos, 999999999);
+    });
+    void test("1s, -999,999,999ns", () => {
+      let actual = createDuration(1n, -999999999);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 1);
+    });
+    void test("1s, 1,000,000,000ns", () => {
+      let actual = createDuration(1n, 1000000000);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 2n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("1s, -1,000,000,000ns", () => {
+      let actual = createDuration(1n, -1000000000);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("1s, 1,000,000,001ns", () => {
+      let actual = createDuration(1n, 1000000001);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 2n);
+      assert.equal(actual.nanos, 1);
+    });
+    void test("1s, -1,000,000,001ns", () => {
+      let actual = createDuration(1n, -1000000001);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, -1);
+    });
 
-    actual = createDuration(0n, -1000000000);
-    assert.ok(isMessage(actual, DurationSchema));
-    assert.equal(actual.seconds, -1n);
-    assert.equal(actual.nanos, 0);
+    void test("-1s, 0ns", () => {
+      let actual = createDuration(-1n, 0);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, -1n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("-1s, 1ns", () => {
+      let actual = createDuration(-1n, 1);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, -999999999);
+    });
+    void test("-1s, -1ns", () => {
+      let actual = createDuration(-1n, -1);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, -1n);
+      assert.equal(actual.nanos, -1);
+    });
+    void test("-1s, 999,999,999ns", () => {
+      let actual = createDuration(-1n, 999999999);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, -1);
+    });
+    void test("-1s, -999,999,999ns", () => {
+      let actual = createDuration(-1n, -999999999);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, -1n);
+      assert.equal(actual.nanos, -999999999);
+    });
+    void test("-1s, 1,000,000,000ns", () => {
+      let actual = createDuration(-1n, 1000000000);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("-1s, -1,000,000,000ns", () => {
+      let actual = createDuration(-1n, -1000000000);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, -2n);
+      assert.equal(actual.nanos, 0);
+    });
+    void test("-1s, 1,000,000,001ns", () => {
+      let actual = createDuration(-1n, 1000000001);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, 0n);
+      assert.equal(actual.nanos, 1);
+    });
+    void test("-1s, -1,000,000,001ns", () => {
+      let actual = createDuration(-1n, -1000000001);
+      assert.ok(isMessage(actual, DurationSchema));
+      assert.equal(actual.seconds, -2n);
+      assert.equal(actual.nanos, -1);
+    });
   });
 });

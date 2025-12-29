@@ -31,7 +31,7 @@ import {
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
 import type { CallDispatch, Dispatcher } from "./func.js";
-import { Operator } from "./std/operator.js";
+import { Operator } from "@bufbuild/cel-spec/enum/operator.js";
 import { Namespace } from "./namespace.js";
 import {
   celError,

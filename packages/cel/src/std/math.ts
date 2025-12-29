@@ -12,11 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { create } from "@bufbuild/protobuf";
-import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
-
 import { type FuncRegistry, celOverload, celFunc } from "../func.js";
-import { Operator } from "./operator.js";
+import { Operator } from "@bufbuild/cel-spec/enum/operator.js";
 import {
   CelScalar,
   DURATION,
@@ -69,32 +66,20 @@ function addTimestamp(
   lhs: CelValue<typeof TIMESTAMP>,
   rhs: CelValue<typeof DURATION>,
 ) {
-  let seconds = lhs.message.seconds + rhs.message.seconds;
-  let nanos = lhs.message.nanos + rhs.message.nanos;
-  if (nanos > 999999999) {
-    seconds += BigInt(Math.floor(nanos / 1000000000));
-    nanos = nanos % 1000000000;
-  }
-  if (seconds > 253402300799 || seconds < -62135596800) {
-    throw overflow(Operator.ADD, TIMESTAMP);
-  }
-  return create(TimestampSchema, { seconds: seconds, nanos: nanos });
+  return createTimestamp(
+    lhs.message.seconds + rhs.message.seconds,
+    lhs.message.nanos + rhs.message.nanos,
+  );
 }
 
 function addDuration(
   lhs: CelValue<typeof DURATION>,
   rhs: CelValue<typeof DURATION>,
 ) {
-  let seconds = lhs.message.seconds + rhs.message.seconds;
-  let nanos = lhs.message.nanos + rhs.message.nanos;
-  if (nanos > 999999999) {
-    seconds += BigInt(Math.floor(nanos / 1000000000));
-    nanos = nanos % 1000000000;
-  }
-  if (seconds > 315576000000 || seconds < -315576000000) {
-    throw overflow(Operator.ADD, DURATION);
-  }
-  return create(DurationSchema, { seconds: seconds, nanos: nanos });
+  return createDuration(
+    lhs.message.seconds + rhs.message.seconds,
+    lhs.message.nanos + rhs.message.nanos,
+  );
 }
 
 function subtractDurationOrTimestamp<

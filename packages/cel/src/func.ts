@@ -32,7 +32,6 @@ import { isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { unwrapAny, toCel } from "./value.js";
-import { lookUpOverloadId } from "./overloads.js";
 
 const privateFuncSymbol = Symbol.for("@bufbuild/cel/func");
 const privateOverloadSymbol = Symbol.for("@bufbuild/cel/overload");
@@ -65,19 +64,14 @@ export interface CelFunc extends CallDispatch {
  */
 export function celFunc(
   name: string,
-  overloads: CelFuncOverload<readonly CelType[], CelType>[],
+  overloads: CelOverload<readonly CelType[], CelType>[],
 ): CelFunc {
   return new Func(name, overloads);
 }
 
-export interface CelOverloadOptions {
-  /**
-   * Whether the overload is a cross-type numeric comparison, which may need to
-   * be disabled for some environments.
-   */
-  readonly isCrossTypeNumericComparison: boolean;
-}
-
+/**
+ * A CEL function overload.
+ */
 export interface CelOverload<P extends readonly CelType[], R extends CelType> {
   [privateOverloadSymbol]: unknown;
   /**
@@ -91,49 +85,11 @@ export interface CelOverload<P extends readonly CelType[], R extends CelType> {
   /**
    * Implementation for this overload.
    */
-  readonly impl: (...args: CelValueTuple<readonly CelType[]>) => CelInput<R>;
-  /**
-   * Whether the signature is a cross-type numeric comparison, which may need to
-   * be disabled for some environments.
-   */
-  readonly isCrossTypeNumericComparison: boolean;
-}
-
-export interface CelFuncOverload<
-  P extends readonly CelType[],
-  R extends CelType,
-> extends CelOverload<P, R> {
-  /**
-   * Implementation for this overload.
-   */
   readonly impl: (...args: CelValueTuple<P>) => CelInput<R>;
-  /**
-   * Whether the signature is a cross-type numeric comparison, which may need to
-   * be disabled for some environments.
-   */
-  readonly isCrossTypeNumericComparison: boolean;
 }
-
-export interface CelMethodOverload<
-  T extends CelType,
-  P extends readonly CelType[],
-  R extends CelType,
-> extends CelOverload<P, R> {
-  /**
-   * The target type on which this overload is called as a method.
-   */
-  readonly target: T;
-  /**
-   * Implementation for this overload.
-   */
-  readonly impl: (...args: CelValueTuple<[T, ...P]>) => CelInput<R>;
-}
-
-type HasId = { id: string };
-type Concrete<Q> = Required<Q>;
 
 /**
- * Creates a new CelFuncOverload.
+ * Creates a new CelOverload.
  */
 export function celOverload<
   const P extends readonly CelType[],
@@ -142,51 +98,16 @@ export function celOverload<
   parameters: P,
   result: R,
   impl: (...args: CelValueTuple<P>) => CelInput<R>,
-  options?: CelOverloadOptions,
-): CelFuncOverload<P, R> {
-  return new FuncOverload(parameters, result, impl, undefined, options);
-}
-
-/**
- * Creates a new CelMethodOverload.
- */
-export function celMethodOverload<
-  const T extends CelType,
-  const P extends readonly CelType[],
-  const R extends CelType,
->(
-  target: T,
-  parameters: P,
-  result: R,
-  impl: (...args: CelValueTuple<readonly [T, ...P]>) => CelInput<R>,
-  options?: CelOverloadOptions,
-): CelMethodOverload<T, P, R> {
-  return new MethodOverload(
-    target,
-    parameters,
-    result,
-    impl,
-    undefined,
-    options,
-  );
+): CelOverload<P, R> {
+  return new FuncOverload(parameters, result, impl);
 }
 
 class Func implements CelFunc {
   [privateFuncSymbol] = {};
-  private readonly _overloads: Concrete<
-    CelOverload<readonly CelType[], CelType> & HasId
-  >[];
-
   constructor(
     private readonly _name: string,
-    anonymousOverloads: CelFuncOverload<readonly CelType[], CelType>[],
-  ) {
-    this._overloads = anonymousOverloads.map((o) =>
-      (
-        o as FuncOverload<undefined, typeof o.parameters, typeof o.result>
-      ).toAssigned(this),
-    );
-  }
+    private readonly _overloads: CelOverload<readonly CelType[], CelType>[],
+  ) {}
 
   get name() {
     return this._name;
@@ -226,56 +147,15 @@ class Func implements CelFunc {
   }
 }
 
-abstract class Overload<
-  const I extends string | undefined,
-  const P extends readonly CelType[],
-  const R extends CelType = CelType,
-> implements CelOverload<P, R>
+class FuncOverload<const P extends readonly CelType[], const R extends CelType>
+  implements CelOverload<P, R>
 {
   [privateOverloadSymbol] = {};
-
-  private readonly _isCrossTypeNumericComparison: boolean = false;
-
   constructor(
-    protected readonly _parameters: P,
-    protected readonly _result: R,
-    protected readonly _impl: () => CelInput<R>,
-    protected readonly _id: I,
-    options?: CelOverloadOptions,
-  ) {
-    if (options?.isCrossTypeNumericComparison) {
-      this._isCrossTypeNumericComparison = options.isCrossTypeNumericComparison;
-    }
-  }
-
-  abstract toAssigned(func: CelFunc): Concrete<CelFuncOverload<P, R> & HasId>;
-  protected abstract _computeSignature(funcName: string): string;
-
-  protected _computeId(funcName: string) {
-    const signature = this._computeSignature(funcName);
-
-    if (
-      !lookUpOverloadId(signature) &&
-      ![
-        "charAt",
-        "indexOf",
-        "lastIndexOf",
-        "lowerAscii",
-        "upperAscii",
-        "replace",
-        "split",
-        "substring",
-        "trim",
-        "join",
-        "strings.quote",
-        "format",
-      ].includes(funcName)
-    ) {
-      throw new Error(signature);
-    }
-
-    return lookUpOverloadId(signature) ?? signature;
-  }
+    private readonly _parameters: P,
+    private readonly _result: R,
+    private readonly _impl: (...args: CelValueTuple<P>) => CelInput<R>,
+  ) {}
 
   get parameters() {
     return this._parameters;
@@ -283,88 +163,8 @@ abstract class Overload<
   get result() {
     return this._result;
   }
-  get id() {
-    return this._id;
-  }
   get impl() {
     return this._impl;
-  }
-  get isCrossTypeNumericComparison() {
-    return this._isCrossTypeNumericComparison;
-  }
-}
-
-class FuncOverload<
-    const I extends string | undefined,
-    const P extends readonly CelType[],
-    const R extends CelType = CelType,
-  >
-  extends Overload<I, P, R>
-  implements CelFuncOverload<P, R>
-{
-  protected _computeSignature(funcName: string) {
-    const params = this._parameters.map((p) => p.toString());
-    const result = this._result.toString();
-
-    return `@global.${funcName}(${params.join(", ")}): ${result}`;
-  }
-
-  toAssigned(func: CelFunc) {
-    return new FuncOverload(
-      this._parameters,
-      this._result,
-      this._impl,
-      this._computeId(func.name),
-      { isCrossTypeNumericComparison: this.isCrossTypeNumericComparison },
-    );
-  }
-}
-
-class MethodOverload<
-    const I extends string | undefined,
-    const T extends CelType,
-    const P extends readonly CelType[],
-    const R extends CelType,
-  >
-  extends Overload<I, P, R>
-  implements CelMethodOverload<T, P, R>
-{
-  constructor(
-    private readonly _target: T,
-    parameters: P,
-    result: R,
-    impl: (...args: CelValueTuple<readonly [T, ...P]>) => CelInput<R>,
-    id: I,
-    options?: CelOverloadOptions,
-  ) {
-    super(parameters, result, impl, id, options);
-  }
-
-  protected override _computeSignature(funcName: string) {
-    const target = this._target.toString();
-    const params = this._parameters.map((p) => p.toString());
-    const result = this._result.toString();
-
-    return `${target}.${funcName}(${params.join(", ")}): ${result}`;
-  }
-
-  toAssigned(func: CelFunc) {
-    return new MethodOverload(
-      this._target,
-      this._parameters,
-      this._result,
-      this._impl,
-      this._computeId(func.name),
-      { isCrossTypeNumericComparison: this.isCrossTypeNumericComparison },
-    );
-  }
-
-  get target() {
-    return this._target;
-  }
-
-  override get parameters() {
-    return [this._target, ...this._parameters] as unknown as P;
   }
 }
 

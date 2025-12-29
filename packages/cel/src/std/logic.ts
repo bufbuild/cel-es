@@ -16,10 +16,10 @@ import {
   type FuncRegistry,
   celFunc,
   celOverload,
-  celMethodOverload,
   type CallDispatch,
 } from "../func.js";
-import { Operator } from "./operator.js";
+import { Operator } from "@bufbuild/cel-spec/enum/operator.js";
+import { Overload } from "@bufbuild/cel-spec/enum/overload.js";
 import { type CelError, celErrorMerge, isCelError } from "../error.js";
 import {
   CelScalar,
@@ -123,15 +123,15 @@ const ltFunc = celFunc(Operator.LESS, [
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, ltOp),
   celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, ltOp),
   celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, ltOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < r.value, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value < r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < r.value),
+  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value < r),
   celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value < r.value),
   // TODO investigate: ECMAScript relational operators support mixed bigint/number operands,
   // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) < r, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l < Number(r), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < Number(r.value), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) < r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) < r),
+  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l < Number(r)),
+  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < Number(r.value)),
+  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) < r),
   celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) < 0),
   celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) < 0),
 ]);
@@ -146,13 +146,13 @@ const leFunc = celFunc(Operator.LESS_EQUALS, [
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, lteOp),
   celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, lteOp),
   celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, lteOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= r.value, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value <= r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= r.value),
+  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value <= r),
   celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value <= r.value),
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) <= r, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l <= Number(r), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= Number(r.value), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) <= r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) <= r),
+  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l <= Number(r)),
+  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= Number(r.value)),
+  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) <= r),
   celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) <= 0),
   celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) <= 0),
 ]);
@@ -167,13 +167,13 @@ const gtFunc = celFunc(Operator.GREATER, [
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gtOp),
   celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, gtOp),
   celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gtOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > r.value, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value > r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > r.value),
+  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value > r),
   celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value > r.value),
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) > r, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l > Number(r), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > Number(r.value), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) > r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) > r),
+  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l > Number(r)),
+  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > Number(r.value)),
+  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) > r),
   celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) > 0),
   celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) > 0),
 ]);
@@ -188,41 +188,32 @@ const geFunc = celFunc(Operator.GREATER_EQUALS, [
   celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gteOp),
   celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, gteOp),
   celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gteOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= r.value, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value >= r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= r.value),
+  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value >= r),
   celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value >= r.value),
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) >= r, { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l >= Number(r), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= Number(r.value), { isCrossTypeNumericComparison: true }),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) >= r, { isCrossTypeNumericComparison: true }),
+  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) >= r),
+  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l >= Number(r)),
+  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= Number(r.value)),
+  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) >= r),
   celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) >= 0),
   celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) >= 0),
 ]);
 
-const containsFunc = celFunc("contains", [
-  celMethodOverload(
-    CelScalar.STRING,
-    [CelScalar.STRING],
-    CelScalar.BOOL,
-    (x, y) => x.includes(y),
+const containsFunc = celFunc(Overload.CONTAINS, [
+  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
+    x.includes(y),
   ),
 ]);
 
-const endsWithFunc = celFunc("endsWith", [
-  celMethodOverload(
-    CelScalar.STRING,
-    [CelScalar.STRING],
-    CelScalar.BOOL,
-    (x, y) => x.endsWith(y),
+const endsWithFunc = celFunc(Overload.ENDS_WITH, [
+  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
+    x.endsWith(y),
   ),
 ]);
 
-const startsWithFunc = celFunc("startsWith", [
-  celMethodOverload(
-    CelScalar.STRING,
-    [CelScalar.STRING],
-    CelScalar.BOOL,
-    (x, y) => x.startsWith(y),
+const startsWithFunc = celFunc(Overload.STARTS_WITH, [
+  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
+    x.startsWith(y),
   ),
 ]);
 
@@ -282,16 +273,15 @@ export function matchesString(x: string, y: string): boolean {
   return re.test(x);
 }
 
-const matchesFunc = celFunc("matches", [
-  celMethodOverload(
-    CelScalar.STRING,
-    [CelScalar.STRING],
+const matchesFunc = celFunc(Overload.MATCHES, [
+  celOverload(
+    [CelScalar.STRING, CelScalar.STRING],
     CelScalar.BOOL,
     matchesString,
   ),
 ]);
 
-const sizeFunc = celFunc("size", [
+const sizeFunc = celFunc(Overload.SIZE, [
   celOverload([CelScalar.STRING], CelScalar.INT, (x) => {
     let size = 0;
     for (const _ of x) {
@@ -301,28 +291,17 @@ const sizeFunc = celFunc("size", [
   }),
   celOverload([CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
   celOverload([listType(CelScalar.DYN)], CelScalar.INT, (x) => BigInt(x.size)),
-  celOverload([mapType(CelScalar.DYN, CelScalar.DYN)], CelScalar.INT, (x) =>
+  celOverload([mapType(CelScalar.INT, CelScalar.DYN)], CelScalar.INT, (x) =>
     BigInt(x.size),
   ),
-
-  celMethodOverload(CelScalar.STRING, [], CelScalar.INT, (x) => {
-    let size = 0;
-    for (const _ of x) {
-      size++;
-    }
-    return BigInt(size);
-  }),
-  celMethodOverload(CelScalar.BYTES, [], CelScalar.INT, (x) =>
-    BigInt(x.length),
-  ),
-  celMethodOverload(listType(CelScalar.DYN), [], CelScalar.INT, (x) =>
+  celOverload([mapType(CelScalar.UINT, CelScalar.DYN)], CelScalar.INT, (x) =>
     BigInt(x.size),
   ),
-  celMethodOverload(
-    mapType(CelScalar.DYN, CelScalar.DYN),
-    [],
-    CelScalar.INT,
-    (x) => BigInt(x.size),
+  celOverload([mapType(CelScalar.BOOL, CelScalar.DYN)], CelScalar.INT, (x) =>
+    BigInt(x.size),
+  ),
+  celOverload([mapType(CelScalar.STRING, CelScalar.DYN)], CelScalar.INT, (x) =>
+    BigInt(x.size),
   ),
 ]);
 
@@ -344,7 +323,22 @@ const inFunc = celFunc(Operator.IN, [
     },
   ),
   celOverload(
-    [CelScalar.DYN, mapType(CelScalar.DYN, CelScalar.DYN)],
+    [CelScalar.DYN, mapType(CelScalar.STRING, CelScalar.DYN)],
+    CelScalar.BOOL,
+    mapInOp,
+  ),
+  celOverload(
+    [CelScalar.DYN, mapType(CelScalar.INT, CelScalar.DYN)],
+    CelScalar.BOOL,
+    mapInOp,
+  ),
+  celOverload(
+    [CelScalar.DYN, mapType(CelScalar.UINT, CelScalar.DYN)],
+    CelScalar.BOOL,
+    mapInOp,
+  ),
+  celOverload(
+    [CelScalar.DYN, mapType(CelScalar.BOOL, CelScalar.DYN)],
     CelScalar.BOOL,
     mapInOp,
   ),
