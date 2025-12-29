@@ -9,13 +9,13 @@
       "outputLogs": "new-only"
     },
     "fetch-enum-operator": {
-      "inputs": ["scripts/enum/main.go", "scripts/go.*", "package.json"],
+      "inputs": ["scripts/enum/*", "package.json"],
       "outputs": ["src/enum/operator.ts"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
     "fetch-enum-overload": {
-      "inputs": ["scripts/enum/main.go", "scripts/go.*", "package.json"],
+      "inputs": ["scripts/enum/*", "package.json"],
       "outputs": ["src/enum/overload.ts"],
       "env": ["GO*"],
       "outputLogs": "new-only"
@@ -27,25 +27,20 @@
       "outputLogs": "new-only"
     },
     "fetch-parsing": {
-      "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
+      "inputs": ["scripts/tests/*", "package.json"],
       "outputs": ["src/testdata/parsing.ts"],
       "dependsOn": ["fetch-testdata"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
     "fetch-comprehensions": {
-      "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
+      "inputs": ["scripts/tests/*", "package.json"],
       "outputs": ["src/testdata/comprehensions.ts"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
     "fetch-conformance": {
-      "inputs": [
-        "scripts/*.go",
-        "scripts/go.*",
-        "package.json",
-        "src/testdata/json/*.json"
-      ],
+      "inputs": ["scripts/tests/*", "package.json", "src/testdata/json/*.json"],
       "outputs": ["src/testdata/conformance.ts"],
       "env": ["GO*"],
       "outputLogs": "new-only"
