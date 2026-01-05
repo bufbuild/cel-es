@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { isCelList } from "./list.js";
-import { isCelMap } from "./map.js";
 import {
-  CelScalar,
-  celType,
-  isCelType,
+  isOfType,
   type CelType,
   type CelValue,
   type CelValueTuple,
@@ -99,20 +94,6 @@ class _CelError extends Error implements CelError {
     const e = celError(value, exprId);
     return new _CelError(e.message, this, e.exprId);
   }
-}
-
-function isOfType<T extends CelType>(
-  value: CelValue,
-  type: T,
-): value is CelValue<T> {
-  return (
-    type === CelScalar.DYN ||
-    type === celType(value) ||
-    (type.kind == "list" && isCelList(value)) ||
-    (type.kind == "map" && isCelMap(value)) ||
-    (type.kind == "object" && isReflectMessage(value, type.desc)) ||
-    (type.kind == "type" && isCelType(value))
-  );
 }
 
 export function unwrapResult<T extends CelType>(

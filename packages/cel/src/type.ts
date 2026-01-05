@@ -324,3 +324,17 @@ export function isCelType(v: unknown): v is CelType {
 export function isObjectCelType(v: NonNullable<object>): v is CelType {
   return privateSymbol in v;
 }
+
+export function isOfType<T extends CelType>(
+  value: CelValue,
+  type: T,
+): value is CelValue<T> {
+  return (
+    type === CelScalar.DYN ||
+    type === celType(value) ||
+    (type.kind == "list" && isCelList(value)) ||
+    (type.kind == "map" && isCelMap(value)) ||
+    (type.kind == "object" && isReflectMessage(value, type.desc)) ||
+    (type.kind == "type" && isCelType(value))
+  );
+}
