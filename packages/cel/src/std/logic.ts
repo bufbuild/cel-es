@@ -30,7 +30,7 @@ import { equals } from "../equals.js";
 import type { CelMapIndex } from "../map.js";
 import type { CelList } from "../list.js";
 
-function and(id: number, args: CelResult<boolean>[]) {
+function and(id: number, args: CelResult[]) {
   if (args.some((a) => a === false)) return false;
 
   const correctTypeArgs = args.map((a) =>
@@ -42,7 +42,7 @@ function and(id: number, args: CelResult<boolean>[]) {
   return true;
 }
 
-function or(id: number, args: CelResult<boolean>[]) {
+function or(id: number, args: CelResult[]) {
   if (args.some((a) => a === true)) return true;
 
   const correctTypeArgs = args.map((a) =>

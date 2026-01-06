@@ -23,7 +23,6 @@ import {
   type ReflectMessage,
 } from "@bufbuild/protobuf/reflect";
 import { TimestampSchema, DurationSchema } from "@bufbuild/protobuf/wkt";
-import type { CelResult } from "./error.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/type");
 
@@ -263,16 +262,6 @@ export type CelValueTuple<T extends readonly CelType[]> =
     ...infer Rest extends CelType[],
   ]
     ? [CelValue<First>, ...CelValueTuple<Rest>]
-    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>
-    : CelType[] extends T ? any[] : [];
-
-// biome-ignore format: Ternaries
-export type CelResultTuple<T extends readonly CelType[]> =
-  T extends readonly [
-    infer First extends CelType,
-    ...infer Rest extends CelType[],
-  ]
-    ? [CelResult<CelValue<First>>, ...CelResultTuple<Rest>]
     // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>
     : CelType[] extends T ? any[] : [];
 

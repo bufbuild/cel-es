@@ -12,16 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type {
-  CelType,
-  CelValueTuple,
-  CelValue,
-  CelInput,
-  CelResultTuple,
-} from "./type.js";
+import type { CelType, CelValueTuple, CelValue, CelInput } from "./type.js";
 import {
   type CelResult,
-  type CelResultFromType,
   isCelError,
   unwrapResultTuple,
   unwrapResult,
@@ -44,6 +37,7 @@ export interface Callable {
   matchArgs(target: CelResult, args: CelResult[]): boolean;
 
   call(id: number, args: CelResult[]): CelResult;
+  call(id: number, target: CelResult, args: CelResult[]): CelResult;
 }
 
 abstract class BaseCallable implements Callable {
@@ -56,9 +50,10 @@ abstract class BaseCallable implements Callable {
     protected readonly _result: CelType,
   ) {}
 
-  abstract matchArgs<MP extends TypeTuple>(args: CelResult[]): boolean;
+  abstract matchArgs(args: CelResult[]): boolean;
   abstract matchArgs(target: CelResult, args: CelResult[]): boolean;
   abstract call(id: number, args: CelResult[]): CelResult;
+  abstract call(id: number, target: CelResult, args: CelResult[]): CelResult;
 
   get name() {
     return this._name;
@@ -89,12 +84,12 @@ export function celFunc<const P extends TypeTuple, const R extends CelType>(
   return new Func(name, params, result, impl);
 }
 
-class Func<P extends TypeTuple, R extends CelType> extends BaseCallable {
+class Func<P extends TypeTuple> extends BaseCallable {
   constructor(
     name: string,
     protected readonly _params: P,
-    result: R,
-    protected readonly _impl: FuncImpl<P, R>,
+    result: CelType,
+    protected readonly _impl: FuncImpl<P, CelType>,
   ) {
     super("@global", name, result);
   }
@@ -105,8 +100,19 @@ class Func<P extends TypeTuple, R extends CelType> extends BaseCallable {
     );
   }
 
-  call(id: number, args: CelResult[]): CelResult {
-    const values = unwrapResultTuple(args, this._params);
+  call(
+    id: number,
+    ...args: [CelResult[]] | [CelResult, CelResult[]]
+  ): CelResult {
+    if (args.length !== 1) {
+      return celError(
+        `cannot call function ${this.overloadId} as method`,
+        undefined,
+        id,
+      );
+    }
+
+    const values = unwrapResultTuple(args[0], this._params);
     if (isCelError(values)) {
       return celError(
         `incorrect argument types provided for ${this.overloadId}`,
@@ -142,17 +148,13 @@ export function celMethod<
   return new Method(name, target, params, result, impl);
 }
 
-class Method<
-  T extends CelType,
-  P extends TypeTuple,
-  R extends CelType,
-> extends BaseCallable {
+class Method<T extends CelType, P extends TypeTuple> extends BaseCallable {
   constructor(
     name: string,
     protected readonly _target: T,
     protected readonly _params: P,
-    result: R,
-    protected readonly _impl: MethodImpl<T, P, R>,
+    result: CelType,
+    protected readonly _impl: MethodImpl<T, P, CelType>,
   ) {
     super(_target.toString(), name, result);
   }
@@ -165,13 +167,20 @@ class Method<
     );
   }
 
-  call(id: number, args: CelResult[]): CelResult {
+  call(
+    id: number,
+    ...args: [CelResult, CelResult[]] | [CelResult[]]
+  ): CelResult {
+    if (args.length !== 2) {
+      return celError(`no target for ${this.overloadId}`, undefined, id);
+    }
+
     const target = unwrapResult(args[0], this._target);
     if (isCelError(target)) {
       return celError(`bad target for ${this.overloadId}`, target, id);
     }
 
-    const values = unwrapResultTuple(args.slice(1), this._params);
+    const values = unwrapResultTuple(args[1], this._params);
     if (isCelError(values)) {
       return celError(`bad arguments for ${this.overloadId}`, target, id);
     }
@@ -188,30 +197,22 @@ interface CustomFuncMatchers {
   args?: (args: CelResult[]) => boolean;
 }
 
-type CustomFuncCall<P extends TypeTuple, R extends CelType> = (
-  id: number,
-  args: CelResultTuple<P>,
-) => CelResultFromType<R>;
-
-export function celCustomFunc<
-  const P extends TypeTuple,
-  const R extends CelType,
->(
+export function celCustomFunc(
   name: string,
-  params: P,
-  result: R,
-  call: CustomFuncCall<P, R>,
+  params: CelType[],
+  result: CelType,
+  call: (id: number, args: CelResult[]) => CelResult,
   matchers?: CustomFuncMatchers,
 ): Callable {
   return new CustomFunc(name, params, result, call, matchers ?? {});
 }
 
-class CustomFunc<P extends TypeTuple, R extends CelType> extends Func<P, R> {
+class CustomFunc extends Func<CelType[]> {
   constructor(
     name: string,
-    params: P,
-    result: R,
-    protected readonly _call: CustomFuncCall<P, R>,
+    params: CelType[],
+    result: CelType,
+    protected readonly _call: (id: number, args: CelResult[]) => CelResult,
     protected readonly _matchers: CustomFuncMatchers,
   ) {
     super(name, params, result, () => {
@@ -230,8 +231,18 @@ class CustomFunc<P extends TypeTuple, R extends CelType> extends Func<P, R> {
     );
   }
 
-  override call(id: number, args: CelResultTuple<P>): CelResult {
-    return this._call(id, args);
+  override call(
+    id: number,
+    ...args: [CelResult[]] | [CelResult, CelResult[]]
+  ): CelResult {
+    if (args.length !== 1) {
+      return celError(
+        `cannot call function ${this.overloadId} as method`,
+        undefined,
+        id,
+      );
+    }
+    return this._call(id, args[0]);
   }
 }
 

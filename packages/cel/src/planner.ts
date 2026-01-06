@@ -478,10 +478,9 @@ export class EvalCall implements Interpretable {
         : this.dispatcher.findByArgs(args);
 
     if (callable) {
-      return callable?.call(
-        this.id,
-        target !== undefined ? [target, ...args] : args,
-      );
+      return target !== undefined
+        ? callable?.call(this.id, target, args)
+        : callable?.call(this.id, args);
     }
 
     if (isCelError(target)) return target;
