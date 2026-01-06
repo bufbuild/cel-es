@@ -150,16 +150,19 @@ export function unwrapResult(
   position?: number,
 ): CelResult {
   if (isCelError(result)) return result;
-  if (type && !isOfType(result, type)) {
-    return celError(
-      position ? `type mismatch at position ${position}` : "type mismatch",
-    );
-  }
 
   try {
-    return unwrapAny(result);
-  } catch (ex) {
-    return celError(ex);
+    const value = unwrapAny(result);
+
+    if (type && !isOfType(value, type)) {
+      return celError(
+        position ? `type mismatch at position ${position}` : "type mismatch",
+      );
+    }
+
+    return value;
+  } catch (error) {
+    return celError(error);
   }
 }
 
