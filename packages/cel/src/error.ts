@@ -177,19 +177,24 @@ export function unwrapResultTuple(
   results: readonly CelResult[],
   types?: readonly CelType[],
 ): readonly CelValue[] | CelError {
-  if (types)
-    if (results.length !== types.length)
-      return celError("value count mismatch");
+  if (types && results.length !== types.length)
+    return celError("value count mismatch");
 
-  const unwrapped = results.reduce((u, r, i) => {
-    return u.concat([
-      types ? unwrapResult(r, types[i], i + 1) : unwrapResult(r),
-    ]);
-  }, [] as CelResult[]);
+  const values: CelValue[] = [];
+  const errors: CelError[] = [];
 
-  const errors = unwrapped.filter((r) => isCelError(r));
+  for (let i = 0; i < results.length; i++) {
+    const value = types
+      ? unwrapResult(results[i], types[i], i + 1)
+      : unwrapResult(results[i]);
+    if (isCelError(value)) {
+      errors.push(value);
+    } else if (!errors.length) {
+      values.push(value);
+    }
+  }
 
   if (errors.length) return celError(errors[0].message, errors);
 
-  return results as CelValue[];
+  return values;
 }
