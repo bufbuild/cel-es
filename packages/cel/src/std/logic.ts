@@ -37,7 +37,7 @@ function and(id: number, args: CelResult<boolean>[]) {
     typeof a === "boolean" ? a : celError("expected bool", id),
   );
   const errors = correctTypeArgs.filter((a) => isCelError(a));
-  if (errors.length) return errors[0].causes(errors.slice(1));
+  if (errors.length) return celError(errors);
 
   return true;
 }
@@ -49,7 +49,7 @@ function or(id: number, args: CelResult<boolean>[]) {
     typeof a === "boolean" ? a : celError("expected bool", id),
   );
   const errors = correctTypeArgs.filter((a) => isCelError(a));
-  if (errors.length) return errors[0].causes(errors.slice(1));
+  if (errors.length) return celError(errors);
 
   return false;
 }

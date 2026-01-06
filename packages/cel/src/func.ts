@@ -108,8 +108,9 @@ class Func<R extends CelType> extends BaseCallable<R> {
   call(id: number, args: CelResult[]): CelResultFromType<R> {
     const values = unwrapResultTuple(args, this._params);
     if (isCelError(values)) {
-      return values.causes(
+      return celError(
         `incorrect argument types provided for ${this.overloadId}`,
+        values,
         id,
       );
     }
@@ -166,12 +167,12 @@ class Method<
   call(id: number, args: CelResult[]): CelResultFromType<R> {
     const target = unwrapResult(args[0], this._target);
     if (isCelError(target)) {
-      return target.causes(`bad target for ${this.overloadId}`, id);
+      return celError(`bad target for ${this.overloadId}`, target, id);
     }
 
     const values = unwrapResultTuple(args.slice(1), this._params);
     if (isCelError(values)) {
-      return values.causes(`bad arguments for ${this.overloadId}`, id);
+      return celError(`bad arguments for ${this.overloadId}`, target, id);
     }
 
     try {

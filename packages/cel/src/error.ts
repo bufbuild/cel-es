@@ -42,31 +42,76 @@ export interface CelError extends Error {
    * The underlying cause of this error, if any.
    */
   readonly cause: unknown;
-
-  causes(value: unknown, exprId?: bigint | number): CelError;
 }
 
 /**
- * Coerces a value to CelError using the following rules:
- * - If the given value is a CelError just return that.
- * - If it is an Error type, create a new CelError from that.
- * - If it is a string, creates a new CelError with that as the message.
- * - In all other cases create a new CelError with the given value as the cause.
+ * Create a CelError with a message.
  */
-export function celError(value: unknown, exprId?: bigint | number): CelError {
-  if (isCelError(value)) {
-    return value;
+export function celError(message: string): CelError;
+/**
+ * Create a CelError with multiple errors as the cause. Use the first error's
+ * message.
+ */
+export function celError(cause: Error[]): CelError;
+/**
+ * Create a CelError with a cause. If the cause is a CelError, simply return it.
+ */
+export function celError(cause: unknown): CelError;
+/**
+ * Create a CelError with a message and expression ID.
+ */
+export function celError(message: string, exprId: bigint | number): CelError;
+/**
+ * Create a CelError with a cause and expression ID.
+ */
+export function celError(cause: unknown, exprId: bigint | number): CelError;
+/**
+ * Create a CelError with a message and cause.
+ */
+export function celError(message: string, cause: unknown): CelError;
+/**
+ * Create a CelError with a message, cause, and expression ID.
+ */
+export function celError(
+  message: string,
+  cause: unknown,
+  exprId: bigint | number,
+): CelError;
+export function celError(
+  ...args: [unknown] | [unknown, unknown] | [string, unknown, bigint | number]
+): CelError {
+  if (args.length === 1 && isCelError(args[0])) return args[0];
+
+  let message: string;
+  let cause: unknown;
+  let exprId: bigint | undefined;
+
+  if (args[0] instanceof Error) {
+    message = args[0].message;
+  } else if (Array.isArray(args[0]) && args[0][0] instanceof Error) {
+    message = args[0][0].message;
+  } else {
+    message = String(args[0]);
   }
-  if (typeof exprId === "number") {
-    exprId = BigInt(exprId);
+
+  switch (args.length) {
+    case 1:
+      if (typeof args[0] !== "string") cause = args[0];
+      break;
+    case 2:
+      if (typeof args[1] === "bigint" || typeof args[1] === "number") {
+        exprId = BigInt(args[1]);
+      } else {
+        cause = args[1];
+      }
+      break;
+    case 3:
+      cause = args[1];
+      exprId = BigInt(args[2]);
+      break;
   }
-  if (value instanceof Error) {
-    return new _CelError(value.message, value, exprId);
-  }
-  if (typeof value === "string") {
-    return new _CelError(value, undefined, exprId);
-  }
-  return new _CelError(`${value}`, value, exprId);
+
+  return new _CelError(message, cause, exprId);
 }
 
 /**
@@ -88,11 +133,6 @@ class _CelError extends Error implements CelError {
 
   get exprId() {
     return this._exprId;
-  }
-
-  causes(value: unknown, exprId?: bigint | number) {
-    const e = celError(value, exprId);
-    return new _CelError(e.message, this, e.exprId);
   }
 }
 
@@ -146,7 +186,7 @@ export function unwrapResultTuple(
 
   const errors = unwrapped.filter((r) => isCelError(r));
 
-  if (errors.length) return errors[0].causes(errors.slice(1));
+  if (errors.length) return celError(errors[0].message, errors);
 
   return results as CelValue[];
 }
