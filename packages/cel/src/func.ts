@@ -26,17 +26,45 @@ const privateCallableSymbol = Symbol.for("@bufbuild/cel/callable");
 
 type TypeTuple = readonly CelType[];
 
+/*
+ * The implementation for a function or method with a specific call signature.
+ *
+ * Equivalent to a single "overload" in other CEL implementations.
+ */
 export interface Callable {
   [privateCallableSymbol]: true;
 
+  /*
+   * The name of the function or method as it is referenced in a CEL expression.
+   */
   readonly name: string;
+  /*
+   * The result type for the function or method.
+   */
   readonly result: CelType;
+  /*
+   * An identifier unique to the call signature of the function or method.
+   */
   readonly overloadId: string;
 
+  /*
+   * Determines if a set of arguments for a function call is compatible with
+   * this implementation.
+   */
   matchArgs(args: CelResult[]): boolean;
+  /*
+   * Determines if a target and set of arguments for a method call is compatible
+   * with this implementation.
+   */
   matchArgs(target: CelResult, args: CelResult[]): boolean;
 
+  /*
+   * Given a set of arguments for a function call, computes a result.
+   */
   call(id: number, args: CelResult[]): CelResult;
+  /*
+   * Given a target and set of arguments for a method call, computes a result.
+   */
   call(id: number, target: CelResult, args: CelResult[]): CelResult;
 }
 
@@ -75,6 +103,9 @@ type FuncImpl<P extends TypeTuple, R extends CelType> = (
   ...args: CelValueTuple<P>
 ) => CelInput<R>;
 
+/*
+ * Defines the implementation of a function with a specific call signature.
+ */
 export function celFunc<const P extends TypeTuple, const R extends CelType>(
   name: string,
   params: P,
@@ -135,6 +166,9 @@ type MethodImpl<T extends CelType, P extends TypeTuple, R extends CelType> = (
   ...args: CelValueTuple<P>
 ) => CelInput<R>;
 
+/*
+ * Defines the implementation of a method with a specific call signature.
+ */
 export function celMethod<
   const T extends CelType,
   const P extends TypeTuple,
@@ -198,6 +232,12 @@ interface CustomFuncMatchers {
   args?: (args: CelResult[]) => boolean;
 }
 
+/*
+ * Defines the implementation of a function with a specific call signature,
+ * allowing for lower-level control over both matching and evaluation.
+ *
+ * Used internally for the error-suppressing behavior of boolean operations.
+ */
 export function celCustomFunc(
   name: string,
   params: CelType[],
@@ -247,6 +287,11 @@ class CustomFunc extends Func<CelType[]> {
   }
 }
 
+/*
+ * A read-only, ordered collection of Callables (function and method
+ * implementations), responsible for narrowing and matching invocations to
+ * implementations.
+ */
 export class Dispatcher {
   private readonly _nameCache: Map<string, Dispatcher | undefined> = new Map();
   private readonly _overloadIdCache: Map<string, Callable | undefined> =
@@ -254,6 +299,10 @@ export class Dispatcher {
 
   constructor(private readonly _callables: Callable[] = []) {}
 
+  /*
+   * Returns a new Dispatcher containing only those Callable instances matching
+   * the name of a function or method as it is referenced in a CEL expression.
+   */
   narrowedByName(name: string) {
     if (this._nameCache.has(name)) return this._nameCache.get(name);
 
@@ -265,12 +314,21 @@ export class Dispatcher {
     return this._nameCache.get(name);
   }
 
+  /*
+   * Returns the first Callable whose parameters (and in the case of methods,
+   * target) match a set of concrete arguments.
+   */
   findByArgs(...args: [CelResult[]] | [CelResult, CelResult[]]) {
     return this._callables.find((c) =>
       args.length === 1 ? c.matchArgs(args[0]) : c.matchArgs(args[0], args[1]),
     );
   }
 
+  /*
+   * Returns the first Callable matching an overload ID. In the future, this
+   * will be useful for evaluating an expression that has been checked and
+   * serialized.
+   */
   findByOverloadId(overloadId: string) {
     if (this._nameCache.has(overloadId))
       return this._overloadIdCache.get(overloadId);
@@ -282,6 +340,10 @@ export class Dispatcher {
     return this._overloadIdCache.get(overloadId);
   }
 
+  /*
+   * Returns a new Dispatcher that appends a set of fallback Callables to this
+   * instance's set.
+   */
   withFallbacks(fallbacks: Callable[]) {
     if (fallbacks.length === 0) return this;
 
