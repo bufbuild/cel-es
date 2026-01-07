@@ -16,8 +16,8 @@ import type { CelType, CelValueTuple, CelValue, CelInput } from "./type.js";
 import {
   type CelResult,
   isCelError,
-  unwrapResultTuple,
-  unwrapResult,
+  unwrapToValueTuple,
+  unwrapToValue,
   celError,
 } from "./error.js";
 import { toCel } from "./value.js";
@@ -96,7 +96,8 @@ class Func<P extends TypeTuple> extends BaseCallable {
 
   matchArgs(...args: [CelResult[]] | [CelResult, CelResult[]]) {
     return (
-      args.length === 1 && !isCelError(unwrapResultTuple(args[0], this._params))
+      args.length === 1 &&
+      !isCelError(unwrapToValueTuple(args[0], this._params))
     );
   }
 
@@ -112,7 +113,7 @@ class Func<P extends TypeTuple> extends BaseCallable {
       );
     }
 
-    const values = unwrapResultTuple(args[0], this._params);
+    const values = unwrapToValueTuple(args[0], this._params);
     if (isCelError(values)) {
       return celError(
         `incorrect argument types provided for ${this.overloadId}`,
@@ -162,8 +163,8 @@ class Method<T extends CelType, P extends TypeTuple> extends BaseCallable {
   matchArgs(...args: [CelResult, CelResult[]] | [CelResult[]]) {
     return (
       args.length === 2 &&
-      !isCelError(unwrapResult(args[0], this._target)) &&
-      !isCelError(unwrapResultTuple(args[1], this._params))
+      !isCelError(unwrapToValue(args[0], this._target)) &&
+      !isCelError(unwrapToValueTuple(args[1], this._params))
     );
   }
 
@@ -175,12 +176,12 @@ class Method<T extends CelType, P extends TypeTuple> extends BaseCallable {
       return celError(`no target for ${this.overloadId}`, undefined, id);
     }
 
-    const target = unwrapResult(args[0], this._target);
+    const target = unwrapToValue(args[0], this._target);
     if (isCelError(target)) {
       return celError(`bad target for ${this.overloadId}`, target, id);
     }
 
-    const values = unwrapResultTuple(args[1], this._params);
+    const values = unwrapToValueTuple(args[1], this._params);
     if (isCelError(values)) {
       return celError(`bad arguments for ${this.overloadId}`, target, id);
     }

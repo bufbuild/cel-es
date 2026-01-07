@@ -135,15 +135,15 @@ class _CelError extends Error implements CelError {
   }
 }
 
-export function unwrapResult<T extends CelType>(
+export function unwrapToValue<T extends CelType>(
   result: CelResult<CelValue<T>>,
 ): CelResult<CelValue<T>>;
-export function unwrapResult<T extends CelType>(
+export function unwrapToValue<T extends CelType>(
   result: CelResult,
   type: T,
   position?: number,
 ): CelResult<CelValue<T>>;
-export function unwrapResult(
+export function unwrapToValue(
   result: CelResult,
   type?: CelType,
   position?: number,
@@ -165,14 +165,14 @@ export function unwrapResult(
   }
 }
 
-export function unwrapResultTuple<T extends readonly CelType[]>(
+export function unwrapToValueTuple<T extends readonly CelType[]>(
   results: CelResult[],
 ): CelValue[] | CelError;
-export function unwrapResultTuple<T extends readonly CelType[]>(
+export function unwrapToValueTuple<T extends readonly CelType[]>(
   results: readonly CelResult[],
   types: T,
 ): CelValueTuple<T> | CelError;
-export function unwrapResultTuple(
+export function unwrapToValueTuple(
   results: readonly CelResult[],
   types?: readonly CelType[],
 ): readonly CelValue[] | CelError {
@@ -184,12 +184,31 @@ export function unwrapResultTuple(
 
   for (let i = 0; i < results.length; i++) {
     const value = types
-      ? unwrapResult(results[i], types[i], i + 1)
-      : unwrapResult(results[i]);
+      ? unwrapToValue(results[i], types[i], i + 1)
+      : unwrapToValue(results[i]);
     if (isCelError(value)) {
       errors.push(value);
     } else if (!errors.length) {
       values.push(value);
+    }
+  }
+
+  if (errors.length) return celError(errors[0].message, errors);
+
+  return values;
+}
+
+export function coerceToValueTuple(
+  results: readonly CelResult[],
+): readonly CelValue[] | CelError {
+  const values: CelValue[] = [];
+  const errors: CelError[] = [];
+
+  for (const result of results) {
+    if (isCelError(result)) {
+      errors.push(result);
+    } else if (!errors.length) {
+      values.push(result);
     }
   }
 
