@@ -247,45 +247,43 @@ class CustomFunc extends Func<CelType[]> {
 }
 
 export class Dispatcher {
-  readonly #callables: Callable[];
-  readonly #nameCache: Map<string, Dispatcher | undefined> = new Map();
-  readonly #overloadIdCache: Map<string, Callable | undefined> = new Map();
+  private readonly _nameCache: Map<string, Dispatcher | undefined> = new Map();
+  private readonly _overloadIdCache: Map<string, Callable | undefined> =
+    new Map();
 
-  constructor(callables: Callable[] = []) {
-    this.#callables = callables;
-  }
+  constructor(private readonly _callables: Callable[] = []) {}
 
   narrowedByName(name: string) {
-    if (this.#nameCache.has(name)) return this.#nameCache.get(name);
+    if (this._nameCache.has(name)) return this._nameCache.get(name);
 
-    const narrowed = this.#callables.filter((c) => c.name === name);
+    const narrowed = this._callables.filter((c) => c.name === name);
     if (narrowed.length) {
-      this.#nameCache.set(name, new Dispatcher(narrowed));
+      this._nameCache.set(name, new Dispatcher(narrowed));
     }
 
-    return this.#nameCache.get(name);
+    return this._nameCache.get(name);
   }
 
   findByArgs(...args: [CelResult[]] | [CelResult, CelResult[]]) {
-    return this.#callables.find((c) =>
+    return this._callables.find((c) =>
       args.length === 1 ? c.matchArgs(args[0]) : c.matchArgs(args[0], args[1]),
     );
   }
 
   findByOverloadId(overloadId: string) {
-    if (this.#nameCache.has(overloadId))
-      return this.#overloadIdCache.get(overloadId);
-    this.#overloadIdCache.set(
+    if (this._nameCache.has(overloadId))
+      return this._overloadIdCache.get(overloadId);
+    this._overloadIdCache.set(
       overloadId,
-      this.#callables.find((c) => c.overloadId === overloadId),
+      this._callables.find((c) => c.overloadId === overloadId),
     );
 
-    return this.#overloadIdCache.get(overloadId);
+    return this._overloadIdCache.get(overloadId);
   }
 
   withFallbacks(fallbacks: Callable[]) {
     if (fallbacks.length === 0) return this;
 
-    return new Dispatcher(this.#callables.concat(fallbacks));
+    return new Dispatcher(this._callables.concat(fallbacks));
   }
 }
