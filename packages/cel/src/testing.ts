@@ -175,7 +175,12 @@ function assertResultEqual(
     const actual = create(ValueSchema, celValueToValue(result, registry));
     sortMapValueDeep(actual);
     sortMapValueDeep(value);
-    if (!equals(ValueSchema, actual, value, { registry, unpackAny: true })) {
+    if (
+      !equals(ValueSchema, actual, value, {
+        registry: registry,
+        unpackAny: true,
+      })
+    ) {
       // To print a friendly diff
       assert.deepEqual(actual, value);
     }

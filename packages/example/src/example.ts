@@ -12,15 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  celEnv,
-  CelScalar,
-  celFunc,
-  celOverload,
-  parse,
-  plan,
-  run,
-} from "@bufbuild/cel";
+import { celEnv, CelScalar, celFunc, parse, plan, run } from "@bufbuild/cel";
 import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
 
 // Run a CEL expression:
@@ -50,15 +42,14 @@ console.log(result); // true
 
 // Provide a new function:
 
-const similar = celFunc("similar", [
-  celOverload(
-    // Parameter types.
-    [CelScalar.STRING, CelScalar.STRING],
-    // Return type.
-    CelScalar.BOOL,
-    (a, b) => a.toLowerCase() == b.toLowerCase(),
-  ),
-]);
+const similar = celFunc(
+  "similar",
+  // Parameter types.
+  [CelScalar.STRING, CelScalar.STRING],
+  // Return type.
+  CelScalar.BOOL,
+  (a, b) => a.toLowerCase() == b.toLowerCase(),
+);
 result = run(
   `name.similar('TacoCat')`,
   { name: "tacocat" },

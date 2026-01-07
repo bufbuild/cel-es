@@ -12,7 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import type { CelValue } from "./type.js";
+import {
+  isOfType,
+  type CelType,
+  type CelValue,
+  type CelValueTuple,
+} from "./type.js";
+import { unwrapAny } from "./value.js";
 
 /**
  * Result type that represents either a successful value or a CEL error.
@@ -38,34 +44,73 @@ export interface CelError extends Error {
 }
 
 /**
- * Coerces a value to CelError using the following rules:
- * - If the given value is a CelError just return that.
- * - If it is an Error type, create a new CelError from that.
- * - If it is a string, creates a new CelError with that as the message.
- * - In all other cases create a new CelError with the given value as the cause.
+ * Create a CelError with a message.
  */
-export function celError(value: unknown, exprId?: bigint | number): CelError {
-  if (isCelError(value)) {
-    return value;
-  }
-  if (typeof exprId === "number") {
-    exprId = BigInt(exprId);
-  }
-  if (value instanceof Error) {
-    return new _CelError(value.message, value, exprId);
-  }
-  if (typeof value === "string") {
-    return new _CelError(value, undefined, exprId);
-  }
-  return new _CelError(`${value}`, value, exprId);
-}
-
+export function celError(message: string): CelError;
 /**
- * Merges CelErrors into one. Uses the message and exprId from the first error and
- * add the rest as the cause.
+ * Create a CelError with multiple errors as the cause. Use the first error's
+ * message.
  */
-export function celErrorMerge(first: CelError, ...rest: CelError[]): CelError {
-  return new _CelError(first.message, rest, first.exprId);
+export function celError(cause: Error[]): CelError;
+/**
+ * Create a CelError with a cause. If the cause is a CelError, simply return it.
+ */
+export function celError(cause: unknown): CelError;
+/**
+ * Create a CelError with a message and expression ID.
+ */
+export function celError(message: string, exprId: bigint | number): CelError;
+/**
+ * Create a CelError with a cause and expression ID.
+ */
+export function celError(cause: unknown, exprId: bigint | number): CelError;
+/**
+ * Create a CelError with a message and cause.
+ */
+export function celError(message: string, cause: unknown): CelError;
+/**
+ * Create a CelError with a message, cause, and expression ID.
+ */
+export function celError(
+  message: string,
+  cause: unknown,
+  exprId: bigint | number,
+): CelError;
+export function celError(
+  ...args: [unknown] | [unknown, unknown] | [string, unknown, bigint | number]
+): CelError {
+  if (args.length === 1 && isCelError(args[0])) return args[0];
+
+  let message: string;
+  let cause: unknown;
+  let exprId: bigint | undefined;
+
+  if (args[0] instanceof Error) {
+    message = args[0].message;
+  } else if (Array.isArray(args[0]) && args[0][0] instanceof Error) {
+    message = args[0][0].message;
+  } else {
+    message = String(args[0]);
+  }
+
+  switch (args.length) {
+    case 1:
+      if (typeof args[0] !== "string") cause = args[0];
+      break;
+    case 2:
+      if (typeof args[1] === "bigint" || typeof args[1] === "number") {
+        exprId = BigInt(args[1]);
+      } else {
+        cause = args[1];
+      }
+      break;
+    case 3:
+      cause = args[1];
+      exprId = BigInt(args[2]);
+      break;
+  }
+
+  return new _CelError(message, cause, exprId);
 }
 
 /**
@@ -79,8 +124,8 @@ class _CelError extends Error implements CelError {
   [privateSymbol] = {};
   constructor(
     message: string,
-    private readonly _cause: unknown,
-    private readonly _exprId: bigint | undefined,
+    override readonly cause: unknown,
+    private readonly _exprId?: bigint | undefined,
   ) {
     super(message);
   }
@@ -88,7 +133,86 @@ class _CelError extends Error implements CelError {
   get exprId() {
     return this._exprId;
   }
-  override get cause() {
-    return this._cause;
+}
+
+export function unwrapToValue<T extends CelType>(
+  result: CelResult<CelValue<T>>,
+): CelResult<CelValue<T>>;
+export function unwrapToValue<T extends CelType>(
+  result: CelResult,
+  type: T,
+  position?: number,
+): CelResult<CelValue<T>>;
+export function unwrapToValue(
+  result: CelResult,
+  type?: CelType,
+  position?: number,
+): CelResult {
+  if (isCelError(result)) return result;
+
+  try {
+    const value = unwrapAny(result);
+
+    if (type && !isOfType(value, type)) {
+      return celError(
+        position ? `type mismatch at position ${position}` : "type mismatch",
+      );
+    }
+
+    return value;
+  } catch (error) {
+    return celError(error);
   }
+}
+
+export function unwrapToValueTuple<T extends readonly CelType[]>(
+  results: CelResult[],
+): CelValue[] | CelError;
+export function unwrapToValueTuple<T extends readonly CelType[]>(
+  results: readonly CelResult[],
+  types: T,
+): CelValueTuple<T> | CelError;
+export function unwrapToValueTuple(
+  results: readonly CelResult[],
+  types?: readonly CelType[],
+): readonly CelValue[] | CelError {
+  if (types && results.length !== types.length)
+    return celError("value count mismatch");
+
+  const values: CelValue[] = [];
+  const errors: CelError[] = [];
+
+  for (let i = 0; i < results.length; i++) {
+    const value = types
+      ? unwrapToValue(results[i], types[i], i + 1)
+      : unwrapToValue(results[i]);
+    if (isCelError(value)) {
+      errors.push(value);
+    } else if (!errors.length) {
+      values.push(value);
+    }
+  }
+
+  if (errors.length) return celError(errors[0].message, errors);
+
+  return values;
+}
+
+export function coerceToValueTuple(
+  results: readonly CelResult[],
+): readonly CelValue[] | CelError {
+  const values: CelValue[] = [];
+  const errors: CelError[] = [];
+
+  for (const result of results) {
+    if (isCelError(result)) {
+      errors.push(result);
+    } else if (!errors.length) {
+      values.push(result);
+    }
+  }
+
+  if (errors.length) return celError(errors[0].message, errors);
+
+  return values;
 }

@@ -12,210 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  type FuncRegistry,
-  celFunc,
-  celOverload,
-  type CallDispatch,
-} from "../func.js";
+import { celFunc, celCustomFunc, celMethod, type Callable } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import { type CelError, celErrorMerge, isCelError } from "../error.js";
+import { celError, isCelError, type CelResult } from "../error.js";
 import {
   CelScalar,
   DURATION,
+  type CelDurationType,
   listType,
   mapType,
   TIMESTAMP,
+  type CelTimestampType,
   type CelValue,
 } from "../type.js";
 import { equals } from "../equals.js";
-import type { CelMap } from "../map.js";
+import type { CelMapIndex } from "../map.js";
+import type { CelList } from "../list.js";
 
-/**
- * This is not in the spec but is part of at least go,java, and cpp implementations.
- *
- * It should return true for anything exept for the literal `false`.
- */
-const notStrictlyFalse: CallDispatch = {
-  dispatch(_, args) {
-    const raw = args[0];
-    if (isCelError(raw)) {
-      return true;
-    }
-    return raw !== false;
-  },
-};
+function and(id: number, args: CelResult[]) {
+  if (args.some((a) => a === false)) return false;
 
-const notFunc = celFunc(opc.LOGICAL_NOT, [
-  celOverload([CelScalar.BOOL], CelScalar.BOOL, (x) => !x),
-]);
+  const correctTypeArgs = args.map((a) =>
+    typeof a === "boolean" ? a : celError("expected bool", id),
+  );
+  const errors = correctTypeArgs.filter((a) => isCelError(a));
+  if (errors.length) return celError(errors);
 
-const and: CallDispatch = {
-  dispatch(_id, args) {
-    let allBools = true;
-    const errors: CelError[] = [];
-    for (let i = 0; i < args.length; i++) {
-      let arg = args[i];
-      if (typeof arg === "boolean") {
-        if (!arg) return false; // short-circuit
-      } else {
-        allBools = false;
-        if (isCelError(arg)) {
-          errors.push(arg);
-        }
-      }
-    }
-    if (allBools) {
-      return true;
-    }
-    if (errors.length > 0) {
-      return celErrorMerge(errors[0], ...errors.slice(1));
-    }
-    return undefined;
-  },
-};
-
-const or: CallDispatch = {
-  dispatch(_, args) {
-    let allBools = true;
-    const errors: CelError[] = [];
-    for (let i = 0; i < args.length; i++) {
-      let arg = args[i];
-      if (typeof arg === "boolean") {
-        if (arg) return true; // short-circuit
-      } else {
-        allBools = false;
-        if (isCelError(arg)) {
-          errors.push(arg);
-        }
-      }
-    }
-    if (allBools) {
-      return false;
-    }
-    if (errors.length > 0) {
-      return celErrorMerge(errors[0], ...errors.slice(1));
-    }
-    return undefined;
-  },
-};
-
-const eqFunc = celFunc(opc.EQUALS, [
-  celOverload([CelScalar.DYN, CelScalar.DYN], CelScalar.BOOL, equals),
-]);
-
-const neFunc = celFunc(opc.NOT_EQUALS, [
-  celOverload(
-    [CelScalar.DYN, CelScalar.DYN],
-    CelScalar.BOOL,
-    (lhs, rhs) => !equals(lhs, rhs),
-  ),
-]);
-
-function ltOp<T>(lhs: T, rhs: T) {
-  return lhs < rhs;
+  return true;
 }
-// biome-ignore format: Easier to read it like a table
-const ltFunc = celFunc(opc.LESS, [
-  celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, ltOp),
-  celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) < 0),
-  celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, ltOp),
-  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, ltOp),
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, ltOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < r.value),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value < r),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value < r.value),
-  // TODO investigate: ECMAScript relational operators support mixed bigint/number operands, 
-  // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) < r),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l < Number(r)),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l < Number(r.value)),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) < r),
-  celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) < 0),
-  celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) < 0),
-]);
 
-function lteOp<T>(lhs: T, rhs: T) {
-  return lhs <= rhs;
+function or(id: number, args: CelResult[]) {
+  if (args.some((a) => a === true)) return true;
+
+  const correctTypeArgs = args.map((a) =>
+    typeof a === "boolean" ? a : celError("expected bool", id),
+  );
+  const errors = correctTypeArgs.filter((a) => isCelError(a));
+  if (errors.length) return celError(errors);
+
+  return false;
 }
-// biome-ignore format: Easier to read it like a table
-const leFunc = celFunc(opc.LESS_EQUALS, [
-  celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, lteOp),
-  celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) <= 0),
-  celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, lteOp),
-  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, lteOp),
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, lteOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= r.value),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value <= r),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value <= r.value),
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) <= r),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l <= Number(r)),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l <= Number(r.value)),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) <= r),
-  celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) <= 0),
-  celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) <= 0),
-]);
-
-function gtOp<T>(lhs: T, rhs: T) {
-  return lhs > rhs;
-}
-// biome-ignore format: Easier to read it like a table
-const gtFunc = celFunc(opc.GREATER, [
-  celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gtOp),
-  celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) > 0),
-  celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gtOp),
-  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, gtOp),
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gtOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > r.value),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value > r),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value > r.value),
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) > r),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l > Number(r)),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l > Number(r.value)),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) > r),
-  celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) > 0),
-  celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) > 0),
-]);
-
-function gteOp<T>(lhs: T, rhs: T) {
-  return lhs >= rhs;
-}
-// biome-ignore format: Easier to read it like a table
-const geFunc = celFunc(opc.GREATER_EQUALS, [
-  celOverload([CelScalar.BOOL, CelScalar.BOOL], CelScalar.BOOL, gteOp),
-  celOverload([CelScalar.BYTES, CelScalar.BYTES], CelScalar.BOOL, (l, r) => compareBytes(l, r) >= 0),
-  celOverload([CelScalar.DOUBLE, CelScalar.DOUBLE], CelScalar.BOOL, gteOp),
-  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, gteOp),
-  celOverload([CelScalar.INT, CelScalar.INT], CelScalar.BOOL, gteOp),
-  celOverload([CelScalar.INT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= r.value),
-  celOverload([CelScalar.UINT, CelScalar.INT], CelScalar.BOOL, (l, r) => l.value >= r),
-  celOverload([CelScalar.UINT, CelScalar.UINT], CelScalar.BOOL, (l, r) => l.value >= r.value),
-  celOverload([CelScalar.INT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l) >= r),
-  celOverload([CelScalar.DOUBLE, CelScalar.INT], CelScalar.BOOL, (l, r) => l >= Number(r)),
-  celOverload([CelScalar.DOUBLE, CelScalar.UINT], CelScalar.BOOL, (l, r) => l >= Number(r.value)),
-  celOverload([CelScalar.UINT, CelScalar.DOUBLE], CelScalar.BOOL, (l, r) => Number(l.value) >= r),
-  celOverload([DURATION, DURATION], CelScalar.BOOL, (l, r) => compareDuration(l, r) >= 0),
-  celOverload([TIMESTAMP, TIMESTAMP], CelScalar.BOOL, (l, r) => compareTimestamp(l, r) >= 0),
-]);
-
-const containsFunc = celFunc(olc.CONTAINS, [
-  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
-    x.includes(y),
-  ),
-]);
-
-const endsWithFunc = celFunc(olc.ENDS_WITH, [
-  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
-    x.endsWith(y),
-  ),
-]);
-
-const startsWithFunc = celFunc(olc.STARTS_WITH, [
-  celOverload([CelScalar.STRING, CelScalar.STRING], CelScalar.BOOL, (x, y) =>
-    x.startsWith(y),
-  ),
-]);
 
 /**
  * Patterns that are supported in ECMAScript RE and not in
@@ -239,13 +76,13 @@ const invalidPatterns = [
 
 const flagPattern = new RegExp(/^\(\?(?<flags>[ims\-]+)\)/);
 
-export function matchesString(x: string, y: string): boolean {
+export function matches(x: string, y: string): boolean {
   for (const invalidPattern of invalidPatterns) {
     if (invalidPattern.test(y)) {
       throw new Error(`Error evaluating pattern ${y}, invalid RE2 syntax`);
     }
   }
-  // CEL use RE2 syntax which is a subset of Ecmascript RE except for
+  // CEL use RE2 syntax which is a subset of ECMAScript RE except for
   // the flags and the ability to change the flags mid-sequence.
   //
   // The conformance tests use flags at the very beginning of the sequence, which
@@ -273,100 +110,7 @@ export function matchesString(x: string, y: string): boolean {
   return re.test(x);
 }
 
-const matchesFunc = celFunc(olc.MATCHES, [
-  celOverload(
-    [CelScalar.STRING, CelScalar.STRING],
-    CelScalar.BOOL,
-    matchesString,
-  ),
-]);
-
-const sizeFunc = celFunc(olc.SIZE, [
-  celOverload([CelScalar.STRING], CelScalar.INT, (x) => {
-    let size = 0;
-    for (const _ of x) {
-      size++;
-    }
-    return BigInt(size);
-  }),
-  celOverload([CelScalar.BYTES], CelScalar.INT, (x) => BigInt(x.length)),
-  celOverload([listType(CelScalar.DYN)], CelScalar.INT, (x) => BigInt(x.size)),
-  celOverload([mapType(CelScalar.INT, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-  celOverload([mapType(CelScalar.UINT, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-  celOverload([mapType(CelScalar.BOOL, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-  celOverload([mapType(CelScalar.STRING, CelScalar.DYN)], CelScalar.INT, (x) =>
-    BigInt(x.size),
-  ),
-]);
-
-function mapInOp(x: CelValue, y: CelMap) {
-  return y.has(x as string);
-}
-
-const inFunc = celFunc(opc.IN, [
-  celOverload(
-    [CelScalar.DYN, listType(CelScalar.DYN)],
-    CelScalar.BOOL,
-    (x, y) => {
-      for (const v of y) {
-        if (equals(x, v)) {
-          return true;
-        }
-      }
-      return false;
-    },
-  ),
-  celOverload(
-    [CelScalar.DYN, mapType(CelScalar.STRING, CelScalar.DYN)],
-    CelScalar.BOOL,
-    mapInOp,
-  ),
-  celOverload(
-    [CelScalar.DYN, mapType(CelScalar.INT, CelScalar.DYN)],
-    CelScalar.BOOL,
-    mapInOp,
-  ),
-  celOverload(
-    [CelScalar.DYN, mapType(CelScalar.UINT, CelScalar.DYN)],
-    CelScalar.BOOL,
-    mapInOp,
-  ),
-  celOverload(
-    [CelScalar.DYN, mapType(CelScalar.BOOL, CelScalar.DYN)],
-    CelScalar.BOOL,
-    mapInOp,
-  ),
-]);
-
-export function addLogic(funcs: FuncRegistry) {
-  funcs.add(opc.NOT_STRICTLY_FALSE, notStrictlyFalse);
-  funcs.add(opc.LOGICAL_AND, and);
-  funcs.add(opc.LOGICAL_OR, or);
-  funcs.add(notFunc);
-  funcs.add(eqFunc);
-  funcs.add(neFunc);
-  funcs.add(ltFunc);
-  funcs.add(leFunc);
-  funcs.add(gtFunc);
-  funcs.add(geFunc);
-  funcs.add(containsFunc);
-  funcs.add(endsWithFunc);
-  funcs.add(startsWithFunc);
-  funcs.add(matchesFunc);
-  funcs.add(sizeFunc);
-  funcs.add(inFunc);
-}
-
-function compareDuration(
-  lhs: CelValue<typeof DURATION>,
-  rhs: CelValue<typeof DURATION>,
-) {
+function compareDuration(lhs: CelDurationType, rhs: CelDurationType) {
   const cmp = lhs.message.seconds - rhs.message.seconds;
   if (cmp == 0n) {
     return lhs.message.nanos - rhs.message.nanos;
@@ -374,10 +118,7 @@ function compareDuration(
   return cmp < 0n ? -1 : 1;
 }
 
-function compareTimestamp(
-  lhs: CelValue<typeof TIMESTAMP>,
-  rhs: CelValue<typeof TIMESTAMP>,
-) {
+function compareTimestamp(lhs: CelTimestampType, rhs: CelTimestampType) {
   const cmp = lhs.message.seconds - rhs.message.seconds;
   if (cmp == 0n) {
     return lhs.message.nanos - rhs.message.nanos;
@@ -397,3 +138,103 @@ function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
   }
   return lhs.length - rhs.length;
 }
+
+function inList(value: CelValue, list: CelList) {
+  for (const v of list) {
+    if (equals(v, value)) return true;
+  }
+
+  return false;
+}
+
+const LIST = listType(CelScalar.DYN);
+const MAP = mapType(CelScalar.DYN, CelScalar.DYN);
+
+const { BOOL, BYTES, DOUBLE, DYN, INT, STRING, UINT } = CelScalar;
+
+// biome-ignore format: table
+export const LOGIC_FUNCS: Callable[] = [
+  celFunc(opc.LOGICAL_NOT,    [BOOL],                 BOOL, (x)     =>  !x),
+
+  celFunc(opc.EQUALS,         [DYN, DYN],             BOOL,             equals),
+  celFunc(opc.NOT_EQUALS,     [DYN, DYN],             BOOL, (l, r)  =>  !equals(l, r)),
+
+  celFunc(opc.LESS,           [BOOL, BOOL],           BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) < 0),
+  celFunc(opc.LESS,           [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [STRING, STRING],       BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [INT, INT],             BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [INT, UINT],            BOOL, (l, r)  =>  l < r.value),
+  celFunc(opc.LESS,           [UINT, INT],            BOOL, (l, r)  =>  l.value < r),
+  celFunc(opc.LESS,           [UINT, UINT],           BOOL, (l, r)  =>  l.value < r.value),
+  // TODO investigate: ECMAScript relational operators support mixed bigint/number operands,
+  // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
+  celFunc(opc.LESS,           [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) < r),
+  celFunc(opc.LESS,           [DOUBLE, INT],          BOOL, (l, r)  =>  l < Number(r)),
+  celFunc(opc.LESS,           [DOUBLE, UINT],         BOOL, (l, r)  =>  l < Number(r.value)),
+  celFunc(opc.LESS,           [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) < r),
+  celFunc(opc.LESS,           [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) < 0),
+  celFunc(opc.LESS,           [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) < 0),
+
+  celFunc(opc.LESS_EQUALS,    [BOOL, BOOL],           BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) <= 0),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [STRING, STRING],       BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [INT, INT],             BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [INT, UINT],            BOOL, (l, r)  =>  l <= r.value),
+  celFunc(opc.LESS_EQUALS,    [UINT, INT],            BOOL, (l, r)  =>  l.value <= r),
+  celFunc(opc.LESS_EQUALS,    [UINT, UINT],           BOOL, (l, r)  =>  l.value <= r.value),
+  celFunc(opc.LESS_EQUALS,    [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) <= r),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, INT],          BOOL, (l, r)  =>  l <= Number(r)),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, UINT],         BOOL, (l, r)  =>  l <= Number(r.value)),
+  celFunc(opc.LESS_EQUALS,    [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) <= r),
+  celFunc(opc.LESS_EQUALS,    [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) <= 0),
+  celFunc(opc.LESS_EQUALS,    [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) <= 0),
+
+  celFunc(opc.GREATER,        [BOOL, BOOL],           BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) > 0),
+  celFunc(opc.GREATER,        [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [STRING, STRING],       BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [INT, INT],             BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [INT, UINT],            BOOL, (l, r)  =>  l > r.value),
+  celFunc(opc.GREATER,        [UINT, INT],            BOOL, (l, r)  =>  l.value > r),
+  celFunc(opc.GREATER,        [UINT, UINT],           BOOL, (l, r)  =>  l.value > r.value),
+  celFunc(opc.GREATER,        [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) > r),
+  celFunc(opc.GREATER,        [DOUBLE, INT],          BOOL, (l, r)  =>  l > Number(r)),
+  celFunc(opc.GREATER,        [DOUBLE, UINT],         BOOL, (l, r)  =>  l > Number(r.value)),
+  celFunc(opc.GREATER,        [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) > r),
+  celFunc(opc.GREATER,        [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) > 0),
+  celFunc(opc.GREATER,        [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) > 0),
+
+  celFunc(opc.GREATER_EQUALS, [BOOL, BOOL],           BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) >= 0),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [STRING, STRING],       BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [INT, INT],             BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [INT, UINT],            BOOL, (l, r)  =>  l >= r.value),
+  celFunc(opc.GREATER_EQUALS, [UINT, INT],            BOOL, (l, r)  =>  l.value >= r),
+  celFunc(opc.GREATER_EQUALS, [UINT, UINT],           BOOL, (l, r)  =>  l.value >= r.value),
+  celFunc(opc.GREATER_EQUALS, [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) >= r),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, INT],          BOOL, (l, r)  =>  l >= Number(r)),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, UINT],         BOOL, (l, r)  =>  l >= Number(r.value)),
+  celFunc(opc.GREATER_EQUALS, [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) >= r),
+  celFunc(opc.GREATER_EQUALS, [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) >= 0),
+  celFunc(opc.GREATER_EQUALS, [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) >= 0),
+
+  celFunc(olc.SIZE,           [BYTES],                INT,  (x)     =>  BigInt(x.length)),
+  celFunc(olc.SIZE,           [LIST],                 INT,  (x)     =>  BigInt(x.size)),
+  celFunc(olc.SIZE,           [STRING],               INT,  (x)     =>  BigInt([...x].length)),
+  celFunc(olc.SIZE,           [MAP],                  INT,  (x)     =>  BigInt(x.size)),
+
+  celFunc(opc.IN,             [DYN, LIST],            BOOL,             inList),
+  celFunc(opc.IN,             [DYN, MAP],             BOOL, (n, h)  =>  h.has(n as CelMapIndex)),
+
+  celMethod(olc.CONTAINS,     STRING, [STRING],       BOOL, (h, n)  =>  h.includes(n)),
+  celMethod(olc.ENDS_WITH,    STRING, [STRING],       BOOL, (h, n)  =>  h.endsWith(n)),
+  celMethod(olc.STARTS_WITH,  STRING, [STRING],       BOOL, (h, n)  =>  h.startsWith(n)),
+  celMethod(olc.MATCHES,      STRING, [STRING],       BOOL,             matches),
+
+  celCustomFunc(opc.LOGICAL_AND,        [BOOL, BOOL], BOOL,             and,          { args: () => true }),
+  celCustomFunc(opc.LOGICAL_OR,         [BOOL, BOOL], BOOL,             or,           { args: () => true }),
+  celCustomFunc(opc.NOT_STRICTLY_FALSE, [BOOL, BOOL], BOOL, (_, [x]) => x !== false,  { args: () => true }),
+];

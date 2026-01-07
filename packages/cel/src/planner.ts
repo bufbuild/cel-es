@@ -30,15 +30,16 @@ import {
   ErrorAttr,
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
-import type { CallDispatch, Dispatcher } from "./func.js";
+import type { Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { Namespace } from "./namespace.js";
 import {
   celError,
   type CelError,
-  celErrorMerge,
   type CelResult,
   isCelError,
+  unwrapToValueTuple,
+  coerceToValueTuple,
 } from "./error.js";
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
@@ -216,31 +217,7 @@ export class Planner {
   }
 
   private planCall(id: number, call: Expr_Call): Interpretable {
-    // Check if the function is a qualified name.
-    if (call.target !== undefined) {
-      const qualName = toQualifiedName(call.target);
-      if (qualName !== undefined) {
-        const funcName = qualName + "." + call.function;
-        for (const candidate of this.namespace.resolveCandidateNames(
-          funcName,
-        )) {
-          const func = this.functions.find(candidate);
-          if (func !== undefined) {
-            return new EvalCall(
-              id,
-              candidate,
-              "",
-              func,
-              call.args.map((arg) => this.plan(arg)),
-            );
-          }
-        }
-      }
-    }
-
-    const args = call.target
-      ? [this.plan(call.target), ...call.args.map((arg) => this.plan(arg))]
-      : call.args.map((arg) => this.plan(arg));
+    const args = call.args.map((arg) => this.plan(arg));
 
     switch (call.function) {
       case opc.INDEX:
@@ -253,12 +230,30 @@ export class Planner {
       default:
         break;
     }
+
+    // Check if the function is a qualified name.
+    if (call.target) {
+      const qualifier = toQualifiedName(call.target);
+      if (qualifier) {
+        const candidates = this.namespace.resolveCandidateNames(
+          `${qualifier}.${call.function}`,
+        );
+        for (const name of candidates) {
+          const dispatcher = this.functions.narrowedByName(name);
+
+          if (dispatcher) {
+            return new EvalCall(id, call.function, args, undefined, dispatcher);
+          }
+        }
+      }
+    }
+
     return new EvalCall(
       id,
       call.function,
-      "",
-      this.functions.find(call.function),
       args,
+      call.target !== undefined ? this.plan(call.target) : undefined,
+      this.functions.narrowedByName(call.function),
     );
   }
 
@@ -465,27 +460,37 @@ export class EvalCall implements Interpretable {
   constructor(
     public readonly id: number,
     public readonly name: string,
-    public readonly overload: string,
-    private readonly call: CallDispatch | undefined,
     public readonly args: Interpretable[],
+    public readonly target?: Interpretable,
+    private readonly dispatcher?: Dispatcher,
   ) {}
 
   public eval(ctx: Activation): CelResult {
-    if (this.call === undefined) {
+    if (this.dispatcher === undefined) {
       return celError(`unbound function: ${this.name}`, this.id);
     }
-    const argVals = this.args.map((x) => x.eval(ctx));
-    const result = this.call.dispatch(this.id, argVals);
-    if (result !== undefined) {
-      return result;
+
+    const target = this.target?.eval(ctx);
+    const args = this.args.map((x) => x.eval(ctx));
+
+    const callable =
+      target !== undefined
+        ? this.dispatcher.findByArgs(target, args)
+        : this.dispatcher.findByArgs(args);
+
+    if (callable) {
+      return target !== undefined
+        ? callable?.call(this.id, target, args)
+        : callable?.call(this.id, args);
     }
 
-    const vals = coerceToValues(argVals);
-    if (isCelError(vals)) {
-      return vals;
-    }
+    if (isCelError(target)) return target;
+
+    const values = unwrapToValueTuple(args);
+    if (isCelError(values)) return values;
+
     return celError(
-      `found no matching overload for '${this.name}' applied to '(${vals
+      `found no matching overload for ${target ? `${celType(target).name}.` : ""}${this.name}(${values
         .map((x) => celType(x))
         .map((x) => x.name)
         .join(", ")})'`,
@@ -506,7 +511,7 @@ export class EvalObj implements InterpretableCtor {
     return this.values;
   }
   eval(ctx: Activation): CelResult {
-    const vals = coerceToValues(this.values.map((x) => x.eval(ctx)));
+    const vals = coerceToValueTuple(this.values.map((x) => x.eval(ctx)));
     if (isCelError(vals)) {
       return vals;
     }
@@ -713,18 +718,4 @@ function toQualifiedName(expr: Expr): string | undefined {
 
 function unsupportedKeyType(id: number): CelError {
   return celError(`unsupported key type`, id);
-}
-
-function coerceToValues(args: CelResult[]): CelResult<CelValue[]> {
-  const errors: CelError[] = [];
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (isCelError(arg)) {
-      errors.push(arg);
-    }
-  }
-  if (errors.length > 0) {
-    return celErrorMerge(errors[0], ...errors.slice(1));
-  }
-  return args as CelValue[];
 }

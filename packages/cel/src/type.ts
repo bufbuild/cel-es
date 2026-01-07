@@ -112,11 +112,13 @@ interface celTypeShared {
  * Represents the CEL type google.protobuf.Timestamp.
  */
 export const TIMESTAMP = objectType(TimestampSchema);
+export type CelTimestampType = CelValue<typeof TIMESTAMP>;
 
 /**
  * Represents the CEL type google.protobuf.Duration.
  */
 export const DURATION = objectType(DurationSchema);
+export type CelDurationType = CelValue<typeof DURATION>;
 
 /**
  * Creates a new CelMapType.
@@ -220,11 +222,11 @@ type mapKeyType =
  * CEL values corresponding to their type.
  */
 // biome-ignore format: Ternaries
-export type CelValue<T extends CelType = CelType> = 
+export type CelValue<T extends CelType = CelType> =
   T extends typeof CelScalar.DYN ? celValue : celValue<T>; // Avoids the infinite recursion.
 
 // biome-ignore format: Ternaries
-type celValue<T extends CelType = CelType> = 
+type celValue<T extends CelType = CelType> =
     T extends typeof CelScalar.TYPE       ? CelType
   : T extends typeof CelScalar.INT        ? bigint
   : T extends typeof CelScalar.UINT       ? CelUint
@@ -243,13 +245,13 @@ type celValue<T extends CelType = CelType> =
  * Values that are accepted as CEL values.
  */
 // biome-ignore format: Ternaries
-export type CelInput<T extends CelType = CelType> = 
+export type CelInput<T extends CelType = CelType> =
   T extends typeof CelScalar.DYN ? celInput : celInput<T>; // Avoids the infinite recursion.
 
 // biome-ignore format: Ternaries
-type celInput<T extends CelType = CelType> = 
+type celInput<T extends CelType = CelType> =
     T extends CelListType       ? CelList | readonly celInput[] | ReflectList
-  : T extends CelMapType        ? CelMap  | ReadonlyMap<celInput<mapKeyType>, celInput> | ReflectMap | { [key: string]: celInput } 
+  : T extends CelMapType        ? CelMap  | ReadonlyMap<celInput<mapKeyType>, celInput> | ReflectMap | { [key: string]: celInput }
   : T extends CelObjectType     ? ReflectMessage | Message
   : celValue<T>;
 
@@ -260,7 +262,7 @@ export type CelValueTuple<T extends readonly CelType[]> =
     ...infer Rest extends CelType[],
   ]
     ? [CelValue<First>, ...CelValueTuple<Rest>]
-    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>     
+    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>
     : CelType[] extends T ? any[] : [];
 
 /**
@@ -310,4 +312,18 @@ export function isCelType(v: unknown): v is CelType {
 
 export function isObjectCelType(v: NonNullable<object>): v is CelType {
   return privateSymbol in v;
+}
+
+export function isOfType<T extends CelType>(
+  value: CelValue,
+  type: T,
+): value is CelValue<T> {
+  return (
+    type === CelScalar.DYN ||
+    type === celType(value) ||
+    (type.kind == "list" && isCelList(value)) ||
+    (type.kind == "map" && isCelMap(value)) ||
+    (type.kind == "object" && isReflectMessage(value, type.desc)) ||
+    (type.kind == "type" && isCelType(value))
+  );
 }
