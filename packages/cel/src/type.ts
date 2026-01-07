@@ -23,7 +23,6 @@ import {
   type ReflectMessage,
 } from "@bufbuild/protobuf/reflect";
 import { TimestampSchema, DurationSchema } from "@bufbuild/protobuf/wkt";
-import type { CelResult } from "./error.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/type");
 
@@ -266,16 +265,6 @@ export type CelValueTuple<T extends readonly CelType[]> =
     // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>
     : CelType[] extends T ? any[] : [];
 
-// biome-ignore format: Ternaries
-export type CelResultTuple<T extends readonly CelType[]> =
-  T extends readonly [
-    infer First extends CelType,
-    ...infer Rest extends CelType[],
-  ]
-    ? [CelResult<CelValue<First>>, ...CelResultTuple<Rest>]
-    // biome-ignore lint/suspicious/noExplicitAny: This is only valid in the case of CelTupleValue<CelValueType[]>
-    : CelType[] extends T ? any[] : [];
-
 /**
  * Get the CelType of a CelValue.
  */
@@ -323,4 +312,18 @@ export function isCelType(v: unknown): v is CelType {
 
 export function isObjectCelType(v: NonNullable<object>): v is CelType {
   return privateSymbol in v;
+}
+
+export function isOfType<T extends CelType>(
+  value: CelValue,
+  type: T,
+): value is CelValue<T> {
+  return (
+    type === CelScalar.DYN ||
+    type === celType(value) ||
+    (type.kind == "list" && isCelList(value)) ||
+    (type.kind == "map" && isCelMap(value)) ||
+    (type.kind == "object" && isReflectMessage(value, type.desc)) ||
+    (type.kind == "type" && isCelType(value))
+  );
 }

@@ -38,7 +38,8 @@ import {
   type CelError,
   type CelResult,
   isCelError,
-  unwrapResultTuple,
+  unwrapToValueTuple,
+  coerceToValueTuple,
 } from "./error.js";
 import { celList, EMPTY_LIST, isCelList } from "./list.js";
 import { celMap, EMPTY_MAP, isCelMap } from "./map.js";
@@ -478,15 +479,14 @@ export class EvalCall implements Interpretable {
         : this.dispatcher.findByArgs(args);
 
     if (callable) {
-      return callable?.call(
-        this.id,
-        target !== undefined ? [target, ...args] : args,
-      );
+      return target !== undefined
+        ? callable?.call(this.id, target, args)
+        : callable?.call(this.id, args);
     }
 
     if (isCelError(target)) return target;
 
-    const values = unwrapResultTuple(args);
+    const values = unwrapToValueTuple(args);
     if (isCelError(values)) return values;
 
     return celError(
@@ -511,7 +511,7 @@ export class EvalObj implements InterpretableCtor {
     return this.values;
   }
   eval(ctx: Activation): CelResult {
-    const vals = unwrapResultTuple(this.values.map((x) => x.eval(ctx)));
+    const vals = coerceToValueTuple(this.values.map((x) => x.eval(ctx)));
     if (isCelError(vals)) {
       return vals;
     }

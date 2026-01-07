@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { isCelList } from "./list.js";
-import { isCelMap } from "./map.js";
 import {
-  CelScalar,
-  celType,
-  isCelType,
+  isOfType,
   type CelType,
   type CelValue,
   type CelValueTuple,
@@ -29,7 +24,6 @@ import { unwrapAny } from "./value.js";
  * Result type that represents either a successful value or a CEL error.
  **/
 export type CelResult<T = CelValue> = T | CelError;
-export type CelResultFromType<T extends CelType> = CelResult<CelValue<T>>;
 
 const privateSymbol = Symbol.for("@bufbuild/cel/error");
 
@@ -47,31 +41,76 @@ export interface CelError extends Error {
    * The underlying cause of this error, if any.
    */
   readonly cause: unknown;
-
-  causes(value: unknown, exprId?: bigint | number): CelError;
 }
 
 /**
- * Coerces a value to CelError using the following rules:
- * - If the given value is a CelError just return that.
- * - If it is an Error type, create a new CelError from that.
- * - If it is a string, creates a new CelError with that as the message.
- * - In all other cases create a new CelError with the given value as the cause.
+ * Create a CelError with a message.
  */
-export function celError(value: unknown, exprId?: bigint | number): CelError {
-  if (isCelError(value)) {
-    return value;
+export function celError(message: string): CelError;
+/**
+ * Create a CelError with multiple errors as the cause. Use the first error's
+ * message.
+ */
+export function celError(cause: Error[]): CelError;
+/**
+ * Create a CelError with a cause. If the cause is a CelError, simply return it.
+ */
+export function celError(cause: unknown): CelError;
+/**
+ * Create a CelError with a message and expression ID.
+ */
+export function celError(message: string, exprId: bigint | number): CelError;
+/**
+ * Create a CelError with a cause and expression ID.
+ */
+export function celError(cause: unknown, exprId: bigint | number): CelError;
+/**
+ * Create a CelError with a message and cause.
+ */
+export function celError(message: string, cause: unknown): CelError;
+/**
+ * Create a CelError with a message, cause, and expression ID.
+ */
+export function celError(
+  message: string,
+  cause: unknown,
+  exprId: bigint | number,
+): CelError;
+export function celError(
+  ...args: [unknown] | [unknown, unknown] | [string, unknown, bigint | number]
+): CelError {
+  if (args.length === 1 && isCelError(args[0])) return args[0];
+
+  let message: string;
+  let cause: unknown;
+  let exprId: bigint | undefined;
+
+  if (args[0] instanceof Error) {
+    message = args[0].message;
+  } else if (Array.isArray(args[0]) && args[0][0] instanceof Error) {
+    message = args[0][0].message;
+  } else {
+    message = String(args[0]);
   }
-  if (typeof exprId === "number") {
-    exprId = BigInt(exprId);
+
+  switch (args.length) {
+    case 1:
+      if (typeof args[0] !== "string") cause = args[0];
+      break;
+    case 2:
+      if (typeof args[1] === "bigint" || typeof args[1] === "number") {
+        exprId = BigInt(args[1]);
+      } else {
+        cause = args[1];
+      }
+      break;
+    case 3:
+      cause = args[1];
+      exprId = BigInt(args[2]);
+      break;
   }
-  if (value instanceof Error) {
-    return new _CelError(value.message, value, exprId);
-  }
-  if (typeof value === "string") {
-    return new _CelError(value, undefined, exprId);
-  }
-  return new _CelError(`${value}`, value, exprId);
+
+  return new _CelError(message, cause, exprId);
 }
 
 /**
@@ -94,78 +133,86 @@ class _CelError extends Error implements CelError {
   get exprId() {
     return this._exprId;
   }
-
-  causes(value: unknown, exprId?: bigint | number) {
-    const e = celError(value, exprId);
-    return new _CelError(e.message, this, e.exprId);
-  }
 }
 
-function isOfType<T extends CelType>(
-  value: CelValue,
-  type: T,
-): value is CelValue<T> {
-  return (
-    type === CelScalar.DYN ||
-    type === celType(value) ||
-    (type.kind == "list" && isCelList(value)) ||
-    (type.kind == "map" && isCelMap(value)) ||
-    (type.kind == "object" && isReflectMessage(value, type.desc)) ||
-    (type.kind == "type" && isCelType(value))
-  );
-}
-
-export function unwrapResult<T extends CelType>(
+export function unwrapToValue<T extends CelType>(
   result: CelResult<CelValue<T>>,
 ): CelResult<CelValue<T>>;
-export function unwrapResult<T extends CelType>(
+export function unwrapToValue<T extends CelType>(
   result: CelResult,
   type: T,
   position?: number,
 ): CelResult<CelValue<T>>;
-export function unwrapResult(
+export function unwrapToValue(
   result: CelResult,
   type?: CelType,
   position?: number,
 ): CelResult {
   if (isCelError(result)) return result;
-  if (type && !isOfType(result, type)) {
-    return celError(
-      position ? `type mismatch at position ${position}` : "type mismatch",
-    );
-  }
 
   try {
-    return unwrapAny(result);
-  } catch (ex) {
-    return celError(ex);
+    const value = unwrapAny(result);
+
+    if (type && !isOfType(value, type)) {
+      return celError(
+        position ? `type mismatch at position ${position}` : "type mismatch",
+      );
+    }
+
+    return value;
+  } catch (error) {
+    return celError(error);
   }
 }
 
-export function unwrapResultTuple<T extends readonly CelType[]>(
+export function unwrapToValueTuple<T extends readonly CelType[]>(
   results: CelResult[],
 ): CelValue[] | CelError;
-export function unwrapResultTuple<T extends readonly CelType[]>(
+export function unwrapToValueTuple<T extends readonly CelType[]>(
   results: readonly CelResult[],
   types: T,
 ): CelValueTuple<T> | CelError;
-export function unwrapResultTuple(
+export function unwrapToValueTuple(
   results: readonly CelResult[],
   types?: readonly CelType[],
 ): readonly CelValue[] | CelError {
-  if (types)
-    if (results.length !== types.length)
-      return celError("value count mismatch");
+  if (types && results.length !== types.length)
+    return celError("value count mismatch");
 
-  const unwrapped = results.reduce((u, r, i) => {
-    return u.concat([
-      types ? unwrapResult(r, types[i], i + 1) : unwrapResult(r),
-    ]);
-  }, [] as CelResult[]);
+  const values: CelValue[] = [];
+  const errors: CelError[] = [];
 
-  const errors = unwrapped.filter((r) => isCelError(r));
+  for (let i = 0; i < results.length; i++) {
+    const value = types
+      ? unwrapToValue(results[i], types[i], i + 1)
+      : unwrapToValue(results[i]);
+    if (isCelError(value)) {
+      errors.push(value);
+    } else if (!errors.length) {
+      values.push(value);
+    }
+  }
 
-  if (errors.length) return errors[0].causes(errors.slice(1));
+  if (errors.length) return celError(errors[0].message, errors);
 
-  return results as CelValue[];
+  return values;
+}
+
+export function coerceToValueTuple(
+  results: readonly CelResult[],
+): readonly CelValue[] | CelError {
+  const values: CelValue[] = [];
+  const errors: CelError[] = [];
+
+  for (const result of results) {
+    if (isCelError(result)) {
+      errors.push(result);
+    } else if (!errors.length) {
+      values.push(result);
+    }
+  }
+
+  if (errors.length) return celError(errors[0].message, errors);
+
+  return values;
 }

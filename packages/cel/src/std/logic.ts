@@ -30,26 +30,26 @@ import { equals } from "../equals.js";
 import type { CelMapIndex } from "../map.js";
 import type { CelList } from "../list.js";
 
-function and(id: number, args: CelResult<boolean>[]) {
+function and(id: number, args: CelResult[]) {
   if (args.some((a) => a === false)) return false;
 
   const correctTypeArgs = args.map((a) =>
     typeof a === "boolean" ? a : celError("expected bool", id),
   );
   const errors = correctTypeArgs.filter((a) => isCelError(a));
-  if (errors.length) return errors[0].causes(errors.slice(1));
+  if (errors.length) return celError(errors);
 
   return true;
 }
 
-function or(id: number, args: CelResult<boolean>[]) {
+function or(id: number, args: CelResult[]) {
   if (args.some((a) => a === true)) return true;
 
   const correctTypeArgs = args.map((a) =>
     typeof a === "boolean" ? a : celError("expected bool", id),
   );
   const errors = correctTypeArgs.filter((a) => isCelError(a));
-  if (errors.length) return errors[0].causes(errors.slice(1));
+  if (errors.length) return celError(errors);
 
   return false;
 }
