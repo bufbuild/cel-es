@@ -12,14 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { isCelList } from "./list.js";
 import {
   type CelType,
   type CelValueTuple,
-  CelScalar,
-  isCelType,
   type CelValue,
   type CelInput,
+  isTypeOf,
 } from "./type.js";
 import {
   type CelResult,
@@ -28,9 +26,6 @@ import {
   celErrorMerge,
   celError,
 } from "./error.js";
-import { isCelMap } from "./map.js";
-import { isCelUint } from "./uint.js";
-import { isReflectMessage } from "@bufbuild/protobuf/reflect";
 import { unwrapAny, toCel } from "./value.js";
 
 const privateFuncSymbol = Symbol.for("@bufbuild/cel/func");
@@ -129,7 +124,7 @@ class Func implements CelFunc {
       const checkedVals = [];
       for (let i = 0; i < vals.length; i++) {
         const celValue = unwrapAny(vals[i]);
-        if (!isOfType(celValue, overload.parameters[i])) {
+        if (!isTypeOf(celValue, overload.parameters[i])) {
           break;
         }
         checkedVals.push(celValue);
@@ -237,42 +232,6 @@ export class OrderedDispatcher implements Dispatcher {
     }
     return undefined;
   }
-}
-
-function isOfType<T extends CelType>(
-  val: CelValue,
-  type: T,
-): val is CelValue<T> {
-  switch (type.kind) {
-    case "list":
-      return isCelList(val);
-    case "map":
-      return isCelMap(val);
-    case "object":
-      return isReflectMessage(val, type.desc);
-    case "type":
-      return isCelType(val);
-    case "scalar":
-      switch (type) {
-        case CelScalar.DYN:
-          return true;
-        case CelScalar.INT:
-          return typeof val === "bigint";
-        case CelScalar.UINT:
-          return isCelUint(val);
-        case CelScalar.BOOL:
-          return typeof val === "boolean";
-        case CelScalar.DOUBLE:
-          return typeof val === "number";
-        case CelScalar.NULL:
-          return val === null;
-        case CelScalar.STRING:
-          return typeof val === "string";
-        case CelScalar.BYTES:
-          return val instanceof Uint8Array;
-      }
-  }
-  return false;
 }
 
 function unwrapResults<V = CelValue>(args: CelResult<V>[]) {
