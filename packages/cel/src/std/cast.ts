@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { create, fromJson, isMessage, toJson } from "@bufbuild/protobuf";
+import { create, fromJson, toJson } from "@bufbuild/protobuf";
 import {
   DurationSchema,
   timestampFromMs,
@@ -31,11 +31,9 @@ import {
   TIMESTAMP as TIMESTAMP_TYPE,
   DURATION as DURATION_TYPE,
   celType,
-  objectType,
   type CelType,
 } from "../type.js";
 import { celUint } from "../uint.js";
-import { getMsgDesc } from "../eval.js";
 import { parseDuration } from "../duration.js";
 
 const encoder = new TextEncoder();
@@ -193,12 +191,7 @@ const durationFunc = celFunc(DURATION, [
 ]);
 
 const typeFunc = celFunc(TYPE, [
-  celOverload([CelScalar.DYN], CelScalar.TYPE, (v) => {
-    if (isMessage(v)) {
-      return objectType(getMsgDesc(v.$typeName));
-    }
-    return celType(v);
-  }),
+  celOverload([CelScalar.DYN], CelScalar.TYPE, celType),
 ]);
 
 const dynFunc = celFunc(DYN, [
