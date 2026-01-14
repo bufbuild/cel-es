@@ -20,12 +20,13 @@ import {
   type Timestamp,
 } from "@bufbuild/protobuf/wkt";
 
-import { celOverload, celFunc } from "../../func.js";
+import { celOverload, celFunc, FuncRegistry } from "../../func.js";
 import { CelScalar, isCelType, listType, type CelValue } from "../../type.js";
 import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
 import { isCelUint } from "../../uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
+import { registryToFunctions } from "../../callable.js";
 
 const charAt = celFunc("charAt", [
   celOverload(
@@ -580,17 +581,19 @@ function indexOutOfBounds(index: number, length: number) {
 /**
  * Provides the strings extension - CEL functions for string manipulation.
  */
-export const STRINGS_EXT_FUNCS = [
-  charAt,
-  indexOf,
-  lastIndexOf,
-  lowerAscii,
-  upperAscii,
-  replace,
-  split,
-  substring,
-  trim,
-  join,
-  quote,
-  format,
-];
+export const STRINGS_EXT_FUNCS = registryToFunctions(
+  new FuncRegistry([
+    charAt,
+    indexOf,
+    lastIndexOf,
+    lowerAscii,
+    upperAscii,
+    replace,
+    split,
+    substring,
+    trim,
+    join,
+    quote,
+    format,
+  ]),
+);

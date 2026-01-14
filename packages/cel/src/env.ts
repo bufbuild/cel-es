@@ -14,14 +14,10 @@
 
 import type { Registry } from "@bufbuild/protobuf";
 import { createRegistryWithWKT } from "./registry.js";
-import {
-  FuncRegistry,
-  OrderedDispatcher,
-  type CelFunc,
-  type Dispatcher,
-} from "./func.js";
+import { registryToFunctions, type CelFunc } from "./callable.js";
 import { STD_FUNCS } from "./std/std.js";
 import { Namespace } from "./namespace.js";
+import { createResolver, type FuncResolver } from "./resolver.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
@@ -42,9 +38,9 @@ export interface CelEnv {
    */
   readonly registry: Registry;
   /**
-   * The dispatcher to use.
+   * The function resolver to use.
    */
-  readonly dispatcher: Dispatcher;
+  readonly funcs: FuncResolver;
 }
 
 export interface CelEnvOptions {
@@ -59,7 +55,7 @@ export interface CelEnvOptions {
   /**
    * Additional functions to add.
    *
-   * All functions must be unique. This can be used to override any std function.
+   * This can be used to override any std function/method.
    */
   funcs?: CelFunc[];
 }
@@ -73,7 +69,7 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
-    new OrderedDispatcher([new FuncRegistry(options?.funcs), STD_FUNCS]),
+    createResolver(registryToFunctions(STD_FUNCS), options?.funcs ?? []),
   );
 }
 
@@ -82,7 +78,7 @@ class _CelEnv implements CelEnv {
   constructor(
     private readonly _namespace: Namespace | undefined,
     private readonly _registry: Registry,
-    private readonly _dispatcher: Dispatcher,
+    private readonly _funcs: FuncResolver,
   ) {}
 
   get namespace() {
@@ -91,7 +87,7 @@ class _CelEnv implements CelEnv {
   get registry() {
     return this._registry;
   }
-  get dispatcher() {
-    return this._dispatcher;
+  get funcs() {
+    return this._funcs;
   }
 }

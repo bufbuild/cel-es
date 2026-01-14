@@ -18,12 +18,6 @@ export {
   celError,
   isCelError,
 } from "./error.js";
-export {
-  type CelFunc,
-  type CelOverload,
-  celFunc,
-  celOverload,
-} from "./func.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
 export { type CelList, celList, isCelList, celListConcat } from "./list.js";
 export { type CelUint, celUint, isCelUint } from "./uint.js";
@@ -51,3 +45,4 @@ export { run } from "./run.js";
 export { plan } from "./plan.js";
 export { parse } from "./parse.js";
 export { type CelEnv, celEnv } from "./env.js";
+export { type CelFunc, celMethod, celFunc } from "./callable.js";
