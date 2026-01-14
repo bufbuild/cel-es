@@ -38,7 +38,6 @@ import {
   BoolValueSchema,
   StructSchema,
   ListValueSchema,
-  NullValueSchema,
   ValueSchema,
   anyUnpack,
   type Value,
@@ -115,8 +114,8 @@ export interface CelTypeType<T extends CelType = CelType>
 export interface CelObjectType<Desc extends DescMessage = DescMessage>
   extends celTypeShared {
   readonly kind: "object";
-  readonly desc: Desc;
-  readonly name: Desc["typeName"];
+  readonly desc: Desc | undefined;
+  readonly name: string;
 }
 
 interface celTypeShared {
@@ -192,16 +191,28 @@ export function typeType<const T extends CelType>(type: T): CelTypeType<T> {
 /**
  * Creates a new CelObjectType.
  */
+export function objectType(typeName: string): CelObjectType;
 export function objectType<const Desc extends DescMessage>(
   desc: Desc,
-): CelObjectType<Desc> {
+): CelObjectType<Desc>;
+export function objectType<const Desc extends DescMessage>(
+  descOrTypeName: Desc | string,
+): CelObjectType<Desc> | CelObjectType {
+  let name: string, desc: DescMessage | undefined;
+  if (typeof descOrTypeName === "string") {
+    name = descOrTypeName;
+    desc = undefined;
+  } else {
+    name = descOrTypeName.typeName;
+    desc = descOrTypeName;
+  }
   return {
     [privateSymbol]: {},
     kind: "object",
     desc,
-    name: desc.typeName,
+    name,
     toString() {
-      return desc.name;
+      return name;
     },
   };
 }
@@ -331,7 +342,9 @@ export function isCelType(v: unknown): v is CelType {
 /**
  * Returns true if v satisfies type t.
  *
- * For lists and maps
+ * - If the type is dyn, it will always return true.
+ * - If the type is a list, the element type will not be matched.
+ * - If the type is a map, key/value types will not be matched.
  */
 export function isTypeOf(val: CelValue, type: CelType): boolean {
   if (type === CelScalar.DYN) {
@@ -383,12 +396,12 @@ function celTypeOfMessage(v: ReflectMessage): CelType {
       return mapType(CelScalar.STRING, CelScalar.DYN);
     case ListValueSchema.typeName:
       return listType(CelScalar.DYN);
-    case NullValueSchema.typeName:
-      return CelScalar.NULL;
     case ValueSchema.typeName:
       return valueToType(v.message as Value);
   }
-  return objectType(v.desc);
+  return typeName === v.desc.typeName
+    ? objectType(v.desc)
+    : objectType(typeName);
 }
 
 function valueToType(v: Value): CelType {
