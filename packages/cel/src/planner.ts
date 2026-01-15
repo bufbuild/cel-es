@@ -30,7 +30,7 @@ import {
   ErrorAttr,
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
-import type { CallDispatch, Dispatcher } from "./func.js";
+import type { CelFunc, Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { Namespace } from "./namespace.js";
 import {
@@ -250,16 +250,22 @@ export class Planner {
         return this.planCallIndex(call, args, true);
       case opc.CONDITIONAL:
         return this.planCallConditional(id, call, args);
+      case opc.LOGICAL_AND:
+        return new EvalAnd(id, args);
+      case opc.LOGICAL_OR:
+        return new EvalOr(id, args);
+      case opc.NOT_STRICTLY_FALSE:
+      case opc.OLD_NOT_STRICTLY_FALSE:
+        return new EvalNotStrictlyFalse(id, args[0]);
       default:
-        break;
+        return new EvalCall(
+          id,
+          call.function,
+          "",
+          this.functions.find(call.function),
+          args,
+        );
     }
-    return new EvalCall(
-      id,
-      call.function,
-      "",
-      this.functions.find(call.function),
-      args,
-    );
   }
 
   private planCallConditional(
@@ -466,7 +472,7 @@ export class EvalCall implements Interpretable {
     public readonly id: number,
     public readonly name: string,
     public readonly overload: string,
-    private readonly call: CallDispatch | undefined,
+    private readonly call: CelFunc | undefined,
     public readonly args: Interpretable[],
   ) {}
 
@@ -474,15 +480,17 @@ export class EvalCall implements Interpretable {
     if (this.call === undefined) {
       return celError(`unbound function: ${this.name}`, this.id);
     }
-    const argVals = this.args.map((x) => x.eval(ctx));
-    const result = this.call.dispatch(this.id, argVals);
+    const vals: CelValue[] = [];
+    for (const arg of this.args) {
+      const val = arg.eval(ctx);
+      if (isCelError(val)) {
+        return val;
+      }
+      vals.push(val);
+    }
+    const result = this.call.dispatch(this.id, vals);
     if (result !== undefined) {
       return result;
-    }
-
-    const vals = coerceToValues(argVals);
-    if (isCelError(vals)) {
-      return vals;
     }
     return celError(
       `found no matching overload for '${this.name}' applied to '(${vals
@@ -686,6 +694,87 @@ export class EvalFold implements Interpretable {
     }
     // Compute the result
     return this.result.eval(accuCtx);
+  }
+}
+
+export class EvalAnd implements Interpretable {
+  constructor(
+    public readonly id: number,
+    private readonly args: Interpretable[],
+  ) {}
+
+  eval(ctx: Activation): CelResult {
+    const errors: CelError[] = [];
+    for (const arg of this.args) {
+      const val = arg.eval(ctx);
+      if (typeof val === "boolean") {
+        // Short-circuit
+        if (!val) return false;
+        continue;
+      }
+      if (isCelError(val)) {
+        errors.push(val);
+      } else {
+        errors.push(
+          celError(
+            `type mismatch: expected bool, got ${celType(val)}`,
+            this.id,
+          ),
+        );
+      }
+    }
+    if (errors.length > 0) {
+      return celErrorMerge(errors[0], ...errors.slice(1));
+    }
+    return true;
+  }
+}
+
+export class EvalOr implements Interpretable {
+  constructor(
+    public readonly id: number,
+    private readonly args: Interpretable[],
+  ) {}
+
+  eval(ctx: Activation): CelResult {
+    const errors: CelError[] = [];
+    for (const arg of this.args) {
+      const val = arg.eval(ctx);
+      if (typeof val === "boolean") {
+        // Short-circuit
+        if (val) return true;
+        continue;
+      }
+      if (isCelError(val)) {
+        errors.push(val);
+      } else {
+        errors.push(
+          celError(
+            `type mismatch: expected bool, got ${celType(val)}`,
+            this.id,
+          ),
+        );
+      }
+    }
+    if (errors.length > 0) {
+      return celErrorMerge(errors[0], ...errors.slice(1));
+    }
+    return false;
+  }
+}
+
+export class EvalNotStrictlyFalse implements Interpretable {
+  constructor(
+    public readonly id: number,
+    private readonly arg: Interpretable,
+  ) {}
+  /**
+   * This is not in the spec but is part of at least go,java, and cpp implementations.
+   *
+   * It should return true for anything exept for the literal `false`.
+   */
+  eval(ctx: Activation): CelResult {
+    return this.arg.eval(ctx) !== false;
   }
 }
 
