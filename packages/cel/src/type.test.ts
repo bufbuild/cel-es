@@ -219,6 +219,12 @@ void suite("celType()", () => {
       assertTypeEqual(celType(val), typ);
     });
   }
+  void test("throws an error on invalid type url", () => {
+    // This is consistent with cel-go. Trying to evaluate
+    // `type(x)` where x is an empty Any returns an error
+    // of invalid type url.
+    assert.throws(() => celType(reflect(AnySchema)));
+  });
 });
 
 function assertTypeEqual(act: CelType, exp: CelType, message?: string) {
