@@ -15,34 +15,24 @@
 import {
   type CelType,
   type CelValueTuple,
-  type CelValue,
   type CelInput,
   isTypeOf,
+  type CelValue,
 } from "./type.js";
-import {
-  type CelResult,
-  type CelError,
-  isCelError,
-  celErrorMerge,
-  celError,
-} from "./error.js";
+import { type CelResult, celError } from "./error.js";
 import { unwrapAny, toCel } from "./value.js";
 
 const privateFuncSymbol = Symbol.for("@bufbuild/cel/func");
 const privateOverloadSymbol = Symbol.for("@bufbuild/cel/overload");
 
-export interface CallDispatch {
-  dispatch(id: number, args: CelResult[]): CelResult | undefined;
-}
-
 export interface Dispatcher {
-  find(name: string): CallDispatch | undefined;
+  find(name: string): CelFunc | undefined;
 }
 
 /**
  * A CEL function definition.
  */
-export interface CelFunc extends CallDispatch {
+export interface CelFunc {
   [privateFuncSymbol]: unknown;
   /**
    * Name of the function.
@@ -52,6 +42,12 @@ export interface CelFunc extends CallDispatch {
    * All the overloads of this function.
    */
   readonly overloads: CelOverload<readonly CelType[], CelType>[];
+  /**
+   * Call the matched overload with the given args.
+   *
+   * If no overload matches it returns undefined.
+   */
+  dispatch(id: number, args: CelValue[]): CelResult | undefined;
 }
 
 /**
@@ -112,28 +108,23 @@ class Func implements CelFunc {
     return this._overloads;
   }
 
-  dispatch(id: number, args: CelResult[]): CelResult | undefined {
-    const vals = unwrapResults(args);
-    if (isCelError(vals)) {
-      return vals;
-    }
+  dispatch(id: number, args: CelValue[]): CelResult | undefined {
+    args = args.map((arg) => unwrapAny(arg));
     for (const overload of this._overloads) {
-      if (overload.parameters.length !== vals.length) {
+      if (overload.parameters.length !== args.length) {
         continue;
       }
-      const checkedVals = [];
-      for (let i = 0; i < vals.length; i++) {
-        const celValue = unwrapAny(vals[i]);
-        if (!isTypeOf(celValue, overload.parameters[i])) {
+      let i: number;
+      for (i = 0; i < args.length; i++) {
+        if (!isTypeOf(args[i], overload.parameters[i])) {
           break;
         }
-        checkedVals.push(celValue);
       }
-      if (checkedVals.length !== vals.length) {
+      if (i !== args.length) {
         continue;
       }
       try {
-        return toCel(overload.impl(...checkedVals));
+        return toCel(overload.impl(...args));
       } catch (ex) {
         return celError(ex, id);
       }
@@ -167,7 +158,7 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
  * Set of functions uniquely identified by their name.
  */
 export class FuncRegistry implements Dispatcher {
-  private functions = new Map<string, CallDispatch>();
+  private functions = new Map<string, CelFunc>();
 
   constructor(funcs?: CelFunc[]) {
     funcs && this.add(funcs);
@@ -180,25 +171,16 @@ export class FuncRegistry implements Dispatcher {
    */
   add(func: CelFunc): void;
   add(funcs: CelFunc[]): void;
-  /**
-   * Adds a function by name and the call.
-   */
-  add(name: string, call: CallDispatch): void;
-  add(nameOrFunc: CelFunc | CelFunc[] | string, call?: CallDispatch) {
-    if (typeof nameOrFunc !== "string") {
-      if (Array.isArray(nameOrFunc)) {
-        for (const func of nameOrFunc) {
-          this.add(func);
-        }
-        return;
+  add(funcs: CelFunc | CelFunc[]) {
+    if (!Array.isArray(funcs)) {
+      funcs = [funcs];
+    }
+    for (const func of funcs) {
+      if (this.functions.has(func.name)) {
+        throw new Error(`Function ${func.name} already registered`);
       }
-      call = nameOrFunc;
-      nameOrFunc = nameOrFunc.name;
+      this.functions.set(func.name, func);
     }
-    if (call === undefined) {
-      throw new Error("dispatch is required with name");
-    }
-    this.addCall(nameOrFunc, call);
   }
 
   /**
@@ -206,13 +188,6 @@ export class FuncRegistry implements Dispatcher {
    */
   find(name: string) {
     return this.functions.get(name);
-  }
-
-  private addCall(name: string, call: CallDispatch): void {
-    if (this.functions.has(name)) {
-      throw new Error(`Function ${name} already registered`);
-    }
-    this.functions.set(name, call);
   }
 }
 
@@ -223,7 +198,7 @@ export class OrderedDispatcher implements Dispatcher {
     this.dispatchers.unshift(dispatcher);
   }
 
-  public find(name: string): CallDispatch | undefined {
+  public find(name: string): CelFunc | undefined {
     for (const dispatcher of this.dispatchers) {
       const result = dispatcher.find(name);
       if (result !== undefined) {
@@ -232,21 +207,4 @@ export class OrderedDispatcher implements Dispatcher {
     }
     return undefined;
   }
-}
-
-function unwrapResults<V = CelValue>(args: CelResult<V>[]) {
-  const errors: CelError[] = [];
-  const vals: V[] = [];
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i];
-    if (isCelError(arg)) {
-      errors.push(arg);
-    } else {
-      vals.push(arg);
-    }
-  }
-  if (errors.length > 0) {
-    return celErrorMerge(errors[0], ...errors.slice(1));
-  }
-  return vals;
 }

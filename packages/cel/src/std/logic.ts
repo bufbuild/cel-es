@@ -12,15 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  type FuncRegistry,
-  celFunc,
-  celOverload,
-  type CallDispatch,
-} from "../func.js";
+import { type FuncRegistry, celFunc, celOverload } from "../func.js";
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
-import { type CelError, celErrorMerge, isCelError } from "../error.js";
 import {
   CelScalar,
   DURATION,
@@ -32,74 +26,9 @@ import {
 import { equals } from "../equals.js";
 import type { CelMap } from "../map.js";
 
-/**
- * This is not in the spec but is part of at least go,java, and cpp implementations.
- *
- * It should return true for anything exept for the literal `false`.
- */
-const notStrictlyFalse: CallDispatch = {
-  dispatch(_, args) {
-    const raw = args[0];
-    if (isCelError(raw)) {
-      return true;
-    }
-    return raw !== false;
-  },
-};
-
 const notFunc = celFunc(opc.LOGICAL_NOT, [
   celOverload([CelScalar.BOOL], CelScalar.BOOL, (x) => !x),
 ]);
-
-const and: CallDispatch = {
-  dispatch(_id, args) {
-    let allBools = true;
-    const errors: CelError[] = [];
-    for (let i = 0; i < args.length; i++) {
-      let arg = args[i];
-      if (typeof arg === "boolean") {
-        if (!arg) return false; // short-circuit
-      } else {
-        allBools = false;
-        if (isCelError(arg)) {
-          errors.push(arg);
-        }
-      }
-    }
-    if (allBools) {
-      return true;
-    }
-    if (errors.length > 0) {
-      return celErrorMerge(errors[0], ...errors.slice(1));
-    }
-    return undefined;
-  },
-};
-
-const or: CallDispatch = {
-  dispatch(_, args) {
-    let allBools = true;
-    const errors: CelError[] = [];
-    for (let i = 0; i < args.length; i++) {
-      let arg = args[i];
-      if (typeof arg === "boolean") {
-        if (arg) return true; // short-circuit
-      } else {
-        allBools = false;
-        if (isCelError(arg)) {
-          errors.push(arg);
-        }
-      }
-    }
-    if (allBools) {
-      return false;
-    }
-    if (errors.length > 0) {
-      return celErrorMerge(errors[0], ...errors.slice(1));
-    }
-    return undefined;
-  },
-};
 
 const eqFunc = celFunc(opc.EQUALS, [
   celOverload([CelScalar.DYN, CelScalar.DYN], CelScalar.BOOL, equals),
@@ -345,9 +274,6 @@ const inFunc = celFunc(opc.IN, [
 ]);
 
 export function addLogic(funcs: FuncRegistry) {
-  funcs.add(opc.NOT_STRICTLY_FALSE, notStrictlyFalse);
-  funcs.add(opc.LOGICAL_AND, and);
-  funcs.add(opc.LOGICAL_OR, or);
   funcs.add(notFunc);
   funcs.add(eqFunc);
   funcs.add(neFunc);
