@@ -378,7 +378,7 @@ export interface InterpretableCtor extends Interpretable {
   args(): Interpretable[];
 }
 
-export class EvalHas implements Interpretable {
+class EvalHas implements Interpretable {
   constructor(
     public readonly id: number,
     private attr: Interpretable & Attribute,
@@ -398,7 +398,7 @@ export class EvalHas implements Interpretable {
   }
 }
 
-export class EvalErr implements Interpretable {
+class EvalErr implements Interpretable {
   constructor(
     public readonly id: number,
     private readonly msg: string,
@@ -409,7 +409,7 @@ export class EvalErr implements Interpretable {
   }
 }
 
-export class EvalConst implements Interpretable {
+class EvalConst implements Interpretable {
   constructor(
     public readonly id: number,
     public readonly value: CelValue,
@@ -467,7 +467,7 @@ export class EvalAttr implements Attribute, Interpretable {
   }
 }
 
-export class EvalCall implements Interpretable {
+class EvalCall implements Interpretable {
   constructor(
     public readonly id: number,
     public readonly name: string,
@@ -502,7 +502,7 @@ export class EvalCall implements Interpretable {
   }
 }
 
-export class EvalObj implements InterpretableCtor {
+class EvalObj implements InterpretableCtor {
   constructor(
     public readonly id: number,
     public readonly typeName: string,
@@ -536,7 +536,7 @@ export class EvalObj implements InterpretableCtor {
   }
 }
 
-export class EvalList implements InterpretableCtor {
+class EvalList implements InterpretableCtor {
   constructor(
     public readonly id: number,
     private readonly elems: Interpretable[],
@@ -567,7 +567,7 @@ export class EvalList implements InterpretableCtor {
   }
 }
 
-export class EvalMap implements InterpretableCtor {
+class EvalMap implements InterpretableCtor {
   constructor(
     public readonly id: number,
     private readonly keys: Interpretable[],
@@ -641,7 +641,7 @@ export class EvalMap implements InterpretableCtor {
   }
 }
 
-export class EvalFold implements Interpretable {
+class EvalFold implements Interpretable {
   constructor(
     public readonly id: number,
     public readonly accuVar: string,
@@ -697,7 +697,7 @@ export class EvalFold implements Interpretable {
   }
 }
 
-export class EvalAnd implements Interpretable {
+class EvalAnd implements Interpretable {
   constructor(
     public readonly id: number,
     private readonly args: Interpretable[],
@@ -730,7 +730,7 @@ export class EvalAnd implements Interpretable {
   }
 }
 
-export class EvalOr implements Interpretable {
+class EvalOr implements Interpretable {
   constructor(
     public readonly id: number,
     private readonly args: Interpretable[],
@@ -763,7 +763,7 @@ export class EvalOr implements Interpretable {
   }
 }
 
-export class EvalNotStrictlyFalse implements Interpretable {
+class EvalNotStrictlyFalse implements Interpretable {
   constructor(
     public readonly id: number,
     private readonly arg: Interpretable,
