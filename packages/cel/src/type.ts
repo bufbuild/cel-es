@@ -22,7 +22,26 @@ import {
   type ReflectMap,
   type ReflectMessage,
 } from "@bufbuild/protobuf/reflect";
-import { TimestampSchema, DurationSchema } from "@bufbuild/protobuf/wkt";
+import {
+  TimestampSchema,
+  DurationSchema,
+  AnySchema,
+  type Any,
+  DoubleValueSchema,
+  FloatValueSchema,
+  UInt64ValueSchema,
+  UInt32ValueSchema,
+  Int32ValueSchema,
+  Int64ValueSchema,
+  StringValueSchema,
+  BytesValueSchema,
+  BoolValueSchema,
+  StructSchema,
+  ListValueSchema,
+  ValueSchema,
+  anyUnpack,
+  type Value,
+} from "@bufbuild/protobuf/wkt";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/type");
 
@@ -95,8 +114,8 @@ export interface CelTypeType<T extends CelType = CelType>
 export interface CelObjectType<Desc extends DescMessage = DescMessage>
   extends celTypeShared {
   readonly kind: "object";
-  readonly desc: Desc;
-  readonly name: Desc["typeName"];
+  readonly desc: Desc | undefined;
+  readonly name: string;
 }
 
 interface celTypeShared {
@@ -172,16 +191,28 @@ export function typeType<const T extends CelType>(type: T): CelTypeType<T> {
 /**
  * Creates a new CelObjectType.
  */
+export function objectType(typeName: string): CelObjectType;
 export function objectType<const Desc extends DescMessage>(
   desc: Desc,
-): CelObjectType<Desc> {
+): CelObjectType<Desc>;
+export function objectType<const Desc extends DescMessage>(
+  descOrTypeName: Desc | string,
+): CelObjectType<Desc> | CelObjectType {
+  let name: string, desc: DescMessage | undefined;
+  if (typeof descOrTypeName === "string") {
+    name = descOrTypeName;
+    desc = undefined;
+  } else {
+    name = descOrTypeName.typeName;
+    desc = descOrTypeName;
+  }
   return {
     [privateSymbol]: {},
     kind: "object",
     desc,
-    name: desc.typeName,
+    name,
     toString() {
-      return desc.name;
+      return name;
     },
   };
 }
@@ -283,7 +314,7 @@ export function celType(v: CelValue): CelType {
         case v instanceof Uint8Array:
           return CelScalar.BYTES;
         case isReflectMessage(v):
-          return objectType(v.desc);
+          return celTypeOfMessage(v);
         case isCelList(v):
           return listType(CelScalar.DYN);
         case isCelMap(v):
@@ -308,6 +339,100 @@ export function isCelType(v: unknown): v is CelType {
   return typeof v === "object" && v !== null && isObjectCelType(v);
 }
 
+/**
+ * Returns true if v satisfies type t.
+ *
+ * - If the type is dyn, it will always return true.
+ * - If the type is a list, the element type will not be matched.
+ * - If the type is a map, key/value types will not be matched.
+ */
+export function isTypeOf(val: CelValue, type: CelType): boolean {
+  if (type === CelScalar.DYN) {
+    return true;
+  }
+  const valType = celType(val);
+  if (valType.kind !== type.kind) {
+    return false;
+  }
+  if (type.kind === "scalar") {
+    return valType === type;
+  }
+  if (type.kind === "object") {
+    return valType.name === type.name;
+  }
+  return true;
+}
+
 export function isObjectCelType(v: NonNullable<object>): v is CelType {
   return privateSymbol in v;
+}
+
+function celTypeOfMessage(v: ReflectMessage): CelType {
+  let typeName = v.desc.typeName;
+  if (isReflectMessageAny(v)) {
+    typeName = typeUrlToName(v.message.typeUrl);
+    if (typeName === ValueSchema.typeName) {
+      const value = anyUnpack(v.message, ValueSchema);
+      return value ? valueToType(value) : CelScalar.NULL;
+    }
+  }
+  switch (typeName) {
+    case FloatValueSchema.typeName:
+    case DoubleValueSchema.typeName:
+      return CelScalar.DOUBLE;
+    case UInt64ValueSchema.typeName:
+    case UInt32ValueSchema.typeName:
+      return CelScalar.UINT;
+    case Int32ValueSchema.typeName:
+    case Int64ValueSchema.typeName:
+      return CelScalar.INT;
+    case StringValueSchema.typeName:
+      return CelScalar.STRING;
+    case BytesValueSchema.typeName:
+      return CelScalar.BYTES;
+    case BoolValueSchema.typeName:
+      return CelScalar.BOOL;
+    case StructSchema.typeName:
+      return mapType(CelScalar.STRING, CelScalar.DYN);
+    case ListValueSchema.typeName:
+      return listType(CelScalar.DYN);
+    case ValueSchema.typeName:
+      return valueToType(v.message as Value);
+  }
+  return typeName === v.desc.typeName
+    ? objectType(v.desc)
+    : objectType(typeName);
+}
+
+function valueToType(v: Value): CelType {
+  switch (v.kind.case) {
+    case "boolValue":
+      return CelScalar.BOOL;
+    case "listValue":
+      return listType(CelScalar.DYN);
+    case "nullValue":
+    case undefined:
+      return CelScalar.NULL;
+    case "numberValue":
+      return CelScalar.DOUBLE;
+    case "stringValue":
+      return CelScalar.STRING;
+    case "structValue":
+      return mapType(CelScalar.STRING, CelScalar.DYN);
+  }
+}
+
+function isReflectMessageAny(
+  v: ReflectMessage,
+): v is ReflectMessage & { message: Any } {
+  return v.desc.typeName === AnySchema.typeName;
+}
+
+function typeUrlToName(url: string): string {
+  const slash = url.lastIndexOf("/");
+  const name = slash >= 0 ? url.substring(slash + 1) : url;
+  if (!name.length) {
+    throw new Error(`invalid type url: ${url}`);
+  }
+  return name;
 }
