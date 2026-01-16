@@ -16,11 +16,13 @@ import {
   type CelType,
   type CelValueTuple,
   type CelInput,
-  isTypeOf,
   type CelValue,
+  CelScalar,
+  celType,
 } from "./type.js";
 import { type CelResult, celError } from "./error.js";
 import { unwrapAny, toCel } from "./value.js";
+import { equalsType } from "./equals.js";
 
 const privateFuncSymbol = Symbol.for("@bufbuild/cel/func");
 const privateOverloadSymbol = Symbol.for("@bufbuild/cel/overload");
@@ -109,14 +111,21 @@ class Func implements CelFunc {
   }
 
   dispatch(id: number, args: CelValue[]): CelResult | undefined {
-    args = args.map((arg) => unwrapAny(arg));
+    const argTypes: CelType[] = [];
+    for (let i = 0; i < args.length; i++) {
+      args[i] = unwrapAny(args[i]);
+      argTypes.push(celType(args[i]));
+    }
     for (const overload of this._overloads) {
       if (overload.parameters.length !== args.length) {
         continue;
       }
       let i: number;
       for (i = 0; i < args.length; i++) {
-        if (!isTypeOf(args[i], overload.parameters[i])) {
+        if (
+          overload.parameters[i] !== CelScalar.DYN &&
+          !equalsType(argTypes[i], overload.parameters[i])
+        ) {
           break;
         }
       }

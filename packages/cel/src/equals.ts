@@ -18,7 +18,7 @@ import { equals as equalsMessage } from "@bufbuild/protobuf";
 import { type CelList, isCelList } from "./list.js";
 import { type CelMap, isCelMap } from "./map.js";
 import { isCelUint } from "./uint.js";
-import { isCelType, type CelValue } from "./type.js";
+import { isCelType, type CelType, type CelValue } from "./type.js";
 
 /**
  * Checks for equality of two CEL values. It follows the following rules:
@@ -60,7 +60,7 @@ export function equals(lhs: CelValue, rhs: CelValue): boolean {
     case isCelMap(lhs):
       return isCelMap(rhs) && equalsMap(lhs, rhs);
     case isCelType(lhs):
-      return isCelType(rhs) && lhs.name === rhs.name;
+      return isCelType(rhs) && equalsType(lhs, rhs);
   }
   // Messages
   if (isReflectMessage(lhs)) {
@@ -79,6 +79,10 @@ export function equals(lhs: CelValue, rhs: CelValue): boolean {
     });
   }
   return false;
+}
+
+export function equalsType(lhs: CelType, rhs: CelType): boolean {
+  return lhs.kind === rhs.kind && lhs.name === rhs.name;
 }
 
 function equalsList(lhs: CelList, rhs: CelList): boolean {

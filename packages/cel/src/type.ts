@@ -50,12 +50,7 @@ const privateSymbol = Symbol.for("@bufbuild/cel/type");
  *
  * Ref: https://github.com/google/cel-spec/blob/master/doc/langdef.md#values
  */
-export type CelType =
-  | CelListType
-  | CelMapType
-  | CelObjectType
-  | CelTypeType
-  | CelScalarType;
+export type CelType = CelListType | CelMapType | CelObjectType | CelScalarType;
 
 /**
  * Scalar CEL value types.
@@ -99,16 +94,6 @@ export interface CelMapType<
   readonly key: K;
   readonly value: V;
   readonly name: "map";
-}
-
-/**
- * Represents a CEL type.
- */
-export interface CelTypeType<T extends CelType = CelType>
-  extends celTypeShared {
-  readonly kind: "type";
-  readonly type: T;
-  readonly name: "type";
 }
 
 export interface CelObjectType<Desc extends DescMessage = DescMessage>
@@ -169,21 +154,6 @@ export function listType<const E extends CelListType["element"]>(
     name: "list",
     toString() {
       return `list(${element})`;
-    },
-  };
-}
-
-/**
- * Creates a new CelTypeType
- */
-export function typeType<const T extends CelType>(type: T): CelTypeType<T> {
-  return {
-    [privateSymbol]: {},
-    kind: "type",
-    type,
-    name: "type",
-    toString() {
-      return "type";
     },
   };
 }
@@ -266,7 +236,6 @@ type celValue<T extends CelType = CelType> =
   : T extends typeof CelScalar.NULL       ? null
   : T extends CelListType                 ? CelList
   : T extends CelMapType                  ? CelMap
-  : T extends CelTypeType                 ? CelType
   : T extends CelObjectType<infer Desc>   ? Message extends MessageShape<Desc> ? ReflectMessage : ReflectMessage & { message: MessageShape<Desc> }
   : never;
 
@@ -325,7 +294,7 @@ export function celType(v: CelValue): CelType {
           // This can also be a case statement, but TS fails to
           // narrow the type.
           if (isObjectCelType(v)) {
-            return typeType(v);
+            return CelScalar.TYPE;
           }
       }
   }
@@ -337,30 +306,6 @@ export function celType(v: CelValue): CelType {
  */
 export function isCelType(v: unknown): v is CelType {
   return typeof v === "object" && v !== null && isObjectCelType(v);
-}
-
-/**
- * Returns true if v satisfies type t.
- *
- * - If the type is dyn, it will always return true.
- * - If the type is a list, the element type will not be matched.
- * - If the type is a map, key/value types will not be matched.
- */
-export function isTypeOf(val: CelValue, type: CelType): boolean {
-  if (type === CelScalar.DYN) {
-    return true;
-  }
-  const valType = celType(val);
-  if (valType.kind !== type.kind) {
-    return false;
-  }
-  if (type.kind === "scalar") {
-    return valType === type;
-  }
-  if (type.kind === "object") {
-    return valType.name === type.name;
-  }
-  return true;
 }
 
 export function isObjectCelType(v: NonNullable<object>): v is CelType {

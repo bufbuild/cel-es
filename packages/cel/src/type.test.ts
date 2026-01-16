@@ -243,9 +243,6 @@ function assertTypeEqual(act: CelType, exp: CelType, message?: string) {
     assert.strictEqual(act.name, exp.name, message);
     return assert.strictEqual(act.desc, exp.desc, message);
   }
-  if (act.kind === "type" && exp.kind === "type") {
-    return;
-  }
   assert.fail(message);
 }
 
