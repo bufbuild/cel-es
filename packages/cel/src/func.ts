@@ -112,9 +112,11 @@ class Func implements CelFunc {
 
   dispatch(id: number, args: CelValue[]): CelResult | undefined {
     const argTypes: CelType[] = [];
-    for (let i = 0; i < args.length; i++) {
-      args[i] = unwrapAny(args[i]);
-      argTypes.push(celType(args[i]));
+    const unwrappedArgs: CelValue[] = [];
+    for (const arg of args) {
+      const unwrappedArg = unwrapAny(arg);
+      unwrappedArgs.push(unwrappedArg);
+      argTypes.push(celType(unwrappedArg));
     }
     for (const overload of this._overloads) {
       if (overload.parameters.length !== args.length) {
@@ -133,7 +135,7 @@ class Func implements CelFunc {
         continue;
       }
       try {
-        return toCel(overload.impl(...args));
+        return toCel(overload.impl(...unwrappedArgs));
       } catch (ex) {
         return celError(ex, id);
       }
