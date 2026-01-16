@@ -22,8 +22,16 @@ import { setEvalContext } from "./eval.js";
 import { celList } from "./list.js";
 import { celMap } from "./map.js";
 import { celUint } from "./uint.js";
-import { celType, type CelValue } from "./type.js";
+import {
+  CelScalar,
+  celType,
+  listType,
+  mapType,
+  objectType,
+  type CelValue,
+} from "./type.js";
 import { createRegistryWithWKT } from "./registry.js";
+import { TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 /**
  * The tests are based cases in this accepted CEL proposal: https://github.com/google/cel-spec/wiki/proposal-210#proposal
@@ -94,13 +102,26 @@ void suite("equals()", () => {
           ]),
         ),
       ],
+      // Type
+      ...Object.values(CelScalar).map((k) => [k, k]),
+      [
+        mapType(CelScalar.INT, CelScalar.STRING),
+        mapType(CelScalar.STRING, CelScalar.INT),
+      ],
+      [listType(CelScalar.INT), listType(CelScalar.STRING)],
+      [objectType(TimestampSchema), objectType(TimestampSchema.typeName)],
     ] as const;
     for (const [lhs, rhs] of pairs) {
       testEq(lhs, rhs, true);
     }
   });
   void suite("must be false", () => {
-    const pairs = [[NaN, NaN]] as const;
+    const pairs = [
+      [NaN, NaN],
+      [objectType("map"), mapType(CelScalar.DYN, CelScalar.DYN)],
+      [objectType("list"), listType(CelScalar.DYN)],
+      ...Object.values(CelScalar).map((k) => [objectType(k.name), k]),
+    ] as const;
     for (const [lhs, rhs] of pairs) {
       testEq(lhs, rhs, false);
     }

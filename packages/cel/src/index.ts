@@ -33,17 +33,14 @@ export {
   objectType,
   CelScalar,
   listType,
-  typeType,
   mapType,
   isCelType,
-  isObjectCelType,
 } from "./type.js";
 
 export type {
   CelListType,
   CelMapType,
   CelObjectType,
-  CelTypeType,
   CelScalarType,
   CelType,
   CelValue,
