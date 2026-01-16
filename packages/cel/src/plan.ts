@@ -46,7 +46,7 @@ export function plan(
   // TODO(srikrsna): This can be avoided, if we refactor Planner into functions that use CelEnv directly.
   let planner = cache.get(env);
   if (planner === undefined) {
-    planner = new Planner(env.dispatcher, env.registry, env.namespace);
+    planner = new Planner(env.funcs, env.registry, env.namespace);
     cache.set(env, planner);
   }
   let maybeExpr: Expr | undefined;

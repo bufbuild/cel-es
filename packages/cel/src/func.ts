@@ -200,6 +200,13 @@ export class FuncRegistry implements Dispatcher {
   find(name: string) {
     return this.functions.get(name);
   }
+
+  /**
+   * All the functions in the resolver.
+   */
+  [Symbol.iterator](): IterableIterator<CelFunc> {
+    return this.functions.values();
+  }
 }
 
 export class OrderedDispatcher implements Dispatcher {

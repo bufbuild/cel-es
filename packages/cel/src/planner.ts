@@ -30,7 +30,6 @@ import {
   ErrorAttr,
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
-import type { CelFunc, Dispatcher } from "./func.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
 import { Namespace } from "./namespace.js";
 import {
@@ -46,11 +45,12 @@ import { celUint, isCelUint, type CelUint } from "./uint.js";
 import { celObject } from "./object.js";
 import { celType, type CelValue } from "./type.js";
 import type { Registry } from "@bufbuild/protobuf";
+import type { FuncGroup, FuncResolver } from "./resolver.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
-    private readonly functions: Dispatcher,
+    private readonly functions: FuncResolver,
     private readonly registry: Registry,
     private readonly namespace: Namespace = Namespace.ROOT,
   ) {
@@ -230,6 +230,7 @@ export class Planner {
               id,
               candidate,
               "",
+              undefined,
               func,
               call.args.map((arg) => this.plan(arg)),
             );
@@ -237,11 +238,10 @@ export class Planner {
         }
       }
     }
-
-    const args = call.target
-      ? [this.plan(call.target), ...call.args.map((arg) => this.plan(arg))]
-      : call.args.map((arg) => this.plan(arg));
-
+    let args = call.args.map((arg) => this.plan(arg));
+    if (call.target) {
+      args = [this.plan(call.target), ...args];
+    }
     switch (call.function) {
       case opc.INDEX:
         return this.planCallIndex(call, args, false);
@@ -262,8 +262,9 @@ export class Planner {
           id,
           call.function,
           "",
+          call.target ? args[0] : undefined,
           this.functions.find(call.function),
-          args,
+          call.target ? args.slice(1) : args,
         );
     }
   }
@@ -472,13 +473,18 @@ class EvalCall implements Interpretable {
     public readonly id: number,
     public readonly name: string,
     public readonly overload: string,
-    private readonly call: CelFunc | undefined,
+    private readonly target: Interpretable | undefined,
+    private readonly func: FuncGroup | undefined,
     public readonly args: Interpretable[],
   ) {}
 
   public eval(ctx: Activation): CelResult {
-    if (this.call === undefined) {
+    if (this.func === undefined) {
       return celError(`unbound function: ${this.name}`, this.id);
+    }
+    const target = this.target?.eval(ctx);
+    if (isCelError(target)) {
+      return target;
     }
     const vals: CelValue[] = [];
     for (const arg of this.args) {
@@ -488,7 +494,7 @@ class EvalCall implements Interpretable {
       }
       vals.push(val);
     }
-    const result = this.call.dispatch(this.id, vals);
+    const result = this.func.call(this.id, target, vals);
     if (result !== undefined) {
       return result;
     }
