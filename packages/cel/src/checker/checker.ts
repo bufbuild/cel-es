@@ -70,7 +70,7 @@ import {
   identReference,
   type ReferenceInfo,
 } from "../referenceinfo.js";
-import type { CelFunc } from "../func.js";
+import { overloadTypeParams, type CelFunc } from "../func.js";
 import {
   LOGICAL_AND,
   LOGICAL_OR,
@@ -556,7 +556,7 @@ export class _CelChecker implements CelChecker {
         overload.result,
         ...overload.parameters,
       );
-      let typeParams = overload.typeParams();
+      let typeParams = overloadTypeParams(overload);
       if (typeParams.length > 0) {
         // Instantiate overload's type with fresh type variables.
         const substitutions = new Mapping();

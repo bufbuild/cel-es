@@ -34,12 +34,6 @@ export interface CelIdent {
   readonly value?: CelValue;
 
   readonly doc?: string;
-
-  /**
-   * DeclarationIsEquivalent returns true if one variable declaration has the
-   * same name and same type as the input.
-   */
-  declarationIsEquivalent(other: CelIdent): boolean;
 }
 
 /**
@@ -81,17 +75,24 @@ class Ident implements CelIdent {
     public readonly value?: CelValue,
     public readonly doc?: string,
   ) {}
+}
 
-  declarationIsEquivalent(other: CelIdent): boolean {
-    if (this === other) {
-      return true;
-    }
-    // If either type is undefined, we cannot be equivalent.
-    if (!this.type || !other.type) {
-      return false;
-    }
-    return (
-      this.name === other.name && isEquivalentCelType(this.type, other.type)
-    );
+/**
+ * DeclarationIsEquivalent returns true if one variable declaration has the
+ * same name and same type as the input.
+ */
+export function identDeclarationIsEquivalent(
+  ident: CelIdent,
+  other: CelIdent,
+): boolean {
+  if (ident === other) {
+    return true;
   }
+  // If either type is undefined, we cannot be equivalent.
+  if (!ident.type || !other.type) {
+    return false;
+  }
+  return (
+    ident.name === other.name && isEquivalentCelType(ident.type, other.type)
+  );
 }

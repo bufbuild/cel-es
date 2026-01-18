@@ -18,8 +18,13 @@ import type { Registry } from "@bufbuild/protobuf";
 import { Namespace } from "../namespace.js";
 import { Group, Scopes } from "./scopes.js";
 import type { CelFunc } from "../func.js";
+import { mergeFuncs } from "../func.js";
 import type { CelIdent } from "../ident.js";
-import { celConstant, celVariable } from "../ident.js";
+import {
+  celConstant,
+  celVariable,
+  identDeclarationIsEquivalent,
+} from "../ident.js";
 import { createRegistryWithWKT } from "../registry.js";
 import { CelScalar, objectType } from "../type.js";
 import { STD_FUNCS } from "../std/std.js";
@@ -310,11 +315,7 @@ class _CelCheckerEnv implements CelCheckerEnv {
     if (!current) {
       current = fn;
     } else {
-      // TODO: merge overloads
-      // current = current.merge(fn)
-      return [
-        `function ${fn.name} already declared. merging overloads not yet supported`,
-      ];
+      current = mergeFuncs(current, fn);
     }
     // TODO: check macros
     // for (const overload of current.overloads) {
@@ -340,7 +341,7 @@ class _CelCheckerEnv implements CelCheckerEnv {
   #addIdent(ident: CelIdent): string | null {
     const current = this.declarations.findIdentInScope(ident.name);
     if (current) {
-      if (current.declarationIsEquivalent(ident)) {
+      if (identDeclarationIsEquivalent(current, ident)) {
         return null;
       }
       return `overlapping identifier for name '${ident.name}'`;

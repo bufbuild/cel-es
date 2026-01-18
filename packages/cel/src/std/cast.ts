@@ -155,7 +155,9 @@ const boolFunc = celFunc(BOOL, [
 
 const bytesFunc = celFunc(BYTES, [
   celOverload(olc.BYTES_TO_BYTES, [CelScalar.BYTES], CelScalar.BYTES, (x) => x),
-  celOverload(olc.STRING_TO_BYTES, [CelScalar.STRING], CelScalar.BYTES, (x) => encoder.encode(x)),
+  celOverload(olc.STRING_TO_BYTES, [CelScalar.STRING], CelScalar.BYTES, (x) =>
+    encoder.encode(x),
+  ),
 ]);
 
 const stringFunc = celFunc(STRING, [

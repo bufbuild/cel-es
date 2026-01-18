@@ -20,6 +20,8 @@ import {
   isCelType,
   type CelValue,
   type CelInput,
+  isAssignableType,
+  isEquivalentCelType,
 } from "./type.js";
 import {
   type CelResult,
@@ -94,10 +96,6 @@ export interface CelOverload<P extends readonly CelType[], R extends CelType> {
    * Whether this is a member function overload.
    */
   readonly isMemberFunction: boolean;
-  /**
-   * TypeParams returns the type parameter names associated with the overload.
-   */
-  typeParams(): string[];
 }
 
 /**
@@ -202,30 +200,38 @@ class FuncOverload<const P extends readonly CelType[], const R extends CelType>
   get isMemberFunction() {
     return this._isMemberFunction;
   }
-  typeParams(): string[] {
-    function collectParamNames(paramNames: string[], arg: CelType) {
-      switch (arg.kind) {
-        case "type_param":
-          paramNames.push(arg.name);
-          break;
-        case "list":
-          collectParamNames(paramNames, arg.element);
-          break;
-        case "map":
-          collectParamNames(paramNames, arg.key);
-          collectParamNames(paramNames, arg.value);
-          break;
-        default:
-          break;
-      }
-    }
-    const typeNames: string[] = [];
-    collectParamNames(typeNames, this._result);
-    for (const paramType of this._parameters) {
-      collectParamNames(typeNames, paramType);
-    }
-    return typeNames;
+}
+
+function collectParamNames(paramNames: string[], arg: CelType) {
+  switch (arg.kind) {
+    case "type_param":
+      paramNames.push(arg.name);
+      break;
+    case "list":
+      collectParamNames(paramNames, arg.element);
+      break;
+    case "map":
+      collectParamNames(paramNames, arg.key);
+      collectParamNames(paramNames, arg.value);
+      break;
+    default:
+      break;
   }
+}
+
+/**
+ * TypeParams returns the type parameter names associated with the overload.
+ */
+export function overloadTypeParams<
+  P extends readonly CelType[],
+  R extends CelType,
+>(func: CelOverload<P, R>): string[] {
+  const typeNames: string[] = [];
+  collectParamNames(typeNames, func.result);
+  for (const paramType of func.parameters) {
+    collectParamNames(typeNames, paramType);
+  }
+  return typeNames;
 }
 
 /**
@@ -356,4 +362,123 @@ function unwrapResults<V = CelValue>(args: CelResult<V>[]) {
     return celErrorMerge(errors[0], ...errors.slice(1));
   }
   return vals;
+}
+
+/**
+ * SignatureOverlaps indicates whether two functions have non-equal, but overloapping function signatures.
+ *
+ * For example, list(dyn) collides with list(string) since the 'dyn' type can contain a 'string' type.
+ */
+export function overloadSignatureOverlaps<
+  P extends readonly CelType[],
+  R extends CelType,
+>(overload: CelOverload<P, R>, other: CelOverload<P, R>): boolean {
+  if (
+    overload.isMemberFunction !== other.isMemberFunction ||
+    overload.parameters.length !== other.parameters.length
+  ) {
+    return false;
+  }
+  let argsOverlap = true;
+  for (let i = 0; i < overload.parameters.length; i++) {
+    const argType = overload.parameters[i];
+    const otherArgType = other.parameters[i];
+    argsOverlap =
+      argsOverlap &&
+      (isAssignableType(argType, otherArgType) ||
+        isAssignableType(otherArgType, argType));
+  }
+  return argsOverlap;
+}
+
+/**
+ * SignatureEquals determines whether the incoming overload declaration signature is equal to the current signature.
+ *
+ * Result type, operand trait, and strict-ness are not considered as part of signature equality.
+ */
+export function overloadSignatureEquals<
+  P extends readonly CelType[],
+  R extends CelType,
+>(overload: CelOverload<P, R>, other: CelOverload<P, R>): boolean {
+  if (overload === other) {
+    return true;
+  }
+  if (
+    overload.id !== other.id ||
+    overload.isMemberFunction !== other.isMemberFunction ||
+    overload.parameters.length !== other.parameters.length
+  ) {
+    return false;
+  }
+  for (let i = 0; i < overload.parameters.length; i++) {
+    const argType = overload.parameters[i];
+    const otherArgType = other.parameters[i];
+    if (!isEquivalentCelType(argType, otherArgType)) {
+      return false;
+    }
+  }
+  return isEquivalentCelType(overload.result, other.result);
+}
+
+/**
+ * AddOverload ensures that the new overload does not collide with an existing overload signature;
+ * however, if the function signatures are identical, the implementation may be rewritten as its
+ * difficult to compare functions by object identity.
+ */
+export function addOverloadToFunc(
+  func: CelFunc,
+  overload: CelOverload<readonly CelType[], CelType>,
+): void {
+  for (let i = 0; i < func.overloads.length; i += 1) {
+    const o = func.overloads[i];
+    if (o.id !== overload.id && overloadSignatureOverlaps(o, overload)) {
+      throw new Error(
+        `overload signature collision in function ${func.name}: ${o.id} collides with ${overload.id}`,
+      );
+    }
+    if (o.id === overload.id) {
+      if (overloadSignatureEquals(o, overload)) {
+        // Allow redefinition of an overload implementation so long as the signatures match.
+        func.overloads[i] = overload;
+        // TODO: Allow redefinition of the doc string.
+        // if len(overload.doc) != 0 && o.doc != overload.doc {
+        // 	o.doc = overload.doc
+        // }
+        return;
+      }
+      throw new Error(
+        `overload redefinition in function. ${func.name}: ${o.id} has multiple definitions`,
+      );
+    }
+  }
+  func.overloads.push(overload);
+}
+
+/**
+ * Merge combines an existing function declaration with another.
+ *
+ * If a function is extended, by say adding new overloads to an existing function, then it is merged with the
+ * prior definition of the function at which point its overloads must not collide with pre-existing overloads
+ * and its bindings (singleton, or per-overload) must not conflict with previous definitions either.
+ */
+export function mergeFuncs(f: CelFunc, other: CelFunc): CelFunc {
+  if (f === other) {
+    return f;
+  }
+  if (f.name !== other.name) {
+    throw new Error(
+      `cannot merge unrelated functions. ${f.name} and ${other.name}`,
+    );
+  }
+  const merged = celFunc(f.name, []);
+
+  // baseline copy of the overloads
+  for (const overload of f.overloads) {
+    merged.overloads.push(overload);
+  }
+  // add new overloads
+  for (const overload of other.overloads) {
+    addOverloadToFunc(merged, overload);
+  }
+  return merged;
 }
