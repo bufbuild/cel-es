@@ -16,6 +16,8 @@ import type { Registry } from "@bufbuild/protobuf";
 import { createRegistryWithWKT } from "./registry.js";
 import { registryToFunctions, type CelFunc } from "./callable.js";
 import { STD_FUNCS } from "./std/std.js";
+import { default as CAST_FUNCS } from "./std/cast.js";
+import { default as MATH_FUNCS } from "./std/math.js";
 import { Namespace } from "./namespace.js";
 import { createResolver, type FuncResolver } from "./resolver.js";
 
@@ -69,7 +71,12 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
-    createResolver(registryToFunctions(STD_FUNCS), options?.funcs ?? []),
+    createResolver(
+      registryToFunctions(STD_FUNCS),
+      MATH_FUNCS,
+      CAST_FUNCS,
+      options?.funcs ?? [],
+    ),
   );
 }
 
