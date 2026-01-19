@@ -14,7 +14,7 @@
 
 import type { Registry } from "@bufbuild/protobuf";
 import { createRegistryWithWKT } from "./registry.js";
-import type { CelFunc } from "./callable.js";
+import type { CelFunc } from "./func.js";
 import { Namespace } from "./namespace.js";
 import { createResolver, type FuncResolver } from "./resolver.js";
 import { default as CAST_FUNCS } from "./std/cast.js";

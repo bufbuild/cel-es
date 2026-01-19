@@ -25,7 +25,7 @@ import { celUint, type CelUint } from "../uint.js";
 import { createDuration } from "../duration.js";
 import { createTimestamp } from "../timestamp.js";
 import { celError } from "../error.js";
-import { celFunc } from "../callable.js";
+import { celFunc } from "../func.js";
 
 const MAX_INT = 9223372036854775807n;
 const MIN_INT = -9223372036854775808n;

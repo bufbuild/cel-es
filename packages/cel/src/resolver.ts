@@ -14,7 +14,7 @@
 
 import type { CelResult } from "./error.js";
 import type { CelValue } from "./type.js";
-import type { CelFunc } from "./callable.js";
+import type { CelFunc } from "./func.js";
 import { unwrapAny } from "./value.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/resolver");

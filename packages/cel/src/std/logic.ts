@@ -23,7 +23,7 @@ import {
   type CelValue,
 } from "../type.js";
 import { equals } from "../equals.js";
-import { celMethod, celFunc } from "../callable.js";
+import { celMethod, celFunc } from "../func.js";
 import type { CelList } from "../list.js";
 import type { CelMap } from "../map.js";
 
