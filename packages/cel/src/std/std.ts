@@ -14,11 +14,9 @@
 
 import { FuncRegistry } from "../func.js";
 import { addLogic } from "./logic.js";
-import { addTime } from "./time.js";
 
 export function addStd(funcs: FuncRegistry) {
   addLogic(funcs);
-  addTime(funcs);
 }
 
 export const STD_FUNCS = new FuncRegistry();
