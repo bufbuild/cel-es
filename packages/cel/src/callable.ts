@@ -14,7 +14,6 @@
 
 import { equalsType } from "./equals.js";
 import { celError, type CelResult } from "./error.js";
-import type { FuncRegistry } from "./func.js";
 import {
   CelScalar,
   celType,
@@ -189,39 +188,4 @@ function isSubtypeOf<T extends CelType>(
   typ: T,
 ): val is CelValue<T> {
   return typ === CelScalar.DYN || equalsType(celType(val), typ);
-}
-
-/**
- * Temporary glue code for transistion.
- */
-export function registryToFunctions(registry: FuncRegistry): CelFunc[] {
-  const funcs: CelFunc[] = [];
-  for (const group of registry) {
-    for (const overload of group.overloads) {
-      funcs.push(
-        new LegacyFunc(
-          group.name,
-          undefined,
-          overload.parameters,
-          overload.result,
-          overload.impl,
-        ),
-      );
-    }
-  }
-  return funcs;
-}
-
-class LegacyFunc extends Callable<undefined> {
-  override call(
-    id: number,
-    target: CelValue | undefined,
-    args: CelValue[],
-  ): CelResult | undefined {
-    return super.call(
-      id,
-      undefined,
-      target !== undefined ? [target, ...args] : args,
-    );
-  }
 }
