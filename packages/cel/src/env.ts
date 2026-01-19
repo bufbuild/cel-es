@@ -18,6 +18,7 @@ import { registryToFunctions, type CelFunc } from "./callable.js";
 import { STD_FUNCS } from "./std/std.js";
 import { default as CAST_FUNCS } from "./std/cast.js";
 import { default as MATH_FUNCS } from "./std/math.js";
+import { default as LOGIC_FUNCS } from "./std/logic.js";
 import { Namespace } from "./namespace.js";
 import { createResolver, type FuncResolver } from "./resolver.js";
 import { default as TIME_FUNCS } from "./std/time.js";
@@ -77,6 +78,7 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
       MATH_FUNCS,
       CAST_FUNCS,
       TIME_FUNCS,
+      LOGIC_FUNCS,
       options?.funcs ?? [],
     ),
   );

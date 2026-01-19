@@ -16,7 +16,7 @@ import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 
-import { matchesString } from "./logic.js";
+import { matches } from "./logic.js";
 
 function durationOf(func: () => void, times = 5): number {
   const runs: number[] = [];
@@ -34,7 +34,7 @@ void suite("logic", () => {
   void suite("matches(string, string) -> bool", () => {
     void test.skip("doesn't evaluate simple ReDoS expressions in exponential time", () => {
       const maliciousRegex = "^(a*)*$";
-      const overhead = durationOf(() => matchesString("!", maliciousRegex));
+      const overhead = durationOf(() => matches.call("!", maliciousRegex));
 
       // if the overhead is not less than 10 milliseconds, something is wrong
       // with our assumptions, and the subsequent assertions may be invalid
@@ -45,10 +45,10 @@ void suite("logic", () => {
       );
 
       const x16 = durationOf(() =>
-        matchesString("a".repeat(16) + "!", maliciousRegex),
+        matches.call("a".repeat(16) + "!", maliciousRegex),
       );
       const x24 = durationOf(() =>
-        matchesString("a".repeat(24) + "!", maliciousRegex),
+        matches.call("a".repeat(24) + "!", maliciousRegex),
       );
 
       // it's *possible* the difference between 0, 16, and 24 iterations will be
