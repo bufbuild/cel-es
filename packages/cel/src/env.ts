@@ -20,6 +20,7 @@ import { default as CAST_FUNCS } from "./std/cast.js";
 import { default as MATH_FUNCS } from "./std/math.js";
 import { Namespace } from "./namespace.js";
 import { createResolver, type FuncResolver } from "./resolver.js";
+import { default as TIME_FUNCS } from "./std/time.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
@@ -75,6 +76,7 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
       registryToFunctions(STD_FUNCS),
       MATH_FUNCS,
       CAST_FUNCS,
+      TIME_FUNCS,
       options?.funcs ?? [],
     ),
   );
