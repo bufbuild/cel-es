@@ -13,11 +13,8 @@
 // limitations under the License.
 
 import { FuncRegistry } from "../func.js";
-import { addLogic } from "./logic.js";
 
-export function addStd(funcs: FuncRegistry) {
-  addLogic(funcs);
-}
+export function addStd(funcs: FuncRegistry) {}
 
 export const STD_FUNCS = new FuncRegistry();
 addStd(STD_FUNCS);
