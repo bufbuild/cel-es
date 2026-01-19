@@ -29,7 +29,7 @@ import {
   type CelValue,
 } from "../type.js";
 import { parseDuration } from "../duration.js";
-import { celFunc } from "../callable.js";
+import { celFunc } from "../func.js";
 import { getMsgDesc } from "../eval.js";
 
 const encoder = new TextEncoder();

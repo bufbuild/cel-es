@@ -17,7 +17,7 @@ import { timestampDate, TimestampSchema } from "@bufbuild/protobuf/wkt";
 import { CelScalar, TIMESTAMP, DURATION, type CelValue } from "../type.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import { toJson } from "@bufbuild/protobuf";
-import { celMethod } from "../callable.js";
+import { celMethod } from "../func.js";
 
 function getDayOfYear(date: Date): number {
   const start = new Date(0, 0, 1);

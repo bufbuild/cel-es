@@ -25,7 +25,7 @@ import { type CelList, celList, isCelList } from "../../list.js";
 import { type CelMap, isCelMap } from "../../map.js";
 import { isCelUint } from "../../uint.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { celMethod, celFunc } from "../../callable.js";
+import { celMethod, celFunc } from "../../func.js";
 
 function charAt(this: string, index: bigint) {
   const i = Number(index);
