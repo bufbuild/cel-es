@@ -499,7 +499,7 @@ class EvalCall implements Interpretable {
       return result;
     }
     return celError(
-      `found no matching overload for '${this.name}' applied to '(${vals
+      `found no matching overload for '${this.name}' applied to '${target !== undefined ? `${celType(target)}.` : ""}(${vals
         .map((x) => celType(x))
         .map((x) => x.name)
         .join(", ")})'`,

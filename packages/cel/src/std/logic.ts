@@ -209,6 +209,10 @@ export default [
   celFunc(olc.SIZE,           [LIST],                 INT,  (x)     =>  BigInt(x.size)),
   celFunc(olc.SIZE,           [STRING],               INT,  (x)     =>  BigInt([...x].length)),
   celFunc(olc.SIZE,           [MAP],                  INT,  (x)     =>  BigInt(x.size)),
+  celMethod(olc.SIZE,         BYTES,         [],      INT,  function () {return BigInt(this.length)}),
+  celMethod(olc.SIZE,         LIST,          [],      INT,  function () {return BigInt(this.size)}),
+  celMethod(olc.SIZE,         STRING,        [],      INT,  function () {return BigInt([...this].length)}),
+  celMethod(olc.SIZE,         MAP,           [],      INT,  function () {return BigInt(this.size)}),
   // in
   celFunc(opc.IN,             [DYN, LIST],            BOOL,             inList),
   celFunc(opc.IN,             [STRING, MAP],          BOOL,             inMap),
