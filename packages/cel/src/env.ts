@@ -17,10 +17,10 @@ import { createRegistryWithWKT } from "./registry.js";
 import type { CelFunc } from "./func.js";
 import { Namespace } from "./namespace.js";
 import { createResolver, type FuncResolver } from "./resolver.js";
-import { default as CAST_FUNCS } from "./std/cast.js";
-import { default as MATH_FUNCS } from "./std/math.js";
-import { default as LOGIC_FUNCS } from "./std/logic.js";
-import { default as TIME_FUNCS } from "./std/time.js";
+import { default as cast } from "./std/cast.js";
+import { default as math } from "./std/math.js";
+import { default as logic } from "./std/logic.js";
+import { default as time } from "./std/time.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
@@ -72,13 +72,7 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
-    createResolver(
-      MATH_FUNCS,
-      CAST_FUNCS,
-      TIME_FUNCS,
-      LOGIC_FUNCS,
-      options?.funcs ?? [],
-    ),
+    createResolver(math, cast, time, logic, options?.funcs ?? []),
   );
 }
 

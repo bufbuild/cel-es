@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { type CelResult, isCelMap, plan } from "./index.js";
-import { STRINGS_EXT_FUNCS } from "./ext/strings/index.js";
+import { strings } from "./ext/index.js";
 import {
   create,
   equals,
@@ -133,7 +133,7 @@ export function runSimpleTestCase(test: IncrementalTest, registry: Registry) {
   const env = celEnv({
     registry,
     namespace: testCase.container,
-    funcs: STRINGS_EXT_FUNCS,
+    funcs: strings,
   });
   const celEval = plan(env, parsed);
   const bindings: Record<string, CelInput> = {};

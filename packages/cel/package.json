@@ -37,14 +37,14 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     },
-    "./ext/strings": {
-      "import": "./dist/esm/ext/strings/index.js",
-      "require": "./dist/cjs/ext/strings/index.js"
+    "./ext": {
+      "import": "./dist/esm/ext/index.js",
+      "require": "./dist/cjs/ext/index.js"
     }
   },
   "typesVersions": {
     "*": {
-      "ext/strings": ["./dist/cjs/ext/strings/index.d.ts"]
+      "ext": ["./dist/cjs/ext/index.d.ts"]
     }
   },
   "peerDependencies": {

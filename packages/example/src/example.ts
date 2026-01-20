@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import { celEnv, CelScalar, parse, plan, run, celMethod } from "@bufbuild/cel";
-import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
+import { strings } from "@bufbuild/cel/ext";
 
 // Run a CEL expression:
 
@@ -65,7 +65,7 @@ console.log(result); // true
 
 // Split into individual steps:
 
-const env = celEnv({ funcs: [...STRINGS_EXT_FUNCS, similar] });
+const env = celEnv({ funcs: [...strings, similar] });
 const evaluate = plan(
   env,
   parse(`name.indexOf('taco') == 0 && name.similar('tacocat')`),
