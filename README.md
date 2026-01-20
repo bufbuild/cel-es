@@ -12,12 +12,12 @@ Let's evaluate a CEL expression that has the variable `name` and uses the string
 
 ```ts
 import { run } from "@bufbuild/cel";
-import { STRINGS_EXT_FUNCS } from "@bufbuild/cel/ext/strings";
+import { strings } from "@bufbuild/cel/ext";
 
 run(
   `name.indexOf('taco') == 0`,
   {name: "tacocat"},
-  {funcs: STRINGS_EXT_FUNCS },
+  {funcs: strings },
 ); // true
 ```
 

@@ -12,4 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export { default as STRINGS_EXT_FUNCS } from "./strings.js";
+export { default as strings } from "./strings.js";
