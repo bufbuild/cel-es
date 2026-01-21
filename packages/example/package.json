@@ -1,7 +1,7 @@
 {
   "name": "example",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "Apache-2.0",
   "scripts": {
     "start": "tsx src/example.ts",
@@ -14,7 +14,7 @@
   "sideEffects": false,
   "dependencies": {
     "@bufbuild/protobuf": "^2.6.2",
-    "@bufbuild/cel": "^0.3.0",
-    "@bufbuild/cel-spec": "^0.3.0"
+    "@bufbuild/cel": "^0.4.0",
+    "@bufbuild/cel-spec": "^0.4.0"
   }
 }
