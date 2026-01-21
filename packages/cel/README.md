@@ -4,22 +4,22 @@ This package provides a [CEL](https://cel.dev) evaluator for ECMAScript.
 
 ## Example
 
-Let's evaluate a CEL expression that has the variable `name` and uses the strings extension functions:
+Let's evaluate a CEL expression that has the variable `name` and uses the `strings` extension functions:
 
 ```ts
 import { run } from "@bufbuild/cel";
 import { strings } from "@bufbuild/cel/ext";
 
 run(
-  `name.indexOf('taco') == 0`,
-  {name: "tacocat"},
-  {funcs: STRINGS_EXT_FUNCS },
+  `name.indexOf('taco') == 0`, // CEL expression to run
+  { name: "tacocat" }, // Bind a value to the variable `name`
+  { funcs: strings }, // Register `indexOf` and other string extensions
 ); // true
 ```
 
 That's it!
 
-For an example of creating resusable evaluator and more, refer to the [example.ts](https://github.com/bufbuild/cel-es/blob/main/packages/example/src/example.ts).
+For an example of creating resusable evaluator and more, refer to [example.ts](https://github.com/bufbuild/cel-es/blob/main/packages/example/src/example.ts).
 
 ### Types
 
