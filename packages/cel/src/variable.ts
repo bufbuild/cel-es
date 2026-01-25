@@ -16,15 +16,12 @@ import type { CelType, CelValue } from "./type.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/variable");
 
-export interface CelVariable<
-  N extends string = string,
-  T extends CelType = CelType,
-> {
+export interface CelVariable<T extends CelType = CelType> {
   [privateSymbol]: unknown;
   /**
    * The name of the variable.
    */
-  readonly name: N;
+  readonly name: string;
   /**
    * The CEL type of the variable.
    */
@@ -38,35 +35,34 @@ export interface CelVariable<
 /**
  * Creates a new CEL variable.
  */
-export function celVariable<
-  N extends string = string,
-  T extends CelType = CelType,
->(name: N, type: T): CelVariable<N, T> {
+export function celVariable<T extends CelType = CelType>(
+  name: string,
+  type: T,
+): CelVariable<T> {
   return new Variable(name, type, undefined);
 }
 
 /**
  * Creates a new CEL constant.
  */
-export function celConstant<
-  N extends string = string,
-  T extends CelType = CelType,
->(name: N, type: T, value: CelValue<T>): CelVariable<N, T> {
+export function celConstant<T extends CelType = CelType>(
+  name: string,
+  type: T,
+  value: CelValue<T>,
+): CelVariable<T> {
   return new Variable(name, type, value);
 }
 
-class Variable<N extends string = string, T extends CelType = CelType>
-  implements CelVariable<N, T>
-{
+class Variable<T extends CelType = CelType> implements CelVariable<T> {
   [privateSymbol]: unknown;
 
   constructor(
-    private readonly _name: N,
+    private readonly _name: string,
     private readonly _type: T,
     private readonly _value: CelValue<T> | undefined,
   ) {}
 
-  get name(): N {
+  get name(): string {
     return this._name;
   }
   get type(): T {

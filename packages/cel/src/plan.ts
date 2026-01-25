@@ -33,28 +33,50 @@ import {
   HierarchicalActivation,
   ObjectActivation,
 } from "./activation.js";
-import type { CelInput, CelValue } from "./type.js";
-import type { CelVariable } from "./variable.js";
-import type { CelVariableTuple } from "./scope.js";
+import type {
+  CelInput,
+  CelType,
+  CelValue,
+  InferCelTypeFromInput,
+} from "./type.js";
+import type { CelVariableEntry, CelVariableEntryInput } from "./scope.js";
 
 const cache = new WeakMap<CelEnv, Planner>();
 
-export type VariableInputEntry<V extends CelVariable> = {
-  [key in V["name"]]: CelInput<V["type"]>;
-};
+type WasCelType<
+  T extends CelVariableEntryInput,
+  K extends keyof T,
+> = T[K] extends CelType ? true : false;
 
-export type CelInputMap<T extends CelVariableTuple<readonly CelVariable[]>> =
-  T extends readonly [
-    infer V extends CelVariable,
-    ...infer Rest extends CelVariable[],
-  ]
-    ? Partial<VariableInputEntry<V> & CelInputMap<Rest>>
-    : Record<never, never>;
+// Split keys into required (CelType) and optional (CelInput)
+type RequiredBindingKeys<T extends CelVariableEntryInput> = {
+  [K in keyof T]: WasCelType<T, K> extends true ? K : never;
+}[keyof T];
 
-export type CelBindings<T extends CelVariableTuple<readonly CelVariable[]>> =
-  keyof CelInputMap<T> extends never
-    ? Record<string, CelInput>
-    : CelInputMap<T>;
+type OptionalBindingKeys<T extends CelVariableEntryInput> = {
+  [K in keyof T]: WasCelType<T, K> extends false ? K : never;
+}[keyof T];
+
+type ExtractInput<T> = T extends CelVariableEntry<infer Input>
+  ? Input
+  : T extends CelVariableEntryInput
+    ? T
+    : never;
+
+export type CelBindings<T extends CelVariableEntryInput | CelVariableEntry> =
+  ExtractInput<T> extends infer Input
+    ? Input extends CelVariableEntryInput
+      ? {
+          [P in RequiredBindingKeys<Input>]: CelInput<
+            InferCelTypeFromInput<Input[P]>
+          >;
+        } & {
+          [P in OptionalBindingKeys<Input>]?: CelInput<
+            InferCelTypeFromInput<Input[P]>
+          >;
+        }
+      : never
+    : never;
 
 /**
  * Creates an execution plan for a CEL expression and returns a reusable evaluation function.
@@ -62,9 +84,7 @@ export type CelBindings<T extends CelVariableTuple<readonly CelVariable[]>> =
  * Planning analyzes the expression structure once, independent of runtime variable values.
  * The returned function can be called multiple times with different variable bindings.
  */
-export function plan<
-  const Vars extends CelVariableTuple<readonly CelVariable[]>,
->(
+export function plan<const Vars extends CelVariableEntry = CelVariableEntry>(
   env: CelEnv<Vars>,
   expr: Expr | ParsedExpr | CheckedExpr,
 ): (ctx?: CelBindings<Vars>) => CelResult {

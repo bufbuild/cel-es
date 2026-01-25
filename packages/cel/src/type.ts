@@ -381,3 +381,29 @@ function typeUrlToName(url: string): string {
   }
   return name;
 }
+
+// biome-ignore format: Ternaries
+export type InferCelTypeFromInput<T> = 
+  // Check if it's already a CelType first
+  T extends CelType ? T
+  // Check for exact scalar matches (most specific first)
+  : T extends CelUint ? typeof CelScalar.UINT
+  : T extends bigint ? typeof CelScalar.INT
+  : T extends boolean ? typeof CelScalar.BOOL
+  : T extends number ? typeof CelScalar.DOUBLE
+  : T extends string ? typeof CelScalar.STRING
+  : T extends Uint8Array ? typeof CelScalar.BYTES
+  : T extends null ? typeof CelScalar.NULL
+  // Check for collection types
+  : T extends CelList ? CelListType<typeof CelScalar.DYN>
+  : T extends ReflectList ? CelListType<typeof CelScalar.DYN>
+  : T extends readonly unknown[] ? CelListType<typeof CelScalar.DYN>
+  : T extends CelMap ? CelMapType<typeof CelScalar.DYN, typeof CelScalar.DYN>
+  : T extends ReflectMap ? CelMapType<typeof CelScalar.DYN, typeof CelScalar.DYN>
+  : T extends ReadonlyMap<unknown, unknown> ? CelMapType<typeof CelScalar.DYN, typeof CelScalar.DYN>
+  : T extends ReflectMessage ? CelObjectType
+  : T extends Message ? CelObjectType
+  // Check for plain objects last (as they're very broad)
+  : T extends { [key: string]: unknown } ? CelMapType<typeof CelScalar.STRING, typeof CelScalar.DYN>
+  // Fallback
+  : never;
