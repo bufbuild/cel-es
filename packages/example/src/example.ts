@@ -89,7 +89,7 @@ const typedEnv = celEnv({
 const typedEvaluate = plan(
   typedEnv,
   parse(`name.indexOf('taco') == 0 && name.similar('tacocat') && age > 3`),
-);
+); // typedEvaluate expects an object like { name: string; age: number; }
 
 result = typedEvaluate({ name: "tacocat", age: 5 });
 console.log(result); // true

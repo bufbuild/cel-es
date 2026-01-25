@@ -13,38 +13,26 @@
 // limitations under the License.
 
 import { suite, test } from "node:test";
-import { plan, type CelBindings } from "./plan.js";
+import { plan } from "./plan.js";
 import { celEnv } from "./env.js";
 import { parse } from "./parse.js";
 import { expectTypeOf } from "expect-type";
-import { CelScalar, objectType, type CelObjectType } from "./type.js";
-import type { CelVariableEntry } from "./scope.js";
-import {
-  TestAllTypesSchema,
-  type TestAllTypes,
-} from "@bufbuild/cel-spec/cel/expr/conformance/proto3/test_all_types_pb.js";
-import type { GenMessage } from "@bufbuild/protobuf/codegenv2";
+import { CelScalar, objectType } from "./type.js";
+import { TestAllTypesSchema } from "@bufbuild/cel-spec/cel/expr/conformance/proto3/test_all_types_pb.js";
+import { create } from "@bufbuild/protobuf";
 
 void suite("plan", () => {
   void suite("types", () => {
     void test("no input types", () => {
       const program = plan(celEnv(), parse("1 + 2"));
-      expectTypeOf(program)
-        .parameter(0)
-        .toEqualTypeOf<CelBindings<CelVariableEntry> | undefined>();
+      expectTypeOf(program).toBeCallableWith({});
     });
     void test("inferred scalar input types", () => {
       const program = plan(
         celEnv({ variables: { a: CelScalar.STRING, b: CelScalar.INT } }),
         parse("a + b"),
       );
-      expectTypeOf(program).parameter(0).toEqualTypeOf<
-        | CelBindings<{
-            readonly a: typeof CelScalar.STRING;
-            readonly b: typeof CelScalar.INT;
-          }>
-        | undefined
-      >();
+      expectTypeOf(program).toBeCallableWith({ a: "test", b: 42n });
     });
     void test("inferred object input type", () => {
       const program = plan(
@@ -57,12 +45,9 @@ void suite("plan", () => {
           "testAllTypes.singleString == 'test' && testAllTypes.singleInt64 >= 42",
         ),
       );
-      expectTypeOf(program).parameter(0).toEqualTypeOf<
-        | CelBindings<{
-            readonly testAllTypes: CelObjectType<GenMessage<TestAllTypes>>;
-          }>
-        | undefined
-      >();
+      expectTypeOf(program).toBeCallableWith({
+        testAllTypes: create(TestAllTypesSchema),
+      });
     });
   });
 });
