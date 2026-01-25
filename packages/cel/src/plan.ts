@@ -28,55 +28,15 @@ import { celError, type CelResult, isCelError } from "./error.js";
 import { withEvalContext } from "./eval.js";
 import { unwrapAny } from "./value.js";
 import type { CelEnv } from "./env.js";
-import {
-  EMPTY_ACTIVATION,
-  HierarchicalActivation,
-  ObjectActivation,
-} from "./activation.js";
-import type {
-  CelInput,
-  CelType,
-  CelValue,
-  InferCelTypeFromInput,
-} from "./type.js";
-import type { CelVariableEntry, CelVariableEntryInput } from "./scope.js";
+import { EMPTY_ACTIVATION, ObjectActivation } from "./activation.js";
+import type { CelInput } from "./type.js";
+import type { CelVariableEntry } from "./scope.js";
 
 const cache = new WeakMap<CelEnv, Planner>();
 
-type WasCelType<
-  T extends CelVariableEntryInput,
-  K extends keyof T,
-> = T[K] extends CelType ? true : false;
-
-// Split keys into required (CelType) and optional (CelInput)
-type RequiredBindingKeys<T extends CelVariableEntryInput> = {
-  [K in keyof T]: WasCelType<T, K> extends true ? K : never;
-}[keyof T];
-
-type OptionalBindingKeys<T extends CelVariableEntryInput> = {
-  [K in keyof T]: WasCelType<T, K> extends false ? K : never;
-}[keyof T];
-
-type ExtractInput<T> = T extends CelVariableEntry<infer Input>
-  ? Input
-  : T extends CelVariableEntryInput
-    ? T
-    : never;
-
-export type CelBindings<T extends CelVariableEntryInput | CelVariableEntry> =
-  ExtractInput<T> extends infer Input
-    ? Input extends CelVariableEntryInput
-      ? {
-          [P in RequiredBindingKeys<Input>]: CelInput<
-            InferCelTypeFromInput<Input[P]>
-          >;
-        } & {
-          [P in OptionalBindingKeys<Input>]?: CelInput<
-            InferCelTypeFromInput<Input[P]>
-          >;
-        }
-      : never
-    : never;
+export type CelBindings<T extends CelVariableEntry> = {
+  [P in keyof T]: CelInput<T[P]>;
+};
 
 /**
  * Creates an execution plan for a CEL expression and returns a reusable evaluation function.
@@ -120,20 +80,9 @@ export function plan<const Vars extends CelVariableEntry = CelVariableEntry>(
       },
     },
   );
-  // Extract constant variables from the environment
-  const constantVars: Record<string, CelValue> = {};
-  for (const variable of env.variables) {
-    if (variable.value !== undefined) {
-      constantVars[variable.name] = variable.value;
-    }
-  }
-  const hasConstantVars = Object.values(constantVars).length > 0;
   return (ctx?: CelBindings<Vars>) => {
     return withContext.eval(
-      new HierarchicalActivation(
-        hasConstantVars ? new ObjectActivation(constantVars) : EMPTY_ACTIVATION,
-        ctx !== undefined ? new ObjectActivation(ctx) : EMPTY_ACTIVATION,
-      ),
+      ctx !== undefined ? new ObjectActivation(ctx) : EMPTY_ACTIVATION,
     );
   };
 }

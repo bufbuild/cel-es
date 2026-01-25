@@ -13,38 +13,56 @@
 // limitations under the License.
 
 import { suite, test } from "node:test";
-import * as assert from "node:assert/strict";
-import { plan } from "./plan.js";
+import { plan, type CelBindings } from "./plan.js";
 import { celEnv } from "./env.js";
 import { parse } from "./parse.js";
 import { expectTypeOf } from "expect-type";
-import { CelScalar } from "./type.js";
+import { CelScalar, objectType, type CelObjectType } from "./type.js";
+import type { CelVariableEntry } from "./scope.js";
+import {
+  TestAllTypesSchema,
+  type TestAllTypes,
+} from "@bufbuild/cel-spec/cel/expr/conformance/proto3/test_all_types_pb.js";
+import type { GenMessage } from "@bufbuild/protobuf/codegenv2";
 
 void suite("plan", () => {
   void suite("types", () => {
-    void test("inferred input types", () => {
+    void test("no input types", () => {
+      const program = plan(celEnv(), parse("1 + 2"));
+      expectTypeOf(program)
+        .parameter(0)
+        .toEqualTypeOf<CelBindings<CelVariableEntry> | undefined>();
+    });
+    void test("inferred scalar input types", () => {
       const program = plan(
-        celEnv({ variables: { a: "test", b: CelScalar.INT } }),
+        celEnv({ variables: { a: CelScalar.STRING, b: CelScalar.INT } }),
         parse("a + b"),
       );
       expectTypeOf(program).parameter(0).toEqualTypeOf<
-        | ({
-            b: bigint;
-          } & {
-            a?: string | undefined;
-          })
+        | CelBindings<{
+            readonly a: typeof CelScalar.STRING;
+            readonly b: typeof CelScalar.INT;
+          }>
         | undefined
       >();
     });
-  });
-  void suite("constants", () => {
-    void test("constant variables are applied", () => {
-      const program = plan(celEnv({ variables: { a: 42n } }), parse("a + 1"));
-      assert.equal(program(), 43n);
-    });
-    void test("bindings shadow constant variables", () => {
-      const program = plan(celEnv({ variables: { a: 42n } }), parse("a + 1"));
-      assert.equal(program({ a: 100n }), 101n);
+    void test("inferred object input type", () => {
+      const program = plan(
+        celEnv({
+          variables: {
+            testAllTypes: objectType(TestAllTypesSchema),
+          },
+        }),
+        parse(
+          "testAllTypes.singleString == 'test' && testAllTypes.singleInt64 >= 42",
+        ),
+      );
+      expectTypeOf(program).parameter(0).toEqualTypeOf<
+        | CelBindings<{
+            readonly testAllTypes: CelObjectType<GenMessage<TestAllTypes>>;
+          }>
+        | undefined
+      >();
     });
   });
 });

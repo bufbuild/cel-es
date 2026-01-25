@@ -12,26 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  celType,
-  isCelType,
-  type CelInput,
-  type CelType,
-  type InferCelTypeFromInput,
-} from "./type.js";
-import { toCel } from "./value.js";
-import { celConstant, celVariable, type CelVariable } from "./variable.js";
+import type { CelType } from "./type.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/scope");
 
-export type CelVariableEntryInput = {
-  [key: string]: CelType | CelInput;
-};
-
-export type CelVariableEntry<
-  T extends CelVariableEntryInput = CelVariableEntryInput,
-> = {
-  [K in keyof T]: CelVariable<InferCelTypeFromInput<T[K]>>;
+export type CelVariableEntry = {
+  [key: string]: CelType;
 };
 
 /**
@@ -46,14 +32,14 @@ export interface VariableScope<
   /**
    * All the variables in the scope.
    */
-  [Symbol.iterator](): IterableIterator<CelVariable>;
+  [Symbol.iterator](): IterableIterator<[string, CelType]>;
   /**
    * Creates a new VariableScope with the current scope as the parent and the
    * provided inputs as the new scope's variables.
    */
-  push<PushVars extends CelVariableEntryInput = CelVariableEntryInput>(
+  push<PushVars extends CelVariableEntry = CelVariableEntry>(
     inputs?: PushVars,
-  ): VariableScope<CelVariableEntry<PushVars> & Vars>;
+  ): VariableScope<PushVars & Vars>;
   /**
    * Returns the parent VariableScope for the current scope, or the current
    * scope if the parent is undefined.
@@ -62,27 +48,19 @@ export interface VariableScope<
   /**
    * Finds the variable by name in the current scope or any parent scopes.
    */
-  find(name: string): CelVariable | undefined;
+  find(name: string): CelType | undefined;
 }
 
 /**
  * Creates a new VariableScope from the provided inputs.
  */
 export function createScope<
-  const Vars extends CelVariableEntryInput = CelVariableEntryInput,
->(inputs?: Vars): VariableScope<CelVariableEntry<Vars>> {
-  const variables: CelVariableEntry = {};
+  const Vars extends CelVariableEntry = CelVariableEntry,
+>(inputs?: Vars): VariableScope<Vars> {
+  const variables = new Map<string, CelType>();
   if (inputs) {
-    for (const [name, typeOrValue] of Object.entries(inputs)) {
-      if (isCelType(typeOrValue)) {
-        variables[name] = celVariable(name, typeOrValue);
-        continue;
-      }
-      variables[name] = celConstant(
-        name,
-        celType(toCel(typeOrValue)),
-        toCel(typeOrValue),
-      );
+    for (const [name, type] of Object.entries(inputs)) {
+      variables.set(name, type);
     }
   }
   return new Scope(variables);
@@ -94,37 +72,27 @@ class Scope<Vars extends CelVariableEntry = CelVariableEntry>
   [privateSymbol] = {};
 
   constructor(
-    private readonly _variables: CelVariableEntry,
+    private readonly _variables: Map<string, CelType>,
     private readonly _parent: VariableScope | undefined = undefined,
   ) {}
 
-  *[Symbol.iterator](): IterableIterator<CelVariable> {
-    for (const variable of this._parent ?? []) {
-      if (!this._variables[variable.name]) {
-        yield variable;
+  *[Symbol.iterator](): IterableIterator<[string, CelType]> {
+    for (const [name, type] of this._parent ?? []) {
+      if (!this._variables.has(name)) {
+        yield [name, type];
       }
     }
-    for (const variable of Object.values(this._variables)) {
-      yield variable;
+    for (const [name, type] of this._variables) {
+      yield [name, type];
     }
   }
 
-  push<PushVars extends CelVariableEntryInput = CelVariableEntryInput>(
+  push<PushVars extends CelVariableEntry = CelVariableEntry>(
     inputs?: PushVars,
-  ): VariableScope<CelVariableEntry<PushVars> & Vars> {
-    const variables: CelVariableEntry = {};
-    if (inputs) {
-      for (const [name, typeOrValue] of Object.entries(inputs)) {
-        if (isCelType(typeOrValue)) {
-          variables[name] = celVariable(name, typeOrValue);
-          continue;
-        }
-        variables[name] = celConstant(
-          name,
-          celType(toCel(typeOrValue)),
-          toCel(typeOrValue),
-        );
-      }
+  ): VariableScope<PushVars & Vars> {
+    const variables: Map<string, CelType> = new Map();
+    for (const [name, type] of Object.entries(inputs ?? {})) {
+      variables.set(name, type);
     }
     return new Scope(variables, this);
   }
@@ -133,9 +101,9 @@ class Scope<Vars extends CelVariableEntry = CelVariableEntry>
     return this._parent ?? this;
   }
 
-  find(name: string): CelVariable | undefined {
-    if (this._variables[name] !== undefined) {
-      return this._variables[name];
+  find(name: string): CelType | undefined {
+    if (this._variables.has(name)) {
+      return this._variables.get(name);
     }
     return this._parent?.find(name);
   }

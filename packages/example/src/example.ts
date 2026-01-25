@@ -75,3 +75,21 @@ for (const name of ["tacocat", "tacodog"]) {
   result = evaluate({ name });
   console.log(result); // true, false
 }
+
+// Strongly typed variables:
+
+const typedEnv = celEnv({
+  variables: {
+    name: CelScalar.STRING,
+    age: CelScalar.DOUBLE,
+  },
+  funcs: [...strings, similar],
+});
+
+const typedEvaluate = plan(
+  typedEnv,
+  parse(`name.indexOf('taco') == 0 && name.similar('tacocat') && age > 3`),
+);
+
+result = typedEvaluate({ name: "tacocat", age: 5 });
+console.log(result); // true

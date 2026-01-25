@@ -21,8 +21,7 @@ void suite("scope", () => {
   void suite("createScope()", () => {
     void test("simple find", () => {
       const scope = createScope({ a: CelScalar.INT });
-      assert.equal(scope.find("a")?.name, "a");
-      assert.equal(scope.find("a")?.type, CelScalar.INT);
+      assert.equal(scope.find("a"), CelScalar.INT);
     });
     void test("not found", () => {
       const scope = createScope({ a: CelScalar.INT });
@@ -31,14 +30,12 @@ void suite("scope", () => {
     void test("found in parent", () => {
       const parent = createScope({ a: CelScalar.INT });
       const scope = parent.push();
-      assert.equal(scope.find("a")?.name, "a");
-      assert.equal(scope.find("a")?.type, CelScalar.INT);
+      assert.equal(scope.find("a"), CelScalar.INT);
     });
     void test("shadowed in child", () => {
       const parent = createScope({ a: CelScalar.INT });
       const scope = parent.push({ a: CelScalar.STRING });
-      assert.equal(scope.find("a")?.name, "a");
-      assert.equal(scope.find("a")?.type, CelScalar.STRING);
+      assert.equal(scope.find("a"), CelScalar.STRING);
     });
   });
 
@@ -46,25 +43,20 @@ void suite("scope", () => {
     void test("push and pop", () => {
       const root = createScope({ a: CelScalar.INT });
       const child = root.push({ b: CelScalar.STRING });
-      assert.equal(child.find("a")?.name, "a");
-      assert.equal(child.find("a")?.type, CelScalar.INT);
-      assert.equal(child.find("b")?.name, "b");
-      assert.equal(child.find("b")?.type, CelScalar.STRING);
+      assert.equal(child.find("a"), CelScalar.INT);
+      assert.equal(child.find("b"), CelScalar.STRING);
 
       const popped = child.pop();
-      assert.equal(popped.find("a")?.name, "a");
-      assert.equal(popped.find("a")?.type, CelScalar.INT);
+      assert.equal(popped.find("a"), CelScalar.INT);
       assert.equal(popped.find("b"), undefined);
     });
     void test("shadowing with push", () => {
       const root = createScope({ a: CelScalar.INT });
       const child = root.push({ a: CelScalar.STRING });
-      assert.equal(child.find("a")?.name, "a");
-      assert.equal(child.find("a")?.type, CelScalar.STRING);
+      assert.equal(child.find("a"), CelScalar.STRING);
 
       const popped = child.pop();
-      assert.equal(popped.find("a")?.name, "a");
-      assert.equal(popped.find("a")?.type, CelScalar.INT);
+      assert.equal(popped.find("a"), CelScalar.INT);
     });
     void test("pop on root returns root", () => {
       const root = createScope({ a: CelScalar.INT });

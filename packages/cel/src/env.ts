@@ -23,7 +23,6 @@ import { default as logic } from "./std/logic.js";
 import { default as time } from "./std/time.js";
 import {
   createScope,
-  type CelVariableEntryInput,
   type CelVariableEntry,
   type VariableScope,
 } from "./scope.js";
@@ -57,7 +56,7 @@ export interface CelEnv<Vars extends CelVariableEntry = CelVariableEntry> {
 }
 
 export interface CelEnvOptions<
-  Vars extends CelVariableEntryInput = CelVariableEntryInput,
+  Vars extends CelVariableEntry = CelVariableEntry,
 > {
   /**
    * Namespace of the environment.
@@ -82,9 +81,9 @@ export interface CelEnvOptions<
 /**
  * Creates a new CelEnv.
  */
-export function celEnv<
-  const Vars extends CelVariableEntryInput = CelVariableEntryInput,
->(options?: CelEnvOptions<Vars>): CelEnv<CelVariableEntry<Vars>> {
+export function celEnv<const Vars extends CelVariableEntry = CelVariableEntry>(
+  options?: CelEnvOptions<Vars>,
+): CelEnv<Vars> {
   return new _CelEnv(
     options?.namespace ? new Namespace(options?.namespace) : undefined,
     options?.registry
