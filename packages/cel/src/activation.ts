@@ -52,6 +52,25 @@ export class VarActivation implements Activation {
   }
 }
 
+export class HierarchicalActivation implements Activation {
+  constructor(
+    private readonly _parent: Activation,
+    private readonly _child: Activation,
+  ) {}
+
+  resolve(name: string): CelResult | undefined {
+    const value = this._child.resolve(name);
+    if (value !== undefined) {
+      return value;
+    }
+    return this._parent.resolve(name);
+  }
+
+  get parent() {
+    return this._parent;
+  }
+}
+
 export const EMPTY_ACTIVATION: Activation = {
   resolve() {
     return undefined;

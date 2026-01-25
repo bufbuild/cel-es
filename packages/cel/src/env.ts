@@ -21,6 +21,12 @@ import { default as cast } from "./std/cast.js";
 import { default as math } from "./std/math.js";
 import { default as logic } from "./std/logic.js";
 import { default as time } from "./std/time.js";
+import type { CelVariable } from "./variable.js";
+import {
+  createScope,
+  type CelVariableTuple,
+  type VariableScope,
+} from "./scope.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
@@ -30,7 +36,11 @@ const privateSymbol = Symbol.for("@bufbuild/cel/env");
  * The environment defines the functions and types that are available
  * during CEL expression evaluation.
  */
-export interface CelEnv {
+export interface CelEnv<
+  Vars extends CelVariableTuple<readonly CelVariable[]> = CelVariableTuple<
+    readonly CelVariable[]
+  >,
+> {
   [privateSymbol]: unknown;
   /**
    * Namespace of the environment.
@@ -44,9 +54,15 @@ export interface CelEnv {
    * The function resolver to use.
    */
   readonly funcs: FuncResolver;
+  /**
+   * The variable scope to use.
+   */
+  readonly variables: VariableScope<Vars>;
 }
 
-export interface CelEnvOptions {
+export interface CelEnvOptions<
+  Vars extends readonly CelVariable[] = readonly CelVariable[],
+> {
   /**
    * Namespace of the environment.
    */
@@ -61,27 +77,42 @@ export interface CelEnvOptions {
    * This can be used to override any std function/method.
    */
   funcs?: CelFunc[];
+  /**
+   * Variables to add to the environment.
+   */
+  variables?: Vars;
 }
 
 /**
  * Creates a new CelEnv.
  */
-export function celEnv(options?: CelEnvOptions): CelEnv {
+export function celEnv<
+  const Vars extends CelVariableTuple<
+    readonly CelVariable[]
+  > = CelVariableTuple<readonly CelVariable[]>,
+>(options?: CelEnvOptions<Vars>): CelEnv<Vars> {
   return new _CelEnv(
     options?.namespace ? new Namespace(options?.namespace) : undefined,
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
     createResolver(math, cast, time, logic, options?.funcs ?? []),
+    createScope(...(options?.variables ?? [])),
   );
 }
 
-class _CelEnv implements CelEnv {
+class _CelEnv<
+  Vars extends CelVariableTuple<readonly CelVariable[]> = CelVariableTuple<
+    readonly CelVariable[]
+  >,
+> implements CelEnv<Vars>
+{
   [privateSymbol] = {};
   constructor(
     private readonly _namespace: Namespace | undefined,
     private readonly _registry: Registry,
     private readonly _funcs: FuncResolver,
+    private readonly _variables: VariableScope<Vars>,
   ) {}
 
   get namespace() {
@@ -92,5 +123,8 @@ class _CelEnv implements CelEnv {
   }
   get funcs() {
     return this._funcs;
+  }
+  get variables() {
+    return this._variables;
   }
 }

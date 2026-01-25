@@ -28,10 +28,33 @@ import { celError, type CelResult, isCelError } from "./error.js";
 import { withEvalContext } from "./eval.js";
 import { unwrapAny } from "./value.js";
 import type { CelEnv } from "./env.js";
-import { EMPTY_ACTIVATION, ObjectActivation } from "./activation.js";
-import type { CelInput } from "./type.js";
+import {
+  EMPTY_ACTIVATION,
+  HierarchicalActivation,
+  ObjectActivation,
+} from "./activation.js";
+import type { CelInput, CelValue } from "./type.js";
+import type { CelVariable } from "./variable.js";
+import type { CelVariableTuple } from "./scope.js";
 
 const cache = new WeakMap<CelEnv, Planner>();
+
+export type VariableInputEntry<V extends CelVariable> = {
+  [key in V["name"]]: CelInput<V["type"]>;
+};
+
+export type CelInputMap<T extends CelVariableTuple<readonly CelVariable[]>> =
+  T extends readonly [
+    infer V extends CelVariable,
+    ...infer Rest extends CelVariable[],
+  ]
+    ? Partial<VariableInputEntry<V> & CelInputMap<Rest>>
+    : Record<never, never>;
+
+export type CelBindings<T extends CelVariableTuple<readonly CelVariable[]>> =
+  keyof CelInputMap<T> extends never
+    ? Record<string, CelInput>
+    : CelInputMap<T>;
 
 /**
  * Creates an execution plan for a CEL expression and returns a reusable evaluation function.
@@ -39,10 +62,12 @@ const cache = new WeakMap<CelEnv, Planner>();
  * Planning analyzes the expression structure once, independent of runtime variable values.
  * The returned function can be called multiple times with different variable bindings.
  */
-export function plan(
-  env: CelEnv,
+export function plan<
+  const Vars extends CelVariableTuple<readonly CelVariable[]>,
+>(
+  env: CelEnv<Vars>,
   expr: Expr | ParsedExpr | CheckedExpr,
-): (ctx?: Record<string, CelInput>) => CelResult {
+): (ctx?: CelBindings<Vars>) => CelResult {
   // TODO(srikrsna): This can be avoided, if we refactor Planner into functions that use CelEnv directly.
   let planner = cache.get(env);
   if (planner === undefined) {
@@ -75,9 +100,20 @@ export function plan(
       },
     },
   );
-  return (ctx?: Record<string, CelInput>) => {
+  // Extract constant variables from the environment
+  const constantVars: Record<string, CelValue> = {};
+  for (const variable of env.variables) {
+    if (variable.value !== undefined) {
+      constantVars[variable.name] = variable.value;
+    }
+  }
+  const hasConstantVars = Object.values(constantVars).length > 0;
+  return (ctx?: CelBindings<Vars>) => {
     return withContext.eval(
-      ctx !== undefined ? new ObjectActivation(ctx) : EMPTY_ACTIVATION,
+      new HierarchicalActivation(
+        hasConstantVars ? new ObjectActivation(constantVars) : EMPTY_ACTIVATION,
+        ctx !== undefined ? new ObjectActivation(ctx) : EMPTY_ACTIVATION,
+      ),
     );
   };
 }
