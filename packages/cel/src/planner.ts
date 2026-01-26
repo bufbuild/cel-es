@@ -31,7 +31,6 @@ import {
 } from "./access.js";
 import { VarActivation, type Activation } from "./activation.js";
 import * as opc from "./gen/dev/cel/expr/operator_const.js";
-import { Namespace } from "./namespace.js";
 import {
   celError,
   type CelError,
@@ -46,13 +45,14 @@ import { celObject } from "./object.js";
 import { celType, type CelValue } from "./type.js";
 import type { Registry } from "@bufbuild/protobuf";
 import type { FuncGroup, FuncResolver } from "./resolver.js";
+import { resolveCandidateNames } from "./namespace.js";
 
 export class Planner {
   private readonly factory: AttributeFactory;
   constructor(
     private readonly functions: FuncResolver,
     private readonly registry: Registry,
-    private readonly namespace: Namespace = Namespace.ROOT,
+    private readonly namespace: string,
   ) {
     this.factory = new ConcreteAttributeFactory(this.registry, this.namespace);
   }
@@ -221,7 +221,8 @@ export class Planner {
       const qualName = toQualifiedName(call.target);
       if (qualName !== undefined) {
         const funcName = qualName + "." + call.function;
-        for (const candidate of this.namespace.resolveCandidateNames(
+        for (const candidate of resolveCandidateNames(
+          this.namespace,
           funcName,
         )) {
           const func = this.functions.find(candidate);
@@ -337,7 +338,7 @@ export class Planner {
   }
 
   private resolveType(name: string): string | undefined {
-    for (const candidate of this.namespace.resolveCandidateNames(name)) {
+    for (const candidate of resolveCandidateNames(this.namespace, name)) {
       if (this.isKnownType(candidate)) {
         return candidate;
       }
