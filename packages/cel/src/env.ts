@@ -15,7 +15,6 @@
 import type { Registry } from "@bufbuild/protobuf";
 import { createRegistryWithWKT } from "./registry.js";
 import type { CelFunc } from "./func.js";
-import { Namespace } from "./namespace.js";
 import { createResolver, type FuncResolver } from "./resolver.js";
 import { default as cast } from "./std/cast.js";
 import { default as math } from "./std/math.js";
@@ -35,7 +34,7 @@ export interface CelEnv {
   /**
    * Namespace of the environment.
    */
-  readonly namespace: Namespace | undefined;
+  readonly namespace: string;
   /**
    * The protobuf registry to use.
    */
@@ -68,7 +67,7 @@ export interface CelEnvOptions {
  */
 export function celEnv(options?: CelEnvOptions): CelEnv {
   return new _CelEnv(
-    options?.namespace ? new Namespace(options?.namespace) : undefined,
+    options?.namespace ?? "",
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
@@ -79,7 +78,7 @@ export function celEnv(options?: CelEnvOptions): CelEnv {
 class _CelEnv implements CelEnv {
   [privateSymbol] = {};
   constructor(
-    private readonly _namespace: Namespace | undefined,
+    private readonly _namespace: string,
     private readonly _registry: Registry,
     private readonly _funcs: FuncResolver,
   ) {}

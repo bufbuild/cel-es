@@ -14,7 +14,7 @@
 
 import type { Activation } from "./activation.js";
 import { EvalAttr, type Interpretable } from "./planner.js";
-import type { Namespace } from "./namespace.js";
+import { resolveCandidateNames } from "./namespace.js";
 import {
   type CelResult,
   type CelError,
@@ -673,7 +673,7 @@ class EvalAccess implements Access {
 export class ConcreteAttributeFactory implements AttributeFactory {
   constructor(
     public registry: Registry,
-    public container: Namespace,
+    public container: string,
   ) {}
 
   createAbsolute(id: number, names: string[]): NamespacedAttribute {
@@ -692,7 +692,7 @@ export class ConcreteAttributeFactory implements AttributeFactory {
   createMaybe(id: number, name: string): Attribute {
     return new MaybeAttr(
       id,
-      [this.createAbsolute(id, this.container.resolveCandidateNames(name))],
+      [this.createAbsolute(id, resolveCandidateNames(this.container, name))],
       this,
     );
   }
