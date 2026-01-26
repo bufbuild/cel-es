@@ -14,32 +14,23 @@
 
 import { suite, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { Namespace } from "./namespace.js";
+import { resolveCandidateNames } from "./namespace.js";
 
-void suite("adapter tests", () => {
-  void test("main namespace", () => {
-    const c = new Namespace("");
-
-    const actual = c.resolveCandidateNames("a.b.c");
-    const expected = ["a.b.c"];
-    assert.deepEqual(actual, expected);
+void suite("resolveCandidateNames()", () => {
+  void test("root namespace", () => {
+    assert.deepEqual(resolveCandidateNames("", "a.b.c"), ["a.b.c"]);
   });
 
   void test("named namespace", () => {
-    const c = new Namespace("a.b.c.M.N");
-
-    let actual = c.resolveCandidateNames("R.s");
-    let expected = [
+    const namespace = "a.b.c.M.N";
+    assert.deepEqual(resolveCandidateNames(namespace, "R.s"), [
       "a.b.c.M.N.R.s",
       "a.b.c.M.R.s",
       "a.b.c.R.s",
       "a.b.R.s",
       "a.R.s",
       "R.s",
-    ];
-    assert.deepEqual(actual, expected);
-    actual = c.resolveCandidateNames(".R.s");
-    expected = ["R.s"];
-    assert.deepEqual(actual, expected);
+    ]);
+    assert.deepEqual(resolveCandidateNames(namespace, ".R.s"), ["R.s"]);
   });
 });

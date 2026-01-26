@@ -12,67 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export class Namespace {
-  private readonly _name: string;
-  private readonly _aliases: Map<string, string>;
-
-  constructor(name = "") {
-    this._name = name;
-    this._aliases = new Map();
+/**
+ * Resolves possible names of an identifier in the order of preference
+ * defined in the spec.
+ *
+ * > Resolution works as follows. If a.b is a name to be resolved in the context of
+ *  a protobuf declaration with scope A.B, then resolution is attempted, in order,
+ *  as A.B.a.b, A.a.b, and finally a.b. To override this behavior, one can use .a.b;
+ *  this name will only be attempted to be resolved in the root scope, i.e. as a.b.
+ *
+ * Ref: https://github.com/google/cel-spec/blob/master/doc/langdef.md#name-resolution
+ */
+export function resolveCandidateNames(
+  namespace: string,
+  name: string,
+): string[] {
+  if (name.startsWith(".")) {
+    return [name.substring(1)];
   }
-
-  static ROOT: Namespace = new Namespace();
-
-  name(): string {
-    return this._name;
+  if (namespace === "") {
+    return [name];
   }
-
-  aliases(): Map<string, string> {
-    return this._aliases;
+  const candidates = [];
+  for (let nextNs = namespace; ; ) {
+    candidates.push(nextNs + "." + name);
+    const i = nextNs.lastIndexOf(".");
+    if (i < 0) {
+      break;
+    }
+    nextNs = nextNs.substring(0, i);
   }
-
-  resolveCandidateNames(name: string): string[] {
-    if (name.startsWith(".")) {
-      const qn = name.substring(1);
-      const alias = this.findAlias(qn);
-      if (alias !== undefined) {
-        return [alias];
-      }
-      return [qn];
-    }
-    const alias = this.findAlias(name);
-    if (alias !== undefined) {
-      return [alias];
-    }
-    if (this.name() === "") {
-      return [name];
-    }
-    let nextCont = this.name();
-    const candidates = [nextCont + "." + name];
-    for (
-      let i = nextCont.lastIndexOf(".");
-      i >= 0;
-      i = nextCont.lastIndexOf(".")
-    ) {
-      nextCont = nextCont.substring(0, i);
-      candidates.push(nextCont + "." + name);
-    }
-    candidates.push(name);
-    return candidates;
-  }
-
-  findAlias(name: string): string | undefined {
-    let simple = name;
-    let qualifier = "";
-    const dot = name.indexOf(".");
-    if (dot >= 0) {
-      simple = name.substring(0, dot);
-      qualifier = name.substring(dot);
-    }
-    const alias = this._aliases.get(simple);
-    if (alias === undefined) {
-      return undefined;
-    }
-    return alias + qualifier;
-  }
+  candidates.push(name);
+  return candidates;
 }
