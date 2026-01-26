@@ -30,8 +30,13 @@ import { unwrapAny } from "./value.js";
 import type { CelEnv } from "./env.js";
 import { EMPTY_ACTIVATION, ObjectActivation } from "./activation.js";
 import type { CelInput } from "./type.js";
+import type { VariableDecl } from "./scope.js";
 
 const cache = new WeakMap<CelEnv, Planner>();
+
+export type CelBindings<T extends VariableDecl> = {
+  [P in keyof T]: CelInput<T[P]>;
+};
 
 /**
  * Creates an execution plan for a CEL expression and returns a reusable evaluation function.
@@ -39,10 +44,12 @@ const cache = new WeakMap<CelEnv, Planner>();
  * Planning analyzes the expression structure once, independent of runtime variable values.
  * The returned function can be called multiple times with different variable bindings.
  */
-export function plan(
-  env: CelEnv,
+export function plan<const Vars extends VariableDecl>(
+  env: CelEnv<Vars>,
   expr: Expr | ParsedExpr | CheckedExpr,
-): (ctx?: Record<string, CelInput>) => CelResult {
+): VariableDecl extends Vars
+  ? (ctx?: CelBindings<Vars>) => CelResult
+  : (ctx: CelBindings<Vars>) => CelResult {
   // TODO(srikrsna): This can be avoided, if we refactor Planner into functions that use CelEnv directly.
   let planner = cache.get(env);
   if (planner === undefined) {
@@ -75,7 +82,7 @@ export function plan(
       },
     },
   );
-  return (ctx?: Record<string, CelInput>) => {
+  return (ctx?: CelBindings<Vars>) => {
     return withContext.eval(
       ctx !== undefined ? new ObjectActivation(ctx) : EMPTY_ACTIVATION,
     );
