@@ -44,7 +44,7 @@ export type CelBindings<T extends VariableDecl> = {
  * Planning analyzes the expression structure once, independent of runtime variable values.
  * The returned function can be called multiple times with different variable bindings.
  */
-export function plan<const Vars extends VariableDecl = VariableDecl>(
+export function plan<const Vars extends VariableDecl>(
   env: CelEnv<Vars>,
   expr: Expr | ParsedExpr | CheckedExpr,
 ): VariableDecl extends Vars
