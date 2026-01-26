@@ -16,18 +16,14 @@ import type { CelType } from "./type.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/scope");
 
-export type CelVariableEntry = {
-  [key: string]: CelType;
-};
+export type VariableDecl = Record<string, CelType>;
 
 /**
  * Represents nested declaration sets where each Scope contains all variables
  * in scope and an optional parent representing outer scopes. Lookups are
  * performed such that bindings in inner scopes shadow those in outer scopes.
  */
-export interface VariableScope<
-  Vars extends CelVariableEntry = CelVariableEntry,
-> {
+export interface VariableScope<Vars extends VariableDecl = VariableDecl> {
   [privateSymbol]: unknown;
   /**
    * All the variables in the scope.
@@ -37,14 +33,14 @@ export interface VariableScope<
    * Creates a new VariableScope with the current scope as the parent and the
    * provided inputs as the new scope's variables.
    */
-  push<PushVars extends CelVariableEntry = CelVariableEntry>(
-    inputs?: PushVars,
+  push<PushVars extends VariableDecl = VariableDecl>(
+    inputs: PushVars,
   ): VariableScope<PushVars & Vars>;
   /**
    * Returns the parent VariableScope for the current scope, or the current
    * scope if the parent is undefined.
    */
-  pop(): VariableScope;
+  pop(): VariableScope | undefined;
   /**
    * Finds the variable by name in the current scope or any parent scopes.
    */
@@ -54,19 +50,20 @@ export interface VariableScope<
 /**
  * Creates a new VariableScope from the provided inputs.
  */
-export function createScope<
-  const Vars extends CelVariableEntry = CelVariableEntry,
->(inputs?: Vars): VariableScope<Vars> {
+export function createScope<const Vars extends VariableDecl = VariableDecl>(
+  inputs?: Vars,
+  parent?: VariableScope,
+): VariableScope<Vars> {
   const variables = new Map<string, CelType>();
   if (inputs) {
     for (const [name, type] of Object.entries(inputs)) {
       variables.set(name, type);
     }
   }
-  return new Scope(variables);
+  return new Scope(variables, parent);
 }
 
-class Scope<Vars extends CelVariableEntry = CelVariableEntry>
+class Scope<Vars extends VariableDecl = VariableDecl>
   implements VariableScope<Vars>
 {
   [privateSymbol] = {};
@@ -87,18 +84,14 @@ class Scope<Vars extends CelVariableEntry = CelVariableEntry>
     }
   }
 
-  push<PushVars extends CelVariableEntry = CelVariableEntry>(
-    inputs?: PushVars,
+  push<PushVars extends VariableDecl = VariableDecl>(
+    inputs: PushVars,
   ): VariableScope<PushVars & Vars> {
-    const variables: Map<string, CelType> = new Map();
-    for (const [name, type] of Object.entries(inputs ?? {})) {
-      variables.set(name, type);
-    }
-    return new Scope(variables, this);
+    return createScope(inputs, this);
   }
 
-  pop(): VariableScope {
-    return this._parent ?? this;
+  pop(): VariableScope | undefined {
+    return this._parent;
   }
 
   find(name: string): CelType | undefined {

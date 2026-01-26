@@ -25,7 +25,7 @@ void suite("plan", () => {
   void suite("types", () => {
     void test("no input types", () => {
       const program = plan(celEnv(), parse("1 + 2"));
-      expectTypeOf(program).toBeCallableWith({});
+      expectTypeOf(program).toBeCallableWith(undefined);
     });
     void test("inferred scalar input types", () => {
       const program = plan(

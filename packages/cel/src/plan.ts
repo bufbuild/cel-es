@@ -30,11 +30,11 @@ import { unwrapAny } from "./value.js";
 import type { CelEnv } from "./env.js";
 import { EMPTY_ACTIVATION, ObjectActivation } from "./activation.js";
 import type { CelInput } from "./type.js";
-import type { CelVariableEntry } from "./scope.js";
+import type { VariableDecl } from "./scope.js";
 
 const cache = new WeakMap<CelEnv, Planner>();
 
-export type CelBindings<T extends CelVariableEntry> = {
+export type CelBindings<T extends VariableDecl> = {
   [P in keyof T]: CelInput<T[P]>;
 };
 
@@ -44,7 +44,7 @@ export type CelBindings<T extends CelVariableEntry> = {
  * Planning analyzes the expression structure once, independent of runtime variable values.
  * The returned function can be called multiple times with different variable bindings.
  */
-export function plan<const Vars extends CelVariableEntry = CelVariableEntry>(
+export function plan<const Vars extends VariableDecl = VariableDecl>(
   env: CelEnv<Vars>,
   expr: Expr | ParsedExpr | CheckedExpr,
 ): (ctx?: CelBindings<Vars>) => CelResult {

@@ -21,11 +21,7 @@ import { default as cast } from "./std/cast.js";
 import { default as math } from "./std/math.js";
 import { default as logic } from "./std/logic.js";
 import { default as time } from "./std/time.js";
-import {
-  createScope,
-  type CelVariableEntry,
-  type VariableScope,
-} from "./scope.js";
+import { createScope, type VariableDecl, type VariableScope } from "./scope.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
@@ -35,7 +31,7 @@ const privateSymbol = Symbol.for("@bufbuild/cel/env");
  * The environment defines the functions and types that are available
  * during CEL expression evaluation.
  */
-export interface CelEnv<Vars extends CelVariableEntry = CelVariableEntry> {
+export interface CelEnv<Vars extends VariableDecl = VariableDecl> {
   [privateSymbol]: unknown;
   /**
    * Namespace of the environment.
@@ -55,9 +51,7 @@ export interface CelEnv<Vars extends CelVariableEntry = CelVariableEntry> {
   readonly variables: VariableScope<Vars>;
 }
 
-export interface CelEnvOptions<
-  Vars extends CelVariableEntry = CelVariableEntry,
-> {
+export interface CelEnvOptions<Vars extends VariableDecl = VariableDecl> {
   /**
    * Namespace of the environment.
    */
@@ -81,7 +75,7 @@ export interface CelEnvOptions<
 /**
  * Creates a new CelEnv.
  */
-export function celEnv<const Vars extends CelVariableEntry = CelVariableEntry>(
+export function celEnv<const Vars extends VariableDecl = VariableDecl>(
   options?: CelEnvOptions<Vars>,
 ): CelEnv<Vars> {
   return new _CelEnv(
@@ -94,9 +88,7 @@ export function celEnv<const Vars extends CelVariableEntry = CelVariableEntry>(
   );
 }
 
-class _CelEnv<Vars extends CelVariableEntry = CelVariableEntry>
-  implements CelEnv<Vars>
-{
+class _CelEnv<Vars extends VariableDecl> implements CelEnv<Vars> {
   [privateSymbol] = {};
   constructor(
     private readonly _namespace: Namespace | undefined,

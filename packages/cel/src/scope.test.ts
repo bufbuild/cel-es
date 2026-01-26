@@ -29,7 +29,7 @@ void suite("scope", () => {
     });
     void test("found in parent", () => {
       const parent = createScope({ a: CelScalar.INT });
-      const scope = parent.push();
+      const scope = parent.push({});
       assert.equal(scope.find("a"), CelScalar.INT);
     });
     void test("shadowed in child", () => {
@@ -47,8 +47,8 @@ void suite("scope", () => {
       assert.equal(child.find("b"), CelScalar.STRING);
 
       const popped = child.pop();
-      assert.equal(popped.find("a"), CelScalar.INT);
-      assert.equal(popped.find("b"), undefined);
+      assert.equal(popped?.find("a"), CelScalar.INT);
+      assert.equal(popped?.find("b"), undefined);
     });
     void test("shadowing with push", () => {
       const root = createScope({ a: CelScalar.INT });
@@ -56,13 +56,12 @@ void suite("scope", () => {
       assert.equal(child.find("a"), CelScalar.STRING);
 
       const popped = child.pop();
-      assert.equal(popped.find("a"), CelScalar.INT);
+      assert.equal(popped?.find("a"), CelScalar.INT);
     });
-    void test("pop on root returns root", () => {
+    void test("pop on root returns undefined", () => {
       const root = createScope({ a: CelScalar.INT });
       const popped = root.pop();
-      assert.notEqual(popped.find("a"), undefined);
-      assert.equal(popped.find("a"), root.find("a"));
+      assert.equal(popped, undefined);
     });
   });
 });
