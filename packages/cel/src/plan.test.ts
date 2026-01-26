@@ -27,6 +27,14 @@ void suite("plan", () => {
       const program = plan(celEnv(), parse("1 + 2"));
       expectTypeOf(program).toBeCallableWith(undefined);
     });
+    void test("if variables are defined disallow undefined", () => {
+      const program = plan(
+        celEnv({ variables: { x: CelScalar.INT } }),
+        parse("x + 1"),
+      );
+      //@ts-expect-error
+      expectTypeOf(program).toBeCallableWith(undefined);
+    });
     void test("inferred scalar input types", () => {
       const program = plan(
         celEnv({ variables: { a: CelScalar.STRING, b: CelScalar.INT } }),

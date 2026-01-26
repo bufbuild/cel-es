@@ -37,8 +37,7 @@ export interface VariableScope<Vars extends VariableDecl = VariableDecl> {
     inputs: PushVars,
   ): VariableScope<PushVars & Vars>;
   /**
-   * Returns the parent VariableScope for the current scope, or the current
-   * scope if the parent is undefined.
+   * Returns the parent VariableScope for the current scope or undefined.
    */
   pop(): VariableScope | undefined;
   /**

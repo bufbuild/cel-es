@@ -47,7 +47,9 @@ export type CelBindings<T extends VariableDecl> = {
 export function plan<const Vars extends VariableDecl = VariableDecl>(
   env: CelEnv<Vars>,
   expr: Expr | ParsedExpr | CheckedExpr,
-): (ctx?: CelBindings<Vars>) => CelResult {
+): VariableDecl extends Vars
+  ? (ctx?: CelBindings<Vars>) => CelResult
+  : (ctx: CelBindings<Vars>) => CelResult {
   // TODO(srikrsna): This can be avoided, if we refactor Planner into functions that use CelEnv directly.
   let planner = cache.get(env);
   if (planner === undefined) {
