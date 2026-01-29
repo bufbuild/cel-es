@@ -210,7 +210,7 @@ function celScalarType<
   } as const;
 }
 
-type mapKeyType =
+export type mapKeyType =
   | typeof CelScalar.INT
   | typeof CelScalar.UINT
   | typeof CelScalar.BOOL

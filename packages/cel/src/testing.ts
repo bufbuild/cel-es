@@ -40,7 +40,7 @@ import {
 } from "./type.js";
 import { getMsgDesc } from "./eval.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { celEnv } from "./env.js";
+import { celEnv, type CelEnv } from "./env.js";
 import { isCelError } from "./error.js";
 import type {
   IncrementalTest,
@@ -51,6 +51,11 @@ import {
   KindAdorner,
   toDebugString,
 } from "@bufbuild/cel-spec/testdata/to-debug-string.js";
+import { check, outputType } from "./check.js";
+import type {
+  Expr,
+  ParsedExpr,
+} from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 
 type TestRunner = (t: IncrementalTest, r: Registry) => void;
 
@@ -156,7 +161,8 @@ export function runSimpleTestCase(test: IncrementalTest, registry: Registry) {
       assert.equal(result, true);
       break;
     case "typedResult":
-      assert.fail("Doesn't yet support types");
+      assertOutputTypeEqual(env, parsed, test.type as string);
+      break;
     default:
       throw new Error(
         `Unsupported result case: ${testCase.resultMatcher.case}`,
@@ -346,5 +352,22 @@ function lookupType(name: string) {
       return CelScalar.TYPE;
     default:
       return objectType(getMsgDesc(name));
+  }
+}
+
+function assertOutputTypeEqual(
+  env: CelEnv,
+  expr: Expr | ParsedExpr,
+  expected: string,
+) {
+  const checked = check(env, expr);
+  const actual = outputType(checked)?.toString();
+  switch (expected) {
+    case "null":
+      assert.equal(actual, "null_type");
+      break;
+    default:
+      assert.equal(actual, expected);
+      break;
   }
 }
