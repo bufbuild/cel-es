@@ -13,17 +13,19 @@
 // limitations under the License.
 
 import type {
+  ExprSchema,
+  Constant,
   Expr,
-  ParsedExpr,
+  SourceInfo,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import {
   type CheckedExpr,
-  type Type as ProtoType,
+  type Type,
   CheckedExprSchema,
-  TypeSchema as ProtoTypeSchema,
+  TypeSchema,
   Type_PrimitiveType,
 } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
-import { create } from "@bufbuild/protobuf";
+import { create, type MessageInitShape } from "@bufbuild/protobuf";
 import {
   CelScalar,
   type CelType,
@@ -34,94 +36,83 @@ import {
   objectType,
   TIMESTAMP,
 } from "./type.js";
-import { celError } from "./error.js";
 import { NullValue } from "@bufbuild/protobuf/wkt";
 
 export class Checker {
   private readonly typeMap: Map<bigint, CelType> = new Map();
 
-  check(parsed: ParsedExpr): CheckedExpr {
+  check(expr: Expr, sourceInfo: SourceInfo | undefined): CheckedExpr {
+    // Clear each time we check since Checker instances are cached per environment.
     this.typeMap.clear();
-    let { expr, sourceInfo } = parsed;
-    if (!expr) {
-      throw new Error("ParsedExpr has no expr");
-    }
-    expr = this.checkExpr(expr);
     return create(CheckedExprSchema, {
-      expr,
+      expr: this.checkExpr(expr),
       sourceInfo,
       // TODO: referenceMap
       typeMap: celTypeMapToProtoTypeMap(this.typeMap),
     });
   }
 
-  private checkExpr(expr: Expr): Expr {
+  private checkExpr(expr: Expr): MessageInitShape<typeof ExprSchema> {
     switch (expr.exprKind.case) {
       case "constExpr":
-        return this.checkConstExpr(expr);
+        return this.checkConstExpr(expr.id, expr.exprKind.value);
       default:
         throw new Error(`Unsupported expression kind: ${expr.exprKind.case}`);
     }
   }
 
-  private checkConstExpr(expr: Expr): Expr {
-    if (expr.exprKind.case !== "constExpr") {
-      throw new Error("Expression is not a constant expression");
-    }
-    const constant = expr.exprKind.value;
+  private checkConstExpr(
+    id: bigint,
+    constant: Constant,
+  ): MessageInitShape<typeof ExprSchema> {
     switch (constant.constantKind.case) {
       case "boolValue":
-        this.setType(expr, CelScalar.BOOL);
+        this.setType(id, CelScalar.BOOL);
         break;
       case "bytesValue":
-        this.setType(expr, CelScalar.BYTES);
+        this.setType(id, CelScalar.BYTES);
         break;
       case "doubleValue":
-        this.setType(expr, CelScalar.DOUBLE);
+        this.setType(id, CelScalar.DOUBLE);
         break;
       case "durationValue":
-        this.setType(expr, DURATION);
+        this.setType(id, DURATION);
         break;
       case "int64Value":
-        this.setType(expr, CelScalar.INT);
+        this.setType(id, CelScalar.INT);
         break;
       case "nullValue":
-        this.setType(expr, CelScalar.NULL);
+        this.setType(id, CelScalar.NULL);
         break;
       case "stringValue":
-        this.setType(expr, CelScalar.STRING);
+        this.setType(id, CelScalar.STRING);
         break;
       case "timestampValue":
-        this.setType(expr, TIMESTAMP);
+        this.setType(id, TIMESTAMP);
         break;
       case "uint64Value":
-        this.setType(expr, CelScalar.UINT);
+        this.setType(id, CelScalar.UINT);
         break;
       default:
         throw new Error(
           `unexpected constant kind: ${constant.constantKind.case}`,
         );
     }
-    return expr;
+    return {
+      id,
+      exprKind: {
+        case: "constExpr",
+        value: constant,
+      },
+    };
   }
 
-  private setType(expr: Expr, type: CelType): void {
-    const found = this.typeMap.get(expr.id);
-    if (found && found.kind !== type.kind) {
-      throw celError(
-        `incompatible type already exists for expression`,
-        expr.id,
-      );
-    }
-    this.typeMap.set(expr.id, type);
-  }
-
-  public getType(expr: Expr): CelType | undefined {
-    return this.typeMap.get(expr.id);
+  private setType(id: bigint, type: CelType): void {
+    this.typeMap.set(id, type);
   }
 }
 
-export function protoTypeToCelType(pt: ProtoType): CelType {
+export function protoTypeToCelType(pt: Type): CelType {
   switch (pt.typeKind.case) {
     case "primitive":
       switch (pt.typeKind.value) {
@@ -147,15 +138,15 @@ export function protoTypeToCelType(pt: ProtoType): CelType {
       if (!pt.typeKind.value.elemType) {
         throw new Error(`invalid ProtoType listType: ${pt.typeKind.value}`);
       }
-      const elemType = protoTypeToCelType(pt.typeKind.value.elemType);
-      return listType(elemType);
+      return listType(protoTypeToCelType(pt.typeKind.value.elemType));
     case "mapType":
       if (!pt.typeKind.value.keyType || !pt.typeKind.value.valueType) {
         throw new Error(`invalid ProtoType mapType: ${pt.typeKind.value}`);
       }
-      const keyType = protoTypeToCelType(pt.typeKind.value.keyType);
-      const valueType = protoTypeToCelType(pt.typeKind.value.valueType);
-      return mapType(keyType as mapKeyType, valueType);
+      return mapType(
+        protoTypeToCelType(pt.typeKind.value.keyType) as mapKeyType,
+        protoTypeToCelType(pt.typeKind.value.valueType),
+      );
     case "messageType":
       return objectType(pt.typeKind.value);
     case "abstractType":
@@ -173,21 +164,34 @@ export function protoTypeToCelType(pt: ProtoType): CelType {
   );
 }
 
-function primitiveProtoType(primitiveType: Type_PrimitiveType): ProtoType {
-  return create(ProtoTypeSchema, {
+function primitiveProtoType(
+  primitiveType: Type_PrimitiveType,
+): MessageInitShape<typeof TypeSchema> {
+  return {
     typeKind: {
       case: "primitive",
       value: primitiveType,
     },
-  });
+  };
 }
 
-const NULL_PROTO_TYPE = create(ProtoTypeSchema, {
+const BOOL_TYPE = primitiveProtoType(Type_PrimitiveType.BOOL);
+const BYTES_TYPE = primitiveProtoType(Type_PrimitiveType.BYTES);
+const DOUBLE_TYPE = primitiveProtoType(Type_PrimitiveType.DOUBLE);
+const INT_TYPE = primitiveProtoType(Type_PrimitiveType.INT64);
+const STRING_TYPE = primitiveProtoType(Type_PrimitiveType.STRING);
+const UINT_TYPE = primitiveProtoType(Type_PrimitiveType.UINT64);
+const NULL_TYPE: MessageInitShape<typeof TypeSchema> = {
   typeKind: { case: "null", value: NullValue.NULL_VALUE },
-});
+};
+const DYN_TYPE: MessageInitShape<typeof TypeSchema> = {
+  typeKind: { case: "dyn", value: {} },
+};
 
-function listProtoType(elemType: ProtoType): ProtoType {
-  return create(ProtoTypeSchema, {
+function listProtoType(
+  elemType: MessageInitShape<typeof TypeSchema>,
+): MessageInitShape<typeof TypeSchema> {
+  return create(TypeSchema, {
     typeKind: {
       case: "listType",
       value: {
@@ -197,8 +201,11 @@ function listProtoType(elemType: ProtoType): ProtoType {
   });
 }
 
-function mapProtoType(keyType: ProtoType, valueType: ProtoType): ProtoType {
-  return create(ProtoTypeSchema, {
+function mapProtoType(
+  keyType: MessageInitShape<typeof TypeSchema>,
+  valueType: MessageInitShape<typeof TypeSchema>,
+): MessageInitShape<typeof TypeSchema> {
+  return {
     typeKind: {
       case: "mapType",
       value: {
@@ -206,41 +213,44 @@ function mapProtoType(keyType: ProtoType, valueType: ProtoType): ProtoType {
         valueType,
       },
     },
-  });
+  };
 }
 
-function objectProtoType(typeName: string): ProtoType {
-  return create(ProtoTypeSchema, {
+function objectProtoType(
+  typeName: string,
+): MessageInitShape<typeof TypeSchema> {
+  return {
     typeKind: {
       case: "messageType",
       value: typeName,
     },
-  });
+  };
 }
 
-function celTypeToProtoType(ct: CelType): ProtoType {
+function celTypeToProtoType(ct: CelType): MessageInitShape<typeof TypeSchema> {
   switch (ct.kind) {
     case "scalar":
       switch (ct.name) {
         case "bool":
-          return primitiveProtoType(Type_PrimitiveType.BOOL);
+          return BOOL_TYPE;
         case "bytes":
-          return primitiveProtoType(Type_PrimitiveType.BYTES);
+          return BYTES_TYPE;
         case "double":
-          return primitiveProtoType(Type_PrimitiveType.DOUBLE);
+          return DOUBLE_TYPE;
         case "int":
-          return primitiveProtoType(Type_PrimitiveType.INT64);
+          return INT_TYPE;
         case "string":
-          return primitiveProtoType(Type_PrimitiveType.STRING);
+          return STRING_TYPE;
         case "uint":
-          return primitiveProtoType(Type_PrimitiveType.UINT64);
+          return UINT_TYPE;
         case "null_type":
-          return NULL_PROTO_TYPE;
-        // TODO: how to handle dyn?
-        // case "dyn":
-        //   return create(ProtoTypeSchema, { typeKind: { case: "dyn", value: ct.name } });
+          return NULL_TYPE;
+        case "dyn":
+          return DYN_TYPE;
+        case "type":
+          // TODO: handle type type
+          throw new Error(`unsupported CelType: ${ct.toString()}`);
       }
-      break;
     case "list":
       return listProtoType(celTypeToProtoType(ct.element));
     case "map":
@@ -251,15 +261,17 @@ function celTypeToProtoType(ct: CelType): ProtoType {
     case "object":
       return objectProtoType(ct.desc ? ct.desc.typeName : ct.name);
   }
-  throw new Error(`unsupported CelType: ${JSON.stringify(ct)}`);
 }
 
 function celTypeMapToProtoTypeMap(
   typeMap: Map<bigint, CelType>,
-): Record<string, ProtoType> {
-  const protoTypeMap: Record<string, ProtoType> = {};
+): Record<string, Type> {
+  const protoTypeMap: Record<string, Type> = {};
   for (const [exprId, celType] of typeMap.entries()) {
-    protoTypeMap[exprId.toString()] = celTypeToProtoType(celType);
+    protoTypeMap[exprId.toString()] = create(
+      TypeSchema,
+      celTypeToProtoType(celType),
+    );
   }
   return protoTypeMap;
 }

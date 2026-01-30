@@ -15,11 +15,10 @@
 import type { CheckedExpr } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import {
   ExprSchema,
-  ParsedExprSchema,
   type Expr,
   type ParsedExpr,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
-import { create, isMessage } from "@bufbuild/protobuf";
+import { isMessage } from "@bufbuild/protobuf";
 import { Checker, protoTypeToCelType } from "./checker.js";
 import type { CelEnv } from "./env.js";
 import type { CelType } from "./type.js";
@@ -37,9 +36,9 @@ export function check(env: CelEnv, expr: Expr | ParsedExpr): CheckedExpr {
     cache.set(env, checker);
   }
   if (isMessage(expr, ExprSchema)) {
-    return checker.check(create(ParsedExprSchema, { expr }));
+    return checker.check(expr, undefined);
   }
-  return checker.check(expr);
+  return checker.check(expr.expr as Expr, expr.sourceInfo);
 }
 
 /**
