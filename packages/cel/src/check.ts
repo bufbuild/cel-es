@@ -38,13 +38,16 @@ export function check(env: CelEnv, expr: Expr | ParsedExpr): CheckedExpr {
   if (isMessage(expr, ExprSchema)) {
     return checker.check(expr, undefined);
   }
-  return checker.check(expr.expr as Expr, expr.sourceInfo);
+  if (expr.expr === undefined) {
+    throw new Error("ParsedExpr has no expr");
+  }
+  return checker.check(expr.expr, expr.sourceInfo);
 }
 
 /**
  * Determines the output type of a CheckedExpr.
  */
-export function outputType(checkedExpr: CheckedExpr): CelType | undefined {
+export function outputType(checkedExpr: CheckedExpr): CelType {
   if (!checkedExpr.expr?.id) {
     throw new Error("CheckedExpr has no expr");
   }
