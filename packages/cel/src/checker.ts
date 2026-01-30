@@ -20,9 +20,9 @@ import type {
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import {
   type CheckedExpr,
-  type Type,
   CheckedExprSchema,
-  TypeSchema,
+  type Type,
+  type TypeSchema,
   Type_PrimitiveType,
 } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 import { create, type MessageInitShape } from "@bufbuild/protobuf";
@@ -191,14 +191,14 @@ const DYN_TYPE: MessageInitShape<typeof TypeSchema> = {
 function listProtoType(
   elemType: MessageInitShape<typeof TypeSchema>,
 ): MessageInitShape<typeof TypeSchema> {
-  return create(TypeSchema, {
+  return {
     typeKind: {
       case: "listType",
       value: {
         elemType,
       },
     },
-  });
+  };
 }
 
 function mapProtoType(
