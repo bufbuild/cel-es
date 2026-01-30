@@ -265,13 +265,10 @@ function celTypeToProtoType(ct: CelType): MessageInitShape<typeof TypeSchema> {
 
 function celTypeMapToProtoTypeMap(
   typeMap: Map<bigint, CelType>,
-): Record<string, Type> {
-  const protoTypeMap: Record<string, Type> = {};
+): Record<string, MessageInitShape<typeof TypeSchema>> {
+  const protoTypeMap: Record<string, MessageInitShape<typeof TypeSchema>> = {};
   for (const [exprId, celType] of typeMap.entries()) {
-    protoTypeMap[exprId.toString()] = create(
-      TypeSchema,
-      celTypeToProtoType(celType),
-    );
+    protoTypeMap[exprId.toString()] = celTypeToProtoType(celType);
   }
   return protoTypeMap;
 }
