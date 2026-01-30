@@ -26,8 +26,15 @@ const filter = createPathFilter([
   ["proto2", "extensions_get"],
   ["proto2", "extensions_has"],
   ["proto3", "quoted_fields"],
-  // We don't have support for type-checking.
-  ["type_deductions"],
+  // We don't have full support for type-checking.
+  ["type_deductions", "complex_initializers"],
+  ["type_deductions", "field_access"],
+  ["type_deductions", "indexing"],
+  ["type_deductions", "functions"],
+  ["type_deductions", "flexible_type_parameter_assignment"],
+  ["type_deductions", "wrappers"],
+  ["type_deductions", "type_parameters"],
+  ["type_deductions", "legacy_nullable_types"],
   // Failing in Go and Java as well. Basically it requires us to check if the map doesn't
   // have duplicates based on numerical equality. We can easily do that but that means
   // we have to loop over all the elements of a Map at least once. Doesn't seem to be
