@@ -20,6 +20,7 @@ import {
 import { tests as conformance } from "./conformance.js";
 import { tests as comprehension } from "./comprehension.js";
 import { tests as parsing } from "./parsing.js";
+import { tests as checking } from "./checking.js";
 import { getTestRegistry } from "./registry.js";
 
 const registry = getTestRegistry();
@@ -27,6 +28,7 @@ const registry = getTestRegistry();
 let conformanceSuite: IncrementalTestSuite;
 let comprehensionSuite: IncrementalTestSuite;
 let parsingSuite: IncrementalTestSuite;
+let checkingSuite: IncrementalTestSuite;
 
 export interface SerializedIncrementalTest {
   original: JsonObject & { name?: string; expr: string };
@@ -114,4 +116,9 @@ export function getComprehensionSuite() {
 export function getParsingSuite() {
   parsingSuite ??= deserializeTestSuite(parsing);
   return parsingSuite;
+}
+
+export function getCheckingSuite() {
+  checkingSuite ??= deserializeTestSuite(checking);
+  return checkingSuite;
 }

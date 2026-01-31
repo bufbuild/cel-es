@@ -12,7 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type CelResult, isCelMap, plan } from "./index.js";
+import {
+  celFunc,
+  type CelFunc,
+  celMethod,
+  type CelResult,
+  isCelMap,
+  plan,
+} from "./index.js";
 import { strings } from "./ext/index.js";
 import {
   create,
@@ -36,6 +43,7 @@ import {
   mapType,
   objectType,
   type CelInput,
+  type CelType,
   type CelValue,
 } from "./type.js";
 import { getMsgDesc } from "./eval.js";
@@ -56,6 +64,12 @@ import type {
   Expr,
   ParsedExpr,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+import type { SimpleTest } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
+import { protoTypeToCelType } from "./checker.js";
+import type {
+  Decl_IdentDecl,
+  Type,
+} from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 
 type TestRunner = (t: IncrementalTest, r: Registry) => void;
 
@@ -120,6 +134,38 @@ export function runParsingTest(test: IncrementalTest) {
     assert.deepStrictEqual(actual, expected);
   } else {
     assert.throws(() => parse(test.original.expr));
+  }
+}
+
+export function runCheckingTest(test: IncrementalTest) {
+  const [funcs, types] = typeEnvToFuncs(test.original.typeEnv || []);
+  const env = celEnv({
+    registry: getTestRegistry(),
+    namespace: test.original.container,
+    funcs: [
+      celFunc("fg_s", [], CelScalar.STRING, () => ""),
+      celMethod("fi_s_s", CelScalar.STRING, [], CelScalar.STRING, () => ""),
+      ...funcs,
+    ],
+    variables: {
+      is: CelScalar.STRING,
+      ii: CelScalar.INT,
+      iu: CelScalar.UINT,
+      iz: CelScalar.BOOL,
+      ib: CelScalar.BYTES,
+      id: CelScalar.DOUBLE,
+      ix: CelScalar.NULL,
+      ...types,
+    },
+  });
+  if (test.type) {
+    const parsed = parse(test.original.expr);
+    assertOutputTypeEqual(env, parsed, test.type);
+  } else {
+    assert.throws(() => {
+      const parsed = parse(test.original.expr);
+      check(env, parsed);
+    });
   }
 }
 
@@ -370,4 +416,44 @@ function assertOutputTypeEqual(
       assert.equal(actual, expected);
       break;
   }
+}
+
+function typeEnvToFuncs(
+  typeEnv: SimpleTest["typeEnv"],
+): [CelFunc[], Record<string, CelType>] {
+  const funcs: CelFunc[] = [];
+  const types: Record<string, CelType> = {};
+  for (const decl of typeEnv) {
+    if (decl.declKind.case === "function") {
+      const funcDecl = decl.declKind.value;
+      const overloads: CelFunc[] = [];
+      for (const overload of funcDecl.overloads) {
+        if (overload.isInstanceFunction) {
+          overloads.push(
+            celMethod(
+              decl.name,
+              protoTypeToCelType(overload.params[0] as Type),
+              overload.params.slice(1).map(protoTypeToCelType),
+              protoTypeToCelType(overload.resultType as Type),
+              () => null,
+            ),
+          );
+          continue;
+        }
+        overloads.push(
+          celFunc(
+            decl.name,
+            overload.params.map(protoTypeToCelType),
+            protoTypeToCelType(overload.resultType as Type),
+            () => null,
+          ),
+        );
+      }
+      funcs.push(...overloads);
+    } else {
+      const typeDecl = decl.declKind.value as Decl_IdentDecl;
+      types[decl.name] = protoTypeToCelType(typeDecl.type as Type);
+    }
+  }
+  return [funcs, types];
 }
