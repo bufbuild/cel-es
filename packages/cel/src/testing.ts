@@ -48,7 +48,7 @@ import {
 } from "./type.js";
 import { getMsgDesc } from "./eval.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { celEnv, type CelEnv } from "./env.js";
+import { celEnv } from "./env.js";
 import { isCelError } from "./error.js";
 import type {
   IncrementalTest,
@@ -57,16 +57,14 @@ import type {
 import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
 import {
   KindAdorner,
+  SemanticAdorner,
   toDebugString,
 } from "@bufbuild/cel-spec/testdata/to-debug-string.js";
 import { check, outputType } from "./check.js";
-import type {
-  Expr,
-  ParsedExpr,
-} from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import type { SimpleTest } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
 import { protoTypeToCelType } from "./checker.js";
 import type {
+  CheckedExpr,
   Decl_IdentDecl,
   Type,
 } from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
@@ -138,7 +136,7 @@ export function runParsingTest(test: IncrementalTest) {
 }
 
 export function runCheckingTest(test: IncrementalTest) {
-  const [funcs, types] = typeEnvToFuncs(test.original.typeEnv || []);
+  const [funcs, types] = typeEnvToDecls(test.original.typeEnv || []);
   const env = celEnv({
     registry: getTestRegistry(),
     namespace: test.original.container,
@@ -158,14 +156,16 @@ export function runCheckingTest(test: IncrementalTest) {
       ...types,
     },
   });
-  if (test.type) {
-    const parsed = parse(test.original.expr);
-    assertOutputTypeEqual(env, parsed, test.type);
+  if (test.type && test.checkedAst) {
+    const checked = check(env, parse(test.original.expr));
+    if (!checked.expr) {
+      assert.fail("expected checked expr to be present");
+    }
+    const actual = toDebugString(checked.expr, new SemanticAdorner(checked));
+    assert.deepStrictEqual(actual, test.checkedAst);
+    assertOutputTypeEqual(checked, test.type);
   } else {
-    assert.throws(() => {
-      const parsed = parse(test.original.expr);
-      check(env, parsed);
-    });
+    assert.throws(() => check(env, parse(test.original.expr)));
   }
 }
 
@@ -207,7 +207,7 @@ export function runSimpleTestCase(test: IncrementalTest, registry: Registry) {
       assert.equal(result, true);
       break;
     case "typedResult":
-      assertOutputTypeEqual(env, parsed, test.type as string);
+      assertOutputTypeEqual(check(env, parsed), test.type as string);
       break;
     default:
       throw new Error(
@@ -401,13 +401,8 @@ function lookupType(name: string) {
   }
 }
 
-function assertOutputTypeEqual(
-  env: CelEnv,
-  expr: Expr | ParsedExpr,
-  expected: string,
-) {
-  const checked = check(env, expr);
-  const actual = outputType(checked)?.toString();
+function assertOutputTypeEqual(expr: CheckedExpr, expected: string) {
+  const actual = outputType(expr)?.toString();
   switch (expected) {
     case "null":
       assert.equal(actual, "null_type");
@@ -418,7 +413,7 @@ function assertOutputTypeEqual(
   }
 }
 
-function typeEnvToFuncs(
+function typeEnvToDecls(
   typeEnv: SimpleTest["typeEnv"],
 ): [CelFunc[], Record<string, CelType>] {
   const funcs: CelFunc[] = [];

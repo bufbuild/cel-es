@@ -20,92 +20,115 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: '"A"' },
       ast: '"A"^#*expr.Constant_StringValue#',
+      checkedAst: '"A"~string',
       type: "string",
     },
     {
       original: { expr: "12" },
       ast: "12^#*expr.Constant_Int64Value#",
+      checkedAst: "12~int",
       type: "int",
     },
     {
       original: { expr: "12u" },
       ast: "12u^#*expr.Constant_Uint64Value#",
+      checkedAst: "12u~uint",
       type: "uint",
     },
     {
       original: { expr: "true" },
       ast: "true^#*expr.Constant_BoolValue#",
+      checkedAst: "true~bool",
       type: "bool",
     },
     {
       original: { expr: "false" },
       ast: "false^#*expr.Constant_BoolValue#",
+      checkedAst: "false~bool",
       type: "bool",
     },
     {
       original: { expr: "12.23" },
       ast: "12.23^#*expr.Constant_DoubleValue#",
+      checkedAst: "12.23~double",
       type: "double",
     },
     {
       original: { expr: "null" },
       ast: "null^#*expr.Constant_NullValue#",
+      checkedAst: "null~null",
       type: "null",
     },
     {
       original: { expr: 'b"ABC"' },
       ast: 'b"ABC"^#*expr.Constant_BytesValue#',
+      checkedAst: 'b"ABC"~bytes',
       type: "bytes",
     },
     {
       original: { expr: "is" },
       ast: "is^#*expr.Expr_IdentExpr#",
+      checkedAst: "is~string^is",
       type: "string",
     },
-    { original: { expr: "ii" }, ast: "ii^#*expr.Expr_IdentExpr#", type: "int" },
+    {
+      original: { expr: "ii" },
+      ast: "ii^#*expr.Expr_IdentExpr#",
+      checkedAst: "ii~int^ii",
+      type: "int",
+    },
     {
       original: { expr: "iu" },
       ast: "iu^#*expr.Expr_IdentExpr#",
+      checkedAst: "iu~uint^iu",
       type: "uint",
     },
     {
       original: { expr: "iz" },
       ast: "iz^#*expr.Expr_IdentExpr#",
+      checkedAst: "iz~bool^iz",
       type: "bool",
     },
     {
       original: { expr: "id" },
       ast: "id^#*expr.Expr_IdentExpr#",
+      checkedAst: "id~double^id",
       type: "double",
     },
     {
       original: { expr: "ix" },
       ast: "ix^#*expr.Expr_IdentExpr#",
+      checkedAst: "ix~null^ix",
       type: "null",
     },
     {
       original: { expr: "ib" },
       ast: "ib^#*expr.Expr_IdentExpr#",
+      checkedAst: "ib~bytes^ib",
       type: "bytes",
     },
     {
       original: { expr: "id" },
       ast: "id^#*expr.Expr_IdentExpr#",
+      checkedAst: "id~double^id",
       type: "double",
     },
     {
       original: { expr: "[]" },
       ast: "[]^#*expr.Expr_ListExpr#",
+      checkedAst: "[]~list(dyn)",
       type: "list(dyn)",
     },
     {
       original: { expr: "[1]" },
       ast: "[\n  1^#*expr.Constant_Int64Value#\n]^#*expr.Expr_ListExpr#",
+      checkedAst: "[\n  1~int\n]~list(int)",
       type: "list(int)",
     },
     {
       original: { expr: '[1, "A"]' },
       ast: '[\n  1^#*expr.Constant_Int64Value#,\n  "A"^#*expr.Constant_StringValue#\n]^#*expr.Expr_ListExpr#',
+      checkedAst: '[\n  1~int,\n  "A"~string\n]~list(dyn)',
       type: "list(dyn)",
     },
     {
@@ -117,51 +140,65 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "fg_s()" },
       ast: "fg_s()^#*expr.Expr_CallExpr#",
+      checkedAst: "fg_s()~string^fg_s_0",
       type: "string",
     },
     {
       original: { expr: "is.fi_s_s()" },
       ast: "is^#*expr.Expr_IdentExpr#.fi_s_s()^#*expr.Expr_CallExpr#",
+      checkedAst: "is~string^is.fi_s_s()~string^fi_s_s_0",
       type: "string",
     },
     {
       original: { expr: "1 + 2" },
       ast: "_+_(\n  1^#*expr.Constant_Int64Value#,\n  2^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst: "_+_(\n  1~int,\n  2~int\n)~int^add_int64",
       type: "int",
     },
     {
       original: { expr: "1 + ii" },
       ast: "_+_(\n  1^#*expr.Constant_Int64Value#,\n  ii^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst: "_+_(\n  1~int,\n  ii~int^ii\n)~int^add_int64",
       type: "int",
     },
     {
       original: { expr: "[1] + [2]" },
       ast: "_+_(\n  [\n    1^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  [\n    2^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_+_(\n  [\n    1~int\n  ]~list(int),\n  [\n    2~int\n  ]~list(int)\n)~list(int)^add_list",
       type: "list(int)",
     },
     {
       original: { expr: "[] + [1,2,3,] + [4]" },
       ast: "_+_(\n  _+_(\n    []^#*expr.Expr_ListExpr#,\n    [\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#,\n      3^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  [\n    4^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_+_(\n  _+_(\n    []~list(int),\n    [\n      1~int,\n      2~int,\n      3~int\n    ]~list(int)\n  )~list(int)^add_list,\n  [\n    4~int\n  ]~list(int)\n)~list(int)^add_list",
       type: "list(int)",
     },
     {
       original: { expr: "[1, 2u] + []" },
       ast: "_+_(\n  [\n    1^#*expr.Constant_Int64Value#,\n    2u^#*expr.Constant_Uint64Value#\n  ]^#*expr.Expr_ListExpr#,\n  []^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_+_(\n  [\n    1~int,\n    2u~uint\n  ]~list(dyn),\n  []~list(dyn)\n)~list(dyn)^add_list",
       type: "list(dyn)",
     },
     {
       original: { expr: "{1:2u, 2:3u}" },
       ast: "{\n  1^#*expr.Constant_Int64Value#:2u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  2^#*expr.Constant_Int64Value#:3u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+      checkedAst: "{\n  1~int:2u~uint,\n  2~int:3u~uint\n}~map(int, uint)",
       type: "map(int, uint)",
     },
     {
       original: { expr: '{"a":1, "b":2}.a' },
       ast: '{\n  "a"^#*expr.Constant_StringValue#:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  "b"^#*expr.Constant_StringValue#:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.a^#*expr.Expr_SelectExpr#',
+      checkedAst:
+        '{\n  "a"~string:1~int,\n  "b"~string:2~int\n}~map(string, int).a~int',
       type: "int",
     },
     {
       original: { expr: "{1:2u, 2u:3}" },
       ast: "{\n  1^#*expr.Constant_Int64Value#:2u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  2u^#*expr.Constant_Uint64Value#:3^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+      checkedAst: "{\n  1~int:2u~uint,\n  2u~uint:3~int\n}~map(dyn, dyn)",
       type: "map(dyn, dyn)",
     },
     {
@@ -170,6 +207,8 @@ export const tests: SerializedIncrementalTestSuite = {
         container: "google.expr.proto3.test",
       },
       ast: "TestAllTypes{\n  single_int32:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_int64:2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+      checkedAst:
+        "google.expr.proto3.test.TestAllTypes{\n  single_int32:1~int,\n  single_int64:2~int\n}~google.expr.proto3.test.TestAllTypes^google.expr.proto3.test.TestAllTypes",
       type: "google.expr.proto3.test.TestAllTypes",
     },
     {
@@ -201,51 +240,69 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  size(\n    x^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  x^#*expr.Expr_IdentExpr#.size()^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  size(\n    x~list(int)^x\n  )~int^size_list,\n  x~list(int)^x.size()~int^list_size\n)~bool^equals",
       type: "bool",
     },
     {
       original: { expr: 'int(1u) + int(uint("1"))' },
       ast: '_+_(\n  int(\n    1u^#*expr.Constant_Uint64Value#\n  )^#*expr.Expr_CallExpr#,\n  int(\n    uint(\n      "1"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_+_(\n  int(\n    1u~uint\n  )~int^uint64_to_int64,\n  int(\n    uint(\n      "1"~string\n    )~uint^string_to_uint64\n  )~int^uint64_to_int64\n)~int^add_int64',
       type: "int",
     },
     {
       original: { expr: "false \u0026\u0026 !true || false ? 2 : 3" },
       ast: "_?_:_(\n  _||_(\n    _\u0026\u0026_(\n      false^#*expr.Constant_BoolValue#,\n      !_(\n        true^#*expr.Constant_BoolValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    false^#*expr.Constant_BoolValue#\n  )^#*expr.Expr_CallExpr#,\n  2^#*expr.Constant_Int64Value#,\n  3^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_?_:_(\n  _||_(\n    _\u0026\u0026_(\n      false~bool,\n      !_(\n        true~bool\n      )~bool^logical_not\n    )~bool^logical_and,\n    false~bool\n  )~bool^logical_or,\n  2~int,\n  3~int\n)~int^conditional",
       type: "int",
     },
     {
       original: { expr: 'b"abc" + b"def"' },
       ast: '_+_(\n  b"abc"^#*expr.Constant_BytesValue#,\n  b"def"^#*expr.Constant_BytesValue#\n)^#*expr.Expr_CallExpr#',
+      checkedAst: '_+_(\n  b"abc"~bytes,\n  b"def"~bytes\n)~bytes^add_bytes',
       type: "bytes",
     },
     {
       original: { expr: "1.0 + 2.0 * 3.0 - 1.0 / 2.20202 != 66.6" },
       ast: "_!=_(\n  _-_(\n    _+_(\n      1^#*expr.Constant_DoubleValue#,\n      _*_(\n        2^#*expr.Constant_DoubleValue#,\n        3^#*expr.Constant_DoubleValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _/_(\n      1^#*expr.Constant_DoubleValue#,\n      2.20202^#*expr.Constant_DoubleValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  66.6^#*expr.Constant_DoubleValue#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_!=_(\n  _-_(\n    _+_(\n      1~double,\n      _*_(\n        2~double,\n        3~double\n      )~double^multiply_double\n    )~double^add_double,\n    _/_(\n      1~double,\n      2.20202~double\n    )~double^divide_double\n  )~double^subtract_double,\n  66.6~double\n)~bool^not_equals",
       type: "bool",
     },
     {
       original: { expr: "null == null \u0026\u0026 null != null" },
       ast: "_\u0026\u0026_(\n  _==_(\n    null^#*expr.Constant_NullValue#,\n    null^#*expr.Constant_NullValue#\n  )^#*expr.Expr_CallExpr#,\n  _!=_(\n    null^#*expr.Constant_NullValue#,\n    null^#*expr.Constant_NullValue#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u0026\u0026_(\n  _==_(\n    null~null,\n    null~null\n  )~bool^equals,\n  _!=_(\n    null~null,\n    null~null\n  )~bool^not_equals\n)~bool^logical_and",
       type: "bool",
     },
     {
       original: { expr: "1 == 1 \u0026\u0026 2 != 1" },
       ast: "_\u0026\u0026_(\n  _==_(\n    1^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#,\n  _!=_(\n    2^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u0026\u0026_(\n  _==_(\n    1~int,\n    1~int\n  )~bool^equals,\n  _!=_(\n    2~int,\n    1~int\n  )~bool^not_equals\n)~bool^logical_and",
       type: "bool",
     },
     {
       original: { expr: "1 + 2 * 3 - 1 / 2 == 6 % 1" },
       ast: "_==_(\n  _-_(\n    _+_(\n      1^#*expr.Constant_Int64Value#,\n      _*_(\n        2^#*expr.Constant_Int64Value#,\n        3^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _/_(\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _%_(\n    6^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  _-_(\n    _+_(\n      1~int,\n      _*_(\n        2~int,\n        3~int\n      )~int^multiply_int64\n    )~int^add_int64,\n    _/_(\n      1~int,\n      2~int\n    )~int^divide_int64\n  )~int^subtract_int64,\n  _%_(\n    6~int,\n    1~int\n  )~int^modulo_int64\n)~bool^equals",
       type: "bool",
     },
     {
       original: { expr: '"abc" + "def"' },
       ast: '_+_(\n  "abc"^#*expr.Constant_StringValue#,\n  "def"^#*expr.Constant_StringValue#\n)^#*expr.Expr_CallExpr#',
+      checkedAst: '_+_(\n  "abc"~string,\n  "def"~string\n)~string^add_string',
       type: "string",
     },
     {
       original: { expr: "1u + 2u * 3u - 1u / 2u == 6u % 1u" },
       ast: "_==_(\n  _-_(\n    _+_(\n      1u^#*expr.Constant_Uint64Value#,\n      _*_(\n        2u^#*expr.Constant_Uint64Value#,\n        3u^#*expr.Constant_Uint64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _/_(\n      1u^#*expr.Constant_Uint64Value#,\n      2u^#*expr.Constant_Uint64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _%_(\n    6u^#*expr.Constant_Uint64Value#,\n    1u^#*expr.Constant_Uint64Value#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  _-_(\n    _+_(\n      1u~uint,\n      _*_(\n        2u~uint,\n        3u~uint\n      )~uint^multiply_uint64\n    )~uint^add_uint64,\n    _/_(\n      1u~uint,\n      2u~uint\n    )~uint^divide_uint64\n  )~uint^subtract_uint64,\n  _%_(\n    6u~uint,\n    1u~uint\n  )~uint^modulo_uint64\n)~bool^equals",
       type: "bool",
     },
     {
@@ -277,6 +334,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  _+_(\n    x^#*expr.Expr_IdentExpr#.single_value^#*expr.Expr_SelectExpr#,\n    _/_(\n      1^#*expr.Constant_Int64Value#,\n      x^#*expr.Expr_IdentExpr#.single_struct^#*expr.Expr_SelectExpr#.y^#*expr.Expr_SelectExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  23^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  _+_(\n    x~google.expr.proto3.test.TestAllTypes^x.single_value~dyn,\n    _/_(\n      1~int,\n      x~google.expr.proto3.test.TestAllTypes^x.single_struct~map(string, dyn).y~dyn\n    )~int^divide_int64\n  )~int^add_int64,\n  23~int\n)~bool^equals",
       type: "bool",
     },
     {
@@ -292,6 +351,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '_+_(\n  _[_](\n    x^#*expr.Expr_IdentExpr#.single_value^#*expr.Expr_SelectExpr#,\n    23^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#,\n  _[_](\n    x^#*expr.Expr_IdentExpr#.single_struct^#*expr.Expr_SelectExpr#,\n    "y"^#*expr.Constant_StringValue#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_+_(\n  _[_](\n    x~google.expr.proto3.test.TestAllTypes^x.single_value~dyn,\n    23~int\n  )~dyn^index_list|index_map|optional_list_index_int|optional_map_index_value,\n  _[_](\n    x~google.expr.proto3.test.TestAllTypes^x.single_struct~map(string, dyn),\n    "y"~string\n  )~dyn^index_map\n)~dyn^add_bytes|add_double|add_duration_duration|add_duration_timestamp|add_int64|add_list|add_string|add_timestamp_duration|add_uint64',
       type: "dyn",
     },
     {
@@ -300,6 +361,8 @@ export const tests: SerializedIncrementalTestSuite = {
         container: "google.expr.proto3.test",
       },
       ast: "_!=_(\n  TestAllTypes^#*expr.Expr_IdentExpr#.NestedEnum^#*expr.Expr_SelectExpr#.BAR^#*expr.Expr_SelectExpr#,\n  99^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_!=_(\n  google.expr.proto3.test.TestAllTypes.NestedEnum.BAR~int^google.expr.proto3.test.TestAllTypes.NestedEnum.BAR,\n  99~int\n)~bool^not_equals",
       type: "bool",
     },
     {
@@ -315,6 +378,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "size(\n  _+_(\n    []^#*expr.Expr_ListExpr#,\n    [\n      1^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "size(\n  _+_(\n    []~list(int),\n    [\n      1~int\n    ]~list(int)\n  )~list(int)^add_list\n)~int^size_list",
       type: "int",
     },
     {
@@ -336,6 +401,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '_\u0026\u0026_(\n  _\u0026\u0026_(\n    _==_(\n      _[_](\n        _[_](\n          _[_](\n            x^#*expr.Expr_IdentExpr#,\n            "claims"^#*expr.Constant_StringValue#\n          )^#*expr.Expr_CallExpr#,\n          "groups"^#*expr.Constant_StringValue#\n        )^#*expr.Expr_CallExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#.name^#*expr.Expr_SelectExpr#,\n      "dummy"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      _[_](\n        x^#*expr.Expr_IdentExpr#.claims^#*expr.Expr_SelectExpr#,\n        "exp"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#,\n      _[_](\n        y^#*expr.Expr_IdentExpr#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#.time^#*expr.Expr_SelectExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u0026\u0026_(\n    _==_(\n      x^#*expr.Expr_IdentExpr#.claims^#*expr.Expr_SelectExpr#.structured^#*expr.Expr_SelectExpr#,\n      {\n        "key"^#*expr.Constant_StringValue#:z^#*expr.Expr_IdentExpr#^#*expr.Expr_CreateStruct_Entry#\n      }^#*expr.Expr_StructExpr#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      z^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_DoubleValue#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_\u0026\u0026_(\n  _\u0026\u0026_(\n    _==_(\n      _[_](\n        _[_](\n          _[_](\n            x~map(string, dyn)^x,\n            "claims"~string\n          )~dyn^index_map,\n          "groups"~string\n        )~dyn^index_map|optional_map_index_value,\n        0~int\n      )~dyn^index_list|index_map|optional_list_index_int|optional_map_index_value.name~dyn,\n      "dummy"~string\n    )~bool^equals,\n    _==_(\n      _[_](\n        x~map(string, dyn)^x.claims~dyn,\n        "exp"~string\n      )~dyn^index_map|optional_map_index_value,\n      _[_](\n        y~list(dyn)^y,\n        1~int\n      )~dyn^index_list.time~dyn\n    )~bool^equals\n  )~bool^logical_and,\n  _\u0026\u0026_(\n    _==_(\n      x~map(string, dyn)^x.claims~dyn.structured~dyn,\n      {\n        "key"~string:z~dyn^z\n      }~map(string, dyn)\n    )~bool^equals,\n    _==_(\n      z~dyn^z,\n      1~double\n    )~bool^equals\n  )~bool^logical_and\n)~bool^logical_and',
       type: "bool",
     },
     {
@@ -405,6 +472,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  _[_](\n    _+_(\n      x^#*expr.Expr_IdentExpr#,\n      x^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#.single_int32^#*expr.Expr_SelectExpr#,\n  size(\n    x^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  _[_](\n    _+_(\n      x~list(google.expr.proto3.test.TestAllTypes)^x,\n      x~list(google.expr.proto3.test.TestAllTypes)^x\n    )~list(google.expr.proto3.test.TestAllTypes)^add_list,\n    1~int\n  )~google.expr.proto3.test.TestAllTypes^index_list.single_int32~int,\n  size(\n    x~list(google.expr.proto3.test.TestAllTypes)^x\n  )~int^size_list\n)~bool^equals",
       type: "bool",
     },
     {
@@ -420,6 +489,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  _[_](\n    x^#*expr.Expr_IdentExpr#.repeated_int64^#*expr.Expr_SelectExpr#,\n    x^#*expr.Expr_IdentExpr#.single_int32^#*expr.Expr_SelectExpr#\n  )^#*expr.Expr_CallExpr#,\n  23^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  _[_](\n    x~google.expr.proto3.test.TestAllTypes^x.repeated_int64~list(int),\n    x~google.expr.proto3.test.TestAllTypes^x.single_int32~int\n  )~int^index_list,\n  23~int\n)~bool^equals",
       type: "bool",
     },
     {
@@ -435,6 +506,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  size(\n    x^#*expr.Expr_IdentExpr#.map_int64_nested_type^#*expr.Expr_SelectExpr#\n  )^#*expr.Expr_CallExpr#,\n  0^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  size(\n    x~google.expr.proto3.test.TestAllTypes^x.map_int64_nested_type~map(int, google.expr.proto3.test.NestedTestAllTypes)\n  )~int^size_map,\n  0~int\n)~bool^equals",
       type: "bool",
     },
     {
@@ -459,6 +532,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  x^#*expr.Expr_IdentExpr#.repeated_int64^#*expr.Expr_SelectExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      double(\n        x^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+      checkedAst:
+        "__comprehension__(\n  // Variable\n  x,\n  // Target\n  x~google.expr.proto3.test.TestAllTypes^x.repeated_int64~list(int),\n  // Accumulator\n  @result,\n  // Init\n  []~list(double),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _+_(\n    @result~list(double)^@result,\n    [\n      double(\n        x~int^x\n      )~double^int64_to_double\n    ]~list(double)\n  )~list(double)^add_list,\n  // Result\n  @result~list(double)^@result)~list(double)",
       type: "list(double)",
     },
     {
@@ -474,6 +549,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  x^#*expr.Expr_IdentExpr#.repeated_int64^#*expr.Expr_SelectExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      x^#*expr.Expr_IdentExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        double(\n          x^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+      checkedAst:
+        "__comprehension__(\n  // Variable\n  x,\n  // Target\n  x~google.expr.proto3.test.TestAllTypes^x.repeated_int64~list(int),\n  // Accumulator\n  @result,\n  // Init\n  []~list(double),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      x~int^x,\n      0~int\n    )~bool^greater_int64,\n    _+_(\n      @result~list(double)^@result,\n      [\n        double(\n          x~int^x\n        )~double^int64_to_double\n      ]~list(double)\n    )~list(double)^add_list,\n    @result~list(double)^@result\n  )~list(double)^conditional,\n  // Result\n  @result~list(double)^@result)~list(double)",
       type: "list(double)",
     },
     {
@@ -519,6 +596,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '_==_(\n  _[_](\n    x^#*expr.Expr_IdentExpr#,\n    "a"^#*expr.Constant_StringValue#\n  )^#*expr.Expr_CallExpr#.single_int32^#*expr.Expr_SelectExpr#,\n  23^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_==_(\n  _[_](\n    x~map(string, google.expr.proto3.test.TestAllTypes)^x,\n    "a"~string\n  )~google.expr.proto3.test.TestAllTypes^index_map.single_int32~int,\n  23~int\n)~bool^equals',
       type: "bool",
     },
     {
@@ -534,6 +613,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_\u0026\u0026_(\n  _==_(\n    x^#*expr.Expr_IdentExpr#.single_nested_message^#*expr.Expr_SelectExpr#.bb^#*expr.Expr_SelectExpr#,\n    43^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#,\n  x^#*expr.Expr_IdentExpr#.single_nested_message~test-only~^#*expr.Expr_SelectExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u0026\u0026_(\n  _==_(\n    x~google.expr.proto3.test.TestAllTypes^x.single_nested_message~google.expr.proto3.test.TestAllTypes.NestedMessage.bb~int,\n    43~int\n  )~bool^equals,\n  x~google.expr.proto3.test.TestAllTypes^x.single_nested_message~test-only~~bool\n)~bool^logical_and",
       type: "bool",
     },
     {
@@ -565,6 +646,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_!=_(\n  x^#*expr.Expr_IdentExpr#.single_nested_message^#*expr.Expr_SelectExpr#,\n  null^#*expr.Constant_NullValue#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_!=_(\n  x~google.expr.proto3.test.TestAllTypes^x.single_nested_message~google.expr.proto3.test.TestAllTypes.NestedMessage,\n  null~null\n)~bool^not_equals",
       type: "bool",
     },
     {
@@ -596,6 +679,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  x^#*expr.Expr_IdentExpr#.single_int64_wrapper^#*expr.Expr_SelectExpr#,\n  null^#*expr.Constant_NullValue#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  x~google.expr.proto3.test.TestAllTypes^x.single_int64_wrapper~wrapper(int),\n  null~null\n)~bool^equals",
       type: "bool",
     },
     {
@@ -611,6 +696,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '_\u0026\u0026_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _\u0026\u0026_(\n        x^#*expr.Expr_IdentExpr#.single_bool_wrapper^#*expr.Expr_SelectExpr#,\n        _==_(\n          x^#*expr.Expr_IdentExpr#.single_bytes_wrapper^#*expr.Expr_SelectExpr#,\n          b"hi"^#*expr.Constant_BytesValue#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      _!=_(\n        x^#*expr.Expr_IdentExpr#.single_double_wrapper^#*expr.Expr_SelectExpr#,\n        2^#*expr.Constant_DoubleValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u0026\u0026_(\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_float_wrapper^#*expr.Expr_SelectExpr#,\n        1^#*expr.Constant_DoubleValue#\n      )^#*expr.Expr_CallExpr#,\n      _!=_(\n        x^#*expr.Expr_IdentExpr#.single_int32_wrapper^#*expr.Expr_SelectExpr#,\n        2^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_int64_wrapper^#*expr.Expr_SelectExpr#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_string_wrapper^#*expr.Expr_SelectExpr#,\n        "hi"^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u0026\u0026_(\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_uint32_wrapper^#*expr.Expr_SelectExpr#,\n        1u^#*expr.Constant_Uint64Value#\n      )^#*expr.Expr_CallExpr#,\n      _!=_(\n        x^#*expr.Expr_IdentExpr#.single_uint64_wrapper^#*expr.Expr_SelectExpr#,\n        42u^#*expr.Constant_Uint64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_\u0026\u0026_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _\u0026\u0026_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_bool_wrapper~wrapper(bool),\n        _==_(\n          x~google.expr.proto3.test.TestAllTypes^x.single_bytes_wrapper~wrapper(bytes),\n          b"hi"~bytes\n        )~bool^equals\n      )~bool^logical_and,\n      _!=_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_double_wrapper~wrapper(double),\n        2~double\n      )~bool^not_equals\n    )~bool^logical_and,\n    _\u0026\u0026_(\n      _==_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_float_wrapper~wrapper(double),\n        1~double\n      )~bool^equals,\n      _!=_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_int32_wrapper~wrapper(int),\n        2~int\n      )~bool^not_equals\n    )~bool^logical_and\n  )~bool^logical_and,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _==_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_int64_wrapper~wrapper(int),\n        1~int\n      )~bool^equals,\n      _==_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_string_wrapper~wrapper(string),\n        "hi"~string\n      )~bool^equals\n    )~bool^logical_and,\n    _\u0026\u0026_(\n      _==_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_uint32_wrapper~wrapper(uint),\n        1u~uint\n      )~bool^equals,\n      _!=_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_uint64_wrapper~wrapper(uint),\n        42u~uint\n      )~bool^not_equals\n    )~bool^logical_and\n  )~bool^logical_and\n)~bool^logical_and',
       type: "bool",
     },
     {
@@ -626,6 +713,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_\u0026\u0026_(\n  _==_(\n    x^#*expr.Expr_IdentExpr#.single_timestamp^#*expr.Expr_SelectExpr#,\n    google.protobuf.Timestamp{\n      seconds:20^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u003c_(\n    x^#*expr.Expr_IdentExpr#.single_duration^#*expr.Expr_SelectExpr#,\n    google.protobuf.Duration{\n      seconds:10^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u0026\u0026_(\n  _==_(\n    x~google.expr.proto3.test.TestAllTypes^x.single_timestamp~timestamp,\n    google.protobuf.Timestamp{\n      seconds:20~int\n    }~timestamp^google.protobuf.Timestamp\n  )~bool^equals,\n  _\u003c_(\n    x~google.expr.proto3.test.TestAllTypes^x.single_duration~duration,\n    google.protobuf.Duration{\n      seconds:10~int\n    }~duration^google.protobuf.Duration\n  )~bool^less_duration\n)~bool^logical_and",
       type: "bool",
     },
     {
@@ -641,6 +730,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '_\u0026\u0026_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _\u0026\u0026_(\n        _==_(\n          x^#*expr.Expr_IdentExpr#.single_bool_wrapper^#*expr.Expr_SelectExpr#,\n          google.protobuf.BoolValue{\n            value:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n          }^#*expr.Expr_StructExpr#\n        )^#*expr.Expr_CallExpr#,\n        _==_(\n          x^#*expr.Expr_IdentExpr#.single_bytes_wrapper^#*expr.Expr_SelectExpr#,\n          google.protobuf.BytesValue{\n            value:b"hi"^#*expr.Constant_BytesValue#^#*expr.Expr_CreateStruct_Entry#\n          }^#*expr.Expr_StructExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      _!=_(\n        x^#*expr.Expr_IdentExpr#.single_double_wrapper^#*expr.Expr_SelectExpr#,\n        google.protobuf.DoubleValue{\n          value:2^#*expr.Constant_DoubleValue#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u0026\u0026_(\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_float_wrapper^#*expr.Expr_SelectExpr#,\n        google.protobuf.FloatValue{\n          value:1^#*expr.Constant_DoubleValue#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#,\n      _!=_(\n        x^#*expr.Expr_IdentExpr#.single_int32_wrapper^#*expr.Expr_SelectExpr#,\n        google.protobuf.Int32Value{\n          value:-2^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _\u0026\u0026_(\n        _==_(\n          x^#*expr.Expr_IdentExpr#.single_int64_wrapper^#*expr.Expr_SelectExpr#,\n          google.protobuf.Int64Value{\n            value:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n          }^#*expr.Expr_StructExpr#\n        )^#*expr.Expr_CallExpr#,\n        _==_(\n          x^#*expr.Expr_IdentExpr#.single_string_wrapper^#*expr.Expr_SelectExpr#,\n          google.protobuf.StringValue{\n            value:"hi"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n          }^#*expr.Expr_StructExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_string_wrapper^#*expr.Expr_SelectExpr#,\n        google.protobuf.Value{\n          string_value:"hi"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u0026\u0026_(\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_uint32_wrapper^#*expr.Expr_SelectExpr#,\n        google.protobuf.UInt32Value{\n          value:1u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#,\n      _!=_(\n        x^#*expr.Expr_IdentExpr#.single_uint64_wrapper^#*expr.Expr_SelectExpr#,\n        google.protobuf.UInt64Value{\n          value:42u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_\u0026\u0026_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _\u0026\u0026_(\n        _==_(\n          x~google.expr.proto3.test.TestAllTypes^x.single_bool_wrapper~wrapper(bool),\n          google.protobuf.BoolValue{\n            value:true~bool\n          }~wrapper(bool)^google.protobuf.BoolValue\n        )~bool^equals,\n        _==_(\n          x~google.expr.proto3.test.TestAllTypes^x.single_bytes_wrapper~wrapper(bytes),\n          google.protobuf.BytesValue{\n            value:b"hi"~bytes\n          }~wrapper(bytes)^google.protobuf.BytesValue\n        )~bool^equals\n      )~bool^logical_and,\n      _!=_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_double_wrapper~wrapper(double),\n        google.protobuf.DoubleValue{\n          value:2~double\n        }~wrapper(double)^google.protobuf.DoubleValue\n      )~bool^not_equals\n    )~bool^logical_and,\n    _\u0026\u0026_(\n      _==_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_float_wrapper~wrapper(double),\n        google.protobuf.FloatValue{\n          value:1~double\n        }~wrapper(double)^google.protobuf.FloatValue\n      )~bool^equals,\n      _!=_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_int32_wrapper~wrapper(int),\n        google.protobuf.Int32Value{\n          value:-2~int\n        }~wrapper(int)^google.protobuf.Int32Value\n      )~bool^not_equals\n    )~bool^logical_and\n  )~bool^logical_and,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      _\u0026\u0026_(\n        _==_(\n          x~google.expr.proto3.test.TestAllTypes^x.single_int64_wrapper~wrapper(int),\n          google.protobuf.Int64Value{\n            value:1~int\n          }~wrapper(int)^google.protobuf.Int64Value\n        )~bool^equals,\n        _==_(\n          x~google.expr.proto3.test.TestAllTypes^x.single_string_wrapper~wrapper(string),\n          google.protobuf.StringValue{\n            value:"hi"~string\n          }~wrapper(string)^google.protobuf.StringValue\n        )~bool^equals\n      )~bool^logical_and,\n      _==_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_string_wrapper~wrapper(string),\n        google.protobuf.Value{\n          string_value:"hi"~string\n        }~dyn^google.protobuf.Value\n      )~bool^equals\n    )~bool^logical_and,\n    _\u0026\u0026_(\n      _==_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_uint32_wrapper~wrapper(uint),\n        google.protobuf.UInt32Value{\n          value:1u~uint\n        }~wrapper(uint)^google.protobuf.UInt32Value\n      )~bool^equals,\n      _!=_(\n        x~google.expr.proto3.test.TestAllTypes^x.single_uint64_wrapper~wrapper(uint),\n        google.protobuf.UInt64Value{\n          value:42u~uint\n        }~wrapper(uint)^google.protobuf.UInt64Value\n      )~bool^not_equals\n    )~bool^logical_and\n  )~bool^logical_and\n)~bool^logical_and',
       type: "bool",
     },
     {
@@ -672,6 +763,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_\u0026\u0026_(\n  _\u0026\u0026_(\n    __comprehension__(\n      // Variable\n      e,\n      // Target\n      x^#*expr.Expr_IdentExpr#.repeated_int64^#*expr.Expr_SelectExpr#,\n      // Accumulator\n      @result,\n      // Init\n      true^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _\u0026\u0026_(\n        @result^#*expr.Expr_IdentExpr#,\n        _\u003e_(\n          e^#*expr.Expr_IdentExpr#,\n          0^#*expr.Constant_Int64Value#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n    __comprehension__(\n      // Variable\n      e,\n      // Target\n      x^#*expr.Expr_IdentExpr#.repeated_int64^#*expr.Expr_SelectExpr#,\n      // Accumulator\n      @result,\n      // Init\n      false^#*expr.Constant_BoolValue#,\n      // LoopCondition\n      @not_strictly_false(\n        !_(\n          @result^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // LoopStep\n      _||_(\n        @result^#*expr.Expr_IdentExpr#,\n        _\u003c_(\n          e^#*expr.Expr_IdentExpr#,\n          0^#*expr.Constant_Int64Value#\n        )^#*expr.Expr_CallExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n  )^#*expr.Expr_CallExpr#,\n  __comprehension__(\n    // Variable\n    e,\n    // Target\n    x^#*expr.Expr_IdentExpr#.repeated_int64^#*expr.Expr_SelectExpr#,\n    // Accumulator\n    @result,\n    // Init\n    0^#*expr.Constant_Int64Value#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _?_:_(\n      _==_(\n        e^#*expr.Expr_IdentExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      _+_(\n        @result^#*expr.Expr_IdentExpr#,\n        1^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    _==_(\n      @result^#*expr.Expr_IdentExpr#,\n      1^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#)^#*expr.Expr_ComprehensionExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u0026\u0026_(\n  _\u0026\u0026_(\n    __comprehension__(\n      // Variable\n      e,\n      // Target\n      x~google.expr.proto3.test.TestAllTypes^x.repeated_int64~list(int),\n      // Accumulator\n      @result,\n      // Init\n      true~bool,\n      // LoopCondition\n      @not_strictly_false(\n        @result~bool^@result\n      )~bool^not_strictly_false,\n      // LoopStep\n      _\u0026\u0026_(\n        @result~bool^@result,\n        _\u003e_(\n          e~int^e,\n          0~int\n        )~bool^greater_int64\n      )~bool^logical_and,\n      // Result\n      @result~bool^@result)~bool,\n    __comprehension__(\n      // Variable\n      e,\n      // Target\n      x~google.expr.proto3.test.TestAllTypes^x.repeated_int64~list(int),\n      // Accumulator\n      @result,\n      // Init\n      false~bool,\n      // LoopCondition\n      @not_strictly_false(\n        !_(\n          @result~bool^@result\n        )~bool^logical_not\n      )~bool^not_strictly_false,\n      // LoopStep\n      _||_(\n        @result~bool^@result,\n        _\u003c_(\n          e~int^e,\n          0~int\n        )~bool^less_int64\n      )~bool^logical_or,\n      // Result\n      @result~bool^@result)~bool\n  )~bool^logical_and,\n  __comprehension__(\n    // Variable\n    e,\n    // Target\n    x~google.expr.proto3.test.TestAllTypes^x.repeated_int64~list(int),\n    // Accumulator\n    @result,\n    // Init\n    0~int,\n    // LoopCondition\n    true~bool,\n    // LoopStep\n    _?_:_(\n      _==_(\n        e~int^e,\n        0~int\n      )~bool^equals,\n      _+_(\n        @result~int^@result,\n        1~int\n      )~int^add_int64,\n      @result~int^@result\n    )~int^conditional,\n    // Result\n    _==_(\n      @result~int^@result,\n      1~int\n    )~bool^equals)~bool\n)~bool^logical_and",
       type: "bool",
     },
     {
@@ -696,16 +789,22 @@ export const tests: SerializedIncrementalTestSuite = {
         typeEnv: [{ name: "lists", ident: { type: { dyn: {} } } }],
       },
       ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  lists^#*expr.Expr_IdentExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      x^#*expr.Expr_IdentExpr#,\n      1.5^#*expr.Constant_DoubleValue#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+      checkedAst:
+        "__comprehension__(\n  // Variable\n  x,\n  // Target\n  lists~dyn^lists,\n  // Accumulator\n  @result,\n  // Init\n  []~list(dyn),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _?_:_(\n    _\u003e_(\n      x~dyn^x,\n      1.5~double\n    )~bool^greater_double|greater_int64_double|greater_uint64_double,\n    _+_(\n      @result~list(dyn)^@result,\n      [\n        x~dyn^x\n      ]~list(dyn)\n    )~list(dyn)^add_list,\n    @result~list(dyn)^@result\n  )~list(dyn)^conditional,\n  // Result\n  @result~list(dyn)^@result)~list(dyn)",
       type: "list(dyn)",
     },
     {
       original: { expr: ".google.expr.proto3.test.TestAllTypes" },
       ast: ".google^#*expr.Expr_IdentExpr#.expr^#*expr.Expr_SelectExpr#.proto3^#*expr.Expr_SelectExpr#.test^#*expr.Expr_SelectExpr#.TestAllTypes^#*expr.Expr_SelectExpr#",
+      checkedAst:
+        "google.expr.proto3.test.TestAllTypes~type(google.expr.proto3.test.TestAllTypes)^google.expr.proto3.test.TestAllTypes",
       type: "type(google.expr.proto3.test.TestAllTypes)",
     },
     {
       original: { expr: "test.TestAllTypes", container: "google.expr.proto3" },
       ast: "test^#*expr.Expr_IdentExpr#.TestAllTypes^#*expr.Expr_SelectExpr#",
+      checkedAst:
+        "google.expr.proto3.test.TestAllTypes~type(google.expr.proto3.test.TestAllTypes)^google.expr.proto3.test.TestAllTypes",
       type: "type(google.expr.proto3.test.TestAllTypes)",
     },
     {
@@ -723,6 +822,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '_||_(\n  _||_(\n    _\u0026\u0026_(\n      _==_(\n        x^#*expr.Expr_IdentExpr#,\n        google.protobuf.Any{\n          type_url:"types.googleapis.com/google.expr.proto3.test.TestAllTypes"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#,\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_nested_message^#*expr.Expr_SelectExpr#.bb^#*expr.Expr_SelectExpr#,\n        43^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      x^#*expr.Expr_IdentExpr#,\n      google.expr.proto3.test.TestAllTypes{}^#*expr.Expr_StructExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _||_(\n    _\u003c_(\n      y^#*expr.Expr_IdentExpr#,\n      x^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u003e=_(\n      x^#*expr.Expr_IdentExpr#,\n      x^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_||_(\n  _||_(\n    _\u0026\u0026_(\n      _==_(\n        x~any^x,\n        google.protobuf.Any{\n          type_url:"types.googleapis.com/google.expr.proto3.test.TestAllTypes"~string\n        }~any^google.protobuf.Any\n      )~bool^equals,\n      _==_(\n        x~any^x.single_nested_message~dyn.bb~dyn,\n        43~int\n      )~bool^equals\n    )~bool^logical_and,\n    _==_(\n      x~any^x,\n      google.expr.proto3.test.TestAllTypes{}~google.expr.proto3.test.TestAllTypes^google.expr.proto3.test.TestAllTypes\n    )~bool^equals\n  )~bool^logical_or,\n  _||_(\n    _\u003c_(\n      y~wrapper(int)^y,\n      x~any^x\n    )~bool^less_int64,\n    _\u003e=_(\n      x~any^x,\n      x~any^x\n    )~bool^greater_equals_bool|greater_equals_bytes|greater_equals_double|greater_equals_duration|greater_equals_int64|greater_equals_string|greater_equals_timestamp|greater_equals_uint64\n  )~bool^logical_or\n)~bool^logical_or',
       type: "bool",
     },
     {
@@ -734,6 +835,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '_||_(\n  _||_(\n    _\u0026\u0026_(\n      _==_(\n        x^#*expr.Expr_IdentExpr#,\n        google.protobuf.Any{\n          type_url:"types.googleapis.com/google.expr.proto3.test.TestAllTypes"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#\n      )^#*expr.Expr_CallExpr#,\n      _==_(\n        x^#*expr.Expr_IdentExpr#.single_nested_message^#*expr.Expr_SelectExpr#.bb^#*expr.Expr_SelectExpr#,\n        43^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      x^#*expr.Expr_IdentExpr#,\n      google.expr.proto3.test.TestAllTypes{}^#*expr.Expr_StructExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _||_(\n    _\u003c_(\n      y^#*expr.Expr_IdentExpr#,\n      x^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    _\u003e=_(\n      x^#*expr.Expr_IdentExpr#,\n      x^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_||_(\n  _||_(\n    _\u0026\u0026_(\n      _==_(\n        x~any^x,\n        google.protobuf.Any{\n          type_url:"types.googleapis.com/google.expr.proto3.test.TestAllTypes"~string\n        }~any^google.protobuf.Any\n      )~bool^equals,\n      _==_(\n        x~any^x.single_nested_message~dyn.bb~dyn,\n        43~int\n      )~bool^equals\n    )~bool^logical_and,\n    _==_(\n      x~any^x,\n      google.expr.proto3.test.TestAllTypes{}~google.expr.proto3.test.TestAllTypes^google.expr.proto3.test.TestAllTypes\n    )~bool^equals\n  )~bool^logical_or,\n  _||_(\n    _\u003c_(\n      y~wrapper(int)^y,\n      x~any^x\n    )~bool^less_int64,\n    _\u003e=_(\n      x~any^x,\n      x~any^x\n    )~bool^greater_equals_bool|greater_equals_bytes|greater_equals_double|greater_equals_duration|greater_equals_int64|greater_equals_string|greater_equals_timestamp|greater_equals_uint64\n  )~bool^logical_or\n)~bool^logical_or',
       type: "bool",
     },
     {
@@ -750,11 +853,15 @@ export const tests: SerializedIncrementalTestSuite = {
         container: "container",
       },
       ast: "x^#*expr.Expr_IdentExpr#",
+      checkedAst:
+        "container.x~google.expr.proto3.test.TestAllTypes^container.x",
       type: "google.expr.proto3.test.TestAllTypes",
     },
     {
       original: { expr: "list == type([1]) \u0026\u0026 map == type({1:2u})" },
       ast: "_\u0026\u0026_(\n  _==_(\n    list^#*expr.Expr_IdentExpr#,\n    type(\n      [\n        1^#*expr.Constant_Int64Value#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _==_(\n    map^#*expr.Expr_IdentExpr#,\n    type(\n      {\n        1^#*expr.Constant_Int64Value#:2u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#\n      }^#*expr.Expr_StructExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u0026\u0026_(\n  _==_(\n    list~type(list(dyn))^list,\n    type(\n      [\n        1~int\n      ]~list(int)\n    )~type(list(int))^type\n  )~bool^equals,\n  _==_(\n    map~type(map(dyn, dyn))^map,\n    type(\n      {\n        1~int:2u~uint\n      }~map(int, uint)\n    )~type(map(int, uint))^type\n  )~bool^equals\n)~bool^logical_and",
       type: "bool",
     },
     {
@@ -790,6 +897,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_+_(\n  myfun(\n    1^#*expr.Constant_Int64Value#,\n    true^#*expr.Constant_BoolValue#,\n    3u^#*expr.Constant_Uint64Value#\n  )^#*expr.Expr_CallExpr#,\n  1^#*expr.Constant_Int64Value#.myfun(\n    false^#*expr.Constant_BoolValue#,\n    3u^#*expr.Constant_Uint64Value#\n  )^#*expr.Expr_CallExpr#.myfun(\n    true^#*expr.Constant_BoolValue#,\n    42u^#*expr.Constant_Uint64Value#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_+_(\n  myfun(\n    1~int,\n    true~bool,\n    3u~uint\n  )~int^myfun_static,\n  1~int.myfun(\n    false~bool,\n    3u~uint\n  )~int^myfun_instance.myfun(\n    true~bool,\n    42u~uint\n  )~int^myfun_instance\n)~int^add_int64",
       type: "int",
     },
     {
@@ -819,6 +928,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_\u003e_(\n  size(\n    x^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  4^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u003e_(\n  size(\n    x~google.expr.proto3.test.TestAllTypes^x\n  )~int^size_message,\n  4~int\n)~bool^greater_int64",
       type: "bool",
     },
     {
@@ -834,6 +945,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_!=_(\n  _+_(\n    x^#*expr.Expr_IdentExpr#.single_int64_wrapper^#*expr.Expr_SelectExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#,\n  23^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_!=_(\n  _+_(\n    x~google.expr.proto3.test.TestAllTypes^x.single_int64_wrapper~wrapper(int),\n    1~int\n  )~int^add_int64,\n  23~int\n)~bool^not_equals",
       type: "bool",
     },
     {
@@ -853,26 +966,36 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_!=_(\n  _+_(\n    x^#*expr.Expr_IdentExpr#.single_int64_wrapper^#*expr.Expr_SelectExpr#,\n    y^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  23^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_!=_(\n  _+_(\n    x~google.expr.proto3.test.TestAllTypes^x.single_int64_wrapper~wrapper(int),\n    y~wrapper(int)^y\n  )~int^add_int64,\n  23~int\n)~bool^not_equals",
       type: "bool",
     },
     {
       original: { expr: "1 in [1, 2, 3]" },
       ast: "@in(\n  1^#*expr.Constant_Int64Value#,\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "@in(\n  1~int,\n  [\n    1~int,\n    2~int,\n    3~int\n  ]~list(int)\n)~bool^in_list",
       type: "bool",
     },
     {
       original: { expr: "1 in dyn([1, 2, 3])" },
       ast: "@in(\n  1^#*expr.Constant_Int64Value#,\n  dyn(\n    [\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#,\n      3^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "@in(\n  1~int,\n  dyn(\n    [\n      1~int,\n      2~int,\n      3~int\n    ]~list(int)\n  )~dyn^to_dyn\n)~bool^in_list|in_map",
       type: "bool",
     },
     {
       original: { expr: "type(null) == null_type" },
       ast: "_==_(\n  type(\n    null^#*expr.Constant_NullValue#\n  )^#*expr.Expr_CallExpr#,\n  null_type^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  type(\n    null~null\n  )~type(null)^type,\n  null_type~type(null)^null_type\n)~bool^equals",
       type: "bool",
     },
     {
       original: { expr: "type(type) == type" },
       ast: "_==_(\n  type(\n    type^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  type^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  type(\n    type~type(type)^type\n  )~type(type(type))^type,\n  type~type(type)^type\n)~bool^equals",
       type: "bool",
     },
     {
@@ -880,16 +1003,22 @@ export const tests: SerializedIncrementalTestSuite = {
         expr: "([[[1]], [[2]], [[3]]][0][0] + [2, 3, {'four': {'five': 'six'}}])[3]",
       },
       ast: '_[_](\n  _+_(\n    _[_](\n      _[_](\n        [\n          [\n            [\n              1^#*expr.Constant_Int64Value#\n            ]^#*expr.Expr_ListExpr#\n          ]^#*expr.Expr_ListExpr#,\n          [\n            [\n              2^#*expr.Constant_Int64Value#\n            ]^#*expr.Expr_ListExpr#\n          ]^#*expr.Expr_ListExpr#,\n          [\n            [\n              3^#*expr.Constant_Int64Value#\n            ]^#*expr.Expr_ListExpr#\n          ]^#*expr.Expr_ListExpr#\n        ]^#*expr.Expr_ListExpr#,\n        0^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#,\n    [\n      2^#*expr.Constant_Int64Value#,\n      3^#*expr.Constant_Int64Value#,\n      {\n        "four"^#*expr.Constant_StringValue#:{\n          "five"^#*expr.Constant_StringValue#:"six"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#\n        }^#*expr.Expr_StructExpr#^#*expr.Expr_CreateStruct_Entry#\n      }^#*expr.Expr_StructExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  3^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_[_](\n  _+_(\n    _[_](\n      _[_](\n        [\n          [\n            [\n              1~int\n            ]~list(int)\n          ]~list(list(int)),\n          [\n            [\n              2~int\n            ]~list(int)\n          ]~list(list(int)),\n          [\n            [\n              3~int\n            ]~list(int)\n          ]~list(list(int))\n        ]~list(list(list(int))),\n        0~int\n      )~list(list(int))^index_list,\n      0~int\n    )~list(int)^index_list,\n    [\n      2~int,\n      3~int,\n      {\n        "four"~string:{\n          "five"~string:"six"~string\n        }~map(string, string)\n      }~map(string, map(string, string))\n    ]~list(dyn)\n  )~list(dyn)^add_list,\n  3~int\n)~dyn^index_list',
       type: "dyn",
     },
     {
       original: { expr: "[1] + [dyn('string')]" },
       ast: '_+_(\n  [\n    1^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  [\n    dyn(\n      "string"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_+_(\n  [\n    1~int\n  ]~list(int),\n  [\n    dyn(\n      "string"~string\n    )~dyn^to_dyn\n  ]~list(dyn)\n)~list(dyn)^add_list',
       type: "list(dyn)",
     },
     {
       original: { expr: "[dyn('string')] + [1]" },
       ast: '_+_(\n  [\n    dyn(\n      "string"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#\n  ]^#*expr.Expr_ListExpr#,\n  [\n    1^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '_+_(\n  [\n    dyn(\n      "string"~string\n    )~dyn^to_dyn\n  ]~list(dyn),\n  [\n    1~int\n  ]~list(int)\n)~list(dyn)^add_list',
       type: "list(dyn)",
     },
     {
@@ -916,6 +1045,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '__comprehension__(\n  // Variable\n  x,\n  // Target\n  _[_](\n    args^#*expr.Expr_IdentExpr#.user^#*expr.Expr_SelectExpr#,\n    "myextension"^#*expr.Constant_StringValue#\n  )^#*expr.Expr_CallExpr#.customAttributes^#*expr.Expr_SelectExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _?_:_(\n    _==_(\n      x^#*expr.Expr_IdentExpr#.name^#*expr.Expr_SelectExpr#,\n      "hobbies"^#*expr.Constant_StringValue#\n    )^#*expr.Expr_CallExpr#,\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    @result^#*expr.Expr_IdentExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+      checkedAst:
+        '__comprehension__(\n  // Variable\n  x,\n  // Target\n  _[_](\n    args~map(string, dyn)^args.user~dyn,\n    "myextension"~string\n  )~dyn^index_map|optional_map_index_value.customAttributes~dyn,\n  // Accumulator\n  @result,\n  // Init\n  []~list(dyn),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _?_:_(\n    _==_(\n      x~dyn^x.name~dyn,\n      "hobbies"~string\n    )~bool^equals,\n    _+_(\n      @result~list(dyn)^@result,\n      [\n        x~dyn^x\n      ]~list(dyn)\n    )~list(dyn)^add_list,\n    @result~list(dyn)^@result\n  )~list(dyn)^conditional,\n  // Result\n  @result~list(dyn)^@result)~list(dyn)',
       type: "list(dyn)",
     },
     {
@@ -924,6 +1055,8 @@ export const tests: SerializedIncrementalTestSuite = {
         typeEnv: [{ name: "a", ident: { type: { typeParam: "T" } } }],
       },
       ast: "_==_(\n  _+_(\n    a^#*expr.Expr_IdentExpr#.b^#*expr.Expr_SelectExpr#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#,\n  _[_](\n    a^#*expr.Expr_IdentExpr#,\n    0^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  _+_(\n    a~dyn^a.b~dyn,\n    1~int\n  )~int^add_int64,\n  _[_](\n    a~dyn^a,\n    0~int\n  )~dyn^index_list|index_map|optional_list_index_int|optional_map_index_value\n)~bool^equals",
       type: "bool",
     },
     {
@@ -945,6 +1078,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_\u0026\u0026_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      !_(\n        pb2^#*expr.Expr_IdentExpr#.single_int64~test-only~^#*expr.Expr_SelectExpr#\n      )^#*expr.Expr_CallExpr#,\n      !_(\n        pb2^#*expr.Expr_IdentExpr#.repeated_int32~test-only~^#*expr.Expr_SelectExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    !_(\n      pb2^#*expr.Expr_IdentExpr#.map_string_string~test-only~^#*expr.Expr_SelectExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      !_(\n        pb3^#*expr.Expr_IdentExpr#.single_int64~test-only~^#*expr.Expr_SelectExpr#\n      )^#*expr.Expr_CallExpr#,\n      !_(\n        pb3^#*expr.Expr_IdentExpr#.repeated_int32~test-only~^#*expr.Expr_SelectExpr#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    !_(\n      pb3^#*expr.Expr_IdentExpr#.map_string_string~test-only~^#*expr.Expr_SelectExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_\u0026\u0026_(\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      !_(\n        pb2~google.expr.proto2.test.TestAllTypes^pb2.single_int64~test-only~~bool\n      )~bool^logical_not,\n      !_(\n        pb2~google.expr.proto2.test.TestAllTypes^pb2.repeated_int32~test-only~~bool\n      )~bool^logical_not\n    )~bool^logical_and,\n    !_(\n      pb2~google.expr.proto2.test.TestAllTypes^pb2.map_string_string~test-only~~bool\n    )~bool^logical_not\n  )~bool^logical_and,\n  _\u0026\u0026_(\n    _\u0026\u0026_(\n      !_(\n        pb3~google.expr.proto3.test.TestAllTypes^pb3.single_int64~test-only~~bool\n      )~bool^logical_not,\n      !_(\n        pb3~google.expr.proto3.test.TestAllTypes^pb3.repeated_int32~test-only~~bool\n      )~bool^logical_not\n    )~bool^logical_and,\n    !_(\n      pb3~google.expr.proto3.test.TestAllTypes^pb3.map_string_string~test-only~~bool\n    )~bool^logical_not\n  )~bool^logical_and\n)~bool^logical_and",
       type: "bool",
     },
     {
@@ -953,6 +1088,8 @@ export const tests: SerializedIncrementalTestSuite = {
         container: "google.expr.proto2.test",
       },
       ast: "TestAllTypes{}^#*expr.Expr_StructExpr#.repeated_nested_message^#*expr.Expr_SelectExpr#",
+      checkedAst:
+        "google.expr.proto2.test.TestAllTypes{}~google.expr.proto2.test.TestAllTypes^google.expr.proto2.test.TestAllTypes.repeated_nested_message~list(google.expr.proto2.test.TestAllTypes.NestedMessage)",
       type: "list(google.expr.proto2.test.TestAllTypes.NestedMessage)",
     },
     {
@@ -961,6 +1098,8 @@ export const tests: SerializedIncrementalTestSuite = {
         container: "google.expr.proto3.test",
       },
       ast: "TestAllTypes{}^#*expr.Expr_StructExpr#.repeated_nested_message^#*expr.Expr_SelectExpr#",
+      checkedAst:
+        "google.expr.proto3.test.TestAllTypes{}~google.expr.proto3.test.TestAllTypes^google.expr.proto3.test.TestAllTypes.repeated_nested_message~list(google.expr.proto3.test.TestAllTypes.NestedMessage)",
       type: "list(google.expr.proto3.test.TestAllTypes.NestedMessage)",
     },
     {
@@ -982,6 +1121,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: 'base64^#*expr.Expr_IdentExpr#.encode(\n  "hello"^#*expr.Constant_StringValue#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        'base64.encode(\n  "hello"~string\n)~string^base64_encode_string',
       type: "string",
     },
     {
@@ -1004,11 +1145,14 @@ export const tests: SerializedIncrementalTestSuite = {
         container: "base64",
       },
       ast: 'encode(\n  "hello"^#*expr.Constant_StringValue#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        'base64.encode(\n  "hello"~string\n)~string^base64_encode_string',
       type: "string",
     },
     {
       original: { expr: "{}" },
       ast: "{}^#*expr.Expr_StructExpr#",
+      checkedAst: "{}~map(dyn, dyn)",
       type: "map(dyn, dyn)",
     },
     {
@@ -1035,6 +1179,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "set(\n  [\n    1^#*expr.Constant_Int64Value#,\n    2^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "set(\n  [\n    1~int,\n    2~int,\n    3~int\n  ]~list(int)\n)~set(int)^set_list",
       type: "set(int)",
     },
     {
@@ -1061,6 +1207,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  set(\n    [\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  set(\n    [\n      2^#*expr.Constant_Int64Value#,\n      1^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  set(\n    [\n      1~int,\n      2~int\n    ]~list(int)\n  )~set(int)^set_list,\n  set(\n    [\n      2~int,\n      1~int\n    ]~list(int)\n  )~set(int)^set_list\n)~bool^equals",
       type: "bool",
     },
     {
@@ -1098,6 +1246,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  set(\n    [\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  x^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  set(\n    [\n      1~int,\n      2~int\n    ]~list(int)\n  )~set(int)^set_list,\n  x~set(int)^x\n)~bool^equals",
       type: "bool",
     },
     {
@@ -1181,6 +1331,8 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "[1].map(x, [x, x]).map(x, [x, x])" },
       ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  __comprehension__(\n    // Variable\n    x,\n    // Target\n    [\n      1^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#,\n    // Accumulator\n    @result,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _+_(\n      @result^#*expr.Expr_IdentExpr#,\n      [\n        [\n          x^#*expr.Expr_IdentExpr#,\n          x^#*expr.Expr_IdentExpr#\n        ]^#*expr.Expr_ListExpr#\n      ]^#*expr.Expr_ListExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      [\n        x^#*expr.Expr_IdentExpr#,\n        x^#*expr.Expr_IdentExpr#\n      ]^#*expr.Expr_ListExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+      checkedAst:
+        "__comprehension__(\n  // Variable\n  x,\n  // Target\n  __comprehension__(\n    // Variable\n    x,\n    // Target\n    [\n      1~int\n    ]~list(int),\n    // Accumulator\n    @result,\n    // Init\n    []~list(list(int)),\n    // LoopCondition\n    true~bool,\n    // LoopStep\n    _+_(\n      @result~list(list(int))^@result,\n      [\n        [\n          x~int^x,\n          x~int^x\n        ]~list(int)\n      ]~list(list(int))\n    )~list(list(int))^add_list,\n    // Result\n    @result~list(list(int))^@result)~list(list(int)),\n  // Accumulator\n  @result,\n  // Init\n  []~list(list(list(int))),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _+_(\n    @result~list(list(list(int)))^@result,\n    [\n      [\n        x~list(int)^x,\n        x~list(int)^x\n      ]~list(list(int))\n    ]~list(list(list(int)))\n  )~list(list(list(int)))^add_list,\n  // Result\n  @result~list(list(list(int)))^@result)~list(list(list(int)))",
       type: "list(list(list(int)))",
     },
     {
@@ -1205,11 +1357,15 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: '__comprehension__(\n  // Variable\n  i,\n  // Target\n  __comprehension__(\n    // Variable\n    i,\n    // Target\n    values^#*expr.Expr_IdentExpr#,\n    // Accumulator\n    @result,\n    // Init\n    []^#*expr.Expr_ListExpr#,\n    // LoopCondition\n    true^#*expr.Constant_BoolValue#,\n    // LoopStep\n    _?_:_(\n      _!=_(\n        i^#*expr.Expr_IdentExpr#.content^#*expr.Expr_SelectExpr#,\n        ""^#*expr.Constant_StringValue#\n      )^#*expr.Expr_CallExpr#,\n      _+_(\n        @result^#*expr.Expr_IdentExpr#,\n        [\n          i^#*expr.Expr_IdentExpr#\n        ]^#*expr.Expr_ListExpr#\n      )^#*expr.Expr_CallExpr#,\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#,\n    // Result\n    @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      i^#*expr.Expr_IdentExpr#.content^#*expr.Expr_SelectExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+      checkedAst:
+        '__comprehension__(\n  // Variable\n  i,\n  // Target\n  __comprehension__(\n    // Variable\n    i,\n    // Target\n    values~list(map(string, string))^values,\n    // Accumulator\n    @result,\n    // Init\n    []~list(map(string, string)),\n    // LoopCondition\n    true~bool,\n    // LoopStep\n    _?_:_(\n      _!=_(\n        i~map(string, string)^i.content~string,\n        ""~string\n      )~bool^not_equals,\n      _+_(\n        @result~list(map(string, string))^@result,\n        [\n          i~map(string, string)^i\n        ]~list(map(string, string))\n      )~list(map(string, string))^add_list,\n      @result~list(map(string, string))^@result\n    )~list(map(string, string))^conditional,\n    // Result\n    @result~list(map(string, string))^@result)~list(map(string, string)),\n  // Accumulator\n  @result,\n  // Init\n  []~list(string),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _+_(\n    @result~list(string)^@result,\n    [\n      i~map(string, string)^i.content~string\n    ]~list(string)\n  )~list(string)^add_list,\n  // Result\n  @result~list(string)^@result)~list(string)',
       type: "list(string)",
     },
     {
       original: { expr: "[{}.map(c,c,c)]+[{}.map(c,c,c)]" },
       ast: "_+_(\n  [\n    __comprehension__(\n      // Variable\n      c,\n      // Target\n      {}^#*expr.Expr_StructExpr#,\n      // Accumulator\n      @result,\n      // Init\n      []^#*expr.Expr_ListExpr#,\n      // LoopCondition\n      true^#*expr.Constant_BoolValue#,\n      // LoopStep\n      _?_:_(\n        c^#*expr.Expr_IdentExpr#,\n        _+_(\n          @result^#*expr.Expr_IdentExpr#,\n          [\n            c^#*expr.Expr_IdentExpr#\n          ]^#*expr.Expr_ListExpr#\n        )^#*expr.Expr_CallExpr#,\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n  ]^#*expr.Expr_ListExpr#,\n  [\n    __comprehension__(\n      // Variable\n      c,\n      // Target\n      {}^#*expr.Expr_StructExpr#,\n      // Accumulator\n      @result,\n      // Init\n      []^#*expr.Expr_ListExpr#,\n      // LoopCondition\n      true^#*expr.Constant_BoolValue#,\n      // LoopStep\n      _?_:_(\n        c^#*expr.Expr_IdentExpr#,\n        _+_(\n          @result^#*expr.Expr_IdentExpr#,\n          [\n            c^#*expr.Expr_IdentExpr#\n          ]^#*expr.Expr_ListExpr#\n        )^#*expr.Expr_CallExpr#,\n        @result^#*expr.Expr_IdentExpr#\n      )^#*expr.Expr_CallExpr#,\n      // Result\n      @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_+_(\n  [\n    __comprehension__(\n      // Variable\n      c,\n      // Target\n      {}~map(bool, dyn),\n      // Accumulator\n      @result,\n      // Init\n      []~list(bool),\n      // LoopCondition\n      true~bool,\n      // LoopStep\n      _?_:_(\n        c~bool^c,\n        _+_(\n          @result~list(bool)^@result,\n          [\n            c~bool^c\n          ]~list(bool)\n        )~list(bool)^add_list,\n        @result~list(bool)^@result\n      )~list(bool)^conditional,\n      // Result\n      @result~list(bool)^@result)~list(bool)\n  ]~list(list(bool)),\n  [\n    __comprehension__(\n      // Variable\n      c,\n      // Target\n      {}~map(bool, dyn),\n      // Accumulator\n      @result,\n      // Init\n      []~list(bool),\n      // LoopCondition\n      true~bool,\n      // LoopStep\n      _?_:_(\n        c~bool^c,\n        _+_(\n          @result~list(bool)^@result,\n          [\n            c~bool^c\n          ]~list(bool)\n        )~list(bool)^add_list,\n        @result~list(bool)^@result\n      )~list(bool)^conditional,\n      // Result\n      @result~list(bool)^@result)~list(bool)\n  ]~list(list(bool))\n)~list(list(bool))^add_list",
       type: "list(list(bool))",
     },
     {
@@ -1225,6 +1381,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_==_(\n  type(\n    testAllTypes^#*expr.Expr_IdentExpr#.nestedgroup^#*expr.Expr_SelectExpr#.nested_id^#*expr.Expr_SelectExpr#\n  )^#*expr.Expr_CallExpr#,\n  int^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  type(\n    testAllTypes~google.expr.proto2.test.TestAllTypes^testAllTypes.nestedgroup~google.expr.proto2.test.TestAllTypes.NestedGroup.nested_id~int\n  )~type(int)^type,\n  int~type(int)^int\n)~bool^equals",
       type: "bool",
     },
     {
@@ -1291,6 +1449,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "a^#*expr.Expr_IdentExpr#.b^#*expr.Expr_SelectExpr#",
+      checkedAst:
+        "a~optional_type(map(string, string))^a.b~optional_type(string)",
       type: "optional_type(string)",
     },
     {
@@ -1311,6 +1471,7 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "a^#*expr.Expr_IdentExpr#.dynamic^#*expr.Expr_SelectExpr#",
+      checkedAst: "a~optional_type(dyn)^a.dynamic~optional_type(dyn)",
       type: "optional_type(dyn)",
     },
     {
@@ -1331,6 +1492,7 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "a^#*expr.Expr_IdentExpr#.dynamic~test-only~^#*expr.Expr_SelectExpr#",
+      checkedAst: "a~optional_type(dyn)^a.dynamic~test-only~~bool",
       type: "bool",
     },
     {
@@ -1476,6 +1638,8 @@ export const tests: SerializedIncrementalTestSuite = {
         ],
       },
       ast: "_||_(\n  _||_(\n    _==_(\n      null_int^#*expr.Expr_IdentExpr#,\n      null^#*expr.Constant_NullValue#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      null^#*expr.Constant_NullValue#,\n      null_int^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _||_(\n    _==_(\n      null_msg^#*expr.Expr_IdentExpr#,\n      null^#*expr.Constant_NullValue#\n    )^#*expr.Expr_CallExpr#,\n    _==_(\n      null^#*expr.Constant_NullValue#,\n      null_msg^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_||_(\n  _||_(\n    _==_(\n      null_int~wrapper(int)^null_int,\n      null~null\n    )~bool^equals,\n    _==_(\n      null~null,\n      null_int~wrapper(int)^null_int\n    )~bool^equals\n  )~bool^logical_or,\n  _||_(\n    _==_(\n      null_msg~google.expr.proto2.test.TestAllTypes^null_msg,\n      null~null\n    )~bool^equals,\n    _==_(\n      null~null,\n      null_msg~google.expr.proto2.test.TestAllTypes^null_msg\n    )~bool^equals\n  )~bool^logical_or\n)~bool^logical_or",
       type: "bool",
     },
     {
@@ -1492,6 +1656,8 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "{}.map(c,[c,type(c)])" },
       ast: "__comprehension__(\n  // Variable\n  c,\n  // Target\n  {}^#*expr.Expr_StructExpr#,\n  // Accumulator\n  @result,\n  // Init\n  []^#*expr.Expr_ListExpr#,\n  // LoopCondition\n  true^#*expr.Constant_BoolValue#,\n  // LoopStep\n  _+_(\n    @result^#*expr.Expr_IdentExpr#,\n    [\n      [\n        c^#*expr.Expr_IdentExpr#,\n        type(\n          c^#*expr.Expr_IdentExpr#\n        )^#*expr.Expr_CallExpr#\n      ]^#*expr.Expr_ListExpr#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+      checkedAst:
+        "__comprehension__(\n  // Variable\n  c,\n  // Target\n  {}~map(dyn, dyn),\n  // Accumulator\n  @result,\n  // Init\n  []~list(list(dyn)),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _+_(\n    @result~list(list(dyn))^@result,\n    [\n      [\n        c~dyn^c,\n        type(\n          c~dyn^c\n        )~type(dyn)^type\n      ]~list(dyn)\n    ]~list(list(dyn))\n  )~list(list(dyn))^add_list,\n  // Result\n  @result~list(list(dyn))^@result)~list(list(dyn))",
       type: "list(list(dyn))",
     },
   ],

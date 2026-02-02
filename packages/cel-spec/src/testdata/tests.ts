@@ -33,6 +33,7 @@ let checkingSuite: IncrementalTestSuite;
 export interface SerializedIncrementalTest {
   original: JsonObject & { name?: string; expr: string };
   ast?: string;
+  checkedAst?: string;
   type?: string;
   error?: string;
 }
@@ -66,6 +67,11 @@ export interface IncrementalTest {
    * https://pkg.go.dev/github.com/google/cel-go/common/debug#ToDebugString
    */
   ast?: string;
+  /**
+   * The checked AST as produced by the `ToDebugString()` function provided by `cel-go`:
+   * https://pkg.go.dev/github.com/google/cel-go/common/debug#ToDebugString
+   */
+  checkedAst?: string;
   /**
    * The original test may separately have an expected type; this one is derived
    * from `cel-go` when tests are extracted from upstream. Where the two types

@@ -20,61 +20,73 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: '"A"' },
       ast: '"A"^#*expr.Constant_StringValue#',
+      checkedAst: '"A"~string',
       type: "string",
     },
     {
       original: { expr: "true" },
       ast: "true^#*expr.Constant_BoolValue#",
+      checkedAst: "true~bool",
       type: "bool",
     },
     {
       original: { expr: "false" },
       ast: "false^#*expr.Constant_BoolValue#",
+      checkedAst: "false~bool",
       type: "bool",
     },
     {
       original: { expr: "0" },
       ast: "0^#*expr.Constant_Int64Value#",
+      checkedAst: "0~int",
       type: "int",
     },
     {
       original: { expr: "42" },
       ast: "42^#*expr.Constant_Int64Value#",
+      checkedAst: "42~int",
       type: "int",
     },
     {
       original: { expr: "0xF" },
       ast: "15^#*expr.Constant_Int64Value#",
+      checkedAst: "15~int",
       type: "int",
     },
     {
       original: { expr: "0u" },
       ast: "0u^#*expr.Constant_Uint64Value#",
+      checkedAst: "0u~uint",
       type: "uint",
     },
     {
       original: { expr: "23u" },
       ast: "23u^#*expr.Constant_Uint64Value#",
+      checkedAst: "23u~uint",
       type: "uint",
     },
     {
       original: { expr: "24u" },
       ast: "24u^#*expr.Constant_Uint64Value#",
+      checkedAst: "24u~uint",
       type: "uint",
     },
     {
       original: { expr: "0xFu" },
       ast: "15u^#*expr.Constant_Uint64Value#",
+      checkedAst: "15u~uint",
       type: "uint",
     },
     {
       original: { expr: "-1" },
       ast: "-1^#*expr.Constant_Int64Value#",
+      checkedAst: "-1~int",
       type: "int",
     },
     {
       original: { expr: "4--4" },
       ast: "_-_(\n  4^#*expr.Constant_Int64Value#,\n  -4^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst: "_-_(\n  4~int,\n  -4~int\n)~int^subtract_int64",
       type: "int",
     },
     {
@@ -86,11 +98,13 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: 'b"abc"' },
       ast: 'b"abc"^#*expr.Constant_BytesValue#',
+      checkedAst: 'b"abc"~bytes',
       type: "bytes",
     },
     {
       original: { expr: "23.39" },
       ast: "23.39^#*expr.Constant_DoubleValue#",
+      checkedAst: "23.39~double",
       type: "double",
     },
     {
@@ -102,6 +116,7 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "null" },
       ast: "null^#*expr.Constant_NullValue#",
+      checkedAst: "null~null",
       type: "null",
     },
     {
@@ -261,6 +276,7 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "{}" },
       ast: "{}^#*expr.Expr_StructExpr#",
+      checkedAst: "{}~map(dyn, dyn)",
       type: "map(dyn, dyn)",
     },
     {
@@ -272,6 +288,7 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "[]" },
       ast: "[]^#*expr.Expr_ListExpr#",
+      checkedAst: "[]~list(dyn)",
       type: "list(dyn)",
     },
     {
@@ -438,16 +455,19 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: '"\\u2764"' },
       ast: '"❤"^#*expr.Constant_StringValue#',
+      checkedAst: '"❤"~string',
       type: "string",
     },
     {
       original: { expr: '"❤"' },
       ast: '"❤"^#*expr.Constant_StringValue#',
+      checkedAst: '"❤"~string',
       type: "string",
     },
     {
       original: { expr: "! false" },
       ast: "!_(\n  false^#*expr.Constant_BoolValue#\n)^#*expr.Expr_CallExpr#",
+      checkedAst: "!_(\n  false~bool\n)~bool^logical_not",
       type: "bool",
     },
     {
@@ -477,11 +497,13 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "[3, 4, 5]" },
       ast: "[\n  3^#*expr.Constant_Int64Value#,\n  4^#*expr.Constant_Int64Value#,\n  5^#*expr.Constant_Int64Value#\n]^#*expr.Expr_ListExpr#",
+      checkedAst: "[\n  3~int,\n  4~int,\n  5~int\n]~list(int)",
       type: "list(int)",
     },
     {
       original: { expr: "[3, 4, 5,]" },
       ast: "[\n  3^#*expr.Constant_Int64Value#,\n  4^#*expr.Constant_Int64Value#,\n  5^#*expr.Constant_Int64Value#\n]^#*expr.Expr_ListExpr#",
+      checkedAst: "[\n  3~int,\n  4~int,\n  5~int\n]~list(int)",
       type: "list(int)",
     },
     {
@@ -516,11 +538,14 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "[] + [1,2,3,] + [4]" },
       ast: "_+_(\n  _+_(\n    []^#*expr.Expr_ListExpr#,\n    [\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#,\n      3^#*expr.Constant_Int64Value#\n    ]^#*expr.Expr_ListExpr#\n  )^#*expr.Expr_CallExpr#,\n  [\n    4^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_+_(\n  _+_(\n    []~list(int),\n    [\n      1~int,\n      2~int,\n      3~int\n    ]~list(int)\n  )~list(int)^add_list,\n  [\n    4~int\n  ]~list(int)\n)~list(int)^add_list",
       type: "list(int)",
     },
     {
       original: { expr: "{1:2u, 2:3u}" },
       ast: "{\n  1^#*expr.Constant_Int64Value#:2u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#,\n  2^#*expr.Constant_Int64Value#:3u^#*expr.Constant_Uint64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
+      checkedAst: "{\n  1~int:2u~uint,\n  2~int:3u~uint\n}~map(int, uint)",
       type: "map(int, uint)",
     },
     {
@@ -558,11 +583,14 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: '"\\""' },
       ast: '"\\""^#*expr.Constant_StringValue#',
+      checkedAst: '"\\""~string',
       type: "string",
     },
     {
       original: { expr: "[1,3,4][0]" },
       ast: "_[_](\n  [\n    1^#*expr.Constant_Int64Value#,\n    3^#*expr.Constant_Int64Value#,\n    4^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  0^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_[_](\n  [\n    1~int,\n    3~int,\n    4~int\n  ]~list(int),\n  0~int\n)~int^index_list",
       type: "int",
     },
     {
@@ -585,16 +613,21 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "false \u0026\u0026 !true || false ? 2 : 3" },
       ast: "_?_:_(\n  _||_(\n    _\u0026\u0026_(\n      false^#*expr.Constant_BoolValue#,\n      !_(\n        true^#*expr.Constant_BoolValue#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    false^#*expr.Constant_BoolValue#\n  )^#*expr.Expr_CallExpr#,\n  2^#*expr.Constant_Int64Value#,\n  3^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_?_:_(\n  _||_(\n    _\u0026\u0026_(\n      false~bool,\n      !_(\n        true~bool\n      )~bool^logical_not\n    )~bool^logical_and,\n    false~bool\n  )~bool^logical_or,\n  2~int,\n  3~int\n)~int^conditional",
       type: "int",
     },
     {
       original: { expr: 'b"abc" + B"def"' },
       ast: '_+_(\n  b"abc"^#*expr.Constant_BytesValue#,\n  b"def"^#*expr.Constant_BytesValue#\n)^#*expr.Expr_CallExpr#',
+      checkedAst: '_+_(\n  b"abc"~bytes,\n  b"def"~bytes\n)~bytes^add_bytes',
       type: "bytes",
     },
     {
       original: { expr: "1 + 2 * 3 - 1 / 2 == 6 % 1" },
       ast: "_==_(\n  _-_(\n    _+_(\n      1^#*expr.Constant_Int64Value#,\n      _*_(\n        2^#*expr.Constant_Int64Value#,\n        3^#*expr.Constant_Int64Value#\n      )^#*expr.Expr_CallExpr#\n    )^#*expr.Expr_CallExpr#,\n    _/_(\n      1^#*expr.Constant_Int64Value#,\n      2^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  _%_(\n    6^#*expr.Constant_Int64Value#,\n    1^#*expr.Constant_Int64Value#\n  )^#*expr.Expr_CallExpr#\n)^#*expr.Expr_CallExpr#",
+      checkedAst:
+        "_==_(\n  _-_(\n    _+_(\n      1~int,\n      _*_(\n        2~int,\n        3~int\n      )~int^multiply_int64\n    )~int^add_int64,\n    _/_(\n      1~int,\n      2~int\n    )~int^divide_int64\n  )~int^subtract_int64,\n  _%_(\n    6~int,\n    1~int\n  )~int^modulo_int64\n)~bool^equals",
       type: "bool",
     },
     {
@@ -605,6 +638,7 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: '"abc" + "def"' },
       ast: '_+_(\n  "abc"^#*expr.Constant_StringValue#,\n  "def"^#*expr.Constant_StringValue#\n)^#*expr.Expr_CallExpr#',
+      checkedAst: '_+_(\n  "abc"~string,\n  "def"~string\n)~string^add_string',
       type: "string",
     },
     {
@@ -615,26 +649,31 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: '"\\xC3\\XBF"' },
       ast: '"Ã¿"^#*expr.Constant_StringValue#',
+      checkedAst: '"Ã¿"~string',
       type: "string",
     },
     {
       original: { expr: '"\\303\\277"' },
       ast: '"Ã¿"^#*expr.Constant_StringValue#',
+      checkedAst: '"Ã¿"~string',
       type: "string",
     },
     {
       original: { expr: '"hi\\u263A \\u263Athere"' },
       ast: '"hi☺ ☺there"^#*expr.Constant_StringValue#',
+      checkedAst: '"hi☺ ☺there"~string',
       type: "string",
     },
     {
       original: { expr: '"\\U000003A8\\?"' },
       ast: '"Ψ?"^#*expr.Constant_StringValue#',
+      checkedAst: '"Ψ?"~string',
       type: "string",
     },
     {
       original: { expr: '"\\a\\b\\f\\n\\r\\t\\v\'\\"\\\\\\? Legal escapes"' },
       ast: '"\\a\\b\\f\\n\\r\\t\\v\'\\"\\\\? Legal escapes"^#*expr.Constant_StringValue#',
+      checkedAst: '"\\a\\b\\f\\n\\r\\t\\v\'\\"\\\\? Legal escapes"~string',
       type: "string",
     },
     {
@@ -652,6 +691,8 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: '"😁" in ["😁", "😑", "😦"]' },
       ast: '@in(\n  "😁"^#*expr.Constant_StringValue#,\n  [\n    "😁"^#*expr.Constant_StringValue#,\n    "😑"^#*expr.Constant_StringValue#,\n    "😦"^#*expr.Constant_StringValue#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#',
+      checkedAst:
+        '@in(\n  "😁"~string,\n  [\n    "😁"~string,\n    "😑"~string,\n    "😦"~string\n  ]~list(string)\n)~bool^in_list',
       type: "bool",
     },
     {

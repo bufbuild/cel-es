@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"path"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -65,11 +66,12 @@ type IncrementalSuite struct {
 }
 
 type IncrementalTest struct {
-	Original OriginalTest `json:"original"`
-	Section  string       `json:"section,omitempty"`
-	Ast      string       `json:"ast,omitempty"`
-	Type     string       `json:"type,omitempty"`
-	Error    string       `json:"error,omitempty"`
+	Original   OriginalTest `json:"original"`
+	Section    string       `json:"section,omitempty"`
+	Ast        string       `json:"ast,omitempty"`
+	CheckedAst string       `json:"checkedAst,omitempty"`
+	Type       string       `json:"type,omitempty"`
+	Error      string       `json:"error,omitempty"`
 }
 
 func wrapTest(test *testpb.SimpleTest) *IncrementalTest {
@@ -296,6 +298,10 @@ func supplementTest(test *IncrementalTest) {
 		return
 	}
 
+	test.CheckedAst = debug.ToAdornedDebugString(
+		checked.NativeRep().Expr(),
+		&semanticAdorner{checked: checked.NativeRep()},
+	)
 	test.Type = cel.FormatCELType(checked.OutputType())
 }
 
@@ -349,6 +355,48 @@ func (k *kindAdorner) GetMetadata(elem any) string {
 		return fmt.Sprintf("^#%s#", "*expr.Expr_CreateStruct_Entry")
 	}
 	return ""
+}
+
+type semanticAdorner struct {
+	checked *ast.AST
+}
+
+func (a *semanticAdorner) GetMetadata(elem any) string {
+	result := ""
+	e, isExpr := elem.(ast.Expr)
+	if !isExpr {
+		return result
+	}
+	t := a.checked.TypeMap()[e.ID()]
+	if t != nil {
+		result += "~"
+		result += cel.FormatCELType(t)
+	}
+
+	switch e.Kind() {
+	case ast.IdentKind,
+		ast.CallKind,
+		ast.ListKind,
+		ast.StructKind,
+		ast.SelectKind:
+		if ref, found := a.checked.ReferenceMap()[e.ID()]; found {
+			if len(ref.OverloadIDs) == 0 {
+				result += "^" + ref.Name
+			} else {
+				sort.Strings(ref.OverloadIDs)
+				for i, overload := range ref.OverloadIDs {
+					if i == 0 {
+						result += "^"
+					} else {
+						result += "|"
+					}
+					result += overload
+				}
+			}
+		}
+	}
+
+	return result
 }
 
 // Parse a GO file from the cel-go module in the module cache, honoring the version
