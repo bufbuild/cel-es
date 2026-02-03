@@ -20,19 +20,9 @@ import {
 } from "./testing.js";
 
 const filter = createExpressionFilter([
-  // Ident types
-  "is",
-  "ii",
-  "iu",
-  "iz",
-  "ib",
-  "id",
-  "ix",
   "[]",
   "[1]",
   '[1, "A"]',
-
-  // Call resolution
   "fg_s()",
   "is.fi_s_s()",
   "1 + 2",
