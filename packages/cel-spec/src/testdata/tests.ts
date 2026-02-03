@@ -20,6 +20,7 @@ import {
 import { tests as conformance } from "./conformance.js";
 import { tests as comprehension } from "./comprehension.js";
 import { tests as parsing } from "./parsing.js";
+import { tests as checking } from "./checking.js";
 import { getTestRegistry } from "./registry.js";
 
 const registry = getTestRegistry();
@@ -27,10 +28,12 @@ const registry = getTestRegistry();
 let conformanceSuite: IncrementalTestSuite;
 let comprehensionSuite: IncrementalTestSuite;
 let parsingSuite: IncrementalTestSuite;
+let checkingSuite: IncrementalTestSuite;
 
 export interface SerializedIncrementalTest {
   original: JsonObject & { name?: string; expr: string };
   ast?: string;
+  checkedAst?: string;
   type?: string;
   error?: string;
 }
@@ -64,6 +67,11 @@ export interface IncrementalTest {
    * https://pkg.go.dev/github.com/google/cel-go/common/debug#ToDebugString
    */
   ast?: string;
+  /**
+   * The checked AST as produced by the `ToDebugString()` function provided by `cel-go`:
+   * https://pkg.go.dev/github.com/google/cel-go/common/debug#ToDebugString
+   */
+  checkedAst?: string;
   /**
    * The original test may separately have an expected type; this one is derived
    * from `cel-go` when tests are extracted from upstream. Where the two types
@@ -114,4 +122,9 @@ export function getComprehensionSuite() {
 export function getParsingSuite() {
   parsingSuite ??= deserializeTestSuite(parsing);
   return parsingSuite;
+}
+
+export function getCheckingSuite() {
+  checkingSuite ??= deserializeTestSuite(checking);
+  return checkingSuite;
 }

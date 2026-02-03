@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {
+  Type_PrimitiveType,
+  Type_WellKnownType,
+  type CheckedExpr,
+  type Type,
+} from "../gen/cel/expr/checked_pb.js";
 import type {
   Constant,
   Expr,
@@ -512,4 +518,163 @@ function isExpr(m: Message): m is Expr {
 
 function isEntry(m: Message): m is Expr {
   return m.$typeName === "cel.expr.Expr.CreateStruct.Entry";
+}
+
+export class SemanticAdorner implements Adorner {
+  constructor(private readonly checked: CheckedExpr) {}
+
+  GetMetadata(elem: Message): string {
+    let result = "";
+    if (!isExpr(elem)) {
+      return result;
+    }
+    const t = this.checked.typeMap[elem.id.toString()];
+    if (t !== undefined) {
+      result += "~";
+      result += formatCELType(t);
+    }
+
+    switch (elem.exprKind.case) {
+      case "identExpr":
+      case "callExpr":
+      case "listExpr":
+      case "structExpr":
+      case "selectExpr":
+        const ref = this.checked.referenceMap[elem.id.toString()];
+        if (ref !== undefined) {
+          if (ref.overloadId.length === 0) {
+            result += `^${ref.name}`;
+          } else {
+            const sorted = [...ref.overloadId].sort();
+            for (let i = 0; i < ref.overloadId.length; i++) {
+              if (i === 0) {
+                result += "^";
+              } else {
+                result += "|";
+              }
+              result += sorted[i];
+            }
+          }
+        }
+        break;
+      default:
+        break;
+    }
+
+    return result;
+  }
+}
+
+export function formatCELType(t: Type | undefined): string {
+  if (!t || !t.typeKind.case) {
+    return "dyn";
+  }
+
+  switch (t.typeKind.case) {
+    case "dyn":
+      return "dyn";
+    case "error":
+      return "!error!";
+    case "function":
+      return formatFunctionType(
+        t.typeKind.value.resultType,
+        t.typeKind.value.argTypes,
+        false,
+      );
+    case "listType":
+      return `list(${formatCELType(t.typeKind.value.elemType)})`;
+    case "mapType":
+      return `map(${formatCELType(t.typeKind.value.keyType)}, ${formatCELType(
+        t.typeKind.value.valueType,
+      )})`;
+    case "messageType":
+      return t.typeKind.value;
+    case "null":
+      return "null";
+    case "primitive":
+      switch (t.typeKind.value) {
+        case Type_PrimitiveType.INT64:
+          return "int";
+        case Type_PrimitiveType.UINT64:
+          return "uint";
+        case Type_PrimitiveType.DOUBLE:
+          return "double";
+        case Type_PrimitiveType.BOOL:
+          return "bool";
+        case Type_PrimitiveType.STRING:
+          return "string";
+        case Type_PrimitiveType.BYTES:
+          return "bytes";
+        default:
+          return "dyn";
+      }
+    case "type":
+      if (!t.typeKind.value || !t.typeKind.value.typeKind.case) {
+        return "type";
+      }
+      return `type(${formatCELType(t.typeKind.value)})`;
+    case "wellKnown":
+      switch (t.typeKind.value) {
+        case Type_WellKnownType.ANY:
+          return "any";
+        case Type_WellKnownType.TIMESTAMP:
+          return "timestamp";
+        case Type_WellKnownType.DURATION:
+          return "duration";
+        default:
+          return "dyn";
+      }
+    case "wrapper":
+      // Create a primitive type for the wrapper
+      const primitiveType: Type = {
+        $typeName: "cel.expr.Type",
+        typeKind: {
+          case: "primitive",
+          value: t.typeKind.value,
+        },
+      };
+      return `wrapper(${formatCELType(primitiveType)})`;
+    case "typeParam":
+      return t.typeKind.value;
+    case "abstractType":
+      const params = t.typeKind.value.parameterTypes;
+      const paramStrs = params.map((p) => formatCELType(p));
+      return `${t.typeKind.value.name}(${paramStrs.join(", ")})`;
+    default:
+      return "dyn";
+  }
+}
+
+/**
+ * Format a function type signature
+ */
+function formatFunctionType(
+  resultType: Type | undefined,
+  argTypes: Type[],
+  isInstance: boolean,
+): string {
+  let result = "";
+
+  if (isInstance && argTypes.length > 0) {
+    result += formatCELType(argTypes[0]);
+    result += ".";
+    argTypes = argTypes.slice(1);
+  }
+
+  result += "(";
+  for (let i = 0; i < argTypes.length; i++) {
+    if (i > 0) {
+      result += ", ";
+    }
+    result += formatCELType(argTypes[i]);
+  }
+  result += ")";
+
+  const rt = formatCELType(resultType);
+  if (rt) {
+    result += " -> ";
+    result += rt;
+  }
+
+  return result;
 }

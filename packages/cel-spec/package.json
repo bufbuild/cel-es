@@ -26,6 +26,8 @@
     "postfetch-comprehension": "biome format --write src/testdata/comprehension.ts && license-header src/testdata/comprehension.ts",
     "fetch-conformance": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/conformance.ts ../src/testdata/json",
     "postfetch-conformance": "biome format --write src/testdata/conformance.ts && license-header src/testdata/conformance.ts",
+    "fetch-checking": "go run -C scripts gen_incremental_tests.go -output ../src/testdata/checking.ts checker/checker_test.go",
+    "postfetch-checking": "biome format --write src/testdata/checking.ts && license-header src/testdata/checking.ts",
     "update-exports": "node scripts/update-exports.js",
     "postupdate-exports": "biome format --write package.json",
     "update-readme": "node scripts/update-readme.js",
@@ -44,6 +46,10 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./testdata/checking.js": {
+      "import": "./dist/esm/testdata/checking.js",
+      "require": "./dist/cjs/testdata/checking.js"
+    },
     "./testdata/comprehension.js": {
       "import": "./dist/esm/testdata/comprehension.js",
       "require": "./dist/cjs/testdata/comprehension.js"
@@ -119,6 +125,7 @@
   },
   "typesVersions": {
     "*": {
+      "testdata/checking.js": ["./dist/cjs/testdata/checking.d.ts"],
       "testdata/comprehension.js": ["./dist/cjs/testdata/comprehension.d.ts"],
       "testdata/conformance.js": ["./dist/cjs/testdata/conformance.d.ts"],
       "testdata/parsing.js": ["./dist/cjs/testdata/parsing.d.ts"],

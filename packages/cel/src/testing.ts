@@ -12,7 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { type CelResult, isCelMap, plan } from "./index.js";
+import {
+  celFunc,
+  type CelFunc,
+  celMethod,
+  type CelResult,
+  isCelMap,
+  plan,
+} from "./index.js";
 import { strings } from "./ext/index.js";
 import {
   create,
@@ -36,11 +43,12 @@ import {
   mapType,
   objectType,
   type CelInput,
+  type CelType,
   type CelValue,
 } from "./type.js";
 import { getMsgDesc } from "./eval.js";
 import { isReflectMessage } from "@bufbuild/protobuf/reflect";
-import { celEnv, type CelEnv } from "./env.js";
+import { celEnv } from "./env.js";
 import { isCelError } from "./error.js";
 import type {
   IncrementalTest,
@@ -49,13 +57,17 @@ import type {
 import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
 import {
   KindAdorner,
+  SemanticAdorner,
   toDebugString,
 } from "@bufbuild/cel-spec/testdata/to-debug-string.js";
 import { check, outputType } from "./check.js";
+import type { SimpleTest } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
+import { protoTypeToCelType } from "./checker.js";
 import type {
-  Expr,
-  ParsedExpr,
-} from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+  CheckedExpr,
+  Decl_IdentDecl,
+  Type,
+} from "@bufbuild/cel-spec/cel/expr/checked_pb.js";
 
 type TestRunner = (t: IncrementalTest, r: Registry) => void;
 
@@ -123,6 +135,40 @@ export function runParsingTest(test: IncrementalTest) {
   }
 }
 
+export function runCheckingTest(test: IncrementalTest) {
+  const [funcs, types] = typeEnvToDecls(test.original.typeEnv || []);
+  const env = celEnv({
+    registry: getTestRegistry(),
+    namespace: test.original.container,
+    funcs: [
+      celFunc("fg_s", [], CelScalar.STRING, () => ""),
+      celMethod("fi_s_s", CelScalar.STRING, [], CelScalar.STRING, () => ""),
+      ...funcs,
+    ],
+    variables: {
+      is: CelScalar.STRING,
+      ii: CelScalar.INT,
+      iu: CelScalar.UINT,
+      iz: CelScalar.BOOL,
+      ib: CelScalar.BYTES,
+      id: CelScalar.DOUBLE,
+      ix: CelScalar.NULL,
+      ...types,
+    },
+  });
+  if (test.type && test.checkedAst) {
+    const checked = check(env, parse(test.original.expr));
+    if (!checked.expr) {
+      assert.fail("expected checked expr to be present");
+    }
+    const actual = toDebugString(checked.expr, new SemanticAdorner(checked));
+    assert.deepStrictEqual(actual, test.checkedAst);
+    assertOutputTypeEqual(checked, test.type);
+  } else {
+    assert.throws(() => check(env, parse(test.original.expr)));
+  }
+}
+
 export function createPathFilter(failurePaths: string[][]): TestFilter {
   const stringPaths = failurePaths.map((p) => `${p.join("/")}/`);
   return (path: string[]): boolean => {
@@ -161,7 +207,7 @@ export function runSimpleTestCase(test: IncrementalTest, registry: Registry) {
       assert.equal(result, true);
       break;
     case "typedResult":
-      assertOutputTypeEqual(env, parsed, test.type as string);
+      assertOutputTypeEqual(check(env, parsed), test.type as string);
       break;
     default:
       throw new Error(
@@ -355,13 +401,8 @@ function lookupType(name: string) {
   }
 }
 
-function assertOutputTypeEqual(
-  env: CelEnv,
-  expr: Expr | ParsedExpr,
-  expected: string,
-) {
-  const checked = check(env, expr);
-  const actual = outputType(checked)?.toString();
+function assertOutputTypeEqual(expr: CheckedExpr, expected: string) {
+  const actual = outputType(expr)?.toString();
   switch (expected) {
     case "null":
       assert.equal(actual, "null_type");
@@ -370,4 +411,44 @@ function assertOutputTypeEqual(
       assert.equal(actual, expected);
       break;
   }
+}
+
+function typeEnvToDecls(
+  typeEnv: SimpleTest["typeEnv"],
+): [CelFunc[], Record<string, CelType>] {
+  const funcs: CelFunc[] = [];
+  const types: Record<string, CelType> = {};
+  for (const decl of typeEnv) {
+    if (decl.declKind.case === "function") {
+      const funcDecl = decl.declKind.value;
+      const overloads: CelFunc[] = [];
+      for (const overload of funcDecl.overloads) {
+        if (overload.isInstanceFunction) {
+          overloads.push(
+            celMethod(
+              decl.name,
+              protoTypeToCelType(overload.params[0] as Type),
+              overload.params.slice(1).map(protoTypeToCelType),
+              protoTypeToCelType(overload.resultType as Type),
+              () => null,
+            ),
+          );
+          continue;
+        }
+        overloads.push(
+          celFunc(
+            decl.name,
+            overload.params.map(protoTypeToCelType),
+            protoTypeToCelType(overload.resultType as Type),
+            () => null,
+          ),
+        );
+      }
+      funcs.push(...overloads);
+    } else {
+      const typeDecl = decl.declKind.value as Decl_IdentDecl;
+      types[decl.name] = protoTypeToCelType(typeDecl.type as Type);
+    }
+  }
+  return [funcs, types];
 }

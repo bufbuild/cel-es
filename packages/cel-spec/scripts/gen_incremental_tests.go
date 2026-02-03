@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"path"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -30,7 +31,7 @@ import (
 	goparser "go/parser"
 	gotoken "go/token"
 
-	// "cel.dev/expr"
+	exprpb "cel.dev/expr"
 	test2pb "cel.dev/expr/conformance/proto2"
 	test3pb "cel.dev/expr/conformance/proto3"
 	testpb "cel.dev/expr/conformance/test"
@@ -42,6 +43,8 @@ import (
 	"github.com/google/cel-go/common/types"
 	"github.com/google/cel-go/ext"
 	"github.com/google/cel-go/parser"
+	proto2pb "github.com/google/cel-go/test/proto2pb"
+	proto3pb "github.com/google/cel-go/test/proto3pb"
 
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -63,11 +66,12 @@ type IncrementalSuite struct {
 }
 
 type IncrementalTest struct {
-	Original OriginalTest `json:"original"`
-	Section  string       `json:"section,omitempty"`
-	Ast      string       `json:"ast,omitempty"`
-	Type     string       `json:"type,omitempty"`
-	Error    string       `json:"error,omitempty"`
+	Original   OriginalTest `json:"original"`
+	Section    string       `json:"section,omitempty"`
+	Ast        string       `json:"ast,omitempty"`
+	CheckedAst string       `json:"checkedAst,omitempty"`
+	Type       string       `json:"type,omitempty"`
+	Error      string       `json:"error,omitempty"`
 }
 
 func wrapTest(test *testpb.SimpleTest) *IncrementalTest {
@@ -82,6 +86,24 @@ func wrapTest(test *testpb.SimpleTest) *IncrementalTest {
 
 func wrapString(expr string) *IncrementalTest {
 	return wrapTest(&testpb.SimpleTest{Expr: expr})
+}
+
+func wrapTestInfo(ti *testInfo) *IncrementalTest {
+	test := &testpb.SimpleTest{
+		Expr: ti.in,
+	}
+
+	// Set container if present
+	if ti.container != "" {
+		test.Container = ti.container
+	}
+
+	// Convert environment to type_env
+	if ti.env.idents != nil || ti.env.functions != nil {
+		test.TypeEnv = convertEnvToTypeEnv(ti.env)
+	}
+
+	return wrapTest(test)
 }
 
 func (t *IncrementalTest) unwrap() *testpb.SimpleTest {
@@ -117,7 +139,7 @@ func init() {
 		cel.OptionalTypes(),
 		cel.EagerlyValidateDeclarations(true),
 		cel.EnableErrorOnBadPresenceTest(true),
-		cel.Types(&test2pb.TestAllTypes{}, &test2pb.Proto2ExtensionScopedMessage{}, &test3pb.TestAllTypes{}),
+		cel.Types(&test2pb.TestAllTypes{}, &test2pb.Proto2ExtensionScopedMessage{}, &test3pb.TestAllTypes{}, &proto2pb.TestAllTypes{}, &proto2pb.ExtendedExampleType{}, &proto3pb.TestAllTypes{}),
 		ext.Bindings(),
 		ext.Encoders(),
 		ext.Math(),
@@ -125,6 +147,15 @@ func init() {
 		ext.Strings(),
 		cel.Lib(celBlockLib{}),
 		cel.EnableIdentifierEscapeSyntax(),
+		cel.Function("fg_s", cel.Overload("fg_s_0", []*cel.Type{}, types.StringType)),
+		cel.Function("fi_s_s", cel.MemberOverload("fi_s_s_0", []*cel.Type{types.StringType}, types.StringType)),
+		cel.Variable("is", types.StringType),
+		cel.Variable("ii", types.IntType),
+		cel.Variable("iu", types.UintType),
+		cel.Variable("iz", types.BoolType),
+		cel.Variable("ib", types.BytesType),
+		cel.Variable("id", types.DoubleType),
+		cel.Variable("ix", types.NullType),
 	}
 
 	envNoMacros, err = cel.NewCustomEnv(stdOpts...)
@@ -200,6 +231,9 @@ func main() {
 		} else if strings.HasSuffix(sourcePath, "comprehensions_test.go") {
 			filter = findComprehensionTests
 			suite.Name = "comprehension"
+		} else if strings.HasSuffix(sourcePath, "checker_test.go") {
+			filter = findCheckerTests
+			suite.Name = "checking"
 		} else {
 			log.Fatalf("do not know what to extract from %s", sourcePath)
 		}
@@ -264,6 +298,10 @@ func supplementTest(test *IncrementalTest) {
 		return
 	}
 
+	test.CheckedAst = debug.ToAdornedDebugString(
+		checked.NativeRep().Expr(),
+		&semanticAdorner{checked: checked.NativeRep()},
+	)
 	test.Type = cel.FormatCELType(checked.OutputType())
 }
 
@@ -317,6 +355,48 @@ func (k *kindAdorner) GetMetadata(elem any) string {
 		return fmt.Sprintf("^#%s#", "*expr.Expr_CreateStruct_Entry")
 	}
 	return ""
+}
+
+type semanticAdorner struct {
+	checked *ast.AST
+}
+
+func (a *semanticAdorner) GetMetadata(elem any) string {
+	result := ""
+	e, isExpr := elem.(ast.Expr)
+	if !isExpr {
+		return result
+	}
+	t := a.checked.TypeMap()[e.ID()]
+	if t != nil {
+		result += "~"
+		result += cel.FormatCELType(t)
+	}
+
+	switch e.Kind() {
+	case ast.IdentKind,
+		ast.CallKind,
+		ast.ListKind,
+		ast.StructKind,
+		ast.SelectKind:
+		if ref, found := a.checked.ReferenceMap()[e.ID()]; found {
+			if len(ref.OverloadIDs) == 0 {
+				result += "^" + ref.Name
+			} else {
+				sort.Strings(ref.OverloadIDs)
+				for i, overload := range ref.OverloadIDs {
+					if i == 0 {
+						result += "^"
+					} else {
+						result += "|"
+					}
+					result += overload
+				}
+			}
+		}
+	}
+
+	return result
 }
 
 // Parse a GO file from the cel-go module in the module cache, honoring the version
@@ -477,6 +557,638 @@ func findParserTests(file *goast.File) ([]*IncrementalTest, error) {
 		}
 	}
 	return tests, nil
+}
+
+// Find CEL expressions from cel-go's checker_test.go
+// Returns test cases with environment information extracted from the testInfo struct.
+// See https://github.com/google/cel-go/blob/98789f34a481044a0ad4b8a77f298d2ec3623bdb/checker/checker_test.go
+func findCheckerTests(file *goast.File) ([]*IncrementalTest, error) {
+	// First, we need to parse the testInfo structs to extract all the metadata
+	// This is complex because we need to understand the Go AST structure
+	// For now, let's extract just the expressions like before, but we should enhance this
+	var tests []*IncrementalTest
+	for _, decl := range file.Decls {
+		funcDecl, ok := decl.(*goast.FuncDecl)
+		if !ok {
+			continue
+		}
+		if funcDecl.Name.Name != "testCases" {
+			continue
+		}
+		for _, stmt := range funcDecl.Body.List {
+			retStmt, ok := stmt.(*goast.ReturnStmt)
+			if !ok {
+				continue
+			}
+			for _, retExpr := range retStmt.Results {
+				valueCompositeLit, ok := retExpr.(*goast.CompositeLit)
+				if !ok {
+					continue
+				}
+				for _, expr := range valueCompositeLit.Elts {
+					exprCompositeLit, ok := expr.(*goast.CompositeLit)
+					if !ok {
+						continue
+					}
+					// Parse the full testInfo struct
+					ti := parseTestInfo(exprCompositeLit)
+					if ti != nil {
+						tests = append(tests, wrapTestInfo(ti))
+					}
+				}
+			}
+		}
+	}
+	return tests, nil
+}
+
+// testInfo represents the structure from checker_test.go
+type testInfo struct {
+	in        string
+	container string
+	env       testEnv
+}
+
+// testEnv represents environment configuration
+type testEnv struct {
+	idents         []*identDecl
+	functions      []*functionDecl
+	variadicASTs   bool
+	optionalSyntax bool
+}
+
+type identDecl struct {
+	name     string
+	typeName string
+}
+
+type functionDecl struct {
+	name      string
+	overloads []*overloadDecl
+}
+
+type overloadDecl struct {
+	id       string
+	argTypes []string
+	result   string
+	isMember bool
+}
+
+// parseTestInfo extracts testInfo from a composite literal AST node
+func parseTestInfo(compLit *goast.CompositeLit) *testInfo {
+	ti := &testInfo{}
+
+	for _, elt := range compLit.Elts {
+		kvExpr, ok := elt.(*goast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+
+		keyIdent, ok := kvExpr.Key.(*goast.Ident)
+		if !ok {
+			continue
+		}
+
+		switch keyIdent.Name {
+		case "in":
+			if basicLit, ok := kvExpr.Value.(*goast.BasicLit); ok {
+				unquoted, err := strconv.Unquote(basicLit.Value)
+				if err == nil {
+					ti.in = unquoted
+				}
+			}
+		case "container":
+			if basicLit, ok := kvExpr.Value.(*goast.BasicLit); ok {
+				unquoted, err := strconv.Unquote(basicLit.Value)
+				if err == nil {
+					ti.container = unquoted
+				}
+			}
+		case "env":
+			// Parse the env struct
+			if envLit, ok := kvExpr.Value.(*goast.CompositeLit); ok {
+				ti.env = parseTestEnv(envLit)
+			}
+		}
+	}
+
+	if ti.in == "" {
+		return nil
+	}
+
+	return ti
+}
+
+// parseTestEnv extracts testEnv from a composite literal
+func parseTestEnv(compLit *goast.CompositeLit) testEnv {
+	env := testEnv{}
+
+	for _, elt := range compLit.Elts {
+		kvExpr, ok := elt.(*goast.KeyValueExpr)
+		if !ok {
+			continue
+		}
+
+		keyIdent, ok := kvExpr.Key.(*goast.Ident)
+		if !ok {
+			continue
+		}
+
+		switch keyIdent.Name {
+		case "idents":
+			env.idents = parseIdents(kvExpr.Value)
+		case "functions":
+			env.functions = parseFunctions(kvExpr.Value)
+		case "variadicASTs":
+			if ident, ok := kvExpr.Value.(*goast.Ident); ok {
+				env.variadicASTs = ident.Name == "true"
+			}
+		case "optionalSyntax":
+			if ident, ok := kvExpr.Value.(*goast.Ident); ok {
+				env.optionalSyntax = ident.Name == "true"
+			}
+		}
+	}
+
+	return env
+}
+
+// parseIdents extracts variable declarations from AST
+func parseIdents(expr goast.Expr) []*identDecl {
+	var idents []*identDecl
+
+	// idents is a composite literal like []*decls.VariableDecl{...}
+	compLit, ok := expr.(*goast.CompositeLit)
+	if !ok {
+		return idents
+	}
+
+	for _, elt := range compLit.Elts {
+		// Each element is a call to decls.NewVariable("name", type)
+		callExpr, ok := elt.(*goast.CallExpr)
+		if !ok {
+			continue
+		}
+
+		// Check if it's a call to decls.NewVariable
+		if !isCallTo(callExpr, "NewVariable") {
+			continue
+		}
+
+		if len(callExpr.Args) < 2 {
+			continue
+		}
+
+		// First arg is the variable name
+		nameArg, ok := callExpr.Args[0].(*goast.BasicLit)
+		if !ok {
+			continue
+		}
+		name, err := strconv.Unquote(nameArg.Value)
+		if err != nil {
+			continue
+		}
+
+		// Second arg is the type expression
+		typeName := extractTypeName(callExpr.Args[1])
+
+		idents = append(idents, &identDecl{
+			name:     name,
+			typeName: typeName,
+		})
+	}
+
+	return idents
+}
+
+// parseFunctions extracts function declarations from AST
+func parseFunctions(expr goast.Expr) []*functionDecl {
+	var functions []*functionDecl
+
+	compLit, ok := expr.(*goast.CompositeLit)
+	if !ok {
+		return functions
+	}
+
+	for _, elt := range compLit.Elts {
+		// Each element is a call to testFunction(t, "name", overloads...)
+		callExpr, ok := elt.(*goast.CallExpr)
+		if !ok {
+			continue
+		}
+
+		if !isCallTo(callExpr, "testFunction") {
+			continue
+		}
+
+		if len(callExpr.Args) < 2 {
+			continue
+		}
+
+		// Second arg is the function name
+		nameArg, ok := callExpr.Args[1].(*goast.BasicLit)
+		if !ok {
+			continue
+		}
+		name, err := strconv.Unquote(nameArg.Value)
+		if err != nil {
+			continue
+		}
+
+		// Remaining args are overloads
+		var overloads []*overloadDecl
+		for i := 2; i < len(callExpr.Args); i++ {
+			if overload := parseOverload(callExpr.Args[i]); overload != nil {
+				overloads = append(overloads, overload)
+			}
+		}
+
+		functions = append(functions, &functionDecl{
+			name:      name,
+			overloads: overloads,
+		})
+	}
+
+	return functions
+}
+
+// parseOverload extracts overload information from AST
+func parseOverload(expr goast.Expr) *overloadDecl {
+	callExpr, ok := expr.(*goast.CallExpr)
+	if !ok {
+		return nil
+	}
+
+	isMember := isCallTo(callExpr, "MemberOverload")
+	if !isMember && !isCallTo(callExpr, "Overload") {
+		return nil
+	}
+
+	if len(callExpr.Args) < 3 {
+		return nil
+	}
+
+	// First arg is overload ID
+	idArg, ok := callExpr.Args[0].(*goast.BasicLit)
+	if !ok {
+		return nil
+	}
+	id, err := strconv.Unquote(idArg.Value)
+	if err != nil {
+		return nil
+	}
+
+	// Second arg is argument types (slice)
+	var argTypes []string
+	if argsLit, ok := callExpr.Args[1].(*goast.CompositeLit); ok {
+		for _, arg := range argsLit.Elts {
+			argTypes = append(argTypes, extractTypeName(arg))
+		}
+	}
+
+	// Third arg is result type
+	resultType := extractTypeName(callExpr.Args[2])
+
+	return &overloadDecl{
+		id:       id,
+		argTypes: argTypes,
+		result:   resultType,
+		isMember: isMember,
+	}
+}
+
+// extractTypeName converts a type expression to a string representation
+func extractTypeName(expr goast.Expr) string {
+	switch e := expr.(type) {
+	case *goast.SelectorExpr:
+		// e.g., types.IntType
+		if x, ok := e.X.(*goast.Ident); ok {
+			return x.Name + "." + e.Sel.Name
+		}
+		return e.Sel.Name
+	case *goast.CallExpr:
+		// e.g., types.NewObjectType("google.expr.proto3.test.TestAllTypes")
+		// or types.NewListType(types.IntType)
+		// or types.NewMapType(types.StringType, types.IntType)
+		if sel, ok := e.Fun.(*goast.SelectorExpr); ok {
+			funcName := sel.Sel.Name
+
+			switch funcName {
+			case "NewObjectType":
+				if len(e.Args) > 0 {
+					if lit, ok := e.Args[0].(*goast.BasicLit); ok {
+						typeName, _ := strconv.Unquote(lit.Value)
+						return typeName
+					}
+				}
+			case "NewListType":
+				if len(e.Args) > 0 {
+					elemType := extractTypeName(e.Args[0])
+					return "list(" + elemType + ")"
+				}
+			case "NewMapType":
+				if len(e.Args) >= 2 {
+					keyType := extractTypeName(e.Args[0])
+					valueType := extractTypeName(e.Args[1])
+					return "map(" + keyType + ", " + valueType + ")"
+				}
+			case "NewOptionalType":
+				if len(e.Args) > 0 {
+					elemType := extractTypeName(e.Args[0])
+					return "optional_type(" + elemType + ")"
+				}
+			case "NewNullableType":
+				if len(e.Args) > 0 {
+					elemType := extractTypeName(e.Args[0])
+					return "wrapper(" + elemType + ")"
+				}
+			case "NewTypeParamType":
+				if len(e.Args) > 0 {
+					if lit, ok := e.Args[0].(*goast.BasicLit); ok {
+						typeName, _ := strconv.Unquote(lit.Value)
+						return typeName
+					}
+				}
+			case "NewOpaqueType":
+				if len(e.Args) >= 1 {
+					if lit, ok := e.Args[0].(*goast.BasicLit); ok {
+						name, _ := strconv.Unquote(lit.Value)
+						if len(e.Args) >= 2 {
+							paramType := extractTypeName(e.Args[1])
+							return name + "(" + paramType + ")"
+						}
+						return name
+					}
+				}
+			}
+			return funcName
+		}
+	case *goast.Ident:
+		return e.Name
+	}
+	return "dyn"
+}
+
+// isCallTo checks if a call expression is calling a specific function
+func isCallTo(callExpr *goast.CallExpr, funcName string) bool {
+	switch fun := callExpr.Fun.(type) {
+	case *goast.Ident:
+		return fun.Name == funcName
+	case *goast.SelectorExpr:
+		return fun.Sel.Name == funcName
+	}
+	return false
+}
+
+// convertEnvToTypeEnv converts a testEnv to protobuf Decl format
+func convertEnvToTypeEnv(env testEnv) []*exprpb.Decl {
+	var decls []*exprpb.Decl
+
+	// Convert idents to Decl
+	for _, ident := range env.idents {
+		declType := typeNameToProto(ident.typeName)
+		if declType == nil {
+			continue
+		}
+
+		decls = append(decls, &exprpb.Decl{
+			Name: ident.name,
+			DeclKind: &exprpb.Decl_Ident{
+				Ident: &exprpb.Decl_IdentDecl{
+					Type: declType,
+				},
+			},
+		})
+	}
+
+	// Convert functions to Decl
+	for _, fn := range env.functions {
+		var overloads []*exprpb.Decl_FunctionDecl_Overload
+
+		for _, overload := range fn.overloads {
+			var params []*exprpb.Type
+			for _, argType := range overload.argTypes {
+				paramType := typeNameToProto(argType)
+				if paramType != nil {
+					params = append(params, paramType)
+				}
+			}
+
+			resultType := typeNameToProto(overload.result)
+			if resultType == nil {
+				continue
+			}
+
+			overloads = append(overloads, &exprpb.Decl_FunctionDecl_Overload{
+				OverloadId:         overload.id,
+				Params:             params,
+				ResultType:         resultType,
+				IsInstanceFunction: overload.isMember,
+			})
+		}
+
+		if len(overloads) > 0 {
+			decls = append(decls, &exprpb.Decl{
+				Name: fn.name,
+				DeclKind: &exprpb.Decl_Function{
+					Function: &exprpb.Decl_FunctionDecl{
+						Overloads: overloads,
+					},
+				},
+			})
+		}
+	}
+
+	return decls
+}
+
+// typeNameToProto converts a type name string to a protobuf Type
+func typeNameToProto(typeName string) *exprpb.Type {
+	// Handle primitive types
+	switch typeName {
+	case "types.IntType", "IntType", "int":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Primitive{Primitive: exprpb.Type_INT64}}
+	case "types.UintType", "UintType", "uint":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Primitive{Primitive: exprpb.Type_UINT64}}
+	case "types.DoubleType", "DoubleType", "double":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Primitive{Primitive: exprpb.Type_DOUBLE}}
+	case "types.BoolType", "BoolType", "bool":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Primitive{Primitive: exprpb.Type_BOOL}}
+	case "types.StringType", "StringType", "string":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Primitive{Primitive: exprpb.Type_STRING}}
+	case "types.BytesType", "BytesType", "bytes":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Primitive{Primitive: exprpb.Type_BYTES}}
+	case "types.NullType", "NullType", "null":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Null{}}
+	case "types.DynType", "DynType", "dyn":
+		return &exprpb.Type{TypeKind: &exprpb.Type_Dyn{}}
+	case "types.AnyType", "AnyType", "any":
+		return &exprpb.Type{
+			TypeKind: &exprpb.Type_WellKnown{
+				WellKnown: exprpb.Type_ANY,
+			},
+		}
+	case "types.DurationType", "DurationType", "duration":
+		return &exprpb.Type{
+			TypeKind: &exprpb.Type_WellKnown{
+				WellKnown: exprpb.Type_DURATION,
+			},
+		}
+	case "types.TimestampType", "TimestampType", "timestamp":
+		return &exprpb.Type{
+			TypeKind: &exprpb.Type_WellKnown{
+				WellKnown: exprpb.Type_TIMESTAMP,
+			},
+		}
+	}
+
+	// Handle list types: list(T)
+	if strings.HasPrefix(typeName, "list(") && strings.HasSuffix(typeName, ")") {
+		elemTypeName := typeName[5 : len(typeName)-1]
+		elemType := typeNameToProto(elemTypeName)
+		if elemType != nil {
+			return &exprpb.Type{
+				TypeKind: &exprpb.Type_ListType_{
+					ListType: &exprpb.Type_ListType{
+						ElemType: elemType,
+					},
+				},
+			}
+		}
+	}
+
+	// Handle map types: map(K, V)
+	if strings.HasPrefix(typeName, "map(") && strings.HasSuffix(typeName, ")") {
+		inner := typeName[4 : len(typeName)-1]
+		parts := splitMapTypes(inner)
+		if len(parts) == 2 {
+			keyType := typeNameToProto(parts[0])
+			valueType := typeNameToProto(parts[1])
+			if keyType != nil && valueType != nil {
+				return &exprpb.Type{
+					TypeKind: &exprpb.Type_MapType_{
+						MapType: &exprpb.Type_MapType{
+							KeyType:   keyType,
+							ValueType: valueType,
+						},
+					},
+				}
+			}
+		}
+	}
+
+	// Handle wrapper types: wrapper(T)
+	if strings.HasPrefix(typeName, "wrapper(") && strings.HasSuffix(typeName, ")") {
+		innerTypeName := typeName[8 : len(typeName)-1]
+		innerType := typeNameToProto(innerTypeName)
+		if innerType != nil {
+			return &exprpb.Type{
+				TypeKind: &exprpb.Type_Wrapper{
+					Wrapper: innerType.GetPrimitive(),
+				},
+			}
+		}
+	}
+
+	// Handle optional types: optional_type(T)
+	if strings.HasPrefix(typeName, "optional_type(") && strings.HasSuffix(typeName, ")") {
+		innerTypeName := typeName[14 : len(typeName)-1]
+		innerType := typeNameToProto(innerTypeName)
+		if innerType != nil {
+			return &exprpb.Type{
+				TypeKind: &exprpb.Type_AbstractType_{
+					AbstractType: &exprpb.Type_AbstractType{
+						Name:           "optional_type",
+						ParameterTypes: []*exprpb.Type{innerType},
+					},
+				},
+			}
+		}
+	}
+
+	// Handle type parameters: T, K, V, etc.
+	if len(typeName) == 1 && typeName[0] >= 'A' && typeName[0] <= 'Z' {
+		return &exprpb.Type{
+			TypeKind: &exprpb.Type_TypeParam{
+				TypeParam: typeName,
+			},
+		}
+	}
+
+	// Handle opaque types: set(T)
+	if idx := strings.Index(typeName, "("); idx > 0 && strings.HasSuffix(typeName, ")") {
+		name := typeName[:idx]
+		paramTypeName := typeName[idx+1 : len(typeName)-1]
+		paramType := typeNameToProto(paramTypeName)
+		if paramType != nil {
+			return &exprpb.Type{
+				TypeKind: &exprpb.Type_AbstractType_{
+					AbstractType: &exprpb.Type_AbstractType{
+						Name:           name,
+						ParameterTypes: []*exprpb.Type{paramType},
+					},
+				},
+			}
+		}
+	}
+
+	// Handle message types (fully qualified names)
+	if strings.Contains(typeName, ".") {
+		return &exprpb.Type{
+			TypeKind: &exprpb.Type_MessageType{
+				MessageType: typeName,
+			},
+		}
+	}
+
+	// Handle type type: type(T)
+	if strings.HasPrefix(typeName, "type(") && strings.HasSuffix(typeName, ")") {
+		innerTypeName := typeName[5 : len(typeName)-1]
+		innerType := typeNameToProto(innerTypeName)
+		if innerType != nil {
+			return &exprpb.Type{
+				TypeKind: &exprpb.Type_Type{
+					Type: innerType,
+				},
+			}
+		}
+	}
+
+	// Default to dyn for unknown types
+	return &exprpb.Type{TypeKind: &exprpb.Type_Dyn{}}
+}
+
+// splitMapTypes splits "K, V" into ["K", "V"], handling nested types
+func splitMapTypes(s string) []string {
+	var parts []string
+	var current strings.Builder
+	depth := 0
+
+	for _, ch := range s {
+		switch ch {
+		case '(':
+			depth++
+			current.WriteRune(ch)
+		case ')':
+			depth--
+			current.WriteRune(ch)
+		case ',':
+			if depth == 0 {
+				parts = append(parts, strings.TrimSpace(current.String()))
+				current.Reset()
+			} else {
+				current.WriteRune(ch)
+			}
+		default:
+			current.WriteRune(ch)
+		}
+	}
+
+	if current.Len() > 0 {
+		parts = append(parts, strings.TrimSpace(current.String()))
+	}
+
+	return parts
 }
 
 func write(suite *IncrementalSuite, sourceId string, outputPath string) error {
