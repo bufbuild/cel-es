@@ -18,12 +18,11 @@ import type {
   Expr,
   SourceInfo,
   Expr_Ident,
-  ConstantSchema,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import {
   type CheckedExpr,
   CheckedExprSchema,
-  type ReferenceSchema,
+  type Reference,
   type Type,
   type TypeSchema,
   Type_PrimitiveType,
@@ -45,16 +44,17 @@ import { NullValue } from "@bufbuild/protobuf/wkt";
 import type { CelEnv } from "./env.js";
 import { resolveCandidateNames } from "./namespace.js";
 import { celError } from "./error.js";
-import { identReference, type ReferenceInfo } from "./referenceinfo.js";
+import { isCelUint } from "./uint.js";
 
 export class Checker {
-  private readonly referenceMap: Map<bigint, ReferenceInfo> = new Map();
+  private readonly referenceMap: Map<bigint, Reference> = new Map();
   private readonly typeMap: Map<bigint, CelType> = new Map();
 
   constructor(private readonly env: CelEnv) {}
 
   check(expr: Expr, sourceInfo: SourceInfo | undefined): CheckedExpr {
     // Clear each time we check since Checker instances are cached per environment.
+    this.referenceMap.clear();
     this.typeMap.clear();
     return create(CheckedExprSchema, {
       expr: this.checkExpr(expr),
@@ -147,7 +147,7 @@ export class Checker {
     this.typeMap.set(id, type);
   }
 
-  private setReference(id: bigint, reference: ReferenceInfo): void {
+  private setReference(id: bigint, reference: Reference): void {
     this.referenceMap.set(id, reference);
   }
 
@@ -327,71 +327,56 @@ function celTypeMapToProtoTypeMap(
   return protoTypeMap;
 }
 
+function identReference(name: string, value?: CelValue): Reference {
+  return {
+    $typeName: "cel.expr.Reference",
+    name,
+    value: value ? celValueToProtoConstant(value) : undefined,
+    overloadId: [],
+  };
+}
+
 function protoConstant<
   T extends Exclude<Constant["constantKind"]["case"], undefined>,
 >(
   caseName: T,
   value: Extract<Constant["constantKind"], { case: T }>["value"],
-): MessageInitShape<typeof ConstantSchema> {
-  return { constantKind: { case: caseName, value } } as MessageInitShape<
-    typeof ConstantSchema
-  >;
+): Constant {
+  return {
+    $typeName: "cel.expr.Constant",
+    constantKind: { case: caseName, value } as Constant["constantKind"],
+  };
 }
 
-function celValueToProtoConstant(
-  value: CelValue,
-): MessageInitShape<typeof ConstantSchema> {
-  const type = celType(value);
-  switch (type.kind) {
-    case "scalar":
-      switch (type.name) {
-        case "bool":
-          return protoConstant("boolValue", value as boolean);
-        case "bytes":
-          return protoConstant("bytesValue", value as Uint8Array);
-        case "double":
-          return protoConstant("doubleValue", value as number);
-        case "int":
-          return protoConstant("int64Value", BigInt(value as number | bigint));
-        case "string":
-          return protoConstant("stringValue", value as string);
-        case "uint":
-          return protoConstant("uint64Value", BigInt(value as number | bigint));
-        case "null_type":
+function celValueToProtoConstant(value: CelValue): Constant {
+  switch (typeof value) {
+    case "bigint":
+      return protoConstant("int64Value", value);
+    case "number":
+      return protoConstant("doubleValue", value);
+    case "boolean":
+      return protoConstant("boolValue", value);
+    case "string":
+      return protoConstant("stringValue", value);
+    case "object":
+      switch (true) {
+        case isCelUint(value):
+          return protoConstant("uint64Value", value.value);
+        case null:
           return protoConstant("nullValue", NullValue.NULL_VALUE);
-        case "dyn":
-          throw new Error("cannot convert dyn to proto constant");
-        case "type":
-          throw new Error("cannot convert type to proto constant");
+        case value instanceof Uint8Array:
+          return protoConstant("bytesValue", value);
       }
-    default:
-      throw new Error(`unsupported constant type: ${type.toString()}`);
   }
+  throw new Error(`unsupported constant type: ${celType(value)}`);
 }
 
 function celReferenceMapToProtoReferenceMap(
-  referenceMap: Map<bigint, ReferenceInfo>,
-): Record<string, MessageInitShape<typeof ReferenceSchema>> {
-  const protoReferenceMap: Record<
-    string,
-    MessageInitShape<typeof ReferenceSchema>
-  > = {};
-  for (const [exprId, referenceInfo] of referenceMap.entries()) {
-    if (referenceInfo.overloadIds.size > 0) {
-      protoReferenceMap[exprId.toString()] = {
-        name: referenceInfo.name,
-        overloadId: Array.from(referenceInfo.overloadIds),
-        value: undefined,
-      };
-      continue;
-    }
-    protoReferenceMap[exprId.toString()] = {
-      name: referenceInfo.name,
-      overloadId: [],
-      value: referenceInfo.value
-        ? celValueToProtoConstant(referenceInfo.value as CelValue)
-        : undefined,
-    };
+  referenceMap: Map<bigint, Reference>,
+): Record<string, Reference> {
+  const protoReferenceMap: Record<string, Reference> = {};
+  for (const [id, ref] of referenceMap.entries()) {
+    protoReferenceMap[id.toString()] = ref;
   }
   return protoReferenceMap;
 }
