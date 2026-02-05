@@ -17,10 +17,12 @@ import type {
   Constant,
   Expr,
   SourceInfo,
+  Expr_Ident,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import {
   type CheckedExpr,
   CheckedExprSchema,
+  type Reference,
   type Type,
   type TypeSchema,
   Type_PrimitiveType,
@@ -28,7 +30,9 @@ import {
 import { create, type MessageInitShape } from "@bufbuild/protobuf";
 import {
   CelScalar,
+  celType,
   type CelType,
+  type CelValue,
   DURATION,
   listType,
   type mapKeyType,
@@ -37,17 +41,25 @@ import {
   TIMESTAMP,
 } from "./type.js";
 import { NullValue } from "@bufbuild/protobuf/wkt";
+import type { CelEnv } from "./env.js";
+import { resolveCandidateNames } from "./namespace.js";
+import { celError } from "./error.js";
+import { isCelUint } from "./uint.js";
 
 export class Checker {
+  private readonly referenceMap: Map<bigint, Reference> = new Map();
   private readonly typeMap: Map<bigint, CelType> = new Map();
+
+  constructor(private readonly env: CelEnv) {}
 
   check(expr: Expr, sourceInfo: SourceInfo | undefined): CheckedExpr {
     // Clear each time we check since Checker instances are cached per environment.
+    this.referenceMap.clear();
     this.typeMap.clear();
     return create(CheckedExprSchema, {
       expr: this.checkExpr(expr),
       sourceInfo,
-      // TODO: referenceMap
+      referenceMap: celReferenceMapToProtoReferenceMap(this.referenceMap),
       typeMap: celTypeMapToProtoTypeMap(this.typeMap),
     });
   }
@@ -56,6 +68,8 @@ export class Checker {
     switch (expr.exprKind.case) {
       case "constExpr":
         return this.checkConstExpr(expr.id, expr.exprKind.value);
+      case "identExpr":
+        return this.checkIdentExpr(expr.id, expr.exprKind.value);
       default:
         throw new Error(`Unsupported expression kind: ${expr.exprKind.case}`);
     }
@@ -107,8 +121,48 @@ export class Checker {
     };
   }
 
+  private checkIdentExpr(
+    id: bigint,
+    ident: Expr_Ident,
+  ): MessageInitShape<typeof ExprSchema> {
+    const found = this.resolveSimpleVariable(ident.name);
+    if (found) {
+      this.setType(id, found);
+      this.setReference(id, identReference(ident.name));
+      return {
+        id,
+        exprKind: {
+          case: "identExpr",
+          value: ident,
+        },
+      };
+    }
+    throw celError(
+      `undeclared reference to '${ident.name}' (in container '${this.env.namespace}')`,
+      id,
+    );
+  }
+
   private setType(id: bigint, type: CelType): void {
     this.typeMap.set(id, type);
+  }
+
+  private setReference(id: bigint, reference: Reference): void {
+    this.referenceMap.set(id, reference);
+  }
+
+  private resolveSimpleVariable(name: string): CelType | undefined {
+    const ident = this.env.variables.findLocal(name);
+    if (ident) {
+      return ident;
+    }
+    for (const candidate of resolveCandidateNames(this.env.namespace, name)) {
+      const ident = this.env.variables.find(candidate);
+      if (ident) {
+        return ident;
+      }
+    }
+    return undefined;
   }
 }
 
@@ -271,4 +325,58 @@ function celTypeMapToProtoTypeMap(
     protoTypeMap[exprId.toString()] = celTypeToProtoType(celType);
   }
   return protoTypeMap;
+}
+
+function identReference(name: string, value?: CelValue): Reference {
+  return {
+    $typeName: "cel.expr.Reference",
+    name,
+    value: value ? celValueToProtoConstant(value) : undefined,
+    overloadId: [],
+  };
+}
+
+function protoConstant<
+  T extends Exclude<Constant["constantKind"]["case"], undefined>,
+>(
+  caseName: T,
+  value: Extract<Constant["constantKind"], { case: T }>["value"],
+): Constant {
+  return {
+    $typeName: "cel.expr.Constant",
+    constantKind: { case: caseName, value } as Constant["constantKind"],
+  };
+}
+
+function celValueToProtoConstant(value: CelValue): Constant {
+  switch (typeof value) {
+    case "bigint":
+      return protoConstant("int64Value", value);
+    case "number":
+      return protoConstant("doubleValue", value);
+    case "boolean":
+      return protoConstant("boolValue", value);
+    case "string":
+      return protoConstant("stringValue", value);
+    case "object":
+      switch (true) {
+        case isCelUint(value):
+          return protoConstant("uint64Value", value.value);
+        case null:
+          return protoConstant("nullValue", NullValue.NULL_VALUE);
+        case value instanceof Uint8Array:
+          return protoConstant("bytesValue", value);
+      }
+  }
+  throw new Error(`unsupported constant type: ${celType(value)}`);
+}
+
+function celReferenceMapToProtoReferenceMap(
+  referenceMap: Map<bigint, Reference>,
+): Record<string, Reference> {
+  const protoReferenceMap: Record<string, Reference> = {};
+  for (const [id, ref] of referenceMap.entries()) {
+    protoReferenceMap[id.toString()] = ref;
+  }
+  return protoReferenceMap;
 }
