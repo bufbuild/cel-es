@@ -125,7 +125,7 @@ export class Checker {
     id: bigint,
     ident: Expr_Ident,
   ): MessageInitShape<typeof ExprSchema> {
-    const found = this.resolveVariable(ident.name);
+    const found = this.resolveSimpleVariable(ident.name);
     if (found) {
       this.setType(id, found);
       this.setReference(id, identReference(ident.name));
@@ -151,8 +151,8 @@ export class Checker {
     this.referenceMap.set(id, reference);
   }
 
-  private resolveVariable(name: string): CelType | undefined {
-    const ident = this.env.variables.find(name);
+  private resolveSimpleVariable(name: string): CelType | undefined {
+    const ident = this.env.variables.findLocal(name);
     if (ident) {
       return ident;
     }
