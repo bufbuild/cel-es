@@ -64,4 +64,41 @@ void suite("scope", () => {
       assert.equal(popped, undefined);
     });
   });
+  void suite("find() flavors", () => {
+    void test("find()", () => {
+      const root = createScope({ a: CelScalar.INT });
+      const child = root.push({ b: CelScalar.STRING });
+      const grandChild = child.push({ c: CelScalar.BOOL });
+      assert.equal(grandChild.find("a"), CelScalar.INT);
+      assert.equal(grandChild.find("b"), CelScalar.STRING);
+      assert.equal(grandChild.find("c"), CelScalar.BOOL);
+    });
+    void test("findInScope()", () => {
+      const root = createScope({ a: CelScalar.INT });
+      const child = root.push({ b: CelScalar.STRING });
+      const grandChild = child.push({ c: CelScalar.BOOL });
+      assert.equal(child.findInScope("a"), undefined);
+      assert.equal(child.findInScope("b"), CelScalar.STRING);
+      assert.equal(child.findInScope("c"), undefined);
+      assert.equal(grandChild.findInScope("a"), undefined);
+      assert.equal(grandChild.findInScope("b"), undefined);
+      assert.equal(grandChild.findInScope("c"), CelScalar.BOOL);
+    });
+    void test("findLocal()", () => {
+      const root = createScope({ a: CelScalar.INT });
+      const child = root.push({ b: CelScalar.STRING });
+      const grandChild = child.push({ c: CelScalar.BOOL });
+      assert.equal(grandChild.findLocal("a"), undefined);
+      assert.equal(grandChild.findLocal("b"), CelScalar.STRING);
+      assert.equal(grandChild.findLocal("c"), CelScalar.BOOL);
+    });
+    void test("findGlobal()", () => {
+      const root = createScope({ a: CelScalar.INT });
+      const child = root.push({ b: CelScalar.STRING });
+      const grandChild = child.push({ c: CelScalar.BOOL });
+      assert.equal(grandChild.findGlobal("a"), CelScalar.INT);
+      assert.equal(grandChild.findGlobal("b"), undefined);
+      assert.equal(grandChild.findGlobal("c"), undefined);
+    });
+  });
 });
