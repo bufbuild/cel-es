@@ -46,6 +46,7 @@ import type { CelEnv } from "./env.js";
 import { resolveCandidateNames } from "./namespace.js";
 import { celError } from "./error.js";
 import { isCelUint } from "./uint.js";
+import { createScope, type VariableScope } from "./scope.js";
 
 export class Checker {
   private readonly referenceMap: Map<
@@ -53,6 +54,7 @@ export class Checker {
     MessageInitShape<typeof ReferenceSchema>
   > = new Map();
   private readonly typeMap: Map<bigint, CelType> = new Map();
+  private scope: VariableScope | undefined;
 
   constructor(private readonly env: CelEnv) {}
 
@@ -60,6 +62,7 @@ export class Checker {
     // Clear each time we check since Checker instances are cached per environment.
     this.referenceMap.clear();
     this.typeMap.clear();
+    this.scope = createScope();
     return create(CheckedExprSchema, {
       expr: this.checkExpr(expr),
       sourceInfo,
@@ -129,15 +132,23 @@ export class Checker {
     id: bigint,
     ident: Expr_Ident,
   ): MessageInitShape<typeof ExprSchema> {
-    const found = this.resolveSimpleVariable(ident.name);
-    if (found) {
-      this.setType(id, found);
-      this.setReference(id, identReference(ident.name));
+    const { type, requiresDisambiguation } = this.resolveSimpleVariableType(
+      ident.name,
+    );
+    if (type) {
+      let name = ident.name;
+      if (requiresDisambiguation && !name.startsWith(".")) {
+        name = `.${name}`;
+      }
+      this.setType(id, type);
+      this.setReference(id, identReference(name));
       return {
         id,
         exprKind: {
           case: "identExpr",
-          value: ident,
+          value: {
+            name,
+          },
         },
       };
     }
@@ -158,18 +169,32 @@ export class Checker {
     this.referenceMap.set(id, reference);
   }
 
-  private resolveSimpleVariable(name: string): CelType | undefined {
-    const ident = this.env.variables.findLocal(name);
-    if (ident) {
-      return ident;
+  private resolveSimpleVariableType(name: string): {
+    type: CelType | undefined;
+    requiresDisambiguation: boolean;
+  } {
+    const local = this.scope?.find(name);
+    // Local variables that do not start with a "." shadow global variables
+    // and do not require disambiguation.
+    if (local !== undefined && !name.startsWith(".")) {
+      return {
+        type: local,
+        requiresDisambiguation: false,
+      };
     }
     for (const candidate of resolveCandidateNames(this.env.namespace, name)) {
-      const ident = this.env.variables.find(candidate);
-      if (ident) {
-        return ident;
+      const type = this.env.variables.find(candidate);
+      if (type) {
+        return {
+          type,
+          requiresDisambiguation: local !== undefined,
+        };
       }
     }
-    return undefined;
+    return {
+      type: undefined,
+      requiresDisambiguation: false,
+    };
   }
 }
 

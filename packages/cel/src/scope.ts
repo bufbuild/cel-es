@@ -30,10 +30,6 @@ export interface VariableScope<Vars extends VariableDecl = VariableDecl> {
    */
   [Symbol.iterator](): IterableIterator<[string, CelType]>;
   /**
-   * The parent VariableScope for the current scope or undefined.
-   */
-  parent: VariableScope | undefined;
-  /**
    * Creates a new VariableScope with the current scope as the parent and the
    * provided inputs as the new scope's variables.
    */
@@ -52,14 +48,6 @@ export interface VariableScope<Vars extends VariableDecl = VariableDecl> {
    * Finds a variable with a given name in the current scope only.
    */
   findInScope(name: string): CelType | undefined;
-  /**
-   * Finds a locally scoped variable with a given name, ignoring the root scope.
-   */
-  findLocal(name: string): CelType | undefined;
-  /**
-   * Finds a globally scoped variable with a given name, only searching the root scope.
-   */
-  findGlobal(name: string): CelType | undefined;
 }
 
 /**
@@ -99,10 +87,6 @@ class Scope<Vars extends VariableDecl = VariableDecl>
     }
   }
 
-  get parent(): VariableScope | undefined {
-    return this._parent;
-  }
-
   push<PushVars extends VariableDecl = VariableDecl>(
     inputs: PushVars,
   ): VariableScope<PushVars & Vars> {
@@ -114,34 +98,17 @@ class Scope<Vars extends VariableDecl = VariableDecl>
   }
 
   find(name: string): CelType | undefined {
-    if (this._variables.has(name)) {
-      return this._variables.get(name);
+    const found = this.findInScope(name);
+    if (found !== undefined) {
+      return found;
     }
     return this._parent?.find(name);
   }
 
   findInScope(name: string): CelType | undefined {
+    if (name.startsWith(".")) {
+      return this._variables.get(name.slice(1));
+    }
     return this._variables.get(name);
-  }
-
-  findLocal(name: string): CelType | undefined {
-    if (!this._parent) {
-      return undefined;
-    }
-    if (this._variables.has(name)) {
-      return this._variables.get(name);
-    }
-    return this._parent.findLocal(name);
-  }
-
-  findGlobal(name: string): CelType | undefined {
-    if (!this._parent) {
-      return this._variables.get(name);
-    }
-    let parent = this._parent;
-    while (parent.parent) {
-      parent = parent.parent;
-    }
-    return parent.findInScope(name);
   }
 }
