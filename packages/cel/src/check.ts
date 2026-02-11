@@ -32,7 +32,7 @@ const cache = new WeakMap<CelEnv, Checker>();
 export function check(env: CelEnv, expr: Expr | ParsedExpr): CheckedExpr {
   let checker = cache.get(env);
   if (checker === undefined) {
-    checker = new Checker();
+    checker = new Checker(env);
     cache.set(env, checker);
   }
   if (isMessage(expr, ExprSchema)) {

@@ -20,19 +20,9 @@ import {
 } from "./testing.js";
 
 const filter = createExpressionFilter([
-  // Ident types
-  "is",
-  "ii",
-  "iu",
-  "iz",
-  "ib",
-  "id",
-  "ix",
   "[]",
   "[1]",
   '[1, "A"]',
-
-  // Call resolution
   "fg_s()",
   "is.fi_s_s()",
   "1 + 2",
@@ -74,7 +64,6 @@ const filter = createExpressionFilter([
   `lists.filter(x, x > 1.5)`,
   `.google.expr.proto3.test.TestAllTypes`,
   `test.TestAllTypes`,
-  `x`,
   `list == type([1]) && map == type({1:2u})`,
   `myfun(1, true, 3u) + 1.myfun(false, 3u).myfun(true, 42u)`,
   `size(x) > 4`,
