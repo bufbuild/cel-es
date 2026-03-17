@@ -13,12 +13,15 @@
 // limitations under the License.
 
 import { celEnv, type CelEnvOptions } from "./env.js";
+import { celError, type CelError } from "./error.js";
 import { parse } from "./parse.js";
 import { plan } from "./plan.js";
-import type { CelInput } from "./type.js";
+import type { CelInput, CelValue } from "./type.js";
 
 /**
  * Convenience function that parses, plans, and executes a CEL expression in one call.
+ * run() always returns a CelValue or a CelError and never throws exceptions. Use
+ * isCelError() to distinguish the two cases.
  *
  * This is the simplest way to evaluate a CEL expression, but for better performance
  * and reusability, consider using parse(), plan(), and execution separately.
@@ -27,6 +30,10 @@ export function run(
   expr: string,
   bindings?: Record<string, CelInput>,
   envOptions?: CelEnvOptions,
-) {
-  return plan(celEnv(envOptions), parse(expr))(bindings);
+): CelValue | CelError {
+  try {
+    return plan(celEnv(envOptions), parse(expr))(bindings);
+  } catch (e: unknown) {
+    return celError(e);
+  }
 }
