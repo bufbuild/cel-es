@@ -1,7 +1,7 @@
-import { Inst } from './Inst'
-import { RE2Flags } from './RE2Flags'
-import { Unicode } from './Unicode'
-import { Utils } from './Utils'
+import { Inst } from './Inst.js'
+import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
+import { Utils } from './Utils.js'
 
 // FNV-1a 32-bit hash for an array of integers.
 const hashPCs = (pcs: Int32Array): number => {

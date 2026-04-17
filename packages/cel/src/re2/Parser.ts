@@ -1,12 +1,12 @@
-import { RE2Flags } from './RE2Flags'
-import { Unicode } from './Unicode'
-import { UnicodeTables } from './UnicodeTables'
-import { UnicodeRangeTable } from './UnicodeRangeTable'
-import { getPerlGroups, getPosixGroups } from './CharGroup'
-import { Utils } from './Utils'
-import { CharClass } from './CharClass'
-import { RE2JSSyntaxException } from './exceptions'
-import { Regexp } from './Regexp'
+import { RE2Flags } from './RE2Flags.js'
+import { Unicode } from './Unicode.js'
+import { UnicodeTables } from './UnicodeTables.js'
+import { UnicodeRangeTable } from './UnicodeRangeTable.js'
+import { getPerlGroups, getPosixGroups } from './CharGroup.js'
+import { Utils } from './Utils.js'
+import { CharClass } from './CharClass.js'
+import { RE2JSSyntaxException } from './exceptions.js'
+import { Regexp } from './Regexp.js'
 
 // StringIterator: a stream of runes with an opaque cursor, permitting
 // rewinding.  The units of the cursor are not specified beyond the
@@ -417,13 +417,11 @@ class Parser {
       case 0x34:
       case 0x35:
       case 0x36:
+      case 0x30:
       case 0x37: {
-        if (!t.more() || t.peek()! < 0x30 || t.peek()! > 0x37) {
+        if (c !== 0x30 && (!t.more() || t.peek()! < 0x30 || t.peek()! > 0x37)) {
           break
         }
-      }
-      // eslint-disable-next-line no-fallthrough
-      case 0x30: {
         let r = c - 0x30
         for (let i = 1; i < 3; i++) {
           if (!t.more() || t.peek()! < 0x30 || t.peek()! > 0x37) {

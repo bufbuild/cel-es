@@ -1,5 +1,5 @@
-import { UnicodeRangeTable } from './UnicodeRangeTable'
-import { UnicodeTables } from './UnicodeTables'
+import { UnicodeRangeTable } from './UnicodeRangeTable.js'
+import { UnicodeTables } from './UnicodeTables.js'
 /**
  * Utilities for dealing with Unicode better than JS does.
  */

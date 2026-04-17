@@ -1,4 +1,4 @@
-import { Unicode } from './Unicode'
+import { Unicode } from './Unicode.js'
 /**
  * Various constants and helper utilities.
  */

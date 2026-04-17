@@ -1,5 +1,5 @@
-import { Utils } from './Utils'
-import { Unicode } from './Unicode'
+import { Utils } from './Utils.js'
+import { Unicode } from './Unicode.js'
 
 /**
  * MachineInput abstracts the input text supplied to the matching engine.
@@ -40,7 +40,7 @@ class MachineUTF16Input extends MachineInputBase {
     this.end = end
   }
 
-  hasString(prefilter: any, pos: number): boolean {
+  override hasString(prefilter: any, pos: number): boolean {
     const idx = this.charSequence.indexOf(prefilter.str, this.start + pos)
     return idx !== -1 && idx <= this.end - prefilter.str.length
   }
@@ -86,7 +86,7 @@ class MachineUTF16Input extends MachineInputBase {
     return Utils.emptyOpContext(r1, r2)
   }
 
-  prefixLength(re2: any): number {
+  override prefixLength(re2: any): number {
     return re2.prefix.length
   }
 }

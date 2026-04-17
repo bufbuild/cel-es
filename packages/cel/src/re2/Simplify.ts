@@ -1,6 +1,6 @@
-import { RE2Flags } from './RE2Flags'
-import { Regexp } from './Regexp'
-import { Unicode } from './Unicode'
+import { RE2Flags } from './RE2Flags.js'
+import { Regexp } from './Regexp.js'
+import { Unicode } from './Unicode.js'
 
 class Simplify {
   // Simplify returns a regexp equivalent to re but without counted

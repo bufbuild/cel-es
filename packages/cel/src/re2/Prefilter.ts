@@ -1,6 +1,6 @@
-import { Regexp } from './Regexp'
+import { Regexp } from './Regexp.js'
 
-import { RE2Flags } from './RE2Flags'
+import { RE2Flags } from './RE2Flags.js'
 
 class Prefilter {
   type: number

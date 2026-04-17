@@ -1,12 +1,12 @@
-import { RE2Flags } from './RE2Flags'
-import { MachineInput } from './MachineInput'
-import { DFA } from './DFA'
-import { Inst } from './Inst'
-import { PrefilterTree, Prefilter } from './Prefilter'
-import { Compiler } from './Compiler'
-import { Simplify } from './Simplify'
-import { Parser } from './Parser'
-import { Utils } from './Utils'
+import { RE2Flags } from './RE2Flags.js'
+import { MachineInput } from './MachineInput.js'
+import { DFA } from './DFA.js'
+import { Inst } from './Inst.js'
+import { PrefilterTree, Prefilter } from './Prefilter.js'
+import { Compiler } from './Compiler.js'
+import { Simplify } from './Simplify.js'
+import { Parser } from './Parser.js'
+import { Utils } from './Utils.js'
 
 class RE2 {
   expr: string
