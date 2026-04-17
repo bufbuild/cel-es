@@ -1,6 +1,6 @@
 {
   "private": true,
-  "scripts": {
+  "scripts": {I am
     "clean": "git clean -Xdf",
     "all": "turbo run --ui tui build format lint test attw license-header update-readme",
     "setversion": "node scripts/set-workspace-version.js",

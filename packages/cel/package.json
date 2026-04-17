@@ -18,7 +18,7 @@
   "scripts": {
     "generate": "cd ./src && peggy cel.peggy --format bare --extra-options '{\"typescript\":true}' --plugin peggy-ts -o parser.ts",
     "postgenerate": "biome format src/parser.ts --write",
-    "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
+    "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts ./src/re2/__tests__/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
@@ -44,7 +44,9 @@
   },
   "typesVersions": {
     "*": {
-      "ext": ["./dist/cjs/ext/index.d.ts"]
+      "ext": [
+        "./dist/cjs/ext/index.d.ts"
+      ]
     }
   },
   "peerDependencies": {
@@ -54,8 +56,10 @@
     "@bufbuild/cel-spec": "0.4.0"
   },
   "devDependencies": {
+    "@unicode/unicode-16.0.0": "^1.6.16",
+    "expect-type": "^1.3.0",
     "peggy": "^5.0.6",
     "peggy-ts": "github:hudlow/peggy-ts#v0.0.9",
-    "expect-type": "^1.3.0"
+    "unicode-property-value-aliases": "^3.9.0"
   }
 }

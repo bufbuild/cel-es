@@ -59,7 +59,7 @@ import {
   KindAdorner,
   SemanticAdorner,
   toDebugString,
-} from "@bufbuild/cel-spec/testdata/to-debug-string.js";
+} from "../../cel-spec/dist/cjs/testdata/to-debug-string.js";
 import { check, outputType } from "./check.js";
 import type { SimpleTest } from "@bufbuild/cel-spec/cel/expr/conformance/test/simple_pb.js";
 import { protoTypeToCelType } from "./checker.js";
