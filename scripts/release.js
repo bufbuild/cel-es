@@ -41,6 +41,7 @@ npmPublish();
 function npmPublish() {
   const command =
     `npm publish --tag ${tag}` +
+    " --workspace packages/re2" +
     " --workspace packages/cel" +
     " --workspace packages/cel-spec";
   execSync(command, {

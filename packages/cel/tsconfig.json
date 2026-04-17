@@ -2,9 +2,4 @@
   "files": ["src/index.ts", "src/ext/index.ts"],
   "extends": "../../tsconfig.base.json",
   "include": ["src/**/*.test.ts"],
-  "exclude": [
-    "src/re2/__tests__",
-    "src/re2/__fixtures__",
-    "src/re2/__utils__"
-  ]
 }

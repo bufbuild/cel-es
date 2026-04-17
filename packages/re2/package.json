@@ -1,7 +1,7 @@
 {
-  "name": "@bufbuild/cel",
+  "name": "@bufbuild/re2",
   "version": "0.4.0",
-  "description": "A CEL evaluator for ECMAScript",
+  "description": "An RE2-compatible regex engine tailored for CEL and Protovalidate",
   "keywords": [
     "javascript",
     "typescript",
@@ -9,16 +9,14 @@
     "cel",
     "common-expression-language"
   ],
-  "license": "Apache-2.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bufbuild/cel-es.git",
-    "directory": "packages/cel"
+    "directory": "packages/re2"
   },
   "scripts": {
-    "generate": "cd ./src && peggy cel.peggy --format bare --extra-options '{\"typescript\":true}' --plugin peggy-ts -o parser.ts",
-    "postgenerate": "biome format src/parser.ts --write",
-    "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
+    "test": "npx tsx --test ./src/__tests__/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
     "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
@@ -26,7 +24,12 @@
     "format": "biome format --write",
     "lint": "biome lint --error-on-warnings",
     "attw": "attw --pack",
-    "license-header": "license-header --ignore 'src/parser.ts'"
+    "license-header": "license-header"
+  },
+  "licenseHeader": {
+    "licenseType": "MIT",
+    "yearRange": "2023-2026",
+    "copyrightHolder": "Alexey Vasiliev and Buf Technologies, Inc."
   },
   "type": "module",
   "sideEffects": false,
@@ -36,31 +39,10 @@
     ".": {
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
-    },
-    "./ext": {
-      "import": "./dist/esm/ext/index.js",
-      "require": "./dist/cjs/ext/index.js"
     }
-  },
-  "typesVersions": {
-    "*": {
-      "ext": [
-        "./dist/cjs/ext/index.d.ts"
-      ]
-    }
-  },
-  "peerDependencies": {
-    "@bufbuild/protobuf": "^2.6.2"
-  },
-  "dependencies": {
-    "@bufbuild/cel-spec": "0.4.0",
-    "@bufbuild/re2": "0.4.0"
   },
   "devDependencies": {
     "@unicode/unicode-16.0.0": "^1.6.16",
-    "expect-type": "^1.3.0",
-    "peggy": "^5.0.6",
-    "peggy-ts": "github:hudlow/peggy-ts#v0.0.9",
     "unicode-property-value-aliases": "^3.9.0"
   }
 }

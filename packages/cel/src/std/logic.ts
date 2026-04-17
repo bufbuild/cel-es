@@ -26,7 +26,7 @@ import {equals} from "../equals.js";
 import {celMethod, celFunc} from "../func.js";
 import type {CelList} from "../list.js";
 import type {CelMap} from "../map.js";
-import {RE2JS} from "../re2/index.js";
+import {RE2JS} from "@bufbuild/re2";
 
 /**
  * Patterns that are supported in ECMAScript RE and not in

@@ -1,0 +1,10 @@
+{
+  "files": ["src/index.ts"],
+  "extends": "../../tsconfig.base.json",
+  "include": ["src/**/*.test.ts"],
+  "exclude": [
+    "./src/__tests__",
+    "./src/__fixtures__",
+    "./src/__utils__"
+  ]
+}
