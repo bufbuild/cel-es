@@ -4,7 +4,11 @@ import { RE2JS } from "../index.js";
 
 describe("RE2JS Stability and Anti-ReDoS Guarantees", () => {
   describe("Catastrophic Backtracking Immunity (ReDoS)", () => {
-    const assertLinearTime = (regexStr: string, inputStr: string, expectedMatch: boolean): void => {
+    const assertLinearTime = (
+      regexStr: string,
+      inputStr: string,
+      expectedMatch: boolean,
+    ): void => {
       const re = RE2JS.compile(regexStr);
       const start = Date.now();
       const result = re.matches(inputStr);
@@ -23,7 +27,8 @@ describe("RE2JS Stability and Anti-ReDoS Guarantees", () => {
     });
 
     test("Defeats OWASP Email Validation ReDoS", () => {
-      const emailRegex = "^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$";
+      const emailRegex =
+        "^([a-zA-Z0-9_.-])+@(([a-zA-Z0-9-])+.)+([a-zA-Z0-9]{2,4})+$";
       const maliciousEmail = `${"a".repeat(60)}@${"a".repeat(60)}.`;
       assertLinearTime(emailRegex, maliciousEmail, false);
     });

@@ -1,15 +1,15 @@
-import { RE2Flags } from './RE2Flags.js'
-import { MachineInput } from './MachineInput.js'
-import { RE2 } from './RE2.js'
-import { Utils } from './Utils.js'
+import { RE2Flags } from "./RE2Flags.js";
+import { fromUTF16 } from "./MachineInput.js";
+import { RE2 } from "./RE2.js";
+import { Utils } from "./Utils.js";
 import {
-  RE2JSException,
-  RE2JSSyntaxException,
   RE2JSCompileException,
-  RE2JSGroupException,
+  RE2JSException,
   RE2JSFlagsException,
-  RE2JSInternalException
-} from './exceptions.js'
+  RE2JSGroupException,
+  RE2JSInternalException,
+  RE2JSSyntaxException,
+} from "./exceptions.js";
 
 /**
  * A compiled representation of an RE2 regular expression
@@ -17,27 +17,27 @@ import {
  * @class
  */
 class RE2JS {
-  patternInput: string
-  flagsInput: number
-  re2Input: any
+  patternInput: string;
+  flagsInput: number;
+  re2Input: RE2;
 
   /**
    * Flag: case insensitive matching.
    */
-  static CASE_INSENSITIVE = 1
+  static CASE_INSENSITIVE = 1;
   /**
    * Flag: dot ({@code .}) matches all characters, including newline.
    */
-  static DOTALL = 2
+  static DOTALL = 2;
   /**
    * Flag: multiline matching: {@code ^} and {@code $} match at beginning and end of line, not just
    * beginning and end of input.
    */
-  static MULTILINE = 4
+  static MULTILINE = 4;
   /**
    * Flag: Unicode groups (e.g. {@code \p{Greek}} ) will be syntax errors.
    */
-  static DISABLE_UNICODE_GROUPS = 8
+  static DISABLE_UNICODE_GROUPS = 8;
 
   /**
    * Returns a literal pattern string for the specified string.
@@ -46,7 +46,7 @@ class RE2JS {
    * @returns {string} A literal string replacement
    */
   static quote(str: string): string {
-    return Utils.quoteMeta(str)
+    return Utils.quoteMeta(str);
   }
 
   /**
@@ -56,16 +56,10 @@ class RE2JS {
    * @returns {RE2JS}
    */
   static compile(regex: string, flags = 0): RE2JS {
-    let fregex = regex
-    if ((flags & RE2JS.CASE_INSENSITIVE) !== 0) {
-      fregex = `(?i)${fregex}`
-    }
-    if ((flags & RE2JS.DOTALL) !== 0) {
-      fregex = `(?s)${fregex}`
-    }
-    if ((flags & RE2JS.MULTILINE) !== 0) {
-      fregex = `(?m)${fregex}`
-    }
+    return new RE2JS(regex, flags);
+  }
+
+  static validateFlags(flags: number): void {
     if (
       (flags &
         ~(
@@ -77,18 +71,23 @@ class RE2JS {
       0
     ) {
       throw new RE2JSFlagsException(
-        'Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS'
-      )
+        "Flags should only be a combination of MULTILINE, DOTALL, CASE_INSENSITIVE, DISABLE_UNICODE_GROUPS",
+      );
     }
+  }
 
-    let re2Flags = RE2Flags.PERL
-    if ((flags & RE2JS.DISABLE_UNICODE_GROUPS) !== 0) {
-      re2Flags &= ~RE2Flags.UNICODE_GROUPS
+  static buildRegexWithFlags(regex: string, flags = 0): string {
+    let fregex = regex;
+    if ((flags & RE2JS.CASE_INSENSITIVE) !== 0) {
+      fregex = `(?i)${fregex}`;
     }
-
-    const p = new RE2JS(regex, flags)
-    p.re2Input = RE2.compileImpl(fregex, re2Flags)
-    return p
+    if ((flags & RE2JS.DOTALL) !== 0) {
+      fregex = `(?s)${fregex}`;
+    }
+    if ((flags & RE2JS.MULTILINE) !== 0) {
+      fregex = `(?m)${fregex}`;
+    }
+    return fregex;
   }
 
   /**
@@ -100,39 +99,31 @@ class RE2JS {
    * @throws RE2JSSyntaxException if the regular expression is malformed
    */
   static matches(regex: string, input: string): boolean {
-    return RE2JS.compile(regex).testExact(input)
-  }
-
-  /**
-   * This is visible for testing.
-   * @private
-   */
-  static initTest(pattern: string, flags: number, re2: any): RE2JS {
-    if (pattern == null) {
-      throw new Error('pattern is null')
-    }
-    if (re2 == null) {
-      throw new Error('re2 is null')
-    }
-    const p = new RE2JS(pattern, flags)
-    p.re2Input = re2
-    return p
+    return RE2JS.compile(regex).testExact(input);
   }
 
   /**
    * @param {string} pattern
    * @param {number} flags
    */
-  constructor(pattern: string, flags: number) {
-    this.patternInput = pattern
-    this.flagsInput = flags
+  constructor(pattern: string, flags = 0) {
+    let re2Flags = RE2Flags.PERL;
+    if ((flags & RE2JS.DISABLE_UNICODE_GROUPS) !== 0) {
+      re2Flags &= ~RE2Flags.UNICODE_GROUPS;
+    }
+    RE2JS.validateFlags(flags);
+    const fregex = RE2JS.buildRegexWithFlags(pattern, flags);
+
+    this.patternInput = pattern;
+    this.flagsInput = flags;
+    this.re2Input = RE2.compileImpl(fregex, re2Flags);
   }
 
   /**
    * Releases memory used by internal caches associated with this pattern.
    */
   reset(): void {
-    this.re2Input.reset()
+    this.re2Input.reset();
   }
 
   /**
@@ -140,7 +131,7 @@ class RE2JS {
    * @returns {number}
    */
   flags(): number {
-    return this.flagsInput
+    return this.flagsInput;
   }
 
   /**
@@ -148,11 +139,11 @@ class RE2JS {
    * @returns {string}
    */
   pattern(): string {
-    return this.patternInput
+    return this.patternInput;
   }
 
-  re2(): any {
-    return this.re2Input
+  re2(): RE2 {
+    return this.re2Input;
   }
 
   /**
@@ -162,7 +153,7 @@ class RE2JS {
    * @returns {boolean} true if the regular expression matches the entire input
    */
   matches(input: string): boolean {
-    return this.testExact(input)
+    return this.testExact(input);
   }
 
   /**
@@ -172,7 +163,7 @@ class RE2JS {
    * @returns {boolean} `true` if the pattern is found anywhere in the input, `false` otherwise.
    */
   test(input: string): boolean {
-    return this.re2Input.match(input)
+    return this.re2Input.match(input);
   }
 
   /**
@@ -183,16 +174,20 @@ class RE2JS {
    */
   testExact(input: string): boolean {
     return (
-      this.re2Input.executeEngine(MachineInput.fromUTF16(input), 0, RE2Flags.ANCHOR_BOTH, 0) !==
-      null
-    )
+      this.re2Input.executeEngine(
+        fromUTF16(input),
+        0,
+        RE2Flags.ANCHOR_BOTH,
+        0,
+      ) !== null
+    );
   }
 
   /**
    * @returns {string}
    */
   toString(): string {
-    return this.patternInput
+    return this.patternInput;
   }
 
   /**
@@ -200,15 +195,15 @@ class RE2JS {
    * @returns {number}
    */
   groupCount(): number {
-    return this.re2Input.numberOfCapturingGroups()
+    return this.re2Input.numberOfCapturingGroups();
   }
 
   /**
    * Return a map of the capturing groups in this matcher's pattern.
-   * @returns {Record<string, number>}
+   * @returns {Map<string, number>}
    */
-  namedGroups(): Record<string, number> {
-    return this.re2Input.namedGroups
+  namedGroups(): Map<string, number> {
+    return this.re2Input.namedGroups;
   }
 }
 
@@ -220,4 +215,4 @@ export {
   RE2JSGroupException,
   RE2JSFlagsException,
   RE2JSInternalException,
-}
+};

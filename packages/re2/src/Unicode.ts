@@ -1,50 +1,50 @@
-import { UnicodeRangeTable } from './UnicodeRangeTable.js'
-import { UnicodeTables } from './UnicodeTables.js'
+import { UnicodeRangeTable } from "./UnicodeRangeTable.js";
+import { UnicodeTables } from "./UnicodeTables.js";
 /**
  * Utilities for dealing with Unicode better than JS does.
  */
 class Unicode {
   // The highest legal rune value.
-  static MAX_RUNE = 0x10ffff
+  static MAX_RUNE = 0x10ffff;
   // The highest legal ASCII value.
-  static MAX_ASCII = 0x7f
+  static MAX_ASCII = 0x7f;
   // The highest legal Latin-1 value.
-  static MAX_LATIN1 = 0xff
+  static MAX_LATIN1 = 0xff;
   // The highest legal Basic Multilingual Plane (BMP) value.
-  static MAX_BMP = 0xffff
+  static MAX_BMP = 0xffff;
   // Minimum and maximum runes involved in folding.
   // Checked during test.
-  static MIN_FOLD = 0x0041
-  static MAX_FOLD = 0x1e943
+  static MIN_FOLD = 0x0041;
+  static MAX_FOLD = 0x1e943;
 
-  static MIN_HIGH_SURROGATE = 0xd800
-  static MAX_HIGH_SURROGATE = 0xdbff
-  static MIN_LOW_SURROGATE = 0xdc00
-  static MAX_LOW_SURROGATE = 0xdfff
-  static MIN_SUPPLEMENTARY_CODE_POINT = 0x10000
+  static MIN_HIGH_SURROGATE = 0xd800;
+  static MAX_HIGH_SURROGATE = 0xdbff;
+  static MIN_LOW_SURROGATE = 0xdc00;
+  static MAX_LOW_SURROGATE = 0xdfff;
+  static MIN_SUPPLEMENTARY_CODE_POINT = 0x10000;
 
   // is32 uses binary search to test whether rune is in the specified
   // slice of 32-bit ranges.
   static is32(ranges: UnicodeRangeTable, r: number): boolean {
     // binary search over ranges
-    let lo = 0
-    let hi = ranges.length
+    let lo = 0;
+    let hi = ranges.length;
     while (lo < hi) {
-      const m = lo + Math.floor((hi - lo) / 2)
+      const m = lo + Math.floor((hi - lo) / 2);
 
-      const rlo = ranges.getLo(m)
-      const rhi = ranges.getHi(m)
+      const rlo = ranges.getLo(m);
+      const rhi = ranges.getHi(m);
       if (rlo <= r && r <= rhi) {
-        const stride = ranges.getStride(m)
-        return (r - rlo) % stride === 0
+        const stride = ranges.getStride(m);
+        return (r - rlo) % stride === 0;
       }
       if (r < rlo) {
-        hi = m
+        hi = m;
       } else {
-        lo = m + 1
+        lo = m + 1;
       }
     }
-    return false
+    return false;
   }
 
   // is tests whether rune is in the specified table of ranges.
@@ -52,33 +52,33 @@ class Unicode {
     // Fast path for Latin-1 characters using linear search.
     if (r <= this.MAX_LATIN1) {
       for (let i = 0; i < ranges.length; i++) {
-        const rhi = ranges.getHi(i)
+        const rhi = ranges.getHi(i);
         if (r > rhi) {
-          continue
+          continue;
         }
 
-        const rlo = ranges.getLo(i)
+        const rlo = ranges.getLo(i);
         if (r < rlo) {
-          return false
+          return false;
         }
 
-        const stride = ranges.getStride(i)
-        return (r - rlo) % stride === 0
+        const stride = ranges.getStride(i);
+        return (r - rlo) % stride === 0;
       }
-      return false
+      return false;
     }
 
     // Fallback to binary search for runes outside Latin-1
-    return ranges.length > 0 && r >= ranges.getLo(0) && this.is32(ranges, r)
+    return ranges.length > 0 && r >= ranges.getLo(0) && this.is32(ranges, r);
   }
 
   // isUpper reports whether the rune is an upper case letter.
   static isUpper(r: number): boolean {
     if (r <= this.MAX_LATIN1) {
-      const s = String.fromCodePoint(r)
-      return s.toUpperCase() === s && s.toLowerCase() !== s
+      const s = String.fromCodePoint(r);
+      return s.toUpperCase() === s && s.toLowerCase() !== s;
     }
-    return this.is(UnicodeTables.Upper, r)
+    return this.is(UnicodeTables.Upper, r);
   }
 
   // simpleFold iterates over Unicode code points equivalent under
@@ -102,24 +102,24 @@ class Unicode {
     // Consult caseOrbit table for special cases (3+ element cycles, lossy
     // mappings like ſ→S, and Turkic-specific self-loops).
     if (UnicodeTables.CASE_ORBIT!.has(r)) {
-      return UnicodeTables.CASE_ORBIT!.get(r)!
+      return UnicodeTables.CASE_ORBIT!.get(r)!;
     }
 
     // Fallback for 2-element orbits: use raw native case conversion.
     // The length check rejects multi-char results (e.g., ß→SS) which
     // would otherwise be truncated to a non-equivalent codepoint.
-    const s = String.fromCodePoint(r)
-    const lower = s.toLowerCase()
+    const s = String.fromCodePoint(r);
+    const lower = s.toLowerCase();
     if (lower.length === s.length) {
-      const lowerCp = lower.codePointAt(0)!
-      if (lowerCp !== r) return lowerCp
+      const lowerCp = lower.codePointAt(0)!;
+      if (lowerCp !== r) return lowerCp;
     }
-    const upper = s.toUpperCase()
+    const upper = s.toUpperCase();
     if (upper.length === s.length) {
-      const upperCp = upper.codePointAt(0)!
-      if (upperCp !== r) return upperCp
+      const upperCp = upper.codePointAt(0)!;
+      if (upperCp !== r) return upperCp;
     }
-    return r
+    return r;
   }
 
   // equalsIgnoreCase performs case-insensitive equality comparison
@@ -131,33 +131,33 @@ class Unicode {
   static equalsIgnoreCase(r1: number, r2: number): boolean {
     // Runes already match, or one of them is EOF
     if (r1 < 0 || r2 < 0 || r1 === r2) {
-      return true
+      return true;
     }
 
     // Fast path for the common case where both runes are ASCII characters.
     // Coerces both runes to lowercase if applicable.
     if (r1 <= this.MAX_ASCII && r2 <= this.MAX_ASCII) {
       if (0x41 <= r1 && r1 <= 0x5a) {
-        r1 |= 0x20
+        r1 |= 0x20;
       }
 
       if (0x41 <= r2 && r2 <= 0x5a) {
-        r2 |= 0x20
+        r2 |= 0x20;
       }
 
-      return r1 === r2
+      return r1 === r2;
     }
 
     // Fall back to full Unicode case folding otherwise.
     // Invariant: r1 must be non-negative
     for (let r = this.simpleFold(r1); r !== r1; r = this.simpleFold(r)) {
       if (r === r2) {
-        return true
+        return true;
       }
     }
 
-    return false
+    return false;
   }
 }
 
-export { Unicode }
+export { Unicode };

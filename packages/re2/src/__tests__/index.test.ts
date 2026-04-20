@@ -12,7 +12,10 @@ it("compile", () => {
 it("compile exception with duplicate groups", () => {
   assert.throws(
     () => RE2JS.compile("(?P<any>.*)(?P<any>.*"),
-    (e: Error) => e.message.includes("error parsing regexp: duplicate capture group name: `any`"),
+    (e: Error) =>
+      e.message.includes(
+        "error parsing regexp: duplicate capture group name: `any`",
+      ),
   );
 });
 
@@ -28,9 +31,8 @@ it("compile flags", () => {
 
 it("syntax error", () => {
   const compile = () => RE2JS.compile("abc(");
-  assert.throws(
-    compile,
-    (e: Error) => e.message.includes("error parsing regexp: missing closing ): `abc(`"),
+  assert.throws(compile, (e: Error) =>
+    e.message.includes("error parsing regexp: missing closing ): `abc(`"),
   );
 
   let error: RE2JSSyntaxException | null = null;
@@ -42,7 +44,10 @@ it("syntax error", () => {
 
   assert.notStrictEqual(error, null);
   assert.strictEqual(error!.getDescription(), "missing closing )");
-  assert.strictEqual(error!.message, "error parsing regexp: missing closing ): `abc(`");
+  assert.strictEqual(
+    error!.message,
+    "error parsing regexp: missing closing ): `abc(`",
+  );
   assert.strictEqual(error!.getPattern(), "abc(");
 });
 
@@ -75,7 +80,12 @@ describe("matches with flags", () => {
     ["^ab.*c$", RE2JS.MULTILINE, "abc", "xyz\nabc\ndef"],
     ["^ab.*c$", RE2JS.MULTILINE, "abc", ""],
     ["^ab.*c$", RE2JS.DOTALL | RE2JS.MULTILINE, "ab\nc", "AB\nc"],
-    ["^ab.*c$", RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE, "AB\nc", "z"],
+    [
+      "^ab.*c$",
+      RE2JS.DOTALL | RE2JS.MULTILINE | RE2JS.CASE_INSENSITIVE,
+      "AB\nc",
+      "z",
+    ],
   ];
 
   for (const [regexp, flags, match, nonMatch] of cases) {
@@ -95,7 +105,11 @@ describe(".test (Unanchored DFA Match)", () => {
     ["(?i)foo", "FoO", true],
     ["^[a-z]+$", "hello", true],
     ["^[a-z]+$", "hello 123", false],
-    ["enters.*battlefield", "When this creature enters the battlefield, it deals 3 damage", true],
+    [
+      "enters.*battlefield",
+      "When this creature enters the battlefield, it deals 3 damage",
+      true,
+    ],
     ["[0-9]+ mana", "Add 1 mana of any color", true],
   ];
 
@@ -145,18 +159,21 @@ describe("group count", () => {
 });
 
 describe("named groups", () => {
-  const cases: [string, Record<string, number>][] = [
-    ["(?P<foo>\\d{2})", { foo: 1 }],
-    ["\\d{2}", {}],
-    ["hello", {}],
-    ["(.*)", {}],
-    ["(?P<any>.*)", { any: 1 }],
-    ["(?P<foo>.*)(?P<bar>.*)", { foo: 1, bar: 2 }],
+  const cases: [string, Map<string, number>][] = [
+    ["(?P<foo>\\d{2})", new Map<string, number>().set("foo", 1)],
+    ["\\d{2}", new Map<string, number>()],
+    ["hello", new Map<string, number>()],
+    ["(.*)", new Map<string, number>()],
+    ["(?P<any>.*)", new Map<string, number>().set("any", 1)],
+    [
+      "(?P<foo>.*)(?P<bar>.*)",
+      new Map<string, number>().set("foo", 1).set("bar", 2),
+    ],
   ];
 
   for (const [pattern, expected] of cases) {
     test(`pattern ${JSON.stringify(pattern)} named groups ${JSON.stringify(expected)}`, () => {
-      assert.deepStrictEqual({ ...RE2JS.compile(pattern).namedGroups() }, expected);
+      assert.deepStrictEqual(RE2JS.compile(pattern).namedGroups(), expected);
     });
   }
 });
@@ -177,7 +194,9 @@ it("email regex", () => {
 });
 
 it("date regex", () => {
-  const p = RE2JS.compile("([0-9]{4})-?(1[0-2]|0[1-9])-?(3[01]|0[1-9]|[12][0-9])");
+  const p = RE2JS.compile(
+    "([0-9]{4})-?(1[0-2]|0[1-9])-?(3[01]|0[1-9]|[12][0-9])",
+  );
   assert.strictEqual(p.matches("2023-10-12"), true);
   assert.strictEqual(p.matches("2023-02-02"), true);
   assert.strictEqual(p.matches("300"), false);

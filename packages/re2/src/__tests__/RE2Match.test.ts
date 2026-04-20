@@ -7,7 +7,10 @@ describe("match", () => {
   for (const testPattern of FIND_TESTS) {
     test(String(testPattern), () => {
       const re = RE2.compile(testPattern.pat);
-      assert.strictEqual(re.match(testPattern.text), testPattern.matches.length > 0);
+      assert.strictEqual(
+        re.match(testPattern.text),
+        testPattern.matches.length > 0,
+      );
     });
   }
 });

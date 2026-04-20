@@ -1,8 +1,8 @@
 class RE2JSException extends Error {
   /** @param {string} message */
   constructor(message: string) {
-    super(message)
-    this.name = 'RE2JSException'
+    super(message);
+    this.name = "RE2JSException";
   }
 }
 
@@ -10,26 +10,26 @@ class RE2JSException extends Error {
  * An exception thrown by the parser if the pattern was invalid.
  */
 class RE2JSSyntaxException extends RE2JSException {
-  error: string
-  input: string | null
+  error: string;
+  input: string | null;
 
   /**
    * @param {string} error
    * @param {string|null} [input=null]
    */
   constructor(error: string, input: string | null = null) {
-    let message = `error parsing regexp: ${error}`
+    let message = `error parsing regexp: ${error}`;
     if (input) {
-      message += `: \`${input}\``
+      message += `: \`${input}\``;
     }
 
-    super(message)
-    this.name = 'RE2JSSyntaxException'
-    this.message = message
+    super(message);
+    this.name = "RE2JSSyntaxException";
+    this.message = message;
     /** @type {string} */
-    this.error = error
+    this.error = error;
     /** @type {string|null} */
-    this.input = input
+    this.input = input;
   }
 
   /**
@@ -37,7 +37,7 @@ class RE2JSSyntaxException extends RE2JSException {
    * @returns {string}
    */
   getDescription(): string {
-    return this.error
+    return this.error;
   }
 
   /**
@@ -45,7 +45,7 @@ class RE2JSSyntaxException extends RE2JSException {
    * @returns {string|null}
    */
   getPattern(): string | null {
-    return this.input
+    return this.input;
   }
 }
 
@@ -55,8 +55,8 @@ class RE2JSSyntaxException extends RE2JSException {
 class RE2JSCompileException extends RE2JSException {
   /** @param {string} message */
   constructor(message: string) {
-    super(message)
-    this.name = 'RE2JSCompileException'
+    super(message);
+    this.name = "RE2JSCompileException";
   }
 }
 
@@ -66,8 +66,8 @@ class RE2JSCompileException extends RE2JSException {
 class RE2JSGroupException extends RE2JSException {
   /** @param {string} message */
   constructor(message: string) {
-    super(message)
-    this.name = 'RE2JSGroupException'
+    super(message);
+    this.name = "RE2JSGroupException";
   }
 }
 
@@ -77,8 +77,8 @@ class RE2JSGroupException extends RE2JSException {
 class RE2JSFlagsException extends RE2JSException {
   /** @param {string} message */
   constructor(message: string) {
-    super(message)
-    this.name = 'RE2JSFlagsException'
+    super(message);
+    this.name = "RE2JSFlagsException";
   }
 }
 
@@ -88,8 +88,8 @@ class RE2JSFlagsException extends RE2JSException {
 class RE2JSInternalException extends RE2JSException {
   /** @param {string} message */
   constructor(message: string) {
-    super(message)
-    this.name = 'RE2JSInternalException'
+    super(message);
+    this.name = "RE2JSInternalException";
   }
 }
 
@@ -99,5 +99,5 @@ export {
   RE2JSCompileException,
   RE2JSGroupException,
   RE2JSFlagsException,
-  RE2JSInternalException
-}
+  RE2JSInternalException,
+};

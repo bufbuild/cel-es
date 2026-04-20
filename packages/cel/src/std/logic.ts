@@ -78,7 +78,7 @@ export function matches(this: string, pattern: string): boolean {
     //
     // Users can choose to override this function and provide an RE2 engine if they really
     // need to.
-    let flagVal: number = 0;
+    let flagVal = 0;
     const flagMatches = pattern.match(flagPattern);
     if (flagMatches) {
         for (let flag of flagMatches?.groups?.flags ?? "") {

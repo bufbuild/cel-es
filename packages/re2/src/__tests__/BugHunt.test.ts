@@ -6,7 +6,7 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { RE2JS } from "../index.js";
-import { MachineInput } from "../MachineInput.js";
+import { fromUTF16 } from "../MachineInput.js";
 import { RE2Flags } from "../RE2Flags.js";
 import { Unicode } from "../Unicode.js";
 
@@ -14,15 +14,25 @@ describe("bug-hunt verification", () => {
   // Phase 1c: DFA.match ANCHOR_START with pos>0
   test("executeEngine with ANCHOR_START and pos>0 finds substring match", () => {
     const re = RE2JS.compile("abc");
-    const input = MachineInput.fromUTF16("xyzabc");
-    const result = (re as any).re2Input.executeEngine(input, 3, RE2Flags.ANCHOR_START, 0);
+    const input = fromUTF16("xyzabc");
+    const result = (re as any).re2Input.executeEngine(
+      input,
+      3,
+      RE2Flags.ANCHOR_START,
+      0,
+    );
     assert.notStrictEqual(result, null);
   });
 
   test("executeEngine with ANCHOR_START and pos>0 where pattern does not start at pos", () => {
     const re = RE2JS.compile("abc");
-    const input = MachineInput.fromUTF16("xyzabc");
-    const result = (re as any).re2Input.executeEngine(input, 1, RE2Flags.ANCHOR_START, 0);
+    const input = fromUTF16("xyzabc");
+    const result = (re as any).re2Input.executeEngine(
+      input,
+      1,
+      RE2Flags.ANCHOR_START,
+      0,
+    );
     assert.strictEqual(result, null);
   });
 

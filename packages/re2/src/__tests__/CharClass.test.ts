@@ -67,7 +67,10 @@ describe(".cleanClass", () => {
 
   for (const [input, expected] of cases) {
     test(`input ${JSON.stringify(input)}, returns ${JSON.stringify(expected)}`, () => {
-      assert.deepStrictEqual(new CharClass(input).cleanClass().toArray(), expected);
+      assert.deepStrictEqual(
+        new CharClass(input).cleanClass().toArray(),
+        expected,
+      );
     });
   }
 });
@@ -91,7 +94,9 @@ describe(".appendLiteral", () => {
   for (const [input, literal, flags, expected] of cases) {
     test(`input ${JSON.stringify(input)}, literal ${JSON.stringify(literal)}, flags ${flags}, returns ${JSON.stringify(expected)}`, () => {
       assert.deepStrictEqual(
-        new CharClass(input.map(codePoint)).appendLiteral(codePoint(literal), flags).toArray(),
+        new CharClass(input.map(codePoint))
+          .appendLiteral(codePoint(literal), flags)
+          .toArray(),
         expected.map(codePoint),
       );
     });
@@ -103,16 +108,15 @@ describe(".appendFoldedRange", () => {
     [10, Unicode.MAX_FOLD + 20, [10, Unicode.MAX_FOLD + 20]],
     [codePoint(" "), codePoint("&"), [" ", "&"].map(codePoint)],
     [codePoint(" "), codePoint("C"), [" ", "C", "a", "c"].map(codePoint)],
-    [
-      0x1e853,
-      0x1e9e4,
-      [0x1e944, 0x1e9e4, 0x1e853, 0x1e920, 0x1e920, 0x1e943],
-    ],
+    [0x1e853, 0x1e9e4, [0x1e944, 0x1e9e4, 0x1e853, 0x1e920, 0x1e920, 0x1e943]],
   ];
 
   for (const [lo, hi, expected] of cases) {
     test(`lo ${lo}, hi ${hi}, returns ${JSON.stringify(expected)}`, () => {
-      assert.deepStrictEqual(new CharClass([]).appendFoldedRange(lo, hi).toArray(), expected);
+      assert.deepStrictEqual(
+        new CharClass([]).appendFoldedRange(lo, hi).toArray(),
+        expected,
+      );
     });
   }
 });
@@ -120,13 +124,24 @@ describe(".appendFoldedRange", () => {
 describe(".appendClass", () => {
   const cases: [number[], number[], number[]][] = [
     [[], ["a", "z"].map(codePoint), ["a", "z"].map(codePoint)],
-    [["a", "f"].map(codePoint), ["c", "t"].map(codePoint), ["a", "t"].map(codePoint)],
-    [["c", "t"].map(codePoint), ["a", "f"].map(codePoint), ["a", "t"].map(codePoint)],
+    [
+      ["a", "f"].map(codePoint),
+      ["c", "t"].map(codePoint),
+      ["a", "t"].map(codePoint),
+    ],
+    [
+      ["c", "t"].map(codePoint),
+      ["a", "f"].map(codePoint),
+      ["a", "t"].map(codePoint),
+    ],
   ];
 
   for (const [input, append, expected] of cases) {
     test(`input ${JSON.stringify(input)}, append ${JSON.stringify(append)}, returns ${JSON.stringify(expected)}`, () => {
-      assert.deepStrictEqual(new CharClass(input).appendClass(append).toArray(), expected);
+      assert.deepStrictEqual(
+        new CharClass(input).appendClass(append).toArray(),
+        expected,
+      );
     });
   }
 });
@@ -137,7 +152,14 @@ describe(".appendNegatedClass", () => {
       new CharClass(["d", "e"].map(codePoint))
         .appendNegatedClass(["b", "f"].map(codePoint))
         .toArray(),
-      [codePoint("d"), codePoint("e"), 0, codePoint("a"), codePoint("g"), Unicode.MAX_RUNE],
+      [
+        codePoint("d"),
+        codePoint("e"),
+        0,
+        codePoint("a"),
+        codePoint("g"),
+        Unicode.MAX_RUNE,
+      ],
     );
   });
 });
@@ -146,7 +168,11 @@ describe(".appendFoldedClass", () => {
   const s = String.fromCharCode(0x17f);
   const k = String.fromCharCode(0x212a);
   const cases: [number[], number[], number[]][] = [
-    [[], ["a", "z"].map(codePoint), Utils.stringToRunes(`akAK${k}${k}lsLS${s}${s}tzTZ`)],
+    [
+      [],
+      ["a", "z"].map(codePoint),
+      Utils.stringToRunes(`akAK${k}${k}lsLS${s}${s}tzTZ`),
+    ],
     [
       ["a", "f"].map(codePoint),
       ["c", "t"].map(codePoint),
@@ -161,7 +187,10 @@ describe(".appendFoldedClass", () => {
 
   for (const [input, append, expected] of cases) {
     test(`input ${JSON.stringify(input)}, append ${JSON.stringify(append)}, returns ${JSON.stringify(expected)}`, () => {
-      assert.deepStrictEqual(new CharClass(input).appendFoldedClass(append).toArray(), expected);
+      assert.deepStrictEqual(
+        new CharClass(input).appendFoldedClass(append).toArray(),
+        expected,
+      );
     });
   }
 });
@@ -188,7 +217,10 @@ describe(".negateClass", () => {
 
   for (const [input, expected] of cases) {
     test(`input ${JSON.stringify(input)}, returns ${JSON.stringify(expected)}`, () => {
-      assert.deepStrictEqual(new CharClass(input).negateClass().toArray(), expected);
+      assert.deepStrictEqual(
+        new CharClass(input).negateClass().toArray(),
+        expected,
+      );
     });
   }
 });
@@ -198,18 +230,29 @@ describe(".appendTable", () => {
     [
       [],
       new UnicodeRangeTable(
-        new Uint32Array([codePoint("a"), codePoint("z"), 1, codePoint("A"), codePoint("M"), 4]),
+        new Uint32Array([
+          codePoint("a"),
+          codePoint("z"),
+          1,
+          codePoint("A"),
+          codePoint("M"),
+          4,
+        ]),
       ),
       ["a", "z", "A", "A", "E", "E", "I", "I", "M", "M"].map(codePoint),
     ],
     [
       [],
-      new UnicodeRangeTable(new Uint32Array([codePoint("Ā"), codePoint("Į"), 2])),
+      new UnicodeRangeTable(
+        new Uint32Array([codePoint("Ā"), codePoint("Į"), 2]),
+      ),
       Utils.stringToRunes("ĀĀĂĂĄĄĆĆĈĈĊĊČČĎĎĐĐĒĒĔĔĖĖĘĘĚĚĜĜĞĞĠĠĢĢĤĤĦĦĨĨĪĪĬĬĮĮ"),
     ],
     [
       [],
-      new UnicodeRangeTable(new Uint32Array([codePoint("Ā") + 1, codePoint("Į") + 1, 2])),
+      new UnicodeRangeTable(
+        new Uint32Array([codePoint("Ā") + 1, codePoint("Į") + 1, 2]),
+      ),
       Utils.stringToRunes("āāăăąąććĉĉċċččďďđđēēĕĕėėęęěěĝĝğğġġģģĥĥħħĩĩīīĭĭįį"),
     ],
   ];
@@ -217,7 +260,10 @@ describe(".appendTable", () => {
   for (let i = 0; i < cases.length; i++) {
     const [input, table, expected] = cases[i];
     test(`appendTable case ${i}`, () => {
-      assert.deepStrictEqual(new CharClass(input).appendTable(table).toArray(), expected);
+      assert.deepStrictEqual(
+        new CharClass(input).appendTable(table).toArray(),
+        expected,
+      );
     });
   }
 });
@@ -227,7 +273,9 @@ describe(".appendNegatedTable", () => {
     assert.deepStrictEqual(
       new CharClass([])
         .appendNegatedTable(
-          new UnicodeRangeTable(new Uint32Array([codePoint("b"), codePoint("f"), 1])),
+          new UnicodeRangeTable(
+            new Uint32Array([codePoint("b"), codePoint("f"), 1]),
+          ),
         )
         .toArray(),
       [0, codePoint("a"), codePoint("g"), Unicode.MAX_RUNE],
@@ -238,13 +286,20 @@ describe(".appendNegatedTable", () => {
 describe(".appendGroup", () => {
   const cases: [number[], CharGroup, number[]][] = [
     [[], getPerlGroups().get("\\d")!, ["0", "9"].map(codePoint)],
-    [[], getPerlGroups().get("\\D")!, [0, codePoint("/"), codePoint(":"), Unicode.MAX_RUNE]],
+    [
+      [],
+      getPerlGroups().get("\\D")!,
+      [0, codePoint("/"), codePoint(":"), Unicode.MAX_RUNE],
+    ],
   ];
 
   for (let i = 0; i < cases.length; i++) {
     const [input, group, expected] = cases[i];
     test(`appendGroup case ${i}`, () => {
-      assert.deepStrictEqual(new CharClass(input).appendGroup(group, false).toArray(), expected);
+      assert.deepStrictEqual(
+        new CharClass(input).appendGroup(group, false).toArray(),
+        expected,
+      );
     });
   }
 });

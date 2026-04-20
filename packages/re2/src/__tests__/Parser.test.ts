@@ -69,8 +69,14 @@ describe(".parse", () => {
     ["[[:^lower:]]", "cc{0x0-0x60 0x7b-0x10ffff}"],
     ["(?i)[[:lower:]]", "cc{0x41-0x5a 0x61-0x7a 0x17f 0x212a}"],
     ["(?i)[a-z]", "cc{0x41-0x5a 0x61-0x7a 0x17f 0x212a}"],
-    ["(?i)[^[:lower:]]", "cc{0x0-0x40 0x5b-0x60 0x7b-0x17e 0x180-0x2129 0x212b-0x10ffff}"],
-    ["(?i)[[:^lower:]]", "cc{0x0-0x40 0x5b-0x60 0x7b-0x17e 0x180-0x2129 0x212b-0x10ffff}"],
+    [
+      "(?i)[^[:lower:]]",
+      "cc{0x0-0x40 0x5b-0x60 0x7b-0x17e 0x180-0x2129 0x212b-0x10ffff}",
+    ],
+    [
+      "(?i)[[:^lower:]]",
+      "cc{0x0-0x40 0x5b-0x60 0x7b-0x17e 0x180-0x2129 0x212b-0x10ffff}",
+    ],
     ["\\d", "cc{0x30-0x39}"],
     ["\\D", "cc{0x0-0x2f 0x3a-0x10ffff}"],
     ["\\s", "cc{0x9-0xa 0xc-0xd 0x20}"],
@@ -78,7 +84,10 @@ describe(".parse", () => {
     ["\\w", "cc{0x30-0x39 0x41-0x5a 0x5f 0x61-0x7a}"],
     ["\\W", "cc{0x0-0x2f 0x3a-0x40 0x5b-0x5e 0x60 0x7b-0x10ffff}"],
     ["(?i)\\w", "cc{0x30-0x39 0x41-0x5a 0x5f 0x61-0x7a 0x17f 0x212a}"],
-    ["(?i)\\W", "cc{0x0-0x2f 0x3a-0x40 0x5b-0x5e 0x60 0x7b-0x17e 0x180-0x2129 0x212b-0x10ffff}"],
+    [
+      "(?i)\\W",
+      "cc{0x0-0x2f 0x3a-0x40 0x5b-0x5e 0x60 0x7b-0x17e 0x180-0x2129 0x212b-0x10ffff}",
+    ],
     ["[^\\\\]", "cc{0x0-0x5b 0x5d-0x10ffff}"],
 
     ["\\p{Ascii}", "cc{0x0-0x7f}"],
@@ -89,12 +98,18 @@ describe(".parse", () => {
     ["\\P{Braille}", "cc{0x0-0x27ff 0x2900-0x10ffff}"],
     ["\\p{^Braille}", "cc{0x0-0x27ff 0x2900-0x10ffff}"],
     ["\\P{^Braille}", "cc{0x2800-0x28ff}"],
-    ["\\pZ", "cc{0x20 0xa0 0x1680 0x2000-0x200a 0x2028-0x2029 0x202f 0x205f 0x3000}"],
+    [
+      "\\pZ",
+      "cc{0x20 0xa0 0x1680 0x2000-0x200a 0x2028-0x2029 0x202f 0x205f 0x3000}",
+    ],
     ["[\\p{Braille}]", "cc{0x2800-0x28ff}"],
     ["[\\P{Braille}]", "cc{0x0-0x27ff 0x2900-0x10ffff}"],
     ["[\\p{^Braille}]", "cc{0x0-0x27ff 0x2900-0x10ffff}"],
     ["[\\P{^Braille}]", "cc{0x2800-0x28ff}"],
-    ["[\\pZ]", "cc{0x20 0xa0 0x1680 0x2000-0x200a 0x2028-0x2029 0x202f 0x205f 0x3000}"],
+    [
+      "[\\pZ]",
+      "cc{0x20 0xa0 0x1680 0x2000-0x200a 0x2028-0x2029 0x202f 0x205f 0x3000}",
+    ],
     ["\\p{Lu}", mkCharClass((r) => Unicode.isUpper(r))],
     ["[\\p{Lu}]", mkCharClass((r) => Unicode.isUpper(r))],
     [
@@ -104,7 +119,11 @@ describe(".parse", () => {
           return true;
         }
 
-        for (let c = Unicode.simpleFold(r); c !== r; c = Unicode.simpleFold(c)) {
+        for (
+          let c = Unicode.simpleFold(r);
+          c !== r;
+          c = Unicode.simpleFold(c)
+        ) {
           if (Unicode.isUpper(c)) {
             return true;
           }
@@ -132,12 +151,21 @@ describe(".parse", () => {
 
     ["(?:a)", "lit{a}"],
     ["(?:ab)(?:cd)", "str{abcd}"],
-    ["(?:a+b+)(?:c+d+)", "cat{plus{lit{a}}plus{lit{b}}plus{lit{c}}plus{lit{d}}}"],
-    ["(?:a+|b+)|(?:c+|d+)", "alt{plus{lit{a}}plus{lit{b}}plus{lit{c}}plus{lit{d}}}"],
+    [
+      "(?:a+b+)(?:c+d+)",
+      "cat{plus{lit{a}}plus{lit{b}}plus{lit{c}}plus{lit{d}}}",
+    ],
+    [
+      "(?:a+|b+)|(?:c+|d+)",
+      "alt{plus{lit{a}}plus{lit{b}}plus{lit{c}}plus{lit{d}}}",
+    ],
     ["(?:a|b)|(?:c|d)", "cc{0x61-0x64}"],
     ["a|.", "dot{}"],
     [".|a", "dot{}"],
-    ["(?:[abc]|A|Z|hello|world)", "alt{cc{0x41 0x5a 0x61-0x63}str{hello}str{world}}"],
+    [
+      "(?:[abc]|A|Z|hello|world)",
+      "alt{cc{0x41 0x5a 0x61-0x63}str{hello}str{world}}",
+    ],
     ["(?:[abc]|A|Z)", "cc{0x41 0x5a 0x61-0x63}"],
 
     ["\\Q+|*?{[\\E", "str{+|*?{[}"],
@@ -236,7 +264,9 @@ describe("fold cases", () => {
 });
 
 describe("literal cases", () => {
-  const cases: [string, string][] = [["(|)^$.[*+?]{5,10},\\", "str{(|)^$.[*+?]{5,10},\\}"]];
+  const cases: [string, string][] = [
+    ["(|)^$.[*+?]{5,10},\\", "str{(|)^$.[*+?]{5,10},\\}"],
+  ];
 
   for (const [input, expected] of cases) {
     test(`input ${JSON.stringify(input)} expected ${JSON.stringify(expected)}`, () => {
@@ -326,8 +356,14 @@ describe("invalid regexp cases", () => {
 
   for (const input of invalidInputs) {
     test(`invalid ${JSON.stringify(input).slice(0, 80)} raise error`, () => {
-      assert.throws(() => Parser.parse(input, RE2Flags.PERL), RE2JSSyntaxException);
-      assert.throws(() => Parser.parse(input, RE2Flags.POSIX), RE2JSSyntaxException);
+      assert.throws(
+        () => Parser.parse(input, RE2Flags.PERL),
+        RE2JSSyntaxException,
+      );
+      assert.throws(
+        () => Parser.parse(input, RE2Flags.POSIX),
+        RE2JSSyntaxException,
+      );
     });
   }
 
@@ -350,11 +386,21 @@ describe("invalid regexp cases", () => {
     });
   }
 
-  const invalidInPerl: string[] = ["a++", "a**", "a?*", "a+*", "a{1}*", ".{1}{2}.{3}"];
+  const invalidInPerl: string[] = [
+    "a++",
+    "a**",
+    "a?*",
+    "a+*",
+    "a{1}*",
+    ".{1}{2}.{3}",
+  ];
 
   for (const input of invalidInPerl) {
     test(`invalid ${JSON.stringify(input)} in perl mode`, () => {
-      assert.throws(() => Parser.parse(input, RE2Flags.PERL), RE2JSSyntaxException);
+      assert.throws(
+        () => Parser.parse(input, RE2Flags.PERL),
+        RE2JSSyntaxException,
+      );
     });
   }
 });

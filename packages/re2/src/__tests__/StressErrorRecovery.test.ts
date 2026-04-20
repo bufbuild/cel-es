@@ -4,7 +4,10 @@ import { RE2JS } from "../index.js";
 import { RE2JSSyntaxException } from "../exceptions.js";
 
 describe("stress: parser error recovery", () => {
-  const compileGoodAfterBad = (badPattern: string, goodPattern: string): void => {
+  const compileGoodAfterBad = (
+    badPattern: string,
+    goodPattern: string,
+  ): void => {
     assert.throws(() => RE2JS.compile(badPattern), RE2JSSyntaxException);
     assert.doesNotThrow(() => RE2JS.compile(goodPattern));
   };

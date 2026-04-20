@@ -1,5 +1,5 @@
-import { RE2Flags } from './RE2Flags.js'
-import { Inst } from './Inst.js'
+import { RE2Flags } from "./RE2Flags.js";
+import { Inst } from "./Inst.js";
 
 /**
  * A list of instruction pointers waiting to be patched.
@@ -12,16 +12,16 @@ import { Inst } from './Inst.js'
  * * @see https://swtch.com/~rsc/regexp/regexp1.html
  */
 class PatchList {
-  head: number
-  tail: number
+  head: number;
+  tail: number;
 
   /**
    * @param {number} head - Encoded pointer to the start of the patch list.
    * @param {number} tail - Encoded pointer to the end of the patch list.
    */
   constructor(head = 0, tail = 0) {
-    this.head = head
-    this.tail = tail
+    this.head = head;
+    this.tail = tail;
   }
 }
 
@@ -29,89 +29,93 @@ class PatchList {
  * A Prog is a compiled regular expression program.
  */
 class Prog {
-  inst: any[]
-  start: number
-  numCap: number
+  inst: Inst[];
+  start: number;
+  numCap: number;
 
   constructor() {
-    this.inst = []
-    this.start = 0 // index of start instruction
+    this.inst = [];
+    this.start = 0; // index of start instruction
     // number of CAPTURE insts in re
     // 2 => implicit ( and ) for whole match $0
-    this.numCap = 2
+    this.numCap = 2;
   }
 
   // Returns the instruction at the specified pc.
   // Precondition: pc > 0 && pc < numInst().
   getInst(pc: number): Inst {
-    return this.inst[pc]
+    return this.inst[pc];
   }
 
   // Returns the number of instructions in this program.
   numInst(): number {
-    return this.inst.length
+    return this.inst.length;
   }
 
   // Adds a new instruction to this program, with operator |op| and |pc| equal
   // to |numInst()|.
   addInst(op: number): void {
-    this.inst.push(new Inst(op))
+    this.inst.push(new Inst(op));
   }
 
   // skipNop() follows any no-op or capturing instructions and returns the
   // resulting instruction.
   skipNop(pc: number): Inst {
-    let i = this.inst[pc]
+    let i = this.inst[pc];
 
     while (i.op === Inst.NOP || i.op === Inst.CAPTURE) {
-      i = this.inst[pc]
-      pc = i.out
+      i = this.inst[pc];
+      pc = i.out;
     }
 
-    return i
+    return i;
   }
 
   // prefix() returns a pair of a literal string that all matches for the
   // regexp must start with, and a boolean which is true if the prefix is the
   // entire match.  The string is returned by appending to |prefix|.
   prefix(): [boolean, string] {
-    let prefix = ''
-    let i = this.skipNop(this.start)
+    let prefix = "";
+    let i = this.skipNop(this.start);
 
     if (!Inst.isRuneOp(i.op) || i.runes.length !== 1) {
-      return [i.op === Inst.MATCH, prefix]
+      return [i.op === Inst.MATCH, prefix];
     }
 
-    while (Inst.isRuneOp(i.op) && i.runes.length === 1 && (i.arg & RE2Flags.FOLD_CASE) === 0) {
-      prefix += String.fromCodePoint(i.runes[0])
-      i = this.skipNop(i.out)
+    while (
+      Inst.isRuneOp(i.op) &&
+      i.runes.length === 1 &&
+      (i.arg & RE2Flags.FOLD_CASE) === 0
+    ) {
+      prefix += String.fromCodePoint(i.runes[0]);
+      i = this.skipNop(i.out);
     }
 
-    return [i.op === Inst.MATCH, prefix]
+    return [i.op === Inst.MATCH, prefix];
   }
 
   // startCond() returns the leading empty-width conditions that must be true
   // in any match.  It returns -1 (all bits set) if no matches are possible.
   startCond(): number {
-    let flag = 0
-    let pc = this.start
+    let flag = 0;
+    let pc = this.start;
     loop: for (;;) {
-      const i = this.inst[pc]
+      const i = this.inst[pc];
       switch (i.op) {
         case Inst.EMPTY_WIDTH:
-          flag |= i.arg
-          break
+          flag |= i.arg;
+          break;
         case Inst.FAIL:
-          return -1
+          return -1;
         case Inst.CAPTURE:
         case Inst.NOP:
-          break
+          break;
         default:
-          break loop
+          break loop;
       }
-      pc = i.out
+      pc = i.out;
     }
-    return flag
+    return flag;
   }
 
   // --- Patch list ---
@@ -128,41 +132,41 @@ class Prog {
   // at its output link.
 
   next(l: number): number {
-    const i = this.inst[l >> 1]
+    const i = this.inst[l >> 1];
     if ((l & 1) === 0) {
-      return i.out
+      return i.out;
     }
-    return i.arg
+    return i.arg;
   }
 
   patch(l: PatchList, val: number): void {
-    let head = l.head
+    let head = l.head;
     while (head !== 0) {
-      const i = this.inst[head >> 1]
+      const i = this.inst[head >> 1];
       if ((head & 1) === 0) {
-        head = i.out
-        i.out = val
+        head = i.out;
+        i.out = val;
       } else {
-        head = i.arg
-        i.arg = val
+        head = i.arg;
+        i.arg = val;
       }
     }
   }
 
   append(l1: PatchList, l2: PatchList): PatchList {
-    if (l1.head === 0) return l2
-    if (l2.head === 0) return l1
+    if (l1.head === 0) return l2;
+    if (l2.head === 0) return l1;
 
     // We know exactly where the tail is
-    const i = this.inst[l1.tail >> 1]
+    const i = this.inst[l1.tail >> 1];
     if ((l1.tail & 1) === 0) {
-      i.out = l2.head
+      i.out = l2.head;
     } else {
-      i.arg = l2.head
+      i.arg = l2.head;
     }
 
-    return new PatchList(l1.head, l2.tail)
+    return new PatchList(l1.head, l2.tail);
   }
 }
 
-export { Prog, PatchList }
+export { Prog, PatchList };

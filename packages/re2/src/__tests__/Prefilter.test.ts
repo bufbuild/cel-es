@@ -5,7 +5,7 @@ import { Simplify } from "../Simplify.js";
 import { PrefilterTree, Prefilter } from "../Prefilter.js";
 import { RE2Flags } from "../RE2Flags.js";
 import { RE2JS } from "../index.js";
-import { MachineInput } from "../MachineInput.js";
+import { fromUTF16 } from "../MachineInput.js";
 
 const dumpPrefilter = (pf: Prefilter | null): string => {
   if (!pf) return "null";
@@ -23,7 +23,10 @@ const dumpPrefilter = (pf: Prefilter | null): string => {
   }
 };
 
-const getPrefilterDump = (pattern: string, flags: number = RE2Flags.PERL): string => {
+const getPrefilterDump = (
+  pattern: string,
+  flags: number = RE2Flags.PERL,
+): string => {
   let re = Parser.parse(pattern, flags);
   re = Simplify.simplify(re);
   const pf = PrefilterTree.build(re);
@@ -39,10 +42,16 @@ describe("PrefilterTree.build AST Extraction", () => {
     ["a.*b.*c", 'AND(EXACT("a"), EXACT("b"), EXACT("c"))'],
 
     ["foo|bar", 'OR(EXACT("foo"), EXACT("bar"))'],
-    ["apple|banana|cherry", 'OR(EXACT("apple"), EXACT("banana"), EXACT("cherry"))'],
+    [
+      "apple|banana|cherry",
+      'OR(EXACT("apple"), EXACT("banana"), EXACT("cherry"))',
+    ],
 
     ["(foo|bar)baz", 'AND(OR(EXACT("foo"), EXACT("bar")), EXACT("baz"))'],
-    ["foo(bar|baz)qux", 'AND(EXACT("foo"), OR(EXACT("bar"), EXACT("baz")), EXACT("qux"))'],
+    [
+      "foo(bar|baz)qux",
+      'AND(EXACT("foo"), OR(EXACT("bar"), EXACT("baz")), EXACT("qux"))',
+    ],
 
     ["a+b", 'AND(EXACT("a"), EXACT("b"))'],
     ["a{2,5}b", 'AND(EXACT("a"), EXACT("a"), EXACT("b"))'],
@@ -68,29 +77,35 @@ describe("PrefilterTree.build AST Extraction", () => {
 
 describe("Prefilter Evaluation (UTF-16 & UTF-8)", () => {
   it("correctly evaluates EXACT filters", () => {
-    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse("foo", RE2Flags.PERL)));
+    const pf = PrefilterTree.build(
+      Simplify.simplify(Parser.parse("foo", RE2Flags.PERL)),
+    );
 
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("bar foo baz"), 0), true);
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("bar fox baz"), 0), false);
+    assert.strictEqual(pf.eval(fromUTF16("bar foo baz"), 0), true);
+    assert.strictEqual(pf.eval(fromUTF16("bar fox baz"), 0), false);
   });
 
   it("correctly evaluates AND filters", () => {
-    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse("foo.*bar", RE2Flags.PERL)));
+    const pf = PrefilterTree.build(
+      Simplify.simplify(Parser.parse("foo.*bar", RE2Flags.PERL)),
+    );
 
-    const input1 = MachineInput.fromUTF16("foo and then bar");
+    const input1 = fromUTF16("foo and then bar");
     assert.strictEqual(pf.eval(input1, 0), true);
 
-    const input2 = MachineInput.fromUTF16("foo and then baz");
+    const input2 = fromUTF16("foo and then baz");
     assert.strictEqual(pf.eval(input2, 0), false);
   });
 
   it("correctly evaluates OR filters", () => {
-    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse("foo|bar", RE2Flags.PERL)));
+    const pf = PrefilterTree.build(
+      Simplify.simplify(Parser.parse("foo|bar", RE2Flags.PERL)),
+    );
 
-    const input1 = MachineInput.fromUTF16("I have a bar");
+    const input1 = fromUTF16("I have a bar");
     assert.strictEqual(pf.eval(input1, 0), true);
 
-    const input2 = MachineInput.fromUTF16("I have a baz");
+    const input2 = fromUTF16("I have a baz");
     assert.strictEqual(pf.eval(input2, 0), false);
   });
 });
@@ -113,27 +128,36 @@ describe("Engine Integration", () => {
 
 describe("Advanced Prefilter Evaluation", () => {
   it("handles complex AND/OR logic branches correctly", () => {
-    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse("(foo|bar)baz", RE2Flags.PERL)));
+    const pf = PrefilterTree.build(
+      Simplify.simplify(Parser.parse("(foo|bar)baz", RE2Flags.PERL)),
+    );
 
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("foobaz"), 0), true);
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("barbaz"), 0), true);
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("foo"), 0), false);
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("baz"), 0), false);
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("quxbaz"), 0), false);
+    assert.strictEqual(pf.eval(fromUTF16("foobaz"), 0), true);
+    assert.strictEqual(pf.eval(fromUTF16("barbaz"), 0), true);
+    assert.strictEqual(pf.eval(fromUTF16("foo"), 0), false);
+    assert.strictEqual(pf.eval(fromUTF16("baz"), 0), false);
+    assert.strictEqual(pf.eval(fromUTF16("quxbaz"), 0), false);
   });
 
   it("evaluates emojis and multi-byte unicode safely", () => {
-    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse("🚀.*🌕", RE2Flags.PERL)));
+    const pf = PrefilterTree.build(
+      Simplify.simplify(Parser.parse("🚀.*🌕", RE2Flags.PERL)),
+    );
 
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("To the 🚀 and then 🌕!"), 0), true);
-    assert.strictEqual(pf.eval(MachineInput.fromUTF16("To the 🚀 and then back!"), 0), false);
+    assert.strictEqual(pf.eval(fromUTF16("To the 🚀 and then 🌕!"), 0), true);
+    assert.strictEqual(
+      pf.eval(fromUTF16("To the 🚀 and then back!"), 0),
+      false,
+    );
   });
 
   it("respects end boundaries on bounded input buffers", () => {
-    const pf = PrefilterTree.build(Simplify.simplify(Parser.parse("hidden", RE2Flags.PERL)));
+    const pf = PrefilterTree.build(
+      Simplify.simplify(Parser.parse("hidden", RE2Flags.PERL)),
+    );
     const text = "visible hidden";
 
-    const utf16Input = MachineInput.fromUTF16(text, 0, 7);
+    const utf16Input = fromUTF16(text, 0, 7);
     assert.strictEqual(pf.eval(utf16Input, 0), false);
   });
 });

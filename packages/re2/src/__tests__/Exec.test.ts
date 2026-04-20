@@ -70,7 +70,10 @@ const parseResult = (lineno: number, res: string): number[] | null => {
 };
 
 const unquote = (str: string): string => {
-  if ((str.startsWith("'") && str.endsWith("'")) || (str.startsWith('"') && str.endsWith('"'))) {
+  if (
+    (str.startsWith("'") && str.endsWith("'")) ||
+    (str.startsWith('"') && str.endsWith('"'))
+  ) {
     str = str.slice(1, -1);
   }
 
@@ -118,7 +121,10 @@ const testRE2 = async (fileName: string): Promise<void> => {
       continue;
     }
 
-    if ("A".codePointAt(0)! <= firstCodePoint && firstCodePoint <= "Z".codePointAt(0)!) {
+    if (
+      "A".codePointAt(0)! <= firstCodePoint &&
+      firstCodePoint <= "Z".codePointAt(0)!
+    ) {
       continue;
     }
 
@@ -158,7 +164,10 @@ const testRE2 = async (fileName: string): Promise<void> => {
       try {
         re = RE2.compile(q);
       } catch (e) {
-        if ((e as Error).message === "error parsing regexp: invalid escape sequence: `\\C`") {
+        if (
+          (e as Error).message ===
+          "error parsing regexp: invalid escape sequence: `\\C`"
+        ) {
           continue;
         }
         throw e;
@@ -173,7 +182,8 @@ const testRE2 = async (fileName: string): Promise<void> => {
       input = 0;
     } else if (
       first === "-" ||
-      ("0".codePointAt(0)! <= firstCodePoint && firstCodePoint <= "9".codePointAt(0)!)
+      ("0".codePointAt(0)! <= firstCodePoint &&
+        firstCodePoint <= "9".codePointAt(0)!)
     ) {
       if (re === null) {
         continue;
@@ -192,7 +202,9 @@ const testRE2 = async (fileName: string): Promise<void> => {
 
       const res = line.split(";");
       if (res.length !== 4) {
-        throw new Error(`${lineno}: wrong test results: ${JSON.stringify(res)}`);
+        throw new Error(
+          `${lineno}: wrong test results: ${JSON.stringify(res)}`,
+        );
       }
 
       for (let i = 0; i < 2; i++) {

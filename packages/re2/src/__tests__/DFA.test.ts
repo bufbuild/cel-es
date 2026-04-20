@@ -4,7 +4,7 @@ import { DFA } from "../DFA.js";
 import { Compiler } from "../Compiler.js";
 import { Parser } from "../Parser.js";
 import { RE2Flags } from "../RE2Flags.js";
-import { MachineInput } from "../MachineInput.js";
+import { fromUTF16 } from "../MachineInput.js";
 
 const createDFA = (pattern: string, flags: number = RE2Flags.PERL): DFA => {
   const re = Parser.parse(pattern, flags);
@@ -12,8 +12,12 @@ const createDFA = (pattern: string, flags: number = RE2Flags.PERL): DFA => {
   return new DFA(prog);
 };
 
-const runDFA = (dfa: DFA, text: string, anchor: number = RE2Flags.UNANCHORED): boolean | null => {
-  const input = MachineInput.fromUTF16(text);
+const runDFA = (
+  dfa: DFA,
+  text: string,
+  anchor: number = RE2Flags.UNANCHORED,
+): boolean | null => {
+  const input = fromUTF16(text);
   return dfa.match(input, 0, anchor);
 };
 

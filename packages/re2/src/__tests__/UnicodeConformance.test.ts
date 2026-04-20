@@ -5,13 +5,17 @@ import { UnicodeTables } from "../UnicodeTables.js";
 // @ts-expect-error — no types published for this package
 import unicodePropertyValueAliases from "unicode-property-value-aliases";
 
-const aliasesToNames = unicodePropertyValueAliases.get("General_Category") as Map<string, string>;
+const aliasesToNames = unicodePropertyValueAliases.get(
+  "General_Category",
+) as Map<string, string>;
 
 const loadCodePoints = async (
   kind: "General_Category" | "Script",
   longName: string,
 ): Promise<number[]> => {
-  const mod = await import(`@unicode/unicode-16.0.0/${kind}/${longName}/code-points.js`);
+  const mod = await import(
+    `@unicode/unicode-16.0.0/${kind}/${longName}/code-points.js`
+  );
   return mod.default as number[];
 };
 

@@ -2,84 +2,84 @@
 // ./tools/scripts/make_perl_groups.pl  > src/CharGroup.js
 
 class CharGroup {
-  sign: number
-  cls: number[]
+  sign: number;
+  cls: number[];
 
   constructor(sign: number, cls: number[]) {
-    this.sign = sign
-    this.cls = cls
+    this.sign = sign;
+    this.cls = cls;
   }
 }
 
-const code1 = [0x30, 0x39]
-const code2 = [0x9, 0xa, 0xc, 0xd, 0x20, 0x20]
-const code3 = [0x30, 0x39, 0x41, 0x5a, 0x5f, 0x5f, 0x61, 0x7a]
+const code1 = [0x30, 0x39];
+const code2 = [0x9, 0xa, 0xc, 0xd, 0x20, 0x20];
+const code3 = [0x30, 0x39, 0x41, 0x5a, 0x5f, 0x5f, 0x61, 0x7a];
 
-let _PERL_GROUPS: Map<string, CharGroup> | null = null
+let _PERL_GROUPS: Map<string, CharGroup> | null = null;
 const getPerlGroups = (): Map<string, CharGroup> => {
   if (!_PERL_GROUPS) {
     _PERL_GROUPS = new Map([
-      ['\\d', new CharGroup(+1, code1)],
-      ['\\D', new CharGroup(-1, code1)],
-      ['\\s', new CharGroup(+1, code2)],
-      ['\\S', new CharGroup(-1, code2)],
-      ['\\w', new CharGroup(+1, code3)],
-      ['\\W', new CharGroup(-1, code3)]
-    ])
+      ["\\d", new CharGroup(+1, code1)],
+      ["\\D", new CharGroup(-1, code1)],
+      ["\\s", new CharGroup(+1, code2)],
+      ["\\S", new CharGroup(-1, code2)],
+      ["\\w", new CharGroup(+1, code3)],
+      ["\\W", new CharGroup(-1, code3)],
+    ]);
   }
-  return _PERL_GROUPS
-}
+  return _PERL_GROUPS;
+};
 
-const code4 = [0x30, 0x39, 0x41, 0x5a, 0x61, 0x7a]
-const code5 = [0x41, 0x5a, 0x61, 0x7a]
-const code6 = [0x0, 0x7f]
-const code7 = [0x9, 0x9, 0x20, 0x20]
-const code8 = [0x0, 0x1f, 0x7f, 0x7f]
-const code9 = [0x30, 0x39]
-const code10 = [0x21, 0x7e]
-const code11 = [0x61, 0x7a]
-const code12 = [0x20, 0x7e]
-const code13 = [0x21, 0x2f, 0x3a, 0x40, 0x5b, 0x60, 0x7b, 0x7e]
-const code14 = [0x9, 0xd, 0x20, 0x20]
-const code15 = [0x41, 0x5a]
-const code16 = [0x30, 0x39, 0x41, 0x5a, 0x5f, 0x5f, 0x61, 0x7a]
-const code17 = [0x30, 0x39, 0x41, 0x46, 0x61, 0x66]
+const code4 = [0x30, 0x39, 0x41, 0x5a, 0x61, 0x7a];
+const code5 = [0x41, 0x5a, 0x61, 0x7a];
+const code6 = [0x0, 0x7f];
+const code7 = [0x9, 0x9, 0x20, 0x20];
+const code8 = [0x0, 0x1f, 0x7f, 0x7f];
+const code9 = [0x30, 0x39];
+const code10 = [0x21, 0x7e];
+const code11 = [0x61, 0x7a];
+const code12 = [0x20, 0x7e];
+const code13 = [0x21, 0x2f, 0x3a, 0x40, 0x5b, 0x60, 0x7b, 0x7e];
+const code14 = [0x9, 0xd, 0x20, 0x20];
+const code15 = [0x41, 0x5a];
+const code16 = [0x30, 0x39, 0x41, 0x5a, 0x5f, 0x5f, 0x61, 0x7a];
+const code17 = [0x30, 0x39, 0x41, 0x46, 0x61, 0x66];
 
-let _POSIX_GROUPS: Map<string, CharGroup> | null = null
+let _POSIX_GROUPS: Map<string, CharGroup> | null = null;
 const getPosixGroups = (): Map<string, CharGroup> => {
   if (!_POSIX_GROUPS) {
     _POSIX_GROUPS = new Map([
-      ['[:alnum:]', new CharGroup(+1, code4)],
-      ['[:^alnum:]', new CharGroup(-1, code4)],
-      ['[:alpha:]', new CharGroup(+1, code5)],
-      ['[:^alpha:]', new CharGroup(-1, code5)],
-      ['[:ascii:]', new CharGroup(+1, code6)],
-      ['[:^ascii:]', new CharGroup(-1, code6)],
-      ['[:blank:]', new CharGroup(+1, code7)],
-      ['[:^blank:]', new CharGroup(-1, code7)],
-      ['[:cntrl:]', new CharGroup(+1, code8)],
-      ['[:^cntrl:]', new CharGroup(-1, code8)],
-      ['[:digit:]', new CharGroup(+1, code9)],
-      ['[:^digit:]', new CharGroup(-1, code9)],
-      ['[:graph:]', new CharGroup(+1, code10)],
-      ['[:^graph:]', new CharGroup(-1, code10)],
-      ['[:lower:]', new CharGroup(+1, code11)],
-      ['[:^lower:]', new CharGroup(-1, code11)],
-      ['[:print:]', new CharGroup(+1, code12)],
-      ['[:^print:]', new CharGroup(-1, code12)],
-      ['[:punct:]', new CharGroup(+1, code13)],
-      ['[:^punct:]', new CharGroup(-1, code13)],
-      ['[:space:]', new CharGroup(+1, code14)],
-      ['[:^space:]', new CharGroup(-1, code14)],
-      ['[:upper:]', new CharGroup(+1, code15)],
-      ['[:^upper:]', new CharGroup(-1, code15)],
-      ['[:word:]', new CharGroup(+1, code16)],
-      ['[:^word:]', new CharGroup(-1, code16)],
-      ['[:xdigit:]', new CharGroup(+1, code17)],
-      ['[:^xdigit:]', new CharGroup(-1, code17)]
-    ])
+      ["[:alnum:]", new CharGroup(+1, code4)],
+      ["[:^alnum:]", new CharGroup(-1, code4)],
+      ["[:alpha:]", new CharGroup(+1, code5)],
+      ["[:^alpha:]", new CharGroup(-1, code5)],
+      ["[:ascii:]", new CharGroup(+1, code6)],
+      ["[:^ascii:]", new CharGroup(-1, code6)],
+      ["[:blank:]", new CharGroup(+1, code7)],
+      ["[:^blank:]", new CharGroup(-1, code7)],
+      ["[:cntrl:]", new CharGroup(+1, code8)],
+      ["[:^cntrl:]", new CharGroup(-1, code8)],
+      ["[:digit:]", new CharGroup(+1, code9)],
+      ["[:^digit:]", new CharGroup(-1, code9)],
+      ["[:graph:]", new CharGroup(+1, code10)],
+      ["[:^graph:]", new CharGroup(-1, code10)],
+      ["[:lower:]", new CharGroup(+1, code11)],
+      ["[:^lower:]", new CharGroup(-1, code11)],
+      ["[:print:]", new CharGroup(+1, code12)],
+      ["[:^print:]", new CharGroup(-1, code12)],
+      ["[:punct:]", new CharGroup(+1, code13)],
+      ["[:^punct:]", new CharGroup(-1, code13)],
+      ["[:space:]", new CharGroup(+1, code14)],
+      ["[:^space:]", new CharGroup(-1, code14)],
+      ["[:upper:]", new CharGroup(+1, code15)],
+      ["[:^upper:]", new CharGroup(-1, code15)],
+      ["[:word:]", new CharGroup(+1, code16)],
+      ["[:^word:]", new CharGroup(-1, code16)],
+      ["[:xdigit:]", new CharGroup(+1, code17)],
+      ["[:^xdigit:]", new CharGroup(-1, code17)],
+    ]);
   }
-  return _POSIX_GROUPS
-}
+  return _POSIX_GROUPS;
+};
 
-export { CharGroup, getPerlGroups, getPosixGroups }
+export { CharGroup, getPerlGroups, getPosixGroups };
