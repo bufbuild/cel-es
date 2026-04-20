@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { FOLD_CASE } from "../RE2Flags.js";
-import { CharGroup, getPerlGroups } from "../CharGroup.js";
+import { type CharGroup, getPerlGroups } from "../CharGroup.js";
 import { CharClass } from "../CharClass.js";
 import { MAX_FOLD, MAX_RUNE } from "../Unicode.js";
 import { UnicodeRangeTable } from "../UnicodeRangeTable.js";
@@ -284,13 +284,17 @@ describe(".appendNegatedTable", () => {
 });
 
 describe(".appendGroup", () => {
+  const perlGroups = getPerlGroups();
+  const getGroup = (name: string): CharGroup => {
+    const group = perlGroups.get(name);
+    if (group === undefined) {
+      throw new Error(`perl group not found: ${name}`);
+    }
+    return group;
+  };
   const cases: [number[], CharGroup, number[]][] = [
-    [[], getPerlGroups().get("\\d")!, ["0", "9"].map(codePoint)],
-    [
-      [],
-      getPerlGroups().get("\\D")!,
-      [0, codePoint("/"), codePoint(":"), MAX_RUNE],
-    ],
+    [[], getGroup("\\d"), ["0", "9"].map(codePoint)],
+    [[], getGroup("\\D"), [0, codePoint("/"), codePoint(":"), MAX_RUNE]],
   ];
 
   for (let i = 0; i < cases.length; i++) {

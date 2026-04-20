@@ -45,7 +45,11 @@ class RE2 {
 
     this.prefixRune = 0;
     if (this.prefix.length > 0) {
-      this.prefixRune = this.prefix.codePointAt(0)!;
+      const cp = this.prefix.codePointAt(0);
+      if (cp === undefined) {
+        throw new Error("RE2: prefix has no code point");
+      }
+      this.prefixRune = cp;
     }
     this.namedGroups = re.namedGroups;
 
@@ -57,7 +61,7 @@ class RE2 {
   }
 
   matchPrefixComplete(
-    input: any,
+    input: MachineUTF16Input,
     pos: number,
     anchor: number,
     ncap: number,
@@ -98,7 +102,7 @@ class RE2 {
   }
 
   executeEngine(
-    input: any,
+    input: MachineUTF16Input,
     pos: number,
     anchor: number,
     ncap: number,

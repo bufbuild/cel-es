@@ -26,6 +26,7 @@ import {
   stringToRunes,
   runeToString,
 } from "./Utils.js";
+import { codePointAtOrThrow } from "./__utils__/chars.js";
 import { CharClass } from "./CharClass.js";
 import { RE2JSSyntaxException } from "./exceptions.js";
 import { Regexp } from "./Regexp.js";
@@ -69,7 +70,7 @@ class StringIterator {
   // Returns the rune at the cursor position.
   // Precondition: |more()|.
   peek(): number {
-    return this.str.codePointAt(this.position)!;
+    return codePointAtOrThrow(this.str, this.position);
   }
 
   // Advances the cursor by |n| positions, which must be ASCII runes.
@@ -89,7 +90,7 @@ class StringIterator {
   // Returns the rune at the cursor position, and advances the cursor
   // past it.  Precondition: |more()|.
   pop(): number {
-    const r = this.str.codePointAt(this.position)!;
+    const r = codePointAtOrThrow(this.str, this.position);
     this.position += charCount(r);
     return r;
   }
@@ -203,9 +204,11 @@ class Parser {
   // unicodeTable() returns the Unicode RangeTable identified by name
   // and the table of additional fold-equivalent code points.
   // Returns null if |name| does not identify a Unicode character range.
-  static unicodeTable(
-    name: string,
-  ): { tab: any; fold: any; sign: number } | null {
+  static unicodeTable(name: string): {
+    tab: UnicodeRangeTable | null;
+    fold: UnicodeRangeTable | null;
+    sign: number;
+  } | null {
     if (name === "Any") {
       return { tab: Parser.ANY_TABLE, fold: Parser.ANY_TABLE, sign: +1 };
     }
@@ -305,7 +308,7 @@ class Parser {
       return -1;
     }
 
-    let max;
+    let max: number;
     if (!t.lookingAt(",")) {
       max = min;
     } else {
@@ -315,8 +318,11 @@ class Parser {
       }
       if (t.lookingAt("}")) {
         max = -1;
-      } else if ((max = Parser.parseInt(t)) === -1) {
-        return -1;
+      } else {
+        max = Parser.parseInt(t);
+        if (max === -1) {
+          return -1;
+        }
       }
     }
 
@@ -351,7 +357,7 @@ class Parser {
     }
 
     for (let i = 0; i < name.length; i++) {
-      const c = name.codePointAt(i)!;
+      const c = codePointAtOrThrow(name, i);
       if (c !== 0x5f && !isalnum(c)) {
         return false;
       }
@@ -364,7 +370,7 @@ class Parser {
   // -1 => bad format.  -2 => format ok, but integer overflow.
   static parseInt(t: StringIterator): number {
     const start = t.pos();
-    while (t.more() && t.peek()! >= 0x30 && t.peek()! <= 0x39) {
+    while (t.more() && t.peek() >= 0x30 && t.peek() <= 0x39) {
       t.skip(1);
     }
 
@@ -453,7 +459,7 @@ class Parser {
       throw new RE2JSSyntaxException(Parser.ERR_TRAILING_BACKSLASH);
     }
     let c = t.pop();
-    bigswitch: switch (c) {
+    switch (c) {
       case 0x31:
       case 0x32:
       case 0x33:
@@ -462,15 +468,15 @@ class Parser {
       case 0x36:
       case 0x30:
       case 0x37: {
-        if (c !== 0x30 && (!t.more() || t.peek()! < 0x30 || t.peek()! > 0x37)) {
+        if (c !== 0x30 && (!t.more() || t.peek() < 0x30 || t.peek() > 0x37)) {
           break;
         }
         let r = c - 0x30;
         for (let i = 1; i < 3; i++) {
-          if (!t.more() || t.peek()! < 0x30 || t.peek()! > 0x37) {
+          if (!t.more() || t.peek() < 0x30 || t.peek() > 0x37) {
             break;
           }
-          r = r * 8 + t.peek()! - 0x30;
+          r = r * 8 + t.peek() - 0x30;
           t.skip(1);
         }
         return r;
@@ -486,7 +492,10 @@ class Parser {
 
           while (true) {
             if (!t.more()) {
-              break bigswitch;
+              throw new RE2JSSyntaxException(
+                Parser.ERR_INVALID_ESCAPE,
+                t.from(startPos),
+              );
             }
             c = t.pop();
             if (c === 0x7d) {
@@ -494,16 +503,22 @@ class Parser {
             }
             const v = unhex(c);
             if (v < 0) {
-              break bigswitch;
+              throw new RE2JSSyntaxException(
+                Parser.ERR_INVALID_ESCAPE,
+                t.from(startPos),
+              );
             }
             r = r * 16 + v;
             if (r > MAX_RUNE) {
-              break bigswitch;
+              throw new RE2JSSyntaxException(
+                Parser.ERR_INVALID_ESCAPE,
+                t.from(startPos),
+              );
             }
             nhex++;
           }
           if (nhex === 0) {
-            break bigswitch;
+            break;
           }
           return r;
         }
@@ -567,7 +582,7 @@ class Parser {
   numCap: number;
   namedGroups: Map<string, number>;
   stack: Regexp[];
-  free: any;
+  free: Regexp | null;
   numRegexp: number;
   numRunes: number;
   repeats: number;
@@ -612,7 +627,8 @@ class Parser {
       this.height.delete(re);
     }
     if (re.subs !== null && re.subs.length > 0) {
-      re.subs[0] = this.free;
+      // subs[0] doubles as the free-list next pointer while re is on the list.
+      re.subs[0] = this.free as Regexp;
     }
     this.free = re;
   }
@@ -668,8 +684,11 @@ class Parser {
   }
 
   calcSize(re: Regexp, force = false): number {
-    if (!force && this.size!.has(re)) {
-      return this.size!.get(re)!;
+    if (!force && this.size !== null) {
+      const cached = this.size.get(re);
+      if (cached !== undefined) {
+        return cached;
+      }
     }
 
     let size = 0;
@@ -721,7 +740,7 @@ class Parser {
     }
 
     size = Math.max(1, size);
-    this.size!.set(re, size);
+    this.size?.set(re, size);
     return size;
   }
 
@@ -741,8 +760,11 @@ class Parser {
   }
 
   calcHeight(re: Regexp, force = false): number {
-    if (!force && this.height!.has(re)) {
-      return this.height!.get(re)!;
+    if (!force && this.height !== null) {
+      const cached = this.height.get(re);
+      if (cached !== undefined) {
+        return cached;
+      }
     }
     let h = 1;
     for (let sub of re.subs) {
@@ -751,7 +773,7 @@ class Parser {
         h = 1 + hsub;
       }
     }
-    this.height!.set(re, h);
+    this.height?.set(re, h);
     return h;
   }
 
@@ -1082,14 +1104,18 @@ class Parser {
     while (t.more()) {
       {
         let repeatPos = -1;
-        bigswitch: switch (t.peek()) {
+        switch (t.peek()) {
           case 0x28:
             if (t.lookingAt("(?")) {
               // Flag changes and non-capturing groups.
               this.parsePerlFlags(t);
               break;
             }
-            this.op(Regexp.Op.LEFT_PAREN)!.cap = ++this.numCap;
+            const lparen = this.op(Regexp.Op.LEFT_PAREN);
+            if (lparen === null) {
+              throw new Error("op(LEFT_PAREN) unexpectedly returned null");
+            }
+            lparen.cap = ++this.numCap;
             t.skip(1); // '('
             break;
           case 0x7c:
@@ -1110,7 +1136,11 @@ class Parser {
             break;
           case 0x24:
             if ((this.flags & ONE_LINE) !== 0) {
-              this.op(Regexp.Op.END_TEXT)!.flags |= WAS_DOLLAR;
+              const endText = this.op(Regexp.Op.END_TEXT);
+              if (endText === null) {
+                throw new Error("op(END_TEXT) unexpectedly returned null");
+              }
+              endText.flags |= WAS_DOLLAR;
             } else {
               this.op(Regexp.Op.END_LINE);
             }
@@ -1143,7 +1173,10 @@ class Parser {
                 op = Regexp.Op.QUEST;
                 break;
             }
-            this.repeat(op!, min, max, repeatPos, t, lastRepeatPos);
+            if (op === null) {
+              throw new Error("repeat op unexpectedly null");
+            }
+            this.repeat(op, min, max, repeatPos, t, lastRepeatPos);
             // (min and max are now dead.)
             break;
           }
@@ -1173,18 +1206,22 @@ class Parser {
           case 0x5c: {
             const savedPos = t.pos();
             t.skip(1); // '\\'
+            let handled = false;
             if (t.more()) {
               const c = t.pop();
               switch (c) {
                 case 0x41:
                   this.op(Regexp.Op.BEGIN_TEXT);
-                  break bigswitch;
+                  handled = true;
+                  break;
                 case 0x62:
                   this.op(Regexp.Op.WORD_BOUNDARY);
-                  break bigswitch;
+                  handled = true;
+                  break;
                 case 0x42:
                   this.op(Regexp.Op.NO_WORD_BOUNDARY);
-                  break bigswitch;
+                  handled = true;
+                  break;
                 case 0x43:
                   // any byte; not supported
                   throw new RE2JSSyntaxException(
@@ -1205,16 +1242,18 @@ class Parser {
 
                   let j = 0;
                   while (j < lit.length) {
-                    const codepoint = lit.codePointAt(j)!;
+                    const codepoint = codePointAtOrThrow(lit, j);
                     this.literal(codepoint);
                     j += charCount(codepoint);
                   }
-                  break bigswitch;
+                  handled = true;
+                  break;
                 }
 
                 case 0x7a:
                   this.op(Regexp.Op.END_TEXT);
-                  break bigswitch;
+                  handled = true;
+                  break;
                 default:
                   t.rewindTo(savedPos);
                   break;
@@ -1222,6 +1261,7 @@ class Parser {
             } else {
               t.rewindTo(savedPos);
             }
+            if (handled) break;
 
             const re = this.newRegexp(Regexp.Op.CHAR_CLASS);
             re.flags = this.flags;
@@ -1231,7 +1271,7 @@ class Parser {
               if (this.parseUnicodeClass(t, cc)) {
                 re.runes = cc.toArray();
                 this.push(re);
-                break bigswitch;
+                break;
               }
             }
             // Perl character class escape.
@@ -1239,7 +1279,7 @@ class Parser {
             if (this.parsePerlClassEscape(t, cc)) {
               re.runes = cc.toArray();
               this.push(re);
-              break bigswitch;
+              break;
             }
             t.rewindTo(savedPos);
             this.reuse(re);
@@ -1311,7 +1351,10 @@ class Parser {
         ); // "(?P<name>" or "(?<name>"
       }
       // Like ordinary capture, but named.
-      const re = this.op(Regexp.Op.LEFT_PAREN)!;
+      const re = this.op(Regexp.Op.LEFT_PAREN);
+      if (re === null) {
+        throw new Error("op(LEFT_PAREN) unexpectedly returned null");
+      }
       re.cap = ++this.numCap;
       if (this.namedGroups.get(name)) {
         throw new RE2JSSyntaxException(
@@ -1496,9 +1539,8 @@ class Parser {
     }
     t.pop(); // e.g. advance past 'd' in "\\d"
     const p = t.from(beforePos);
-    const perlGroups = getPerlGroups();
-    const g = perlGroups.has(p) ? perlGroups.get(p) : null;
-    if (g === null) {
+    const g = getPerlGroups().get(p);
+    if (g === undefined) {
       return false;
     }
     cc.appendGroup(g, (this.flags & FOLD_CASE) !== 0);
@@ -1521,9 +1563,8 @@ class Parser {
 
     const name = cls.substring(0, i + 2); // "[:alnum:]"
     t.skipString(name);
-    const posixGroups = getPosixGroups();
-    const g = posixGroups.has(name) ? posixGroups.get(name) : null;
-    if (g === null) {
+    const g = getPosixGroups().get(name);
+    if (g === undefined) {
       throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, name);
     }
     cc.appendGroup(g, (this.flags & FOLD_CASE) !== 0);
@@ -1559,7 +1600,7 @@ class Parser {
     }
 
     c = t.pop();
-    let name;
+    let name: string;
 
     if (c !== 0x7b) {
       // Single-letter name.
@@ -1598,6 +1639,12 @@ class Parser {
 
     const tab = pair.tab;
     const fold = pair.fold; // fold-equivalent table
+    if (tab === null) {
+      throw new RE2JSSyntaxException(
+        Parser.ERR_INVALID_CHAR_RANGE,
+        t.from(startPos),
+      );
+    }
     // Variation of CharClass.appendGroup() for tables.
     if ((this.flags & FOLD_CASE) === 0 || fold === null) {
       cc.appendTableWithSign(tab, sign);

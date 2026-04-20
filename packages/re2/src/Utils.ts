@@ -1,4 +1,5 @@
 import { MAX_BMP } from "./Unicode.js";
+import { codePointAtOrThrow } from "./__utils__/chars.js";
 
 /**
  * Various constants and helper utilities.
@@ -42,7 +43,7 @@ function unhex(c: number): number {
 
 // Returns the array of runes in the specified UTF-16 string.
 function stringToRunes(str: string): number[] {
-  return Array.from(String(str)).map((s) => s.codePointAt(0)!);
+  return Array.from(String(str)).map((s) => codePointAtOrThrow(s, 0));
 }
 
 // Returns the Java UTF-16 string containing the single rune |r|.

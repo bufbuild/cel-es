@@ -76,7 +76,8 @@ describe("#equalsIgnoreCase", () => {
 
 describe("UnicodeTables VLQ Decompression", () => {
   it("should decompress the Zl (Line Separator) table correctly", () => {
-    const zlTable = UnicodeTables.CATEGORIES.get("Zl")!;
+    const zlTable = UnicodeTables.CATEGORIES.get("Zl");
+    assert.ok(zlTable, "Zl category table missing");
 
     assert.strictEqual(zlTable.length, 1);
     assert.strictEqual(zlTable.getLo(0), 0x2028);
@@ -85,7 +86,8 @@ describe("UnicodeTables VLQ Decompression", () => {
   });
 
   it("should decompress the Zp (Paragraph Separator) table correctly", () => {
-    const zpTable = UnicodeTables.CATEGORIES.get("Zp")!;
+    const zpTable = UnicodeTables.CATEGORIES.get("Zp");
+    assert.ok(zpTable, "Zp category table missing");
 
     assert.strictEqual(zpTable.length, 1);
     assert.strictEqual(zpTable.getLo(0), 0x2029);
@@ -111,7 +113,8 @@ describe("UnicodeTables VLQ Decompression", () => {
   });
 
   it("should decompress the Nd (Decimal Digits) table correctly with strides", () => {
-    const ndTable = UnicodeTables.CATEGORIES.get("Nd")!;
+    const ndTable = UnicodeTables.CATEGORIES.get("Nd");
+    assert.ok(ndTable, "Nd category table missing");
 
     assert.ok(ndTable.length > 0);
 

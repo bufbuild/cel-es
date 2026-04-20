@@ -1,7 +1,7 @@
 import { describe, test, it } from "node:test";
 import * as assert from "node:assert/strict";
 import { RE2JS } from "../index.js";
-import { RE2JSSyntaxException } from "../exceptions.js";
+import type { RE2JSSyntaxException } from "../exceptions.js";
 
 it("compile", () => {
   const p = RE2JS.compile("abc");
@@ -43,12 +43,12 @@ it("syntax error", () => {
   }
 
   assert.notStrictEqual(error, null);
-  assert.strictEqual(error!.getDescription(), "missing closing )");
+  assert.strictEqual(error?.getDescription(), "missing closing )");
   assert.strictEqual(
-    error!.message,
+    error?.message,
     "error parsing regexp: missing closing ): `abc(`",
   );
-  assert.strictEqual(error!.getPattern(), "abc(");
+  assert.strictEqual(error?.getPattern(), "abc(");
 });
 
 describe("matches no flags", () => {

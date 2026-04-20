@@ -1,4 +1,4 @@
-import { UnicodeRangeTable } from "./UnicodeRangeTable.js";
+import type { UnicodeRangeTable } from "./UnicodeRangeTable.js";
 import { UnicodeTables } from "./UnicodeTables.js";
 
 /**
@@ -101,8 +101,10 @@ function isUpper(r: number): boolean {
 function simpleFold(r: number): number {
   // Consult caseOrbit table for special cases (3+ element cycles, lossy
   // mappings like ſ→S, and Turkic-specific self-loops).
-  if (UnicodeTables.CASE_ORBIT!.has(r)) {
-    return UnicodeTables.CASE_ORBIT!.get(r)!;
+  const caseOrbit = UnicodeTables.CASE_ORBIT;
+  const folded = caseOrbit.get(r);
+  if (folded !== undefined) {
+    return folded;
   }
 
   // Fallback for 2-element orbits: use raw native case conversion.
@@ -111,13 +113,13 @@ function simpleFold(r: number): number {
   const s = String.fromCodePoint(r);
   const lower = s.toLowerCase();
   if (lower.length === s.length) {
-    const lowerCp = lower.codePointAt(0)!;
-    if (lowerCp !== r) return lowerCp;
+    const lowerCp = lower.codePointAt(0);
+    if (lowerCp !== undefined && lowerCp !== r) return lowerCp;
   }
   const upper = s.toUpperCase();
   if (upper.length === s.length) {
-    const upperCp = upper.codePointAt(0)!;
-    if (upperCp !== r) return upperCp;
+    const upperCp = upper.codePointAt(0);
+    if (upperCp !== undefined && upperCp !== r) return upperCp;
   }
   return r;
 }

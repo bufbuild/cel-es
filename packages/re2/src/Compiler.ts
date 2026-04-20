@@ -243,14 +243,13 @@ class Compiler {
       case Regexp.Op.LITERAL:
         if (re.runes.length === 0) {
           return this.nop();
-        } else {
-          let f: Frag | null = null;
-          for (let r of re.runes) {
-            const f1 = this.rune([r], re.flags);
-            f = f === null ? f1 : this.cat(f, f1);
-          }
-          return f!;
         }
+        let f: Frag | null = null;
+        for (let r of re.runes) {
+          const f1 = this.rune([r], re.flags);
+          f = f === null ? f1 : this.cat(f, f1);
+        }
+        return f as Frag;
       case Regexp.Op.CHAR_CLASS:
         return this.rune(re.runes, re.flags);
       case Regexp.Op.ANY_CHAR_NOT_NL:

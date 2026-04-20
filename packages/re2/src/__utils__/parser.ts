@@ -29,7 +29,7 @@ export const dumpRegexp = (re: Regexp): string => {
   if (!OP_NAMES.has(re.op)) {
     b += `op${re.op}`;
   } else {
-    const name = OP_NAMES.get(re.op)!;
+    const name = OP_NAMES.get(re.op) as string;
 
     switch (re.op) {
       case Regexp.Op.STAR:

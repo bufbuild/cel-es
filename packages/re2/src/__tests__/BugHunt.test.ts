@@ -15,24 +15,14 @@ describe("bug-hunt verification", () => {
   test("executeEngine with ANCHOR_START and pos>0 finds substring match", () => {
     const re = RE2JS.compile("abc");
     const input = fromUTF16("xyzabc");
-    const result = (re as any).re2Input.executeEngine(
-      input,
-      3,
-      ANCHOR_START,
-      0,
-    );
+    const result = re.re2Input.executeEngine(input, 3, ANCHOR_START, 0);
     assert.notStrictEqual(result, null);
   });
 
   test("executeEngine with ANCHOR_START and pos>0 where pattern does not start at pos", () => {
     const re = RE2JS.compile("abc");
     const input = fromUTF16("xyzabc");
-    const result = (re as any).re2Input.executeEngine(
-      input,
-      1,
-      ANCHOR_START,
-      0,
-    );
+    const result = re.re2Input.executeEngine(input, 1, ANCHOR_START, 0);
     assert.strictEqual(result, null);
   });
 

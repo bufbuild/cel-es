@@ -77,7 +77,7 @@ describe("RE2JS Stability and Anti-ReDoS Guarantees", () => {
   });
 
   describe("NFA Fallback Correctness (DFA state explosion)", () => {
-    const forceNfaFallback = (regexStr: string, flags: number = 0) => {
+    const forceNfaFallback = (regexStr: string, flags = 0) => {
       const re = RE2JS.compile(regexStr, flags);
       re.re2Input.dfa.failed = true;
       return re;

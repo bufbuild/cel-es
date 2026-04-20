@@ -9,6 +9,7 @@ import url from "node:url";
 import { RE2 } from "../RE2.js";
 import { CLASS_NL, FOLD_CASE, POSIX } from "../RE2Flags.js";
 import { quoteMeta } from "../Utils.js";
+import { codePoint, codePointAtOrThrow } from "../__utils__/chars.js";
 
 const FIXTURES_DIRNAME = path.join(
   path.dirname(url.fileURLToPath(import.meta.url)),
@@ -17,7 +18,7 @@ const FIXTURES_DIRNAME = path.join(
 
 const isSingleBytes = (s: string): boolean => {
   for (let i = 0; i < s.length; i++) {
-    if (s.codePointAt(i)! >= 0x80) {
+    if (codePointAtOrThrow(s, i) >= 0x80) {
       return false;
     }
   }
@@ -116,15 +117,12 @@ const testRE2 = async (fileName: string): Promise<void> => {
     }
 
     const first = line.charAt(0);
-    const firstCodePoint = first.codePointAt(0)!;
+    const firstCodePoint = codePoint(first);
     if (first === "#") {
       continue;
     }
 
-    if (
-      "A".codePointAt(0)! <= firstCodePoint &&
-      firstCodePoint <= "Z".codePointAt(0)!
-    ) {
+    if (codePoint("A") <= firstCodePoint && firstCodePoint <= codePoint("Z")) {
       continue;
     }
 
@@ -182,8 +180,7 @@ const testRE2 = async (fileName: string): Promise<void> => {
       input = 0;
     } else if (
       first === "-" ||
-      ("0".codePointAt(0)! <= firstCodePoint &&
-        firstCodePoint <= "9".codePointAt(0)!)
+      (codePoint("0") <= firstCodePoint && firstCodePoint <= codePoint("9"))
     ) {
       if (re === null) {
         continue;
@@ -231,12 +228,12 @@ const testRE2 = async (fileName: string): Promise<void> => {
 const parseFowlerResult = (s: string): [number[], boolean[]] => {
   if (s.length === 0) {
     return [[], [true, true]];
-  } else if (s === "NOMATCH") {
+  }
+  if (s === "NOMATCH") {
     return [[], [true, false]];
-  } else if (
-    "A".codePointAt(0)! <= s.codePointAt(0)! &&
-    s.codePointAt(0)! <= "Z".codePointAt(0)!
-  ) {
+  }
+  const firstCp = codePoint(s);
+  if (codePoint("A") <= firstCp && firstCp <= codePoint("Z")) {
     return [[], [false, false]];
   }
 
@@ -292,7 +289,6 @@ const testFowler = async (fileName: string): Promise<void> => {
         field[i] = "";
       }
       if (field[i] === "NIL") {
-        continue;
       }
     }
 
@@ -362,12 +358,13 @@ const testFowler = async (fileName: string): Promise<void> => {
 
       let flags = POSIX | CLASS_NL;
       switch (flag.charAt(i)) {
-        default:
-          continue;
         case "E":
           break;
         case "L":
           pattern = quoteMeta(pattern);
+          break;
+        default:
+          continue;
       }
 
       if (flag.indexOf("i") >= 0) {

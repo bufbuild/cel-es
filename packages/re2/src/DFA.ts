@@ -3,6 +3,7 @@ import { UNANCHORED, ANCHOR_BOTH } from "./RE2Flags.js";
 import { MAX_ASCII, MAX_RUNE } from "./Unicode.js";
 import { emptyOpContext } from "./Utils.js";
 import type { Prog } from "./Prog.js";
+import type { MachineUTF16Input } from "./MachineInput.js";
 
 // FNV-1a 32-bit hash for an array of integers.
 const hashPCs = (pcs: Int32Array): number => {
@@ -28,7 +29,7 @@ class DFAState {
   hasEmptyWidth: boolean;
   matchIDs: number[];
   nextAscii: (DFAState | null)[];
-  nextMap: Map<any, any>;
+  nextMap: Map<number, DFAState | null>;
 
   constructor(
     nfaStates: Int32Array,
@@ -47,7 +48,7 @@ class DFAState {
 
 class DFA {
   prog: Prog;
-  stateCache: Map<any, any>;
+  stateCache: Map<number, DFAState[]>;
   stateCount: number;
   startState: DFAState | null;
   stateLimit: number;
@@ -229,13 +230,14 @@ class DFA {
     context: number,
   ): DFAState | null {
     // Cache lookup
-    let cacheKey;
+    let cacheKey = 0;
     if (state.hasEmptyWidth) {
       // Context-dependent: include context in key
       cacheKey =
         charCode * 128 + (context & 0x3f) * 2 + (anchor === UNANCHORED ? 0 : 1);
-      if (state.nextMap.has(cacheKey)) {
-        return state.nextMap.get(cacheKey);
+      const cached = state.nextMap.get(cacheKey);
+      if (cached !== undefined || state.nextMap.has(cacheKey)) {
+        return cached ?? null;
       }
     } else {
       // Context-independent: use original caching
@@ -246,8 +248,9 @@ class DFA {
         }
       } else {
         cacheKey = charCode + (anchor === UNANCHORED ? 0 : MAX_RUNE + 1);
-        if (state.nextMap.has(cacheKey)) {
-          return state.nextMap.get(cacheKey);
+        const cached = state.nextMap.get(cacheKey);
+        if (cached !== undefined || state.nextMap.has(cacheKey)) {
+          return cached ?? null;
         }
       }
     }
@@ -291,7 +294,7 @@ class DFA {
   }
 
   // The hot loop: Execute the Lazy DFA
-  match(input: any, pos: number, anchor: number): boolean | null {
+  match(input: MachineUTF16Input, pos: number, anchor: number): boolean | null {
     if (!this.startState) {
       this.startState = this.getState([this.prog.start]);
       if (!this.startState) return null;

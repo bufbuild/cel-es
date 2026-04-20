@@ -1,6 +1,8 @@
 import { FOLD_CASE } from "./RE2Flags.js";
 import { MAX_FOLD, MAX_RUNE, MIN_FOLD, simpleFold } from "./Unicode.js";
 import { emptyInts } from "./Utils.js";
+import type { UnicodeRangeTable } from "./UnicodeRangeTable.js";
+import type { CharGroup } from "./CharGroup.js";
 /**
  * A "builder"-style helper class for manipulating character classes represented as an array of
  * pairs of runes [lo, hi], each denoting an inclusive interval.
@@ -218,7 +220,7 @@ class CharClass {
 
   // appendTable() appends the Unicode range table |table| to this CharClass.
   // Does not mutate |table|.
-  appendTable(table: any): this {
+  appendTable(table: UnicodeRangeTable): this {
     for (let i = 0; i < table.length; ++i) {
       const lo = table.getLo(i);
       const hi = table.getHi(i);
@@ -236,7 +238,7 @@ class CharClass {
 
   // appendNegatedTable() returns the result of appending the negation of range
   // table |table| to this CharClass.  Does not mutate |table|.
-  appendNegatedTable(table: any): this {
+  appendNegatedTable(table: UnicodeRangeTable): this {
     let nextLo = 0;
     for (let i = 0; i < table.length; ++i) {
       const lo = table.getLo(i);
@@ -264,7 +266,7 @@ class CharClass {
 
   // appendTableWithSign() calls append{,Negated}Table depending on sign.
   // Does not mutate |table|.
-  appendTableWithSign(table: any, sign: number): this {
+  appendTableWithSign(table: UnicodeRangeTable, sign: number): this {
     return sign < 0 ? this.appendNegatedTable(table) : this.appendTable(table);
   }
 
@@ -298,7 +300,7 @@ class CharClass {
 
   // appendGroup() appends CharGroup |g| to this CharClass, folding iff
   // |foldCase|.  Does not mutate |g|.
-  appendGroup(g: any, foldCase: boolean): this {
+  appendGroup(g: CharGroup, foldCase: boolean): this {
     let cls = g.cls;
     if (foldCase) {
       cls = new CharClass().appendFoldedClass(cls).cleanClass().toArray();
