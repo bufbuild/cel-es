@@ -7,8 +7,8 @@ import readline from "node:readline";
 import url from "node:url";
 
 import { RE2 } from "../RE2.js";
-import { RE2Flags } from "../RE2Flags.js";
-import { Utils } from "../Utils.js";
+import { CLASS_NL, FOLD_CASE, POSIX } from "../RE2Flags.js";
+import { quoteMeta } from "../Utils.js";
 
 const FIXTURES_DIRNAME = path.join(
   path.dirname(url.fileURLToPath(import.meta.url)),
@@ -360,18 +360,18 @@ const testFowler = async (fileName: string): Promise<void> => {
     for (let i = 0; i < flag.length; i++) {
       let pattern = field[1];
 
-      let flags = RE2Flags.POSIX | RE2Flags.CLASS_NL;
+      let flags = POSIX | CLASS_NL;
       switch (flag.charAt(i)) {
         default:
           continue;
         case "E":
           break;
         case "L":
-          pattern = Utils.quoteMeta(pattern);
+          pattern = quoteMeta(pattern);
       }
 
       if (flag.indexOf("i") >= 0) {
-        flags |= RE2Flags.FOLD_CASE;
+        flags |= FOLD_CASE;
       }
 
       let re = null;

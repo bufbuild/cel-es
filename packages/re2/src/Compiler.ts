@@ -1,6 +1,13 @@
-import { RE2Flags } from "./RE2Flags.js";
-import { Unicode } from "./Unicode.js";
-import { Utils } from "./Utils.js";
+import { NON_GREEDY, FOLD_CASE } from "./RE2Flags.js";
+import { MAX_RUNE, simpleFold } from "./Unicode.js";
+import {
+  EMPTY_BEGIN_TEXT,
+  EMPTY_END_TEXT,
+  EMPTY_BEGIN_LINE,
+  EMPTY_WORD_BOUNDARY,
+  EMPTY_END_LINE,
+  EMPTY_NO_WORD_BOUNDARY,
+} from "./Utils.js";
 import { Regexp } from "./Regexp.js";
 import { Inst } from "./Inst.js";
 import { Prog, PatchList } from "./Prog.js";
@@ -33,11 +40,11 @@ class Compiler {
   prog: Prog;
 
   static ANY_RUNE_NOT_NL(): number[] {
-    return [0, 0x0a - 1, 0x0a + 1, Unicode.MAX_RUNE];
+    return [0, 0x0a - 1, 0x0a + 1, MAX_RUNE];
   }
 
   static ANY_RUNE(): number[] {
-    return [0, Unicode.MAX_RUNE];
+    return [0, MAX_RUNE];
   }
 
   static compileRegexp(re: Regexp): Prog {
@@ -202,29 +209,25 @@ class Compiler {
     f.nullable = false;
     const i = this.prog.getInst(f.i);
     i.runes = runes;
-    flags &= RE2Flags.FOLD_CASE;
-    if (runes.length !== 1 || Unicode.simpleFold(runes[0]) === runes[0]) {
-      flags &= ~RE2Flags.FOLD_CASE;
+    flags &= FOLD_CASE;
+    if (runes.length !== 1 || simpleFold(runes[0]) === runes[0]) {
+      flags &= ~FOLD_CASE;
     }
     i.arg = flags;
     f.out = new PatchList(f.i << 1, f.i << 1);
     if (
-      ((flags & RE2Flags.FOLD_CASE) === 0 && runes.length === 1) ||
+      ((flags & FOLD_CASE) === 0 && runes.length === 1) ||
       (runes.length === 2 && runes[0] === runes[1])
     ) {
       i.op = Inst.RUNE1;
-    } else if (
-      runes.length === 2 &&
-      runes[0] === 0 &&
-      runes[1] === Unicode.MAX_RUNE
-    ) {
+    } else if (runes.length === 2 && runes[0] === 0 && runes[1] === MAX_RUNE) {
       i.op = Inst.RUNE_ANY;
     } else if (
       runes.length === 4 &&
       runes[0] === 0 &&
       runes[1] === 0x0a - 1 &&
       runes[2] === 0x0a + 1 &&
-      runes[3] === Unicode.MAX_RUNE
+      runes[3] === MAX_RUNE
     ) {
       i.op = Inst.RUNE_ANY_NOT_NL;
     }
@@ -255,17 +258,17 @@ class Compiler {
       case Regexp.Op.ANY_CHAR:
         return this.rune(Compiler.ANY_RUNE(), 0);
       case Regexp.Op.BEGIN_LINE:
-        return this.empty(Utils.EMPTY_BEGIN_LINE);
+        return this.empty(EMPTY_BEGIN_LINE);
       case Regexp.Op.END_LINE:
-        return this.empty(Utils.EMPTY_END_LINE);
+        return this.empty(EMPTY_END_LINE);
       case Regexp.Op.BEGIN_TEXT:
-        return this.empty(Utils.EMPTY_BEGIN_TEXT);
+        return this.empty(EMPTY_BEGIN_TEXT);
       case Regexp.Op.END_TEXT:
-        return this.empty(Utils.EMPTY_END_TEXT);
+        return this.empty(EMPTY_END_TEXT);
       case Regexp.Op.WORD_BOUNDARY:
-        return this.empty(Utils.EMPTY_WORD_BOUNDARY);
+        return this.empty(EMPTY_WORD_BOUNDARY);
       case Regexp.Op.NO_WORD_BOUNDARY:
-        return this.empty(Utils.EMPTY_NO_WORD_BOUNDARY);
+        return this.empty(EMPTY_NO_WORD_BOUNDARY);
       case Regexp.Op.CAPTURE: {
         const bra = this.cap(re.cap << 1);
         const sub = this.compile(re.subs[0]);
@@ -275,17 +278,17 @@ class Compiler {
       case Regexp.Op.STAR:
         return this.star(
           this.compile(re.subs[0]),
-          (re.flags & RE2Flags.NON_GREEDY) !== 0,
+          (re.flags & NON_GREEDY) !== 0,
         );
       case Regexp.Op.PLUS:
         return this.plus(
           this.compile(re.subs[0]),
-          (re.flags & RE2Flags.NON_GREEDY) !== 0,
+          (re.flags & NON_GREEDY) !== 0,
         );
       case Regexp.Op.QUEST:
         return this.quest(
           this.compile(re.subs[0]),
-          (re.flags & RE2Flags.NON_GREEDY) !== 0,
+          (re.flags & NON_GREEDY) !== 0,
         );
       case Regexp.Op.CONCAT: {
         if (re.subs.length === 0) {

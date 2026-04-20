@@ -1,9 +1,31 @@
-import { RE2Flags } from "./RE2Flags.js";
-import { Unicode } from "./Unicode.js";
+import {
+  CLASS_NL,
+  DOT_NL,
+  FOLD_CASE,
+  LITERAL,
+  NON_GREEDY,
+  ONE_LINE,
+  UNICODE_GROUPS,
+  WAS_DOLLAR,
+} from "./RE2Flags.js";
+import {
+  MAX_ASCII,
+  MAX_BMP,
+  MAX_FOLD,
+  MAX_RUNE,
+  MIN_FOLD,
+  simpleFold,
+} from "./Unicode.js";
 import { UnicodeTables } from "./UnicodeTables.js";
 import { UnicodeRangeTable } from "./UnicodeRangeTable.js";
 import { getPerlGroups, getPosixGroups } from "./CharGroup.js";
-import { Utils } from "./Utils.js";
+import {
+  unhex,
+  isalnum,
+  charCount,
+  stringToRunes,
+  runeToString,
+} from "./Utils.js";
 import { CharClass } from "./CharClass.js";
 import { RE2JSSyntaxException } from "./exceptions.js";
 import { Regexp } from "./Regexp.js";
@@ -68,7 +90,7 @@ class StringIterator {
   // past it.  Precondition: |more()|.
   pop(): number {
     const r = this.str.codePointAt(this.position)!;
-    this.position += Utils.charCount(r);
+    this.position += charCount(r);
     return r;
   }
 
@@ -91,6 +113,7 @@ class StringIterator {
     return this.rest();
   }
 }
+
 /**
  * A parser of regular expression patterns.
  *
@@ -159,9 +182,7 @@ class Parser {
 
   // RangeTables are represented as int[][], a list of triples (start, end,
   // stride).
-  static ANY_TABLE = new UnicodeRangeTable(
-    new Uint32Array([0, Unicode.MAX_RUNE, 1]),
-  );
+  static ANY_TABLE = new UnicodeRangeTable(new Uint32Array([0, MAX_RUNE, 1]));
 
   // Ascii tables
   static ASCII_TABLE = new UnicodeRangeTable(new Uint32Array([0, 0x7f, 1]));
@@ -229,13 +250,13 @@ class Parser {
 
   // minFoldRune returns the minimum rune fold-equivalent to r.
   static minFoldRune(r: number): number {
-    if (r < Unicode.MIN_FOLD || r > Unicode.MAX_FOLD) {
+    if (r < MIN_FOLD || r > MAX_FOLD) {
       return r;
     }
 
     let min = r;
     const r0 = r;
-    for (r = Unicode.simpleFold(r); r !== r0; r = Unicode.simpleFold(r)) {
+    for (r = simpleFold(r); r !== r0; r = simpleFold(r)) {
       if (min > r) {
         min = r;
       }
@@ -246,9 +267,10 @@ class Parser {
   static literalRegexp(s: string, flags: number): Regexp {
     const re = new Regexp(Regexp.Op.LITERAL);
     re.flags = flags;
-    re.runes = Utils.stringToRunes(s) as number[];
+    re.runes = stringToRunes(s) as number[];
     return re;
   }
+
   /**
    * Parse regular expression pattern {@code pattern} with mode flags {@code flags}.
    * @param {string} pattern
@@ -315,7 +337,7 @@ class Parser {
       );
     }
 
-    return (min << 16) | (max & Unicode.MAX_BMP);
+    return (min << 16) | (max & MAX_BMP);
   }
 
   // isValidCaptureName reports whether name
@@ -330,7 +352,7 @@ class Parser {
 
     for (let i = 0; i < name.length; i++) {
       const c = name.codePointAt(i)!;
-      if (c !== 0x5f && !Utils.isalnum(c)) {
+      if (c !== 0x5f && !isalnum(c)) {
         return false;
       }
     }
@@ -470,12 +492,12 @@ class Parser {
             if (c === 0x7d) {
               break;
             }
-            const v = Utils.unhex(c);
+            const v = unhex(c);
             if (v < 0) {
               break bigswitch;
             }
             r = r * 16 + v;
-            if (r > Unicode.MAX_RUNE) {
+            if (r > MAX_RUNE) {
               break bigswitch;
             }
             nhex++;
@@ -485,12 +507,12 @@ class Parser {
           }
           return r;
         }
-        const x = Utils.unhex(c);
+        const x = unhex(c);
         if (!t.more()) {
           break;
         }
         c = t.pop();
-        const y = Utils.unhex(c);
+        const y = unhex(c);
         if (x < 0 || y < 0) {
           break;
         }
@@ -509,7 +531,7 @@ class Parser {
       case 0x76:
         return 0x0b;
       default:
-        if (c <= Unicode.MAX_ASCII && !Utils.isalnum(c)) {
+        if (c <= MAX_ASCII && !isalnum(c)) {
           return c;
         }
         break;
@@ -760,33 +782,33 @@ class Parser {
       re.runes.length === 2 &&
       re.runes[0] === re.runes[1]
     ) {
-      if (this.maybeConcat(re.runes[0], this.flags & ~RE2Flags.FOLD_CASE)) {
+      if (this.maybeConcat(re.runes[0], this.flags & ~FOLD_CASE)) {
         return null;
       }
       re.op = Regexp.Op.LITERAL;
       re.runes = [re.runes[0]];
-      re.flags = this.flags & ~RE2Flags.FOLD_CASE;
+      re.flags = this.flags & ~FOLD_CASE;
     } else if (
       (re.op === Regexp.Op.CHAR_CLASS &&
         re.runes.length === 4 &&
         re.runes[0] === re.runes[1] &&
         re.runes[2] === re.runes[3] &&
-        Unicode.simpleFold(re.runes[0]) === re.runes[2] &&
-        Unicode.simpleFold(re.runes[2]) === re.runes[0]) ||
+        simpleFold(re.runes[0]) === re.runes[2] &&
+        simpleFold(re.runes[2]) === re.runes[0]) ||
       (re.op === Regexp.Op.CHAR_CLASS &&
         re.runes.length === 2 &&
         re.runes[0] + 1 === re.runes[1] &&
-        Unicode.simpleFold(re.runes[0]) === re.runes[1] &&
-        Unicode.simpleFold(re.runes[1]) === re.runes[0])
+        simpleFold(re.runes[0]) === re.runes[1] &&
+        simpleFold(re.runes[1]) === re.runes[0])
     ) {
       // Case-insensitive rune like [Aa] or [Δδ].
-      if (this.maybeConcat(re.runes[0], this.flags | RE2Flags.FOLD_CASE)) {
+      if (this.maybeConcat(re.runes[0], this.flags | FOLD_CASE)) {
         return null;
       }
       // Rewrite as (case-insensitive) literal.
       re.op = Regexp.Op.LITERAL;
       re.runes = [re.runes[0]];
-      re.flags = this.flags | RE2Flags.FOLD_CASE;
+      re.flags = this.flags | FOLD_CASE;
     } else {
       // Incremental concatenation.
       this.maybeConcat(-1, 0);
@@ -815,7 +837,7 @@ class Parser {
     if (
       re1.op !== Regexp.Op.LITERAL ||
       re2.op !== Regexp.Op.LITERAL ||
-      (re1.flags & RE2Flags.FOLD_CASE) !== (re2.flags & RE2Flags.FOLD_CASE)
+      (re1.flags & FOLD_CASE) !== (re2.flags & FOLD_CASE)
     ) {
       return false;
     }
@@ -836,7 +858,7 @@ class Parser {
   newLiteral(r: number, flags: number): Regexp {
     const re = this.newRegexp(Regexp.Op.LITERAL);
     re.flags = flags;
-    if ((flags & RE2Flags.FOLD_CASE) !== 0) {
+    if ((flags & FOLD_CASE) !== 0) {
       r = Parser.minFoldRune(r);
     }
     re.runes = [r];
@@ -873,7 +895,7 @@ class Parser {
     let flags = this.flags;
     if (t.more() && t.lookingAt("?")) {
       t.skip(1);
-      flags ^= RE2Flags.NON_GREEDY;
+      flags ^= NON_GREEDY;
     }
     if (lastRepeatPos !== -1) {
       throw new RE2JSSyntaxException(
@@ -991,7 +1013,7 @@ class Parser {
       if (
         re.runes.length === 2 &&
         re.runes[0] === 0 &&
-        re.runes[1] === Unicode.MAX_RUNE
+        re.runes[1] === MAX_RUNE
       ) {
         re.runes = [];
         re.op = Regexp.Op.ANY_CHAR;
@@ -1000,7 +1022,7 @@ class Parser {
         re.runes[0] === 0 &&
         re.runes[1] === 0x0a - 1 &&
         re.runes[2] === 0x0a + 1 &&
-        re.runes[3] === Unicode.MAX_RUNE
+        re.runes[3] === MAX_RUNE
       ) {
         re.runes = [];
         re.op = Regexp.Op.ANY_CHAR_NOT_NL;
@@ -1048,7 +1070,7 @@ class Parser {
   }
 
   parseInternal(): Regexp {
-    if ((this.flags & RE2Flags.LITERAL) !== 0) {
+    if ((this.flags & LITERAL) !== 0) {
       // Trivial parser for literal string.
       return Parser.literalRegexp(this.wholeRegexp, this.flags);
     }
@@ -1079,7 +1101,7 @@ class Parser {
             t.skip(1); // ')'
             break;
           case 0x5e:
-            if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
+            if ((this.flags & ONE_LINE) !== 0) {
               this.op(Regexp.Op.BEGIN_TEXT);
             } else {
               this.op(Regexp.Op.BEGIN_LINE);
@@ -1087,15 +1109,15 @@ class Parser {
             t.skip(1); // '^'
             break;
           case 0x24:
-            if ((this.flags & RE2Flags.ONE_LINE) !== 0) {
-              this.op(Regexp.Op.END_TEXT)!.flags |= RE2Flags.WAS_DOLLAR;
+            if ((this.flags & ONE_LINE) !== 0) {
+              this.op(Regexp.Op.END_TEXT)!.flags |= WAS_DOLLAR;
             } else {
               this.op(Regexp.Op.END_LINE);
             }
             t.skip(1); // '$'
             break;
           case 0x2e:
-            if ((this.flags & RE2Flags.DOT_NL) !== 0) {
+            if ((this.flags & DOT_NL) !== 0) {
               this.op(Regexp.Op.ANY_CHAR);
             } else {
               this.op(Regexp.Op.ANY_CHAR_NOT_NL);
@@ -1136,7 +1158,7 @@ class Parser {
               break;
             }
             min = minMax >> 16;
-            max = ((minMax & Unicode.MAX_BMP) << 16) >> 16;
+            max = ((minMax & MAX_BMP) << 16) >> 16;
             this.repeat(
               Regexp.Op.REPEAT,
               min,
@@ -1185,7 +1207,7 @@ class Parser {
                   while (j < lit.length) {
                     const codepoint = lit.codePointAt(j)!;
                     this.literal(codepoint);
-                    j += Utils.charCount(codepoint);
+                    j += charCount(codepoint);
                   }
                   break bigswitch;
                 }
@@ -1312,19 +1334,19 @@ class Parser {
         const c = t.pop();
         switch (c) {
           case 0x69:
-            flags |= RE2Flags.FOLD_CASE;
+            flags |= FOLD_CASE;
             sawFlag = true;
             break;
           case 0x6d:
-            flags &= ~RE2Flags.ONE_LINE;
+            flags &= ~ONE_LINE;
             sawFlag = true;
             break;
           case 0x73:
-            flags |= RE2Flags.DOT_NL;
+            flags |= DOT_NL;
             sawFlag = true;
             break;
           case 0x55:
-            flags |= RE2Flags.NON_GREEDY;
+            flags |= NON_GREEDY;
             sawFlag = true;
             break;
           // Switch to negation.
@@ -1479,7 +1501,7 @@ class Parser {
     if (g === null) {
       return false;
     }
-    cc.appendGroup(g, (this.flags & RE2Flags.FOLD_CASE) !== 0);
+    cc.appendGroup(g, (this.flags & FOLD_CASE) !== 0);
     return true;
   }
 
@@ -1504,7 +1526,7 @@ class Parser {
     if (g === null) {
       throw new RE2JSSyntaxException(Parser.ERR_INVALID_CHAR_RANGE, name);
     }
-    cc.appendGroup(g, (this.flags & RE2Flags.FOLD_CASE) !== 0);
+    cc.appendGroup(g, (this.flags & FOLD_CASE) !== 0);
     return true;
   }
 
@@ -1518,7 +1540,7 @@ class Parser {
   parseUnicodeClass(t: StringIterator, cc: CharClass): boolean {
     const startPos = t.pos();
     if (
-      (this.flags & RE2Flags.UNICODE_GROUPS) === 0 ||
+      (this.flags & UNICODE_GROUPS) === 0 ||
       (!t.lookingAt("\\p") && !t.lookingAt("\\P"))
     ) {
       return false;
@@ -1541,7 +1563,7 @@ class Parser {
 
     if (c !== 0x7b) {
       // Single-letter name.
-      name = Utils.runeToString(c);
+      name = runeToString(c);
     } else {
       // Name is in braces.
       const rest = t.rest();
@@ -1577,7 +1599,7 @@ class Parser {
     const tab = pair.tab;
     const fold = pair.fold; // fold-equivalent table
     // Variation of CharClass.appendGroup() for tables.
-    if ((this.flags & RE2Flags.FOLD_CASE) === 0 || fold === null) {
+    if ((this.flags & FOLD_CASE) === 0 || fold === null) {
       cc.appendTableWithSign(tab, sign);
     } else {
       // Merge and clean tab and fold in a temporary buffer.
@@ -1611,7 +1633,7 @@ class Parser {
       t.skip(1); // '^'
       // If character class does not match \n, add it here,
       // so that negation later will do the right thing.
-      if ((this.flags & RE2Flags.CLASS_NL) === 0) {
+      if ((this.flags & CLASS_NL) === 0) {
         cc.appendRange(0x0a, 0x0a);
       }
     }
@@ -1657,7 +1679,7 @@ class Parser {
           }
         }
       }
-      if ((this.flags & RE2Flags.FOLD_CASE) === 0) {
+      if ((this.flags & FOLD_CASE) === 0) {
         cc.appendRange(lo, hi);
       } else {
         cc.appendFoldedRange(lo, hi);

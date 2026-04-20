@@ -1,9 +1,17 @@
 import { describe, test, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2Flags } from "../RE2Flags.js";
+import {
+  FOLD_CASE,
+  LITERAL,
+  MATCH_NL,
+  PERL,
+  PERL_X,
+  POSIX,
+  UNICODE_GROUPS,
+} from "../RE2Flags.js";
 import { RE2JSSyntaxException } from "../exceptions.js";
 import { Parser } from "../Parser.js";
-import { Unicode } from "../Unicode.js";
+import { isUpper, simpleFold } from "../Unicode.js";
 import { dumpRegexp, mkCharClass } from "../__utils__/parser.js";
 
 describe(".parse", () => {
@@ -110,21 +118,17 @@ describe(".parse", () => {
       "[\\pZ]",
       "cc{0x20 0xa0 0x1680 0x2000-0x200a 0x2028-0x2029 0x202f 0x205f 0x3000}",
     ],
-    ["\\p{Lu}", mkCharClass((r) => Unicode.isUpper(r))],
-    ["[\\p{Lu}]", mkCharClass((r) => Unicode.isUpper(r))],
+    ["\\p{Lu}", mkCharClass((r) => isUpper(r))],
+    ["[\\p{Lu}]", mkCharClass((r) => isUpper(r))],
     [
       "(?i)[\\p{Lu}]",
       mkCharClass((r) => {
-        if (Unicode.isUpper(r)) {
+        if (isUpper(r)) {
           return true;
         }
 
-        for (
-          let c = Unicode.simpleFold(r);
-          c !== r;
-          c = Unicode.simpleFold(c)
-        ) {
-          if (Unicode.isUpper(c)) {
+        for (let c = simpleFold(r); c !== r; c = simpleFold(c)) {
+          if (isUpper(c)) {
             return true;
           }
         }
@@ -229,7 +233,7 @@ describe(".parse", () => {
     [`(${[...new Array(12345)].map(() => "|").join("")})`, null],
   ];
 
-  const flags = RE2Flags.MATCH_NL | RE2Flags.PERL_X | RE2Flags.UNICODE_GROUPS;
+  const flags = MATCH_NL | PERL_X | UNICODE_GROUPS;
 
   for (const [input, expected] of cases) {
     test(`input ${JSON.stringify(input).slice(0, 100)} returns ${JSON.stringify(expected)}`, () => {
@@ -257,7 +261,7 @@ describe("fold cases", () => {
 
   for (const [input, expected] of cases) {
     test(`input ${JSON.stringify(input)} expected ${JSON.stringify(expected)}`, () => {
-      const re = Parser.parse(input, RE2Flags.FOLD_CASE);
+      const re = Parser.parse(input, FOLD_CASE);
       assert.strictEqual(dumpRegexp(re), expected);
     });
   }
@@ -270,7 +274,7 @@ describe("literal cases", () => {
 
   for (const [input, expected] of cases) {
     test(`input ${JSON.stringify(input)} expected ${JSON.stringify(expected)}`, () => {
-      const re = Parser.parse(input, RE2Flags.LITERAL);
+      const re = Parser.parse(input, LITERAL);
       assert.strictEqual(dumpRegexp(re), expected);
     });
   }
@@ -286,7 +290,7 @@ describe("match new line cases", () => {
 
   for (const [input, expected] of cases) {
     test(`input ${JSON.stringify(input)} expected ${JSON.stringify(expected)}`, () => {
-      const re = Parser.parse(input, RE2Flags.MATCH_NL);
+      const re = Parser.parse(input, MATCH_NL);
       assert.strictEqual(dumpRegexp(re), expected);
     });
   }
@@ -356,14 +360,8 @@ describe("invalid regexp cases", () => {
 
   for (const input of invalidInputs) {
     test(`invalid ${JSON.stringify(input).slice(0, 80)} raise error`, () => {
-      assert.throws(
-        () => Parser.parse(input, RE2Flags.PERL),
-        RE2JSSyntaxException,
-      );
-      assert.throws(
-        () => Parser.parse(input, RE2Flags.POSIX),
-        RE2JSSyntaxException,
-      );
+      assert.throws(() => Parser.parse(input, PERL), RE2JSSyntaxException);
+      assert.throws(() => Parser.parse(input, POSIX), RE2JSSyntaxException);
     });
   }
 
@@ -382,7 +380,7 @@ describe("invalid regexp cases", () => {
 
   for (const input of validInPerl) {
     test(`valid ${JSON.stringify(input)} in perl mode`, () => {
-      assert.doesNotThrow(() => Parser.parse(input, RE2Flags.PERL));
+      assert.doesNotThrow(() => Parser.parse(input, PERL));
     });
   }
 
@@ -397,10 +395,7 @@ describe("invalid regexp cases", () => {
 
   for (const input of invalidInPerl) {
     test(`invalid ${JSON.stringify(input)} in perl mode`, () => {
-      assert.throws(
-        () => Parser.parse(input, RE2Flags.PERL),
-        RE2JSSyntaxException,
-      );
+      assert.throws(() => Parser.parse(input, PERL), RE2JSSyntaxException);
     });
   }
 });
@@ -409,21 +404,21 @@ describe("large AST flat structures", () => {
   it("should not exceed call stack size on massive alternations", () => {
     const massiveAlternation = new Array(100000).fill("a").join("|");
     assert.doesNotThrow(() => {
-      Parser.parse(massiveAlternation, RE2Flags.PERL);
+      Parser.parse(massiveAlternation, PERL);
     });
   });
 
   it("should not exceed call stack size on massive concatenations", () => {
     const massiveConcat = new Array(100000).fill("(a)").join("");
     assert.doesNotThrow(() => {
-      Parser.parse(massiveConcat, RE2Flags.PERL);
+      Parser.parse(massiveConcat, PERL);
     });
   });
 });
 
 describe("Flag interactions", () => {
   it("should parse \\p correctly with UNICODE_GROUPS enabled", () => {
-    const re = Parser.parse("\\p{Any}", RE2Flags.PERL);
+    const re = Parser.parse("\\p{Any}", PERL);
     assert.strictEqual(dumpRegexp(re), "dot{}");
   });
 });

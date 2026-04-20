@@ -1,12 +1,12 @@
-import { RE2Flags } from "./RE2Flags.js";
+import { ANCHOR_BOTH, ANCHOR_START, PERL, UNANCHORED } from "./RE2Flags.js";
 import { fromUTF16, type MachineUTF16Input } from "./MachineInput.js";
 import { DFA } from "./DFA.js";
 import { Inst } from "./Inst.js";
 import { Prefilter, PrefilterTree } from "./Prefilter.js";
 import { Compiler } from "./Compiler.js";
-import { Simplify } from "./Simplify.js";
+import { simplify } from "./Simplify.js";
 import { Parser } from "./Parser.js";
-import { Utils } from "./Utils.js";
+import { emptyOpContext } from "./Utils.js";
 import type { Prog } from "./Prog.js";
 
 class RE2 {
@@ -22,7 +22,7 @@ class RE2 {
   namedGroups: Map<string, number>;
 
   static compile(expr: string): RE2 {
-    return RE2.compileImpl(expr, RE2Flags.PERL);
+    return RE2.compileImpl(expr, PERL);
   }
 
   static compileImpl(expr: string, mode: number): RE2 {
@@ -31,7 +31,7 @@ class RE2 {
 
   constructor(expr: string, mode: number) {
     let re = Parser.parse(expr, mode);
-    re = Simplify.simplify(re);
+    re = simplify(re);
 
     const prefilter = PrefilterTree.build(re);
 
@@ -66,19 +66,19 @@ class RE2 {
     let matchEnd = -1;
     const pLen = input.prefixLength(this);
 
-    if (anchor === RE2Flags.UNANCHORED) {
+    if (anchor === UNANCHORED) {
       const idx = input.index(this, pos);
       if (idx < 0) return null;
       matchStart = pos + idx;
       matchEnd = matchStart + pLen;
-    } else if (anchor === RE2Flags.ANCHOR_BOTH) {
+    } else if (anchor === ANCHOR_BOTH) {
       // Match must span [pos, endPos] exactly and equal the prefix.
       if (input.endPos() - pos !== pLen) return null;
       const idx = input.index(this, pos);
       if (idx !== 0) return null;
       matchStart = pos;
       matchEnd = pos + pLen;
-    } else if (anchor === RE2Flags.ANCHOR_START) {
+    } else if (anchor === ANCHOR_START) {
       // Match must start at pos and equal the prefix.
       const idx = input.index(this, pos);
       if (idx !== 0) return null;
@@ -107,7 +107,7 @@ class RE2 {
       return this.matchPrefixComplete(input, pos, anchor, ncap);
     }
 
-    if (this.prefilter !== null && anchor === RE2Flags.UNANCHORED) {
+    if (this.prefilter !== null && anchor === UNANCHORED) {
       if (!this.prefilter.eval(input, pos)) {
         return null;
       }
@@ -170,10 +170,10 @@ class RE2 {
     for (let i = pos; i <= endPos; i++) {
       const rune = i < endPos ? input.step(i) >> 3 : -1;
       const width = i < endPos ? input.step(i) & 7 : 0;
-      const context = Utils.emptyOpContext(prevRune, rune);
+      const context = emptyOpContext(prevRune, rune);
 
       // Add start state at each position for unanchored search
-      if (anchor === RE2Flags.UNANCHORED || i === pos) {
+      if (anchor === UNANCHORED || i === pos) {
         const visited = new Set<number>();
         addState(current, visited, prog.start, context);
       }
@@ -182,7 +182,7 @@ class RE2 {
       // For UNANCHORED/ANCHOR_START, a MATCH at any position succeeds.
       // For ANCHOR_BOTH, we must consume the entire input — intermediate
       // matches are skipped; only the final post-loop check accepts MATCH.
-      if (anchor !== RE2Flags.ANCHOR_BOTH) {
+      if (anchor !== ANCHOR_BOTH) {
         for (const pc of current) {
           const inst = prog.getInst(pc);
           if (inst.op === Inst.MATCH) {
@@ -198,7 +198,7 @@ class RE2 {
       for (const pc of current) {
         const inst = prog.getInst(pc);
         if (Inst.isRuneOp(inst.op) && inst.matchRune(rune)) {
-          const nextContext = Utils.emptyOpContext(
+          const nextContext = emptyOpContext(
             rune,
             i + width < endPos ? input.step(i + width) >> 3 : -1,
           );
@@ -208,9 +208,9 @@ class RE2 {
       }
 
       // For unanchored, add start state at next position too
-      if (anchor === RE2Flags.UNANCHORED) {
+      if (anchor === UNANCHORED) {
         const nextRune = i + width < endPos ? input.step(i + width) >> 3 : -1;
-        const nextContext = Utils.emptyOpContext(rune, nextRune);
+        const nextContext = emptyOpContext(rune, nextRune);
         const visited = new Set<number>();
         addState(next, visited, prog.start, nextContext);
       }
@@ -221,7 +221,7 @@ class RE2 {
     }
 
     // Final check for match after processing all input
-    const endContext = Utils.emptyOpContext(prevRune, -1);
+    const endContext = emptyOpContext(prevRune, -1);
     const visited = new Set<number>();
     const finalSet = new Set<number>();
     for (const pc of current) {
@@ -248,7 +248,7 @@ class RE2 {
   }
 
   match(s: string): boolean {
-    return this.executeEngine(fromUTF16(s), 0, RE2Flags.UNANCHORED, 0) !== null;
+    return this.executeEngine(fromUTF16(s), 0, UNANCHORED, 0) !== null;
   }
 }
 

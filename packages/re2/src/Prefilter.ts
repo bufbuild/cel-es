@@ -1,6 +1,6 @@
 import { Regexp } from "./Regexp.js";
 
-import { RE2Flags } from "./RE2Flags.js";
+import { FOLD_CASE } from "./RE2Flags.js";
 import type { MachineUTF16Input } from "./MachineInput.js";
 
 class Prefilter {
@@ -63,7 +63,7 @@ class PrefilterTree {
       }
 
       case Regexp.Op.LITERAL: {
-        if (re.runes.length === 0 || (re.flags & RE2Flags.FOLD_CASE) !== 0) {
+        if (re.runes.length === 0 || (re.flags & FOLD_CASE) !== 0) {
           // Skip case-folded literals for simplicity
           return new Prefilter(Prefilter.Type.NONE);
         }

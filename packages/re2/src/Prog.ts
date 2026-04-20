@@ -1,4 +1,4 @@
-import { RE2Flags } from "./RE2Flags.js";
+import { FOLD_CASE } from "./RE2Flags.js";
 import { Inst } from "./Inst.js";
 
 /**
@@ -85,7 +85,7 @@ class Prog {
     while (
       Inst.isRuneOp(i.op) &&
       i.runes.length === 1 &&
-      (i.arg & RE2Flags.FOLD_CASE) === 0
+      (i.arg & FOLD_CASE) === 0
     ) {
       prefix += String.fromCodePoint(i.runes[0]);
       i = this.skipNop(i.out);

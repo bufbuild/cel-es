@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
 import * as assert from "node:assert/strict";
 import { Inst } from "../Inst.js";
-import { RE2Flags } from "../RE2Flags.js";
+import { FOLD_CASE } from "../RE2Flags.js";
 
 describe("Inst.matchRune Array Search Logic", () => {
   it("correctly matches using the linear search fast-path (length 4)", () => {
@@ -40,7 +40,7 @@ describe("Inst.matchRune Array Search Logic", () => {
   it("correctly handles case-folding single runes", () => {
     const inst = new Inst(Inst.RUNE);
     inst.runes = ["a".codePointAt(0)!];
-    inst.arg = RE2Flags.FOLD_CASE;
+    inst.arg = FOLD_CASE;
 
     assert.strictEqual(inst.matchRune("a".codePointAt(0)!), true);
     assert.strictEqual(inst.matchRune("A".codePointAt(0)!), true);

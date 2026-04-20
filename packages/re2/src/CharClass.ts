@@ -1,6 +1,6 @@
-import { RE2Flags } from "./RE2Flags.js";
-import { Unicode } from "./Unicode.js";
-import { Utils } from "./Utils.js";
+import { FOLD_CASE } from "./RE2Flags.js";
+import { MAX_FOLD, MAX_RUNE, MIN_FOLD, simpleFold } from "./Unicode.js";
+import { emptyInts } from "./Utils.js";
 /**
  * A "builder"-style helper class for manipulating character classes represented as an array of
  * pairs of runes [lo, hi], each denoting an inclusive interval.
@@ -63,7 +63,7 @@ class CharClass {
   r: number[];
   len: number;
 
-  constructor(r = Utils.emptyInts()) {
+  constructor(r = emptyInts()) {
     this.r = r; // inclusive ranges, pairs of [lo,hi].  r.length is even.
     this.len = r.length; // prefix of |r| that is defined.  Even.
   }
@@ -111,7 +111,7 @@ class CharClass {
 
   // appendLiteral() appends the literal |x| to this CharClass.
   appendLiteral(x: number, flags: number): this {
-    return (flags & RE2Flags.FOLD_CASE) !== 0
+    return (flags & FOLD_CASE) !== 0
       ? this.appendFoldedRange(x, x)
       : this.appendRange(x, x);
   }
@@ -150,30 +150,30 @@ class CharClass {
   // folding-equivalent runes to this CharClass.
   appendFoldedRange(lo: number, hi: number): this {
     // Optimizations.
-    if (lo <= Unicode.MIN_FOLD && hi >= Unicode.MAX_FOLD) {
+    if (lo <= MIN_FOLD && hi >= MAX_FOLD) {
       // Range is full: folding can't add more.
       return this.appendRange(lo, hi);
     }
-    if (hi < Unicode.MIN_FOLD || lo > Unicode.MAX_FOLD) {
+    if (hi < MIN_FOLD || lo > MAX_FOLD) {
       // Range is outside folding possibilities.
       return this.appendRange(lo, hi);
     }
-    if (lo < Unicode.MIN_FOLD) {
+    if (lo < MIN_FOLD) {
       // [lo, minFold-1] needs no folding.
-      this.appendRange(lo, Unicode.MIN_FOLD - 1);
-      lo = Unicode.MIN_FOLD;
+      this.appendRange(lo, MIN_FOLD - 1);
+      lo = MIN_FOLD;
     }
-    if (hi > Unicode.MAX_FOLD) {
+    if (hi > MAX_FOLD) {
       // [maxFold+1, hi] needs no folding.
-      this.appendRange(Unicode.MAX_FOLD + 1, hi);
-      hi = Unicode.MAX_FOLD;
+      this.appendRange(MAX_FOLD + 1, hi);
+      hi = MAX_FOLD;
     }
 
     // Brute force.  Depend on appendRange to coalesce ranges on the fly.
     for (let c = lo; c <= hi; c++) {
       this.appendRange(c, c);
 
-      for (let f = Unicode.simpleFold(c); f !== c; f = Unicode.simpleFold(f)) {
+      for (let f = simpleFold(c); f !== c; f = simpleFold(f)) {
         this.appendRange(f, f);
       }
     }
@@ -210,8 +210,8 @@ class CharClass {
       }
       nextLo = hi + 1;
     }
-    if (nextLo <= Unicode.MAX_RUNE) {
-      this.appendRange(nextLo, Unicode.MAX_RUNE);
+    if (nextLo <= MAX_RUNE) {
+      this.appendRange(nextLo, MAX_RUNE);
     }
     return this;
   }
@@ -256,8 +256,8 @@ class CharClass {
         nextLo = c + 1;
       }
     }
-    if (nextLo <= Unicode.MAX_RUNE) {
-      this.appendRange(nextLo, Unicode.MAX_RUNE);
+    if (nextLo <= MAX_RUNE) {
+      this.appendRange(nextLo, MAX_RUNE);
     }
     return this;
   }
@@ -283,9 +283,9 @@ class CharClass {
       nextLo = hi + 1;
     }
     this.len = w;
-    if (nextLo <= Unicode.MAX_RUNE) {
+    if (nextLo <= MAX_RUNE) {
       this.r[this.len++] = nextLo;
-      this.r[this.len++] = Unicode.MAX_RUNE;
+      this.r[this.len++] = MAX_RUNE;
     }
     return this;
   }

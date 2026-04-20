@@ -1,5 +1,5 @@
-import { RE2Flags } from "./RE2Flags.js";
-import { Unicode } from "./Unicode.js";
+import { FOLD_CASE } from "./RE2Flags.js";
+import { equalsIgnoreCase } from "./Unicode.js";
 /**
  * A single instruction in the regular expression virtual machine.
  *
@@ -47,8 +47,8 @@ class Inst {
       // Note that this may result in a case-folding loop when executed,
       // so attempt to reduce the chance of that occurring
       // by performing case folding on |r0| from the pattern rather than |r| from the input.
-      if ((this.arg & RE2Flags.FOLD_CASE) !== 0) {
-        return Unicode.equalsIgnoreCase(r0, r);
+      if ((this.arg & FOLD_CASE) !== 0) {
+        return equalsIgnoreCase(r0, r);
       }
       return r === r0;
     }

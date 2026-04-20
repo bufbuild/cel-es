@@ -1,5 +1,11 @@
-import { Utils } from "./Utils.js";
-import { Unicode } from "./Unicode.js";
+import { emptyOpContext } from "./Utils.js";
+import {
+  MAX_HIGH_SURROGATE,
+  MAX_LOW_SURROGATE,
+  MIN_HIGH_SURROGATE,
+  MIN_LOW_SURROGATE,
+  MIN_SUPPLEMENTARY_CODE_POINT,
+} from "./Unicode.js";
 import type { Prefilter } from "./Prefilter.js";
 import type { RE2 } from "./RE2.js";
 
@@ -37,8 +43,8 @@ class MachineUTF16Input {
 
     // Fast path: standard BMP character (not a high surrogate)
     if (
-      c1 < Unicode.MIN_HIGH_SURROGATE ||
-      c1 > Unicode.MAX_HIGH_SURROGATE ||
+      c1 < MIN_HIGH_SURROGATE ||
+      c1 > MAX_HIGH_SURROGATE ||
       pos + 1 >= this.end
     ) {
       return (c1 << 3) | 1;
@@ -46,11 +52,11 @@ class MachineUTF16Input {
 
     // Slow path: Calculate surrogate pair manually
     const c2 = this.charSequence.charCodeAt(pos + 1);
-    if (c2 >= Unicode.MIN_LOW_SURROGATE && c2 <= Unicode.MAX_LOW_SURROGATE) {
+    if (c2 >= MIN_LOW_SURROGATE && c2 <= MAX_LOW_SURROGATE) {
       const rune =
-        (c1 - Unicode.MIN_HIGH_SURROGATE) * 0x400 +
-        (c2 - Unicode.MIN_LOW_SURROGATE) +
-        Unicode.MIN_SUPPLEMENTARY_CODE_POINT;
+        (c1 - MIN_HIGH_SURROGATE) * 0x400 +
+        (c2 - MIN_LOW_SURROGATE) +
+        MIN_SUPPLEMENTARY_CODE_POINT;
       return (rune << 3) | 2;
     }
 
@@ -66,13 +72,17 @@ class MachineUTF16Input {
 
   context(pos: number): number {
     pos += this.start;
-    const r1 =
+    const r1: number | undefined =
       pos > 0 && pos <= this.charSequence.length
-        ? this.charSequence.codePointAt(pos - 1)!
+        ? this.charSequence.codePointAt(pos - 1)
         : -1;
-    const r2 =
-      pos < this.charSequence.length ? this.charSequence.codePointAt(pos)! : -1;
-    return Utils.emptyOpContext(r1, r2);
+    const r2: number | undefined =
+      pos < this.charSequence.length ? this.charSequence.codePointAt(pos) : -1;
+
+    if (r1 === undefined || r2 === undefined) {
+      throw new Error("invalid state");
+    }
+    return emptyOpContext(r1, r2);
   }
 
   prefixLength(re2: RE2): number {

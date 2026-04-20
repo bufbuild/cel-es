@@ -7,8 +7,8 @@ import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { RE2JS } from "../index.js";
 import { fromUTF16 } from "../MachineInput.js";
-import { RE2Flags } from "../RE2Flags.js";
-import { Unicode } from "../Unicode.js";
+import { ANCHOR_START } from "../RE2Flags.js";
+import { equalsIgnoreCase, simpleFold } from "../Unicode.js";
 
 describe("bug-hunt verification", () => {
   // Phase 1c: DFA.match ANCHOR_START with pos>0
@@ -18,7 +18,7 @@ describe("bug-hunt verification", () => {
     const result = (re as any).re2Input.executeEngine(
       input,
       3,
-      RE2Flags.ANCHOR_START,
+      ANCHOR_START,
       0,
     );
     assert.notStrictEqual(result, null);
@@ -30,7 +30,7 @@ describe("bug-hunt verification", () => {
     const result = (re as any).re2Input.executeEngine(
       input,
       1,
-      RE2Flags.ANCHOR_START,
+      ANCHOR_START,
       0,
     );
     assert.strictEqual(result, null);
@@ -38,9 +38,9 @@ describe("bug-hunt verification", () => {
 
   // Phase 1b: equalsIgnoreCase EOF handling
   test("equalsIgnoreCase(-1, X) returns true per current implementation", () => {
-    assert.strictEqual(Unicode.equalsIgnoreCase(-1, 0x41), true);
-    assert.strictEqual(Unicode.equalsIgnoreCase(0x41, -1), true);
-    assert.strictEqual(Unicode.equalsIgnoreCase(-1, -1), true);
+    assert.strictEqual(equalsIgnoreCase(-1, 0x41), true);
+    assert.strictEqual(equalsIgnoreCase(0x41, -1), true);
+    assert.strictEqual(equalsIgnoreCase(-1, -1), true);
   });
 
   // Phase 1d: Simplify REPEAT aliasing
@@ -64,7 +64,7 @@ describe("bug-hunt verification", () => {
     const checkOrbit = (start: number): boolean => {
       let r = start;
       for (let i = 0; i < 4; i++) {
-        r = Unicode.simpleFold(r);
+        r = simpleFold(r);
         if (r === start) return true;
       }
       return false;
@@ -77,7 +77,7 @@ describe("bug-hunt verification", () => {
     assert.strictEqual(checkOrbit(0x0073), true); // s
     assert.strictEqual(checkOrbit(0x017f), true); // long s
 
-    assert.strictEqual(Unicode.simpleFold(0x0131), 0x0131);
+    assert.strictEqual(simpleFold(0x0131), 0x0131);
   });
 
   test("simpleFold sweep: no non-closing orbit across BMP", () => {
@@ -88,7 +88,7 @@ describe("bug-hunt verification", () => {
       let r = cp;
       let closed = false;
       for (let i = 0; i < 8; i++) {
-        r = Unicode.simpleFold(r);
+        r = simpleFold(r);
         if (r === cp) {
           closed = true;
           break;

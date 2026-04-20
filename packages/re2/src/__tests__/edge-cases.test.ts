@@ -3,7 +3,7 @@ import * as assert from "node:assert/strict";
 import { RE2JS } from "../index.js";
 import { RE2 } from "../RE2.js";
 import { fromUTF16 } from "../MachineInput.js";
-import { RE2Flags } from "../RE2Flags.js";
+import { ANCHOR_BOTH, ANCHOR_START, UNANCHORED } from "../RE2Flags.js";
 
 describe("Edge cases and bug hunting", () => {
   describe("Empty patterns and inputs", () => {
@@ -174,11 +174,11 @@ describe("Edge cases and bug hunting", () => {
     it("ANCHOR_START from pos 0 only matches if the pattern starts at 0", () => {
       const re = RE2.compile("abc");
       assert.notStrictEqual(
-        re.executeEngine(fromUTF16("abcxyz"), 0, RE2Flags.ANCHOR_START, 0),
+        re.executeEngine(fromUTF16("abcxyz"), 0, ANCHOR_START, 0),
         null,
       );
       assert.strictEqual(
-        re.executeEngine(fromUTF16("xabc"), 0, RE2Flags.ANCHOR_START, 0),
+        re.executeEngine(fromUTF16("xabc"), 0, ANCHOR_START, 0),
         null,
       );
     });
@@ -186,15 +186,15 @@ describe("Edge cases and bug hunting", () => {
     it("ANCHOR_BOTH requires exact full-input match", () => {
       const re = RE2.compile("abc");
       assert.notStrictEqual(
-        re.executeEngine(fromUTF16("abc"), 0, RE2Flags.ANCHOR_BOTH, 0),
+        re.executeEngine(fromUTF16("abc"), 0, ANCHOR_BOTH, 0),
         null,
       );
       assert.strictEqual(
-        re.executeEngine(fromUTF16("abcd"), 0, RE2Flags.ANCHOR_BOTH, 0),
+        re.executeEngine(fromUTF16("abcd"), 0, ANCHOR_BOTH, 0),
         null,
       );
       assert.strictEqual(
-        re.executeEngine(fromUTF16("xabc"), 0, RE2Flags.ANCHOR_BOTH, 0),
+        re.executeEngine(fromUTF16("xabc"), 0, ANCHOR_BOTH, 0),
         null,
       );
     });
@@ -202,44 +202,14 @@ describe("Edge cases and bug hunting", () => {
     it("DFA and NFA agree on all anchor modes", () => {
       const re = RE2.compile("abc");
       const inputStr = "xabcy";
-      const dfaUA = re.executeEngine(
-        fromUTF16(inputStr),
-        0,
-        RE2Flags.UNANCHORED,
-        0,
-      );
-      const dfaAS = re.executeEngine(
-        fromUTF16(inputStr),
-        0,
-        RE2Flags.ANCHOR_START,
-        0,
-      );
-      const dfaAB = re.executeEngine(
-        fromUTF16(inputStr),
-        0,
-        RE2Flags.ANCHOR_BOTH,
-        0,
-      );
+      const dfaUA = re.executeEngine(fromUTF16(inputStr), 0, UNANCHORED, 0);
+      const dfaAS = re.executeEngine(fromUTF16(inputStr), 0, ANCHOR_START, 0);
+      const dfaAB = re.executeEngine(fromUTF16(inputStr), 0, ANCHOR_BOTH, 0);
 
       re.dfa.failed = true;
-      const nfaUA = re.executeEngine(
-        fromUTF16(inputStr),
-        0,
-        RE2Flags.UNANCHORED,
-        0,
-      );
-      const nfaAS = re.executeEngine(
-        fromUTF16(inputStr),
-        0,
-        RE2Flags.ANCHOR_START,
-        0,
-      );
-      const nfaAB = re.executeEngine(
-        fromUTF16(inputStr),
-        0,
-        RE2Flags.ANCHOR_BOTH,
-        0,
-      );
+      const nfaUA = re.executeEngine(fromUTF16(inputStr), 0, UNANCHORED, 0);
+      const nfaAS = re.executeEngine(fromUTF16(inputStr), 0, ANCHOR_START, 0);
+      const nfaAB = re.executeEngine(fromUTF16(inputStr), 0, ANCHOR_BOTH, 0);
 
       assert.strictEqual(Boolean(nfaUA), Boolean(dfaUA));
       assert.strictEqual(Boolean(nfaAS), Boolean(dfaAS));
@@ -475,7 +445,6 @@ describe("Edge cases and bug hunting", () => {
     it("(?<name>...) Perl-style named group is also accepted", () => {
       const re = RE2JS.compile("(?<word>\\w+)");
       assert.strictEqual(re.test("hello"), true);
-      console.log(re.namedGroups());
       assert.deepStrictEqual(
         re.namedGroups(),
         new Map<string, number>().set("word", 1),

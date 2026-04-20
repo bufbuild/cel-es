@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { RE2 } from "../RE2.js";
 import { RE2JS } from "../index.js";
-import { Utils } from "../Utils.js";
+import { quoteMeta } from "../Utils.js";
 
 const cases: [string, string, string, boolean][] = [
   ["", "", "", true],
@@ -20,8 +20,8 @@ const cases: [string, string, string, boolean][] = [
 describe("quoteMeta", () => {
   for (const [pattern, output] of cases) {
     test(`quote meta: pattern ${JSON.stringify(pattern)} quoted to ${JSON.stringify(output)}`, () => {
-      const quoted = Utils.quoteMeta(pattern);
-      assert.strictEqual(Utils.quoteMeta(pattern), output);
+      const quoted = quoteMeta(pattern);
+      assert.strictEqual(quoteMeta(pattern), output);
       assert.strictEqual(RE2JS.quote(pattern), output);
       if (pattern && pattern.length > 0) {
         const re = RE2.compile(quoted);

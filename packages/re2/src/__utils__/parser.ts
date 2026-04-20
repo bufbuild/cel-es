@@ -1,6 +1,6 @@
-import { RE2Flags } from "../RE2Flags.js";
+import { FOLD_CASE, NON_GREEDY, WAS_DOLLAR } from "../RE2Flags.js";
 import { Regexp } from "../Regexp.js";
-import { Unicode } from "../Unicode.js";
+import { MAX_RUNE, simpleFold } from "../Unicode.js";
 
 const OP_NAMES = new Map<number, string>([
   [Regexp.Op.NO_MATCH, "no"],
@@ -36,7 +36,7 @@ export const dumpRegexp = (re: Regexp): string => {
       case Regexp.Op.PLUS:
       case Regexp.Op.QUEST:
       case Regexp.Op.REPEAT:
-        if ((re.flags & RE2Flags.NON_GREEDY) !== 0) {
+        if ((re.flags & NON_GREEDY) !== 0) {
           b += "n";
         }
         b += name;
@@ -47,9 +47,9 @@ export const dumpRegexp = (re: Regexp): string => {
         } else {
           b += "lit";
         }
-        if ((re.flags & RE2Flags.FOLD_CASE) !== 0) {
+        if ((re.flags & FOLD_CASE) !== 0) {
           for (let r of re.runes) {
-            if (Unicode.simpleFold(r) !== r) {
+            if (simpleFold(r) !== r) {
               b += "fold";
               break;
             }
@@ -64,7 +64,7 @@ export const dumpRegexp = (re: Regexp): string => {
   b += "{";
   switch (re.op) {
     case Regexp.Op.END_TEXT:
-      if ((re.flags & RE2Flags.WAS_DOLLAR) === 0) {
+      if ((re.flags & WAS_DOLLAR) === 0) {
         b += "\\z";
       }
       break;
@@ -121,7 +121,7 @@ export const mkCharClass = (f: (r: number) => boolean): string => {
   let runes: number[] = [];
   let lo = -1;
 
-  for (let i = 0; i <= Unicode.MAX_RUNE; i++) {
+  for (let i = 0; i <= MAX_RUNE; i++) {
     if (f(i)) {
       if (lo < 0) {
         lo = i;
@@ -132,7 +132,7 @@ export const mkCharClass = (f: (r: number) => boolean): string => {
     }
   }
   if (lo >= 0) {
-    runes = [...runes, lo, Unicode.MAX_RUNE];
+    runes = [...runes, lo, MAX_RUNE];
   }
 
   re.runes = runes;

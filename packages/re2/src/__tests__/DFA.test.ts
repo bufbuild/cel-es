@@ -3,10 +3,16 @@ import * as assert from "node:assert/strict";
 import { DFA } from "../DFA.js";
 import { Compiler } from "../Compiler.js";
 import { Parser } from "../Parser.js";
-import { RE2Flags } from "../RE2Flags.js";
+import {
+  ANCHOR_BOTH,
+  ANCHOR_START,
+  FOLD_CASE,
+  PERL,
+  UNANCHORED,
+} from "../RE2Flags.js";
 import { fromUTF16 } from "../MachineInput.js";
 
-const createDFA = (pattern: string, flags: number = RE2Flags.PERL): DFA => {
+const createDFA = (pattern: string, flags: number = PERL): DFA => {
   const re = Parser.parse(pattern, flags);
   const prog = Compiler.compileRegexp(re);
   return new DFA(prog);
@@ -15,7 +21,7 @@ const createDFA = (pattern: string, flags: number = RE2Flags.PERL): DFA => {
 const runDFA = (
   dfa: DFA,
   text: string,
-  anchor: number = RE2Flags.UNANCHORED,
+  anchor: number = UNANCHORED,
 ): boolean | null => {
   const input = fromUTF16(text);
   return dfa.match(input, 0, anchor);
@@ -46,11 +52,11 @@ describe("DFA", () => {
 
   describe("Anchored Matching", () => {
     const cases: [string, string, number, boolean][] = [
-      ["abc", "abc", RE2Flags.ANCHOR_BOTH, true],
-      ["abc", "xabcy", RE2Flags.ANCHOR_BOTH, false],
-      ["abc", "abcxyz", RE2Flags.ANCHOR_START, true],
-      ["abc", "xyzabc", RE2Flags.ANCHOR_START, false],
-      ["abc", "xyzabc", RE2Flags.UNANCHORED, true],
+      ["abc", "abc", ANCHOR_BOTH, true],
+      ["abc", "xabcy", ANCHOR_BOTH, false],
+      ["abc", "abcxyz", ANCHOR_START, true],
+      ["abc", "xyzabc", ANCHOR_START, false],
+      ["abc", "xyzabc", UNANCHORED, true],
     ];
 
     for (const [pattern, text, anchor, expected] of cases) {
@@ -70,7 +76,7 @@ describe("DFA", () => {
 
     for (const [pattern, text, expected] of cases) {
       test(`pattern ${JSON.stringify(pattern)} with input ${JSON.stringify(text)} returns ${expected}`, () => {
-        const dfa = createDFA(pattern, RE2Flags.PERL | RE2Flags.FOLD_CASE);
+        const dfa = createDFA(pattern, PERL | FOLD_CASE);
         assert.strictEqual(runDFA(dfa, text), expected);
       });
     }

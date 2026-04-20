@@ -1,6 +1,6 @@
 import { describe, test, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { Unicode } from "../Unicode.js";
+import { equalsIgnoreCase, isUpper, simpleFold } from "../Unicode.js";
 import { UnicodeTables } from "../UnicodeTables.js";
 import { codePoint } from "../__utils__/chars.js";
 
@@ -16,7 +16,7 @@ describe("#isUpper", () => {
 
   for (const [input, expected] of cases) {
     test(`#isUpper(${input}) === ${expected}`, () => {
-      assert.strictEqual(Unicode.isUpper(input), expected);
+      assert.strictEqual(isUpper(input), expected);
     });
   }
 });
@@ -37,7 +37,7 @@ describe("#simpleFold", () => {
 
   for (const [input, expected] of cases) {
     test(`#simpleFold(${input}) === ${expected}`, () => {
-      assert.strictEqual(Unicode.simpleFold(input), expected);
+      assert.strictEqual(simpleFold(input), expected);
     });
   }
 });
@@ -69,7 +69,7 @@ const genEqualsIgnoreCases = (): [number, number, boolean][] => {
 describe("#equalsIgnoreCase", () => {
   for (const [r1, r2, expected] of genEqualsIgnoreCases()) {
     test(`#equalsIgnoreCase(${r1}, ${r2}) === ${expected}`, () => {
-      assert.strictEqual(Unicode.equalsIgnoreCase(r1, r2), expected);
+      assert.strictEqual(equalsIgnoreCase(r1, r2), expected);
     });
   }
 });

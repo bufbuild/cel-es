@@ -1,7 +1,7 @@
-import { RE2Flags } from "./RE2Flags.js";
+import { ANCHOR_BOTH, PERL, UNICODE_GROUPS } from "./RE2Flags.js";
 import { fromUTF16 } from "./MachineInput.js";
 import { RE2 } from "./RE2.js";
-import { Utils } from "./Utils.js";
+import { quoteMeta } from "./Utils.js";
 import {
   RE2JSCompileException,
   RE2JSException,
@@ -46,7 +46,7 @@ class RE2JS {
    * @returns {string} A literal string replacement
    */
   static quote(str: string): string {
-    return Utils.quoteMeta(str);
+    return quoteMeta(str);
   }
 
   /**
@@ -107,9 +107,9 @@ class RE2JS {
    * @param {number} flags
    */
   constructor(pattern: string, flags = 0) {
-    let re2Flags = RE2Flags.PERL;
+    let re2Flags = PERL;
     if ((flags & RE2JS.DISABLE_UNICODE_GROUPS) !== 0) {
-      re2Flags &= ~RE2Flags.UNICODE_GROUPS;
+      re2Flags &= ~UNICODE_GROUPS;
     }
     RE2JS.validateFlags(flags);
     const fregex = RE2JS.buildRegexWithFlags(pattern, flags);
@@ -174,12 +174,7 @@ class RE2JS {
    */
   testExact(input: string): boolean {
     return (
-      this.re2Input.executeEngine(
-        fromUTF16(input),
-        0,
-        RE2Flags.ANCHOR_BOTH,
-        0,
-      ) !== null
+      this.re2Input.executeEngine(fromUTF16(input), 0, ANCHOR_BOTH, 0) !== null
     );
   }
 

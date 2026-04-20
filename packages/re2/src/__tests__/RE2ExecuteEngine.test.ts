@@ -2,7 +2,7 @@ import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
 import { RE2 } from "../RE2.js";
 import { DFA } from "../DFA.js";
-import { RE2Flags } from "../RE2Flags.js";
+import { ANCHOR_BOTH } from "../RE2Flags.js";
 import { fromUTF16 } from "../MachineInput.js";
 import { Prefilter } from "../Prefilter.js";
 
@@ -32,19 +32,19 @@ describe("Literal Fast-Path Routing", () => {
 
     const matchInput = fromUTF16("hello");
     assert.notStrictEqual(
-      re.executeEngine(matchInput, 0, RE2Flags.ANCHOR_BOTH, 0),
+      re.executeEngine(matchInput, 0, ANCHOR_BOTH, 0),
       null,
     );
 
     const noMatchInput1 = fromUTF16("hello world");
     assert.strictEqual(
-      re.executeEngine(noMatchInput1, 0, RE2Flags.ANCHOR_BOTH, 0),
+      re.executeEngine(noMatchInput1, 0, ANCHOR_BOTH, 0),
       null,
     );
 
     const noMatchInput2 = fromUTF16("say hello");
     assert.strictEqual(
-      re.executeEngine(noMatchInput2, 0, RE2Flags.ANCHOR_BOTH, 0),
+      re.executeEngine(noMatchInput2, 0, ANCHOR_BOTH, 0),
       null,
     );
 

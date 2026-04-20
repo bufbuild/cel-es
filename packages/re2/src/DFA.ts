@@ -1,7 +1,7 @@
 import { Inst } from "./Inst.js";
-import { RE2Flags } from "./RE2Flags.js";
-import { Unicode } from "./Unicode.js";
-import { Utils } from "./Utils.js";
+import { UNANCHORED, ANCHOR_BOTH } from "./RE2Flags.js";
+import { MAX_ASCII, MAX_RUNE } from "./Unicode.js";
+import { emptyOpContext } from "./Utils.js";
 import type { Prog } from "./Prog.js";
 
 // FNV-1a 32-bit hash for an array of integers.
@@ -27,7 +27,7 @@ class DFAState {
   isMatch: boolean;
   hasEmptyWidth: boolean;
   matchIDs: number[];
-  nextAscii: any[];
+  nextAscii: (DFAState | null)[];
   nextMap: Map<any, any>;
 
   constructor(
@@ -40,7 +40,7 @@ class DFAState {
     this.isMatch = isMatch;
     this.hasEmptyWidth = hasEmptyWidth; // true if any PC is an EMPTY_WIDTH instruction
     this.matchIDs = matchIDs;
-    this.nextAscii = new Array(Unicode.MAX_ASCII + 1).fill(null);
+    this.nextAscii = new Array(MAX_ASCII + 1).fill(null);
     this.nextMap = new Map();
   }
 }
@@ -233,23 +233,19 @@ class DFA {
     if (state.hasEmptyWidth) {
       // Context-dependent: include context in key
       cacheKey =
-        charCode * 128 +
-        (context & 0x3f) * 2 +
-        (anchor === RE2Flags.UNANCHORED ? 0 : 1);
+        charCode * 128 + (context & 0x3f) * 2 + (anchor === UNANCHORED ? 0 : 1);
       if (state.nextMap.has(cacheKey)) {
         return state.nextMap.get(cacheKey);
       }
     } else {
       // Context-independent: use original caching
-      if (anchor === RE2Flags.UNANCHORED && charCode <= Unicode.MAX_ASCII) {
+      if (anchor === UNANCHORED && charCode <= MAX_ASCII) {
         const next = state.nextAscii[charCode];
         if (next !== null) {
           return next;
         }
       } else {
-        cacheKey =
-          charCode +
-          (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1);
+        cacheKey = charCode + (anchor === UNANCHORED ? 0 : MAX_RUNE + 1);
         if (state.nextMap.has(cacheKey)) {
           return state.nextMap.get(cacheKey);
         }
@@ -257,7 +253,7 @@ class DFA {
     }
 
     // Determine which PCs to check for RUNE matches
-    let activePCs;
+    let activePCs: Set<number> | Int32Array<ArrayBufferLike>;
     if (state.hasEmptyWidth) {
       const { resolvedPCs } = this.resolveEmptyWidth(state.nfaStates, context);
       activePCs = resolvedPCs;
@@ -275,7 +271,7 @@ class DFA {
       }
     }
 
-    if (anchor === RE2Flags.UNANCHORED) {
+    if (anchor === UNANCHORED) {
       nextPCs.push(this.prog.start);
     }
 
@@ -284,28 +280,14 @@ class DFA {
     // Cache the result
     if (state.hasEmptyWidth) {
       state.nextMap.set(cacheKey, nextState);
-    } else if (
-      anchor === RE2Flags.UNANCHORED &&
-      charCode <= Unicode.MAX_ASCII
-    ) {
+    } else if (anchor === UNANCHORED && charCode <= MAX_ASCII) {
       state.nextAscii[charCode] = nextState;
     } else {
-      cacheKey =
-        charCode + (anchor === RE2Flags.UNANCHORED ? 0 : Unicode.MAX_RUNE + 1);
+      cacheKey = charCode + (anchor === UNANCHORED ? 0 : MAX_RUNE + 1);
       state.nextMap.set(cacheKey, nextState);
     }
 
     return nextState;
-  }
-
-  // Check if a state matches after resolving EMPTY_WIDTH with end-of-input context
-  checkEndMatch(state: DFAState, prevRune: number): boolean {
-    if (state.isMatch) return true;
-    if (!state.hasEmptyWidth) return false;
-
-    const endContext = Utils.emptyOpContext(prevRune, -1);
-    const { isMatch } = this.resolveEmptyWidth(state.nfaStates, endContext);
-    return isMatch;
   }
 
   // The hot loop: Execute the Lazy DFA
@@ -329,7 +311,7 @@ class DFA {
 
     // Check if start state matches directly (e.g., empty pattern)
     if (currentState.isMatch) {
-      if (anchor === RE2Flags.ANCHOR_BOTH) {
+      if (anchor === ANCHOR_BOTH) {
         if (pos === endPos) return true;
       } else {
         return true;
@@ -345,7 +327,7 @@ class DFA {
       if (width === 0) break;
 
       // Compute context at position i (between prevRune and rune)
-      const context = Utils.emptyOpContext(prevRune, rune);
+      const context = emptyOpContext(prevRune, rune);
 
       // Before consuming: check if EMPTY_WIDTH in current state resolves to MATCH
       if (currentState.hasEmptyWidth) {
@@ -354,7 +336,7 @@ class DFA {
           context,
         );
         if (isMatch) {
-          if (anchor === RE2Flags.ANCHOR_BOTH) {
+          if (anchor === ANCHOR_BOTH) {
             // Match at position i (before consuming rune) — only valid if i === endPos
             // which can't happen in this loop, so skip
           } else {
@@ -366,8 +348,8 @@ class DFA {
       // Consume rune and transition to next state
       if (
         !currentState.hasEmptyWidth &&
-        anchor === RE2Flags.UNANCHORED &&
-        rune <= Unicode.MAX_ASCII
+        anchor === UNANCHORED &&
+        rune <= MAX_ASCII
       ) {
         currentState =
           currentState.nextAscii[rune] ||
@@ -380,7 +362,7 @@ class DFA {
 
       // After consuming: check if new state is a match
       if (currentState.isMatch) {
-        if (anchor === RE2Flags.ANCHOR_BOTH) {
+        if (anchor === ANCHOR_BOTH) {
           if (i + width === endPos) return true;
         } else {
           return true;
@@ -388,7 +370,7 @@ class DFA {
       }
 
       if (currentState.nfaStates.length === 0) {
-        if (anchor !== RE2Flags.UNANCHORED) return false;
+        if (anchor !== UNANCHORED) return false;
       }
 
       prevRune = rune;
@@ -400,7 +382,7 @@ class DFA {
     // UNANCHORED/ANCHOR_START accept any match; ANCHOR_BOTH accepts it because
     // we have consumed the entire input up to endPos.
     if (currentState.hasEmptyWidth) {
-      const endContext = Utils.emptyOpContext(prevRune, -1);
+      const endContext = emptyOpContext(prevRune, -1);
       const { isMatch } = this.resolveEmptyWidth(
         currentState.nfaStates,
         endContext,
@@ -409,78 +391,6 @@ class DFA {
     }
 
     return false;
-  }
-
-  // Multi-Pattern Set matching (kept for compatibility)
-  matchSet(input: any, pos: number, anchor: number): number[] | null {
-    if (
-      (anchor === RE2Flags.ANCHOR_START || anchor === RE2Flags.ANCHOR_BOTH) &&
-      pos !== 0
-    ) {
-      return [];
-    }
-
-    if (!this.startState) {
-      this.startState = this.getState([this.prog.start]);
-      if (!this.startState) return null;
-    }
-
-    let endPos = input.endPos();
-    let currentState: DFAState | null = this.startState;
-    let prevRune = -1;
-    const matches = new Set<number>();
-
-    const checkMatch = (
-      state: DFAState,
-      currentPos: number,
-      prevR: number,
-    ): void => {
-      if (state.isMatch) {
-        if (anchor === RE2Flags.ANCHOR_BOTH) {
-          if (currentPos === endPos) {
-            state.matchIDs.forEach((id: number) => matches.add(id));
-          }
-        } else {
-          state.matchIDs.forEach((id: number) => matches.add(id));
-        }
-      }
-      // Also check EMPTY_WIDTH resolution at end
-      if (state.hasEmptyWidth && currentPos === endPos) {
-        const endCtx = Utils.emptyOpContext(prevR, -1);
-        const { isMatch } = this.resolveEmptyWidth(state.nfaStates, endCtx);
-        if (isMatch) {
-          if (anchor === RE2Flags.ANCHOR_BOTH) {
-            state.matchIDs.forEach((id: number) => matches.add(id));
-          }
-        }
-      }
-    };
-
-    checkMatch(currentState, pos, prevRune);
-
-    let i = pos;
-    while (i < endPos) {
-      const r = input.step(i);
-      const rune = r >> 3;
-      const width = r & 7;
-
-      if (width === 0) break;
-
-      const context = Utils.emptyOpContext(prevRune, rune);
-      currentState = this.step(currentState, rune, anchor, context);
-
-      if (currentState === null) return null;
-
-      prevRune = rune;
-      i += width;
-      checkMatch(currentState, i, prevRune);
-
-      if (currentState.nfaStates.length === 0) {
-        if (anchor !== RE2Flags.UNANCHORED) break;
-      }
-    }
-
-    return Array.from(matches).sort((a, b) => a - b);
   }
 }
 
