@@ -1,5 +1,9 @@
 import { CodepointRange } from "./codepointRange.js";
 import unicode16 from "@unicode/unicode-16.0.0";
+// Imported for its side effect of being a declared devDependency.
+// loadCodePoints() below dynamically imports `@unicode/unicode-15.0.0/<prop>/<name>/code-points.js`
+// paths, and requires the package to be installed.
+import "@unicode/unicode-15.0.0";
 import CommonCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/C/code-points.js";
 import SimpleCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/S/code-points.js";
 import unicodePropertyValueAliases from "unicode-property-value-aliases";
@@ -513,6 +517,13 @@ const code = [
   "    get: (name: string): UnicodeRangeTable | null => buildFoldOverlay(name),",
   "  },",
   "  get Upper(): UnicodeRangeTable { return getUpper() },",
+  "",
+  "  // --- Test-only hooks: expose the raw bundled 15.0→16.0 delta and",
+  "  // new-in-16.0 script data so tests can verify the generator output.",
+  "  // These are not part of the public API.",
+  "  _deltaCategoryRanges: (name: string): Uint32Array | null => _DELTA_CATEGORIES.get(name),",
+  "  _deltaScriptRanges: (name: string): Uint32Array | null => _DELTA_SCRIPTS.get(name),",
+  "  _newScriptTable: (name: string): UnicodeRangeTable | null => _NEW_SCRIPTS.get(name),",
   "}",
   "",
 ];
