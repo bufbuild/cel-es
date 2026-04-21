@@ -24,7 +24,7 @@
     "format": "biome format --write",
     "lint": "biome lint --error-on-warnings",
     "attw": "attw --pack",
-    "license-header": "license-header"
+    "license-header": "license-header --ignore 'src/**' --ignore 'scripts/**'"
   },
   "licenseHeader": {
     "licenseType": "MIT",
