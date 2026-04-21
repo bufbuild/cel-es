@@ -44,9 +44,7 @@
   },
   "typesVersions": {
     "*": {
-      "ext": [
-        "./dist/cjs/ext/index.d.ts"
-      ]
+      "ext": ["./dist/cjs/ext/index.d.ts"]
     }
   },
   "peerDependencies": {

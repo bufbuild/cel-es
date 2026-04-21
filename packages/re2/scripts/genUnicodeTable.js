@@ -37,13 +37,16 @@ const generateCaseFoldOrbits = () => {
   for (let [key, value] of orbits) {
     let orbitWithKey = new Set(value);
     orbitWithKey.add(key);
-    orbitWithKey = Array.from(orbitWithKey).sort((a, b) => a - b);
-    let a = orbitWithKey[0];
-    for (let i of orbitWithKey.slice(1)) {
+    const orbitWithKeyArray = Array.from(orbitWithKey).sort((a, b) => a - b);
+    let a = orbitWithKeyArray[0];
+    for (let i of orbitWithKeyArray.slice(1)) {
       finalResult.set(a, i);
       a = i;
     }
-    finalResult.set(orbitWithKey[orbitWithKey.length - 1], orbitWithKey[0]);
+    finalResult.set(
+      orbitWithKeyArray[orbitWithKeyArray.length - 1],
+      orbitWithKeyArray[0],
+    );
   }
   return finalResult;
 };

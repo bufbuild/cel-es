@@ -121,9 +121,6 @@ class StringIterator {
  * The only public entry point is {@link #parse(String pattern, int flags)}.
  */
 class Parser {
-  // Unexpected error
-  static ERR_INTERNAL_ERROR = "regexp/syntax: internal error";
-
   // Parse errors
   static ERR_INVALID_CHAR_RANGE = "invalid character class range";
   static ERR_INVALID_ESCAPE = "invalid escape sequence";

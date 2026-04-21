@@ -15,18 +15,18 @@
 import * as opc from "../gen/dev/cel/expr/operator_const.js";
 import * as olc from "../gen/dev/cel/expr/overload_const.js";
 import {
-    CelScalar,
-    DURATION,
-    listType,
-    mapType,
-    TIMESTAMP,
-    type CelValue,
+  CelScalar,
+  DURATION,
+  listType,
+  mapType,
+  TIMESTAMP,
+  type CelValue,
 } from "../type.js";
-import {equals} from "../equals.js";
-import {celMethod, celFunc} from "../func.js";
-import type {CelList} from "../list.js";
-import type {CelMap} from "../map.js";
-import {RE2JS} from "@bufbuild/re2";
+import { equals } from "../equals.js";
+import { celMethod, celFunc } from "../func.js";
+import type { CelList } from "../list.js";
+import type { CelMap } from "../map.js";
+import { RE2JS } from "@bufbuild/re2";
 
 /**
  * Patterns that are supported in ECMAScript RE and not in
@@ -36,111 +36,110 @@ import {RE2JS} from "@bufbuild/re2";
  * RE2: https://github.com/google/re2/wiki/syntax
  */
 const invalidPatterns = [
-    /\\[1-9]/, // backreference eg: \1
-    /\\k<.>/, // backreference eg: \k<name>
-    /\(\?\=/, // lookahead eg: Jack(?=Sprat)
-    /\(\?\!/, // negative lookahead eg: Jack(?!Sprat)
-    /\(\?\<\=/, // lookbehind eg: (?<=Sprat)Jack
-    /\(\?\<\!/, // negative lookbehind eg: (?<!Sprat)Jack,
-    /\\c[A-Z]/, // control character eg: /\cM\cJ/
-    /\\u[0-9a-fA-F]{4}/, // UTF-16 code-unit
-    /\\0(?!\d)/, // NUL
-    /\[\\b.*\]/, // Backspace eg: [\b]
+  /\\[1-9]/, // backreference eg: \1
+  /\\k<.>/, // backreference eg: \k<name>
+  /\(\?\=/, // lookahead eg: Jack(?=Sprat)
+  /\(\?\!/, // negative lookahead eg: Jack(?!Sprat)
+  /\(\?\<\=/, // lookbehind eg: (?<=Sprat)Jack
+  /\(\?\<\!/, // negative lookbehind eg: (?<!Sprat)Jack,
+  /\\c[A-Z]/, // control character eg: /\cM\cJ/
+  /\\u[0-9a-fA-F]{4}/, // UTF-16 code-unit
+  /\\0(?!\d)/, // NUL
+  /\[\\b.*\]/, // Backspace eg: [\b]
 ];
 
 const flagPattern = new RegExp(/^\(\?(?<flags>[ims\-]+)\)/);
 
-const flagMappings = new Map<string, number>().
-    set("i", RE2JS.CASE_INSENSITIVE).
-    set("m", RE2JS.MULTILINE).
-    set("s", RE2JS.DOTALL);
+const flagMappings = new Map<string, number>()
+  .set("i", RE2JS.CASE_INSENSITIVE)
+  .set("m", RE2JS.MULTILINE)
+  .set("s", RE2JS.DOTALL);
 
 export function matches(this: string, pattern: string): boolean {
-
-    // can probably delete this since the RE2 engine will already reject them, but keep for now
-    for (const invalidPattern of invalidPatterns) {
-        if (invalidPattern.test(pattern)) {
-            throw new Error(
-                `Error evaluating pattern ${pattern}, invalid RE2 syntax`,
-            );
-        }
+  // can probably delete this since the RE2 engine will already reject them, but keep for now
+  for (const invalidPattern of invalidPatterns) {
+    if (invalidPattern.test(pattern)) {
+      throw new Error(
+        `Error evaluating pattern ${pattern}, invalid RE2 syntax`,
+      );
     }
-    // CEL use RE2 syntax which is a subset of Ecmascript RE except for
-    // the flags and the ability to change the flags mid-sequence.
-    //
-    // The conformance tests use flags at the very beginning of the sequence, which
-    // is likely the most common place where this rare feature will be used.
-    //
-    // Instead of importing an RE2 engine to be able to support this niche, we
-    // can instead just check for the flags at the very beginning and apply them.
-    //
-    // Unsupported flags and flags mid-sequence will fail with to compile the regex.
-    //
-    // Users can choose to override this function and provide an RE2 engine if they really
-    // need to.
-    let flagVal = 0;
-    const flagMatches = pattern.match(flagPattern);
-    if (flagMatches) {
-        for (let flag of flagMatches?.groups?.flags ?? "") {
-            if (flag == "-") {
-                break;
-            }
-            flagVal |= flagMappings.get(flag) ?? 0;
-        }
-        pattern = pattern.substring(flagMatches[0].length);
+  }
+  // CEL use RE2 syntax which is a subset of Ecmascript RE except for
+  // the flags and the ability to change the flags mid-sequence.
+  //
+  // The conformance tests use flags at the very beginning of the sequence, which
+  // is likely the most common place where this rare feature will be used.
+  //
+  // Instead of importing an RE2 engine to be able to support this niche, we
+  // can instead just check for the flags at the very beginning and apply them.
+  //
+  // Unsupported flags and flags mid-sequence will fail with to compile the regex.
+  //
+  // Users can choose to override this function and provide an RE2 engine if they really
+  // need to.
+  let flagVal = 0;
+  const flagMatches = pattern.match(flagPattern);
+  if (flagMatches) {
+    for (let flag of flagMatches?.groups?.flags ?? "") {
+      if (flag == "-") {
+        break;
+      }
+      flagVal |= flagMappings.get(flag) ?? 0;
     }
-    const re: RE2JS = RE2JS.compile(pattern, flagVal);
-    //const re = new RegExp(pattern, flags);
-    return re.test(this);
+    pattern = pattern.substring(flagMatches[0].length);
+  }
+  const re: RE2JS = RE2JS.compile(pattern, flagVal);
+  //const re = new RegExp(pattern, flags);
+  return re.test(this);
 }
 
 function compareDuration(
-    lhs: CelValue<typeof DURATION>,
-    rhs: CelValue<typeof DURATION>,
+  lhs: CelValue<typeof DURATION>,
+  rhs: CelValue<typeof DURATION>,
 ) {
-    const cmp = lhs.message.seconds - rhs.message.seconds;
-    if (cmp == 0n) {
-        return lhs.message.nanos - rhs.message.nanos;
-    }
-    return cmp < 0n ? -1 : 1;
+  const cmp = lhs.message.seconds - rhs.message.seconds;
+  if (cmp == 0n) {
+    return lhs.message.nanos - rhs.message.nanos;
+  }
+  return cmp < 0n ? -1 : 1;
 }
 
 function compareTimestamp(
-    lhs: CelValue<typeof TIMESTAMP>,
-    rhs: CelValue<typeof TIMESTAMP>,
+  lhs: CelValue<typeof TIMESTAMP>,
+  rhs: CelValue<typeof TIMESTAMP>,
 ) {
-    const cmp = lhs.message.seconds - rhs.message.seconds;
-    if (cmp == 0n) {
-        return lhs.message.nanos - rhs.message.nanos;
-    }
-    return cmp < 0n ? -1 : 1;
+  const cmp = lhs.message.seconds - rhs.message.seconds;
+  if (cmp == 0n) {
+    return lhs.message.nanos - rhs.message.nanos;
+  }
+  return cmp < 0n ? -1 : 1;
 }
 
 function compareBytes(lhs: Uint8Array, rhs: Uint8Array): number {
-    const minLen = Math.min(lhs.length, rhs.length);
-    for (let i = 0; i < minLen; i++) {
-        if (lhs[i] < rhs[i]) {
-            return -1;
-        }
-        if (lhs[i] > rhs[i]) {
-            return 1;
-        }
+  const minLen = Math.min(lhs.length, rhs.length);
+  for (let i = 0; i < minLen; i++) {
+    if (lhs[i] < rhs[i]) {
+      return -1;
     }
-    return lhs.length - rhs.length;
+    if (lhs[i] > rhs[i]) {
+      return 1;
+    }
+  }
+  return lhs.length - rhs.length;
 }
 
 function inList(value: CelValue, list: CelList) {
-    for (const v of list) {
-        if (equals(v, value)) return true;
-    }
-    return false;
+  for (const v of list) {
+    if (equals(v, value)) return true;
+  }
+  return false;
 }
 
 function inMap<T extends Parameters<CelMap["has"]>[0]>(value: T, map: CelMap) {
-    return map.has(value);
+  return map.has(value);
 }
 
-const {BOOL, BYTES, DOUBLE, DYN, INT, STRING, UINT} = CelScalar;
+const { BOOL, BYTES, DOUBLE, DYN, INT, STRING, UINT } = CelScalar;
 const LIST = listType(CelScalar.DYN);
 const MAP = mapType(CelScalar.DYN, CelScalar.DYN);
 

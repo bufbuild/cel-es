@@ -33,14 +33,6 @@ export class Regexp {
   static emptySubs(): Regexp[] {
     return [];
   }
-
-  static quoteIfHyphen(rune: number): string {
-    if (rune === 0x2d) {
-      return "\\";
-    }
-    return "";
-  }
-
   static fromRegexp(re: Regexp): Regexp {
     const regex = new Regexp(re.op);
     regex.flags = re.flags;
