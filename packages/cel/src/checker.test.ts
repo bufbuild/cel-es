@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { getCheckingSuite } from "../../cel-spec/dist/cjs/testdata/tests.js";
+import { getCheckingSuite } from "@bufbuild/cel-spec/testdata/tests.js";
 import {
   createExpressionFilter,
   runCheckingTest,
