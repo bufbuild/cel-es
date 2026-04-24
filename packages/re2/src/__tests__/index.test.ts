@@ -233,4 +233,11 @@ describe("Core Unicode Properties (Ascii, Assigned, Lc)", () => {
     const unassignedChar = String.fromCodePoint(0x0378);
     assert.strictEqual(p.matches(unassignedChar), false);
   });
+
+  it("matches case insensitive correctly", () => {
+    const p = RE2JS.compile("(?i)^hello$");
+    assert.strictEqual(p.matches("hello"), true);
+    assert.strictEqual(p.matches("HELLO"), true);
+    assert.strictEqual(p.matches("HELlo"), true);
+  });
 });

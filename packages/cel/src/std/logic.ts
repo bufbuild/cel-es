@@ -28,68 +28,8 @@ import type { CelList } from "../list.js";
 import type { CelMap } from "../map.js";
 import { RE2JS } from "@bufbuild/re2";
 
-/**
- * Patterns that are supported in ECMAScript RE and not in
- * RE2.
- *
- * ECMAScript Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet
- * RE2: https://github.com/google/re2/wiki/syntax
- */
-const invalidPatterns = [
-  /\\[1-9]/, // backreference eg: \1
-  /\\k<.>/, // backreference eg: \k<name>
-  /\(\?\=/, // lookahead eg: Jack(?=Sprat)
-  /\(\?\!/, // negative lookahead eg: Jack(?!Sprat)
-  /\(\?\<\=/, // lookbehind eg: (?<=Sprat)Jack
-  /\(\?\<\!/, // negative lookbehind eg: (?<!Sprat)Jack,
-  /\\c[A-Z]/, // control character eg: /\cM\cJ/
-  /\\u[0-9a-fA-F]{4}/, // UTF-16 code-unit
-  /\\0(?!\d)/, // NUL
-  /\[\\b.*\]/, // Backspace eg: [\b]
-];
-
-const flagPattern = new RegExp(/^\(\?(?<flags>[ims\-]+)\)/);
-
-const flagMappings = new Map<string, number>()
-  .set("i", RE2JS.CASE_INSENSITIVE)
-  .set("m", RE2JS.MULTILINE)
-  .set("s", RE2JS.DOTALL);
-
 export function matches(this: string, pattern: string): boolean {
-  // can probably delete this since the RE2 engine will already reject them, but keep for now
-  for (const invalidPattern of invalidPatterns) {
-    if (invalidPattern.test(pattern)) {
-      throw new Error(
-        `Error evaluating pattern ${pattern}, invalid RE2 syntax`,
-      );
-    }
-  }
-  // CEL use RE2 syntax which is a subset of Ecmascript RE except for
-  // the flags and the ability to change the flags mid-sequence.
-  //
-  // The conformance tests use flags at the very beginning of the sequence, which
-  // is likely the most common place where this rare feature will be used.
-  //
-  // Instead of importing an RE2 engine to be able to support this niche, we
-  // can instead just check for the flags at the very beginning and apply them.
-  //
-  // Unsupported flags and flags mid-sequence will fail with to compile the regex.
-  //
-  // Users can choose to override this function and provide an RE2 engine if they really
-  // need to.
-  let flagVal = 0;
-  const flagMatches = pattern.match(flagPattern);
-  if (flagMatches) {
-    for (let flag of flagMatches?.groups?.flags ?? "") {
-      if (flag == "-") {
-        break;
-      }
-      flagVal |= flagMappings.get(flag) ?? 0;
-    }
-    pattern = pattern.substring(flagMatches[0].length);
-  }
-  const re: RE2JS = RE2JS.compile(pattern, flagVal);
-  //const re = new RegExp(pattern, flags);
+  const re: RE2JS = RE2JS.compile(pattern);
   return re.test(this);
 }
 
