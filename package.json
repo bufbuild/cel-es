@@ -33,8 +33,5 @@
     "tsx": "^4.21.0",
     "turbo": "^2.8.1",
     "typescript": "^5.9.3"
-  },
-  "dependencies": {
-    "@bufbuild/re2": "^0.1.0"
   }
 }
