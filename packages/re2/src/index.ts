@@ -2,7 +2,8 @@ import { ANCHOR_BOTH, PERL, UNICODE_GROUPS } from "./RE2Flags.js";
 import { fromUTF16 } from "./MachineInput.js";
 import { RE2 } from "./RE2.js";
 import { quoteMeta } from "./Utils.js";
-import {
+import { RE2JSFlagsException } from "./exceptions.js";
+export {
   RE2JSCompileException,
   RE2JSException,
   RE2JSFlagsException,
@@ -13,10 +14,8 @@ import {
 
 /**
  * A compiled representation of an RE2 regular expression
- *
- * @class
  */
-class RE2JS {
+export class RE2JS {
   patternInput: string;
   flagsInput: number;
   re2Input: RE2;
@@ -178,16 +177,12 @@ class RE2JS {
     );
   }
 
-  /**
-   * @returns {string}
-   */
   toString(): string {
     return this.patternInput;
   }
 
   /**
    * Returns the number of capturing groups in this matcher's pattern.
-   * @returns {number}
    */
   groupCount(): number {
     return this.re2Input.numberOfCapturingGroups();
@@ -195,19 +190,8 @@ class RE2JS {
 
   /**
    * Return a map of the capturing groups in this matcher's pattern.
-   * @returns {Map<string, number>}
    */
   namedGroups(): Map<string, number> {
     return this.re2Input.namedGroups;
   }
 }
-
-export {
-  RE2JS,
-  RE2JSException,
-  RE2JSSyntaxException,
-  RE2JSCompileException,
-  RE2JSGroupException,
-  RE2JSFlagsException,
-  RE2JSInternalException,
-};
