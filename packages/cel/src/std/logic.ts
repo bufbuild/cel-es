@@ -29,8 +29,7 @@ import type { CelMap } from "../map.js";
 import { RE2JS } from "@bufbuild/re2";
 
 export function matches(this: string, pattern: string): boolean {
-  const re: RE2JS = RE2JS.compile(pattern);
-  return re.test(this);
+    return RE2JS.compile(pattern).test(this);
 }
 
 function compareDuration(
@@ -85,100 +84,92 @@ const MAP = mapType(CelScalar.DYN, CelScalar.DYN);
 
 // biome-ignore format: table
 export default [
-    // !
-    celFunc(opc.LOGICAL_NOT, [BOOL], BOOL, (x) => !x),
-    // =
-    celFunc(opc.EQUALS, [DYN, DYN], BOOL, equals),
-    celFunc(opc.NOT_EQUALS, [DYN, DYN], BOOL, (l, r) => !equals(l, r)),
-    // <
-    celFunc(opc.LESS, [BOOL, BOOL], BOOL, (l, r) => l < r),
-    celFunc(opc.LESS, [BYTES, BYTES], BOOL, (l, r) => compareBytes(l, r) < 0),
-    celFunc(opc.LESS, [DOUBLE, DOUBLE], BOOL, (l, r) => l < r),
-    celFunc(opc.LESS, [STRING, STRING], BOOL, (l, r) => l < r),
-    celFunc(opc.LESS, [INT, INT], BOOL, (l, r) => l < r),
-    celFunc(opc.LESS, [INT, UINT], BOOL, (l, r) => l < r.value),
-    celFunc(opc.LESS, [UINT, INT], BOOL, (l, r) => l.value < r),
-    celFunc(opc.LESS, [UINT, UINT], BOOL, (l, r) => l.value < r.value),
-    // TODO investigate: ECMAScript relational operators support mixed bigint/number operands,
-    // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
-    celFunc(opc.LESS, [INT, DOUBLE], BOOL, (l, r) => Number(l) < r),
-    celFunc(opc.LESS, [DOUBLE, INT], BOOL, (l, r) => l < Number(r)),
-    celFunc(opc.LESS, [DOUBLE, UINT], BOOL, (l, r) => l < Number(r.value)),
-    celFunc(opc.LESS, [UINT, DOUBLE], BOOL, (l, r) => Number(l.value) < r),
-    celFunc(opc.LESS, [DURATION, DURATION], BOOL, (l, r) => compareDuration(l, r) < 0),
-    celFunc(opc.LESS, [TIMESTAMP, TIMESTAMP], BOOL, (l, r) => compareTimestamp(l, r) < 0),
-    // <=
-    celFunc(opc.LESS_EQUALS, [BOOL, BOOL], BOOL, (l, r) => l <= r),
-    celFunc(opc.LESS_EQUALS, [BYTES, BYTES], BOOL, (l, r) => compareBytes(l, r) <= 0),
-    celFunc(opc.LESS_EQUALS, [DOUBLE, DOUBLE], BOOL, (l, r) => l <= r),
-    celFunc(opc.LESS_EQUALS, [STRING, STRING], BOOL, (l, r) => l <= r),
-    celFunc(opc.LESS_EQUALS, [INT, INT], BOOL, (l, r) => l <= r),
-    celFunc(opc.LESS_EQUALS, [INT, UINT], BOOL, (l, r) => l <= r.value),
-    celFunc(opc.LESS_EQUALS, [UINT, INT], BOOL, (l, r) => l.value <= r),
-    celFunc(opc.LESS_EQUALS, [UINT, UINT], BOOL, (l, r) => l.value <= r.value),
-    celFunc(opc.LESS_EQUALS, [INT, DOUBLE], BOOL, (l, r) => Number(l) <= r),
-    celFunc(opc.LESS_EQUALS, [DOUBLE, INT], BOOL, (l, r) => l <= Number(r)),
-    celFunc(opc.LESS_EQUALS, [DOUBLE, UINT], BOOL, (l, r) => l <= Number(r.value)),
-    celFunc(opc.LESS_EQUALS, [UINT, DOUBLE], BOOL, (l, r) => Number(l.value) <= r),
-    celFunc(opc.LESS_EQUALS, [DURATION, DURATION], BOOL, (l, r) => compareDuration(l, r) <= 0),
-    celFunc(opc.LESS_EQUALS, [TIMESTAMP, TIMESTAMP], BOOL, (l, r) => compareTimestamp(l, r) <= 0),
-    // >
-    celFunc(opc.GREATER, [BOOL, BOOL], BOOL, (l, r) => l > r),
-    celFunc(opc.GREATER, [BYTES, BYTES], BOOL, (l, r) => compareBytes(l, r) > 0),
-    celFunc(opc.GREATER, [DOUBLE, DOUBLE], BOOL, (l, r) => l > r),
-    celFunc(opc.GREATER, [STRING, STRING], BOOL, (l, r) => l > r),
-    celFunc(opc.GREATER, [INT, INT], BOOL, (l, r) => l > r),
-    celFunc(opc.GREATER, [INT, UINT], BOOL, (l, r) => l > r.value),
-    celFunc(opc.GREATER, [UINT, INT], BOOL, (l, r) => l.value > r),
-    celFunc(opc.GREATER, [UINT, UINT], BOOL, (l, r) => l.value > r.value),
-    celFunc(opc.GREATER, [INT, DOUBLE], BOOL, (l, r) => Number(l) > r),
-    celFunc(opc.GREATER, [DOUBLE, INT], BOOL, (l, r) => l > Number(r)),
-    celFunc(opc.GREATER, [DOUBLE, UINT], BOOL, (l, r) => l > Number(r.value)),
-    celFunc(opc.GREATER, [UINT, DOUBLE], BOOL, (l, r) => Number(l.value) > r),
-    celFunc(opc.GREATER, [DURATION, DURATION], BOOL, (l, r) => compareDuration(l, r) > 0),
-    celFunc(opc.GREATER, [TIMESTAMP, TIMESTAMP], BOOL, (l, r) => compareTimestamp(l, r) > 0),
-    // >=
-    celFunc(opc.GREATER_EQUALS, [BOOL, BOOL], BOOL, (l, r) => l >= r),
-    celFunc(opc.GREATER_EQUALS, [BYTES, BYTES], BOOL, (l, r) => compareBytes(l, r) >= 0),
-    celFunc(opc.GREATER_EQUALS, [DOUBLE, DOUBLE], BOOL, (l, r) => l >= r),
-    celFunc(opc.GREATER_EQUALS, [STRING, STRING], BOOL, (l, r) => l >= r),
-    celFunc(opc.GREATER_EQUALS, [INT, INT], BOOL, (l, r) => l >= r),
-    celFunc(opc.GREATER_EQUALS, [INT, UINT], BOOL, (l, r) => l >= r.value),
-    celFunc(opc.GREATER_EQUALS, [UINT, INT], BOOL, (l, r) => l.value >= r),
-    celFunc(opc.GREATER_EQUALS, [UINT, UINT], BOOL, (l, r) => l.value >= r.value),
-    celFunc(opc.GREATER_EQUALS, [INT, DOUBLE], BOOL, (l, r) => Number(l) >= r),
-    celFunc(opc.GREATER_EQUALS, [DOUBLE, INT], BOOL, (l, r) => l >= Number(r)),
-    celFunc(opc.GREATER_EQUALS, [DOUBLE, UINT], BOOL, (l, r) => l >= Number(r.value)),
-    celFunc(opc.GREATER_EQUALS, [UINT, DOUBLE], BOOL, (l, r) => Number(l.value) >= r),
-    celFunc(opc.GREATER_EQUALS, [DURATION, DURATION], BOOL, (l, r) => compareDuration(l, r) >= 0),
-    celFunc(opc.GREATER_EQUALS, [TIMESTAMP, TIMESTAMP], BOOL, (l, r) => compareTimestamp(l, r) >= 0),
-    // size
-    celFunc(olc.SIZE, [BYTES], INT, (x) => BigInt(x.length)),
-    celFunc(olc.SIZE, [LIST], INT, (x) => BigInt(x.size)),
-    celFunc(olc.SIZE, [STRING], INT, (x) => BigInt([...x].length)),
-    celFunc(olc.SIZE, [MAP], INT, (x) => BigInt(x.size)),
-    celMethod(olc.SIZE, BYTES, [], INT, function () {
-        return BigInt(this.length)
-    }),
-    celMethod(olc.SIZE, LIST, [], INT, function () {
-        return BigInt(this.size)
-    }),
-    celMethod(olc.SIZE, STRING, [], INT, function () {
-        return BigInt([...this].length)
-    }),
-    celMethod(olc.SIZE, MAP, [], INT, function () {
-        return BigInt(this.size)
-    }),
-    // in
-    celFunc(opc.IN, [DYN, LIST], BOOL, inList),
-    celFunc(opc.IN, [STRING, MAP], BOOL, inMap),
-    celFunc(opc.IN, [DOUBLE, MAP], BOOL, inMap),
-    celFunc(opc.IN, [INT, MAP], BOOL, inMap),
-    celFunc(opc.IN, [BOOL, MAP], BOOL, inMap),
-    celFunc(opc.IN, [UINT, MAP], BOOL, inMap),
-    // string.*
-    celMethod(olc.CONTAINS, STRING, [STRING], BOOL, String.prototype.includes),
-    celMethod(olc.ENDS_WITH, STRING, [STRING], BOOL, String.prototype.endsWith),
-    celMethod(olc.STARTS_WITH, STRING, [STRING], BOOL, String.prototype.startsWith),
-    celMethod(olc.MATCHES, STRING, [STRING], BOOL, matches),
+  // !
+  celFunc(opc.LOGICAL_NOT,    [BOOL],                 BOOL, (x)     =>  !x),
+  // =
+  celFunc(opc.EQUALS,         [DYN, DYN],             BOOL,             equals),
+  celFunc(opc.NOT_EQUALS,     [DYN, DYN],             BOOL, (l, r)  =>  !equals(l, r)),
+  // <
+  celFunc(opc.LESS,           [BOOL, BOOL],           BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) < 0),
+  celFunc(opc.LESS,           [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [STRING, STRING],       BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [INT, INT],             BOOL, (l, r)  =>  l < r),
+  celFunc(opc.LESS,           [INT, UINT],            BOOL, (l, r)  =>  l < r.value),
+  celFunc(opc.LESS,           [UINT, INT],            BOOL, (l, r)  =>  l.value < r),
+  celFunc(opc.LESS,           [UINT, UINT],           BOOL, (l, r)  =>  l.value < r.value),
+  // TODO investigate: ECMAScript relational operators support mixed bigint/number operands,
+  // but removing the coercion to number here fails the conformance test "not_lt_dyn_int_big_lossy_double"
+  celFunc(opc.LESS,           [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) < r),
+  celFunc(opc.LESS,           [DOUBLE, INT],          BOOL, (l, r)  =>  l < Number(r)),
+  celFunc(opc.LESS,           [DOUBLE, UINT],         BOOL, (l, r)  =>  l < Number(r.value)),
+  celFunc(opc.LESS,           [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) < r),
+  celFunc(opc.LESS,           [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) < 0),
+  celFunc(opc.LESS,           [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) < 0),
+  // <=
+  celFunc(opc.LESS_EQUALS,    [BOOL, BOOL],           BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) <= 0),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [STRING, STRING],       BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [INT, INT],             BOOL, (l, r)  =>  l <= r),
+  celFunc(opc.LESS_EQUALS,    [INT, UINT],            BOOL, (l, r)  =>  l <= r.value),
+  celFunc(opc.LESS_EQUALS,    [UINT, INT],            BOOL, (l, r)  =>  l.value <= r),
+  celFunc(opc.LESS_EQUALS,    [UINT, UINT],           BOOL, (l, r)  =>  l.value <= r.value),
+  celFunc(opc.LESS_EQUALS,    [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) <= r),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, INT],          BOOL, (l, r)  =>  l <= Number(r)),
+  celFunc(opc.LESS_EQUALS,    [DOUBLE, UINT],         BOOL, (l, r)  =>  l <= Number(r.value)),
+  celFunc(opc.LESS_EQUALS,    [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) <= r),
+  celFunc(opc.LESS_EQUALS,    [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) <= 0),
+  celFunc(opc.LESS_EQUALS,    [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) <= 0),
+  // >
+  celFunc(opc.GREATER,        [BOOL, BOOL],           BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) > 0),
+  celFunc(opc.GREATER,        [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [STRING, STRING],       BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [INT, INT],             BOOL, (l, r)  =>  l > r),
+  celFunc(opc.GREATER,        [INT, UINT],            BOOL, (l, r)  =>  l > r.value),
+  celFunc(opc.GREATER,        [UINT, INT],            BOOL, (l, r)  =>  l.value > r),
+  celFunc(opc.GREATER,        [UINT, UINT],           BOOL, (l, r)  =>  l.value > r.value),
+  celFunc(opc.GREATER,        [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) > r),
+  celFunc(opc.GREATER,        [DOUBLE, INT],          BOOL, (l, r)  =>  l > Number(r)),
+  celFunc(opc.GREATER,        [DOUBLE, UINT],         BOOL, (l, r)  =>  l > Number(r.value)),
+  celFunc(opc.GREATER,        [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) > r),
+  celFunc(opc.GREATER,        [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) > 0),
+  celFunc(opc.GREATER,        [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) > 0),
+  // >=
+  celFunc(opc.GREATER_EQUALS, [BOOL, BOOL],           BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [BYTES, BYTES],         BOOL, (l, r)  =>  compareBytes(l, r) >= 0),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, DOUBLE],       BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [STRING, STRING],       BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [INT, INT],             BOOL, (l, r)  =>  l >= r),
+  celFunc(opc.GREATER_EQUALS, [INT, UINT],            BOOL, (l, r)  =>  l >= r.value),
+  celFunc(opc.GREATER_EQUALS, [UINT, INT],            BOOL, (l, r)  =>  l.value >= r),
+  celFunc(opc.GREATER_EQUALS, [UINT, UINT],           BOOL, (l, r)  =>  l.value >= r.value),
+  celFunc(opc.GREATER_EQUALS, [INT, DOUBLE],          BOOL, (l, r)  =>  Number(l) >= r),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, INT],          BOOL, (l, r)  =>  l >= Number(r)),
+  celFunc(opc.GREATER_EQUALS, [DOUBLE, UINT],         BOOL, (l, r)  =>  l >= Number(r.value)),
+  celFunc(opc.GREATER_EQUALS, [UINT, DOUBLE],         BOOL, (l, r)  =>  Number(l.value) >= r),
+  celFunc(opc.GREATER_EQUALS, [DURATION, DURATION],   BOOL, (l, r)  =>  compareDuration(l, r) >= 0),
+  celFunc(opc.GREATER_EQUALS, [TIMESTAMP, TIMESTAMP], BOOL, (l, r)  =>  compareTimestamp(l, r) >= 0),
+  // size
+  celFunc(olc.SIZE,           [BYTES],                INT,  (x)     =>  BigInt(x.length)),
+  celFunc(olc.SIZE,           [LIST],                 INT,  (x)     =>  BigInt(x.size)),
+  celFunc(olc.SIZE,           [STRING],               INT,  (x)     =>  BigInt([...x].length)),
+  celFunc(olc.SIZE,           [MAP],                  INT,  (x)     =>  BigInt(x.size)),
+  celMethod(olc.SIZE,         BYTES,         [],      INT,  function () {return BigInt(this.length)}),
+  celMethod(olc.SIZE,         LIST,          [],      INT,  function () {return BigInt(this.size)}),
+  celMethod(olc.SIZE,         STRING,        [],      INT,  function () {return BigInt([...this].length)}),
+  celMethod(olc.SIZE,         MAP,           [],      INT,  function () {return BigInt(this.size)}),
+  // in
+  celFunc(opc.IN,             [DYN, LIST],            BOOL,             inList),
+  celFunc(opc.IN,             [STRING, MAP],          BOOL,             inMap),
+  celFunc(opc.IN,             [DOUBLE, MAP],          BOOL,             inMap),
+  celFunc(opc.IN,             [INT, MAP],             BOOL,             inMap),
+  celFunc(opc.IN,             [BOOL, MAP],            BOOL,             inMap),
+  celFunc(opc.IN,             [UINT, MAP],            BOOL,             inMap),
+  // string.*
+  celMethod(olc.CONTAINS,     STRING, [STRING],       BOOL, String.prototype.includes),
+  celMethod(olc.ENDS_WITH,    STRING, [STRING],       BOOL, String.prototype.endsWith),
+  celMethod(olc.STARTS_WITH,  STRING, [STRING],       BOOL, String.prototype.startsWith),
+  celMethod(olc.MATCHES,      STRING, [STRING],       BOOL,  matches),
 ];
