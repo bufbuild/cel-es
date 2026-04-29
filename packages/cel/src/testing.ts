@@ -53,7 +53,7 @@ import { isCelError } from "./error.js";
 import type {
   IncrementalTest,
   IncrementalTestSuite,
-} from "../../cel-spec/dist/cjs/testdata/tests.js";
+} from "@bufbuild/cel-spec/testdata/tests.js";
 import { getTestRegistry } from "@bufbuild/cel-spec/testdata/registry.js";
 import {
   KindAdorner,
