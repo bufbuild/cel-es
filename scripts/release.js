@@ -39,10 +39,7 @@ npmPublish();
  *
  */
 function npmPublish() {
-  const command =
-    `npm publish --tag ${tag}` +
-    " --workspace packages/cel" +
-    " --workspace packages/cel-spec";
+  const command = `npm publish --tag ${tag}` + " --workspace packages/cel";
   execSync(command, {
     stdio: "inherit",
   });

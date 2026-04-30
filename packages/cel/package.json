@@ -1,5 +1,5 @@
 {
-  "name": "@bufbuild/cel",
+  "name": "@bufbuild/empty-test-package",
   "version": "0.4.0",
   "description": "A CEL evaluator for ECMAScript",
   "keywords": [
