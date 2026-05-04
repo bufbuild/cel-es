@@ -12,15 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  celEnv,
-  CelScalar,
-  parse,
-  plan,
-  run,
-  celMethod,
-} from "@bufbuild/empty-test-package";
-import { strings } from "@bufbuild/empty-test-package/ext";
+import { celEnv, CelScalar, parse, plan, run, celMethod } from "@bufbuild/cel";
+import { strings } from "@bufbuild/cel/ext";
 
 // Run a CEL expression:
 

@@ -6,8 +6,8 @@ name: Publish Package
 
 on:
   push:
-    # tags:
-    #   - "v*"
+    tags:
+      - "v*"
 
 permissions:
   id-token: write # Required for OIDC
