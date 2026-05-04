@@ -28,21 +28,43 @@ import { execSync } from "node:child_process";
  *    publish workflow that runs this script.
  */
 
-const tag = determinePublishTag(findWorkspaceVersion("packages"));
 const uncommitted = gitUncommitted();
 if (uncommitted.length > 0) {
   throw new Error("Uncommitted changes found: \n" + uncommitted);
 }
-npmPublish();
+
+const version = findWorkspaceVersion("packages");
+const expectedGitTag = `v${version}`;
+const headTags = gitHeadTags();
+if (!headTags.includes(expectedGitTag)) {
+  throw new Error(
+    `Expected git tag ${expectedGitTag} on HEAD, found: ${headTags.join(", ") || "(none)"}`,
+  );
+}
+
+npmPublish(determinePublishTag(version));
 
 /**
- *
+ * @param {string} tag
  */
-function npmPublish() {
-  const command = `npm publish --tag ${tag}` + " --workspace packages/cel";
+function npmPublish(tag) {
+  const command = `npm publish --tag ${tag} --workspace packages/cel`;
   execSync(command, {
     stdio: "inherit",
   });
+}
+
+/**
+ * @returns {string[]}
+ */
+function gitHeadTags() {
+  const out = execSync("git tag --points-at HEAD", {
+    encoding: "utf-8",
+  });
+  return out
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
 }
 
 /**
