@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
-import { existsSync } from "node:fs";
 import { execSync } from "node:child_process";
 
 /*
@@ -28,56 +25,76 @@ import { execSync } from "node:child_process";
  *    publish workflow that runs this script.
  */
 
-const uncommitted = gitUncommitted();
-if (uncommitted.length > 0) {
-  throw new Error("Uncommitted changes found: \n" + uncommitted);
-}
+gitCheckUncommitted();
 
-const version = findWorkspaceVersion("packages");
-const expectedGitTag = `v${version}`;
-const headTags = gitHeadTags();
-if (!headTags.includes(expectedGitTag)) {
-  throw new Error(
-    `Expected git tag ${expectedGitTag} on HEAD, found: ${headTags.join(", ") || "(none)"}`,
-  );
-}
+const packages = discoverPackages();
+validatePackages(packages);
 
-npmPublish(determinePublishTag(version));
+const version = packages[0].version;
+gitCheckReleaseTag(version);
+npmPublish(version);
 
 /**
- * @param {string} tag
+ * @param {string} version
  */
-function npmPublish(tag) {
-  const command = `npm publish --tag ${tag} --workspace packages/cel`;
-  execSync(command, {
+function npmPublish(version) {
+  const tag = determinePublishTag(version);
+  execSync(`npm publish --tag ${tag} --workspaces`, {
     stdio: "inherit",
   });
 }
 
 /**
- * @returns {string[]}
+ * Validate the discovered workspace packages: at least one must exist, and
+ * all must share the same version.
+ *
+ * @param {DiscoveredPackage[]} packages
  */
-function gitHeadTags() {
-  const out = execSync("git tag --points-at HEAD", {
-    encoding: "utf-8",
-  });
-  return out
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+function validatePackages(packages) {
+  if (packages.length === 0) {
+    throw new Error("No publishable packages found");
+  }
+  const version = packages[0].version;
+  for (const pkg of packages) {
+    if (pkg.version !== version) {
+      throw new Error(
+        `Inconsistent workspace versions: ${packages[0].name}@${version} vs ${pkg.name}@${pkg.version}`,
+      );
+    }
+  }
 }
 
 /**
- * @returns {string}
+ * Throws if there are uncommitted changes in the working tree.
  */
-function gitUncommitted() {
+function gitCheckUncommitted() {
   const out = execSync("git status --short", {
     encoding: "utf-8",
   });
-  if (out.trim().length === 0) {
-    return "";
+  if (out.trim().length > 0) {
+    throw new Error("Uncommitted changes found: \n" + out);
   }
-  return out;
+}
+
+/**
+ * Throws if the tag `v<version>` is not among the tags pointing at HEAD.
+ *
+ * @param {string} version
+ */
+function gitCheckReleaseTag(version) {
+  const expected = `v${version}`;
+  const out = execSync("git tag --points-at HEAD", {
+    encoding: "utf-8",
+  });
+  const tags = out
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+  if (!tags.includes(expected)) {
+    throw new Error(
+      `Expected git tag ${expected} on HEAD, found: ${tags.join(", ") || "(none)"}`,
+    );
+  }
 }
 
 /**
@@ -101,33 +118,33 @@ function determinePublishTag(version) {
 }
 
 /**
- * @param {string} packagesDir
- * @returns {string}
+ * @typedef {{name: string; version: string}} DiscoveredPackage
  */
-function findWorkspaceVersion(packagesDir) {
-  let version = undefined;
-  for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) {
+
+/**
+ * Discover all non-private workspace packages by reading their name and
+ * version from the npm CLI.
+ *
+ * @returns {DiscoveredPackage[]}
+ */
+function discoverPackages() {
+  const out = execSync("npm pkg get name version private --workspaces --json", {
+    encoding: "utf-8",
+  });
+  const workspaces = JSON.parse(out);
+  /** @type {DiscoveredPackage[]} */
+  const packages = [];
+  for (const [key, value] of Object.entries(workspaces)) {
+    if (value.private === true) {
       continue;
     }
-    const path = join(packagesDir, entry.name, "package.json");
-    if (existsSync(path)) {
-      const pkg = JSON.parse(readFileSync(path, "utf-8"));
-      if (pkg.private === true) {
-        continue;
-      }
-      if (!pkg.version) {
-        throw new Error(`${path} is missing "version"`);
-      }
-      if (version === undefined) {
-        version = pkg.version;
-      } else if (version !== pkg.version) {
-        throw new Error(`${path} has unexpected version ${pkg.version}`);
-      }
+    if (typeof value.name !== "string" || value.name.length === 0) {
+      throw new Error(`workspace ${key} is missing "name"`);
     }
+    if (typeof value.version !== "string" || value.version.length === 0) {
+      throw new Error(`workspace ${key} is missing "version"`);
+    }
+    packages.push({ name: value.name, version: value.version });
   }
-  if (version === undefined) {
-    throw new Error("unable to find workspace version");
-  }
-  return version;
+  return packages;
 }
