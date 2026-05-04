@@ -26,7 +26,7 @@ import {
   stringToRunes,
   runeToString,
 } from "./Utils.js";
-import { codePointAtOrThrow } from "./__utils__/chars.js";
+import { codePointAtOrThrow } from "./chars.js";
 import { CharClass } from "./CharClass.js";
 import { RE2JSSyntaxException } from "./exceptions.js";
 import { Regexp } from "./Regexp.js";

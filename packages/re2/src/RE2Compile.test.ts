@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2 } from "../RE2.js";
+import { RE2 } from "./RE2.js";
 
 describe(".compile", () => {
   const cases: [string, string | null][] = [

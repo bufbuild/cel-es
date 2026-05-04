@@ -1,19 +1,24 @@
 import { test } from "node:test";
 import * as assert from "node:assert/strict";
-import fs from "node:fs";
-import path from "node:path";
-import zlib from "node:zlib";
-import readline from "node:readline";
-import url from "node:url";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import * as zlib from "node:zlib";
+import * as readline from "node:readline";
+import * as url from "node:url";
 
-import { RE2 } from "../RE2.js";
-import { CLASS_NL, FOLD_CASE, POSIX } from "../RE2Flags.js";
-import { quoteMeta } from "../Utils.js";
-import { codePoint, codePointAtOrThrow } from "../__utils__/chars.js";
+import { RE2 } from "./RE2.js";
+import { CLASS_NL, FOLD_CASE, POSIX } from "./RE2Flags.js";
+import { quoteMeta } from "./Utils.js";
+import { codePoint, codePointAtOrThrow } from "./chars.js";
+
+// Tests run only via tsx in ESM mode; the CJS-compiled output is never
+// executed, so suppress the CJS-only complaint about import.meta.
+// @ts-ignore -- TS1343 under --module commonjs; valid under Node16/ESM.
+const IMPORT_META_URL: string = import.meta.url;
 
 const FIXTURES_DIRNAME = path.join(
-  path.dirname(url.fileURLToPath(import.meta.url)),
-  "../__fixtures__",
+  path.dirname(url.fileURLToPath(IMPORT_META_URL)),
+  "__fixtures__",
 );
 
 const isSingleBytes = (s: string): boolean => {
@@ -207,7 +212,7 @@ const testRE2 = async (fileName: string): Promise<void> => {
       for (let i = 0; i < 2; i++) {
         const partial = (i & 1) !== 0;
 
-        const regexp = partial ? re : refull;
+        const regexp: RE2 | null = partial ? re : refull;
         if (regexp === null) continue;
 
         const want = parseResult(lineno, res[i]);

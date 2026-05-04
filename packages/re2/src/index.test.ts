@@ -1,7 +1,7 @@
 import { describe, test, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2JS } from "../index.js";
-import type { RE2JSSyntaxException } from "../exceptions.js";
+import { RE2JS } from "./index.js";
+import type { RE2JSSyntaxException } from "./exceptions.js";
 
 it("compile", () => {
   const p = RE2JS.compile("abc");

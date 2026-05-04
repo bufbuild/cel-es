@@ -1,6 +1,6 @@
-import { FOLD_CASE, NON_GREEDY, WAS_DOLLAR } from "../RE2Flags.js";
-import { Regexp } from "../Regexp.js";
-import { MAX_RUNE, simpleFold } from "../Unicode.js";
+import { FOLD_CASE, NON_GREEDY, WAS_DOLLAR } from "./RE2Flags.js";
+import { Regexp } from "./Regexp.js";
+import { MAX_RUNE, simpleFold } from "./Unicode.js";
 
 const OP_NAMES = new Map<number, string>([
   [Regexp.Op.NO_MATCH, "no"],

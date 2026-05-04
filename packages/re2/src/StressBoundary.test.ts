@@ -1,6 +1,6 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2JS } from "../index.js";
+import { RE2JS } from "./index.js";
 
 describe("stress: boundary conditions", () => {
   test("empty pattern matches empty string", () => {

@@ -1,8 +1,8 @@
 import { describe, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { Inst } from "../Inst.js";
-import { FOLD_CASE } from "../RE2Flags.js";
-import { codePoint } from "../__utils__/chars.js";
+import { Inst } from "./Inst.js";
+import { FOLD_CASE } from "./RE2Flags.js";
+import { codePoint } from "./chars.js";
 
 describe("Inst.matchRune Array Search Logic", () => {
   it("correctly matches using the linear search fast-path (length 4)", () => {

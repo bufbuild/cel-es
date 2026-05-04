@@ -1,11 +1,11 @@
 import { describe, test, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { Parser } from "../Parser.js";
-import { simplify } from "../Simplify.js";
-import { PrefilterTree, Prefilter } from "../Prefilter.js";
-import { PERL } from "../RE2Flags.js";
-import { RE2JS } from "../index.js";
-import { fromUTF16 } from "../MachineInput.js";
+import { Parser } from "./Parser.js";
+import { simplify } from "./Simplify.js";
+import { PrefilterTree, Prefilter } from "./Prefilter.js";
+import { PERL } from "./RE2Flags.js";
+import { RE2JS } from "./index.js";
+import { fromUTF16 } from "./MachineInput.js";
 
 const dumpPrefilter = (pf: Prefilter | null): string => {
   if (!pf) return "null";

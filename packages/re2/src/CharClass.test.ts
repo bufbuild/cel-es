@@ -1,12 +1,12 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { FOLD_CASE } from "../RE2Flags.js";
-import { type CharGroup, getPerlGroups } from "../CharGroup.js";
-import { CharClass } from "../CharClass.js";
-import { MAX_FOLD, MAX_RUNE } from "../Unicode.js";
-import { UnicodeRangeTable } from "../UnicodeRangeTable.js";
-import { stringToRunes } from "../Utils.js";
-import { codePoint } from "../__utils__/chars.js";
+import { FOLD_CASE } from "./RE2Flags.js";
+import { type CharGroup, getPerlGroups } from "./CharGroup.js";
+import { CharClass } from "./CharClass.js";
+import { MAX_FOLD, MAX_RUNE } from "./Unicode.js";
+import { UnicodeRangeTable } from "./UnicodeRangeTable.js";
+import { stringToRunes } from "./Utils.js";
+import { codePoint } from "./chars.js";
 
 describe(".cleanClass", () => {
   const cases: [number[], number[]][] = [

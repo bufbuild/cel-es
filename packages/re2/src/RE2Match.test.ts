@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2 } from "../RE2.js";
-import { FIND_TESTS } from "../__fixtures__/find.js";
+import { RE2 } from "./RE2.js";
+import { FIND_TESTS } from "./__fixtures__/find.js";
 
 describe("match", () => {
   for (const testPattern of FIND_TESTS) {

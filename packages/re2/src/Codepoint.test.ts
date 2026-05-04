@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { toLowerCase, toUpperCase } from "../Codepoint.js";
+import { toLowerCase, toUpperCase } from "./Codepoint.js";
 
 describe("Codepoint", () => {
   describe("ASCII fast-path memoization", () => {

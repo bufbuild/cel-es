@@ -1,10 +1,10 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2 } from "../RE2.js";
-import { DFA } from "../DFA.js";
-import { ANCHOR_BOTH } from "../RE2Flags.js";
-import { fromUTF16 } from "../MachineInput.js";
-import { Prefilter } from "../Prefilter.js";
+import { RE2 } from "./RE2.js";
+import { DFA } from "./DFA.js";
+import { ANCHOR_BOTH } from "./RE2Flags.js";
+import { fromUTF16 } from "./MachineInput.js";
+import { Prefilter } from "./Prefilter.js";
 
 describe("Literal Fast-Path Routing", () => {
   test("bails out early using literal fast path for strictly literal unanchored regexes", (t) => {

@@ -1,16 +1,16 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { DFA } from "../DFA.js";
-import { Compiler } from "../Compiler.js";
-import { Parser } from "../Parser.js";
+import { DFA } from "./DFA.js";
+import { Compiler } from "./Compiler.js";
+import { Parser } from "./Parser.js";
 import {
   ANCHOR_BOTH,
   ANCHOR_START,
   FOLD_CASE,
   PERL,
   UNANCHORED,
-} from "../RE2Flags.js";
-import { fromUTF16 } from "../MachineInput.js";
+} from "./RE2Flags.js";
+import { fromUTF16 } from "./MachineInput.js";
 
 const createDFA = (pattern: string, flags: number = PERL): DFA => {
   const re = Parser.parse(pattern, flags);

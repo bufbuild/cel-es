@@ -32,11 +32,17 @@ function toUpperCase(codepoint: number): number {
   if (s.length > 1) {
     return codepoint;
   }
-  const sOrigin = String.fromCodePoint(s.codePointAt(0)).toLowerCase();
+
+  const cp = s.codePointAt(0);
+  if (cp === undefined) {
+    return codepoint;
+  }
+
+  const sOrigin = String.fromCodePoint(cp).toLowerCase();
   if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
     return codepoint;
   }
-  return s.codePointAt(0);
+  return cp;
 }
 
 function toLowerCase(codepoint: number): number {
@@ -46,11 +52,16 @@ function toLowerCase(codepoint: number): number {
   if (s.length > 1) {
     return codepoint;
   }
-  const sOrigin = String.fromCodePoint(s.codePointAt(0)).toUpperCase();
+  const cp = s.codePointAt(0);
+  if (cp === undefined) {
+    return codepoint;
+  }
+
+  const sOrigin = String.fromCodePoint(cp).toUpperCase();
   if (sOrigin.length > 1 || sOrigin.codePointAt(0) !== codepoint) {
     return codepoint;
   }
-  return s.codePointAt(0);
+  return cp;
 }
 
 export { toUpperCase, toLowerCase };

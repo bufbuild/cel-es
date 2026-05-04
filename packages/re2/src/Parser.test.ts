@@ -8,11 +8,11 @@ import {
   PERL_X,
   POSIX,
   UNICODE_GROUPS,
-} from "../RE2Flags.js";
-import { RE2JSSyntaxException } from "../exceptions.js";
-import { Parser } from "../Parser.js";
-import { isUpper, simpleFold } from "../Unicode.js";
-import { dumpRegexp, mkCharClass } from "../__utils__/parser.js";
+} from "./RE2Flags.js";
+import { RE2JSSyntaxException } from "./exceptions.js";
+import { Parser } from "./Parser.js";
+import { isUpper, simpleFold } from "./Unicode.js";
+import { dumpRegexp, mkCharClass } from "./testParser.js";
 
 describe(".parse", () => {
   const cases: [string, string | null][] = [

@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { UnicodeTables } from "../UnicodeTables.js";
-import type { UnicodeRangeTable } from "../UnicodeRangeTable.js";
+import { UnicodeTables } from "./UnicodeTables.js";
+import type { UnicodeRangeTable } from "./UnicodeRangeTable.js";
 // @ts-expect-error - package has no .d.ts
 import propertyValueAliases from "unicode-property-value-aliases";
 

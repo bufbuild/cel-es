@@ -29,7 +29,7 @@ import type { CelMap } from "../map.js";
 import { RE2JS } from "@bufbuild/re2";
 
 export function matches(this: string, pattern: string): boolean {
-    return RE2JS.compile(pattern).test(this);
+  return RE2JS.compile(pattern).test(this);
 }
 
 function compareDuration(

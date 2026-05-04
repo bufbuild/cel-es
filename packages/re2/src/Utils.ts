@@ -1,5 +1,5 @@
 import { MAX_BMP } from "./Unicode.js";
-import { codePointAtOrThrow } from "./__utils__/chars.js";
+import { codePointAtOrThrow } from "./chars.js";
 
 /**
  * Various constants and helper utilities.

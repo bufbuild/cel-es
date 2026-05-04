@@ -1,7 +1,7 @@
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2JS } from "../index.js";
-import { UnicodeTables } from "../UnicodeTables.js";
+import { RE2JS } from "./index.js";
+import { UnicodeTables } from "./UnicodeTables.js";
 // @ts-expect-error — no types published for this package
 import unicodePropertyValueAliases from "unicode-property-value-aliases";
 

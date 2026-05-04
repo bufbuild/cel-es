@@ -5,10 +5,10 @@
  */
 import { describe, test } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2JS } from "../index.js";
-import { fromUTF16 } from "../MachineInput.js";
-import { ANCHOR_START } from "../RE2Flags.js";
-import { equalsIgnoreCase, simpleFold } from "../Unicode.js";
+import { RE2JS } from "./index.js";
+import { fromUTF16 } from "./MachineInput.js";
+import { ANCHOR_START } from "./RE2Flags.js";
+import { equalsIgnoreCase, simpleFold } from "./Unicode.js";
 
 describe("bug-hunt verification", () => {
   // Phase 1c: DFA.match ANCHOR_START with pos>0

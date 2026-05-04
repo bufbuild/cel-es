@@ -1,9 +1,9 @@
 import { describe, test, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { RE2JS } from "../index.js";
-import { RE2 } from "../RE2.js";
-import { fromUTF16 } from "../MachineInput.js";
-import { ANCHOR_BOTH, ANCHOR_START, UNANCHORED } from "../RE2Flags.js";
+import { RE2JS } from "./index.js";
+import { RE2 } from "./RE2.js";
+import { fromUTF16 } from "./MachineInput.js";
+import { ANCHOR_BOTH, ANCHOR_START, UNANCHORED } from "./RE2Flags.js";
 
 describe("Edge cases and bug hunting", () => {
   describe("Empty patterns and inputs", () => {

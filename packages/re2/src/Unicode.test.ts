@@ -1,8 +1,8 @@
 import { describe, test, it } from "node:test";
 import * as assert from "node:assert/strict";
-import { equalsIgnoreCase, isUpper, simpleFold } from "../Unicode.js";
-import { UnicodeTables } from "../UnicodeTables.js";
-import { codePoint } from "../__utils__/chars.js";
+import { equalsIgnoreCase, isUpper, simpleFold } from "./Unicode.js";
+import { UnicodeTables } from "./UnicodeTables.js";
+import { codePoint } from "./chars.js";
 
 describe("#isUpper", () => {
   const cases: [number, boolean][] = [
