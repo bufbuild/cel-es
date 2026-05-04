@@ -1,5 +1,9 @@
 name: Publish Package
 
+# Requires npm trusted publishing to be configured for each package.
+# Minimum versions: npm >= 11.5.1, Node.js >= 22.14.0.
+# See: https://docs.npmjs.com/trusted-publishers
+
 on:
   push:
     # tags:
@@ -17,7 +21,7 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: "24.5.0"
+          node-version-file: .nvmrc
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
       - run: npm run release
