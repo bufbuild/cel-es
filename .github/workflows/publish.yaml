@@ -10,7 +10,7 @@ on:
       - "v*"
 
 permissions:
-  id-token: write # Required for OIDC
+  id-token: write # Required for OIDC, see https://docs.npmjs.com/trusted-publishers
   contents: read
 
 jobs:
@@ -18,10 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           registry-url: "https://registry.npmjs.org"
       - run: npm ci
-      - run: npm run release
+      - run: npm run all
+      - run: node scripts/gh-diffcheck.js
+      - run: node scripts/release.js

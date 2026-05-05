@@ -25,8 +25,6 @@ import { execSync } from "node:child_process";
  *    publish workflow that runs this script.
  */
 
-gitCheckUncommitted();
-
 const packages = discoverPackages();
 validatePackages(packages);
 
@@ -61,18 +59,6 @@ function validatePackages(packages) {
         `Inconsistent workspace versions: ${packages[0].name}@${version} vs ${pkg.name}@${pkg.version}`,
       );
     }
-  }
-}
-
-/**
- * Throws if there are uncommitted changes in the working tree.
- */
-function gitCheckUncommitted() {
-  const out = execSync("git status --short", {
-    encoding: "utf-8",
-  });
-  if (out.trim().length > 0) {
-    throw new Error("Uncommitted changes found: \n" + out);
   }
 }
 
