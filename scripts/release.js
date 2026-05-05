@@ -15,7 +15,7 @@
 import { execSync } from "node:child_process";
 
 /*
- * Publish cel-es
+ * Publish workspace packages to npm
  *
  * Recommended procedure:
  * 1. Set a new version with `npm run setversion 1.2.3`
