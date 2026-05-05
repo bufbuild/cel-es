@@ -25,10 +25,9 @@ if (
     [
       `USAGE: ${process.argv[1]} <new-version>`,
       "",
-      "Walks through all workspace packages and sets the version of each ",
-      "package to the given version.",
-      "If a package depends on another package from the workspace, the",
-      "dependency version is updated as well.",
+      "Sets the version across all workspace packages. For example 1.2.3, or 2.0.0-alpha.0.",
+      "",
+      "This script exists because `npm version` does not update cross-workspace dependency entries.",
       "",
     ].join("\n"),
   );
