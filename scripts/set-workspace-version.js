@@ -187,10 +187,6 @@ function readPackage(path) {
   if (typeof json !== "object" || json === null) {
     throw new Error(`Failed to parse ${path}`);
   }
-  const lock = JSON.parse(readFileSync(path, "utf-8"));
-  if (typeof lock !== "object" || lock === null) {
-    throw new Error(`Failed to parse ${path}`);
-  }
   if (!("name" in json) || typeof json.name != "string") {
     throw new Error(`Missing "name" in ${path}`);
   }
@@ -201,7 +197,7 @@ function readPackage(path) {
   } else if (!("private" in json) || json.private !== true) {
     throw new Error(`Need either "version" or "private":true in ${path}`);
   }
-  return lock;
+  return json;
 }
 
 /**
