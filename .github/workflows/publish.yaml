@@ -17,18 +17,12 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           registry-url: "https://registry.npmjs.org"
-      - name: Install dependencies
-        run: npm ci
-      - name: Run all checks
-        run: npm run all
-      - name: Check for uncommitted changes
-        run: node scripts/gh-diffcheck.js
-      - name: Publish packages
-        run: node scripts/release.js
+      - run: npm ci
+      - run: npm run all
+      - run: node scripts/gh-diffcheck.js
+      - run: node scripts/publish.js
