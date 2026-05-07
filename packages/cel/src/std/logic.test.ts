@@ -32,7 +32,7 @@ function durationOf(func: () => void, times = 5): number {
 
 void suite("logic", () => {
   void suite("matches(string, string) -> bool", () => {
-    void test.skip("doesn't evaluate simple ReDoS expressions in exponential time", () => {
+    void test("doesn't evaluate simple ReDoS expressions in exponential time", () => {
       const maliciousRegex = "^(a*)*$";
       const overhead = durationOf(() => matches.call("!", maliciousRegex));
 
