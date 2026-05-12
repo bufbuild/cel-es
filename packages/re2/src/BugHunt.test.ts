@@ -27,10 +27,10 @@ describe("bug-hunt verification", () => {
   });
 
   // Phase 1b: equalsIgnoreCase EOF handling
-  test("equalsIgnoreCase(-1, X) returns true per current implementation", () => {
-    assert.strictEqual(equalsIgnoreCase(-1, 0x41), true);
-    assert.strictEqual(equalsIgnoreCase(0x41, -1), true);
-    assert.strictEqual(equalsIgnoreCase(-1, -1), true);
+  test("equalsIgnoreCase treats EOF as non-matching", () => {
+    assert.strictEqual(equalsIgnoreCase(-1, 0x41), false);
+    assert.strictEqual(equalsIgnoreCase(0x41, -1), false);
+    assert.strictEqual(equalsIgnoreCase(-1, -1), false);
   });
 
   // Phase 1d: Simplify REPEAT aliasing
