@@ -66,6 +66,10 @@ class RE2 {
     anchor: number,
     ncap: number,
   ): number[] | null {
+    if ((anchor === ANCHOR_START || anchor === ANCHOR_BOTH) && pos !== 0) {
+      return null;
+    }
+
     let matchStart = -1;
     let matchEnd = -1;
     const pLen = input.prefixLength(this);
@@ -76,29 +80,28 @@ class RE2 {
       matchStart = pos + idx;
       matchEnd = matchStart + pLen;
     } else if (anchor === ANCHOR_BOTH) {
-      // Match must span [pos, endPos] exactly and equal the prefix.
-      if (input.endPos() - pos !== pLen) return null;
-      const idx = input.index(this, pos);
+      if (input.endPos() !== pLen) return null;
+      const idx = input.index(this, 0);
       if (idx !== 0) return null;
-      matchStart = pos;
-      matchEnd = pos + pLen;
+      matchStart = 0;
+      matchEnd = pLen;
     } else if (anchor === ANCHOR_START) {
-      // Match must start at pos and equal the prefix.
-      const idx = input.index(this, pos);
+      const idx = input.index(this, 0);
       if (idx !== 0) return null;
-      matchStart = pos;
-      matchEnd = pos + pLen;
+      matchStart = 0;
+      matchEnd = pLen;
     }
 
     if (matchStart < 0) return null;
 
+    // If captures are requested (e.g. findSubmatch instead of test), populate bounds
     if (ncap > 0) {
       const matchcap = new Int32Array(ncap).fill(-1);
       matchcap[0] = matchStart;
       matchcap[1] = matchEnd;
       return Array.from(matchcap);
     }
-    return [];
+    return []; // Matched successfully, but no capture data requested
   }
 
   executeEngine(

@@ -12,11 +12,11 @@ import { equalsIgnoreCase, simpleFold } from "./Unicode.js";
 
 describe("bug-hunt verification", () => {
   // Phase 1c: DFA.match ANCHOR_START with pos>0
-  test("executeEngine with ANCHOR_START and pos>0 finds substring match", () => {
+  test("executeEngine with ANCHOR_START and pos>0 returns null", () => {
     const re = RE2JS.compile("abc");
     const input = fromUTF16("xyzabc");
     const result = re.re2Input.executeEngine(input, 3, ANCHOR_START, 0);
-    assert.notStrictEqual(result, null);
+    assert.strictEqual(result, null);
   });
 
   test("executeEngine with ANCHOR_START and pos>0 where pattern does not start at pos", () => {
