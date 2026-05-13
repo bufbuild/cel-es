@@ -19,7 +19,7 @@ run(
 
 That's it!
 
-For an example of creating resusable evaluator and more, refer to [example.ts](https://github.com/bufbuild/cel-es/blob/main/packages/example/src/example.ts).
+For an example of creating a reusable evaluator and more, refer to [example.ts](https://github.com/bufbuild/cel-es/blob/main/packages/example/src/example.ts).
 
 ### Types
 
