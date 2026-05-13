@@ -1,0 +1,172 @@
+import { FOLD_CASE } from "./RE2Flags.js";
+import { Inst } from "./Inst.js";
+
+/**
+ * A list of instruction pointers waiting to be patched.
+ * Tracks both `head` and `tail` to allow O(1) appending during compilation.
+ * * Values are encoded integers, not standard memory pointers:
+ * - Program instruction index: `l >> 1`
+ * - Patch `.out` field if: `(l & 1) === 0`
+ * - Patch `.arg` field if: `(l & 1) === 1`
+ * - `0` denotes an empty list.
+ * * @see https://swtch.com/~rsc/regexp/regexp1.html
+ */
+class PatchList {
+  head: number;
+  tail: number;
+
+  /**
+   * @param {number} head - Encoded pointer to the start of the patch list.
+   * @param {number} tail - Encoded pointer to the end of the patch list.
+   */
+  constructor(head = 0, tail = 0) {
+    this.head = head;
+    this.tail = tail;
+  }
+}
+
+/**
+ * A Prog is a compiled regular expression program.
+ */
+class Prog {
+  inst: Inst[];
+  start: number;
+  numCap: number;
+
+  constructor() {
+    this.inst = [];
+    this.start = 0; // index of start instruction
+    // number of CAPTURE insts in re
+    // 2 => implicit ( and ) for whole match $0
+    this.numCap = 2;
+  }
+
+  // Returns the instruction at the specified pc.
+  // Precondition: pc > 0 && pc < numInst().
+  getInst(pc: number): Inst {
+    return this.inst[pc];
+  }
+
+  // Returns the number of instructions in this program.
+  numInst(): number {
+    return this.inst.length;
+  }
+
+  // Adds a new instruction to this program, with operator |op| and |pc| equal
+  // to |numInst()|.
+  addInst(op: number): void {
+    this.inst.push(new Inst(op));
+  }
+
+  // skipNop() follows any no-op or capturing instructions and returns the
+  // resulting instruction.
+  skipNop(pc: number): Inst {
+    let i = this.inst[pc];
+
+    while (i.op === Inst.NOP || i.op === Inst.CAPTURE) {
+      i = this.inst[pc];
+      pc = i.out;
+    }
+
+    return i;
+  }
+
+  // prefix() returns a pair of a literal string that all matches for the
+  // regexp must start with, and a boolean which is true if the prefix is the
+  // entire match.  The string is returned by appending to |prefix|.
+  prefix(): [boolean, string] {
+    let prefix = "";
+    let i = this.skipNop(this.start);
+
+    if (!Inst.isRuneOp(i.op) || i.runes.length !== 1) {
+      return [i.op === Inst.MATCH, prefix];
+    }
+
+    while (
+      Inst.isRuneOp(i.op) &&
+      i.runes.length === 1 &&
+      (i.arg & FOLD_CASE) === 0
+    ) {
+      prefix += String.fromCodePoint(i.runes[0]);
+      i = this.skipNop(i.out);
+    }
+
+    return [i.op === Inst.MATCH, prefix];
+  }
+
+  // startCond() returns the leading empty-width conditions that must be true
+  // in any match.  It returns -1 (all bits set) if no matches are possible.
+  startCond(): number {
+    let flag = 0;
+    let pc = this.start;
+    loop: for (;;) {
+      const i = this.inst[pc];
+      switch (i.op) {
+        case Inst.EMPTY_WIDTH:
+          flag |= i.arg;
+          break;
+        case Inst.FAIL:
+          return -1;
+        case Inst.CAPTURE:
+        case Inst.NOP:
+          break;
+        default:
+          break loop;
+      }
+      pc = i.out;
+    }
+    return flag;
+  }
+
+  // --- Patch list ---
+
+  // A patchlist is a list of instruction pointers that need to be filled in
+  // (patched).  Because the pointers haven't been filled in yet, we can reuse
+  // their storage to hold the list.  It's kind of sleazy, but works well in
+  // practice.  See http://swtch.com/~rsc/regexp/regexp1.html for inspiration.
+
+  // These aren't really pointers: they're integers, so we can reinterpret them
+  // this way without using package unsafe.  A value l denotes p.inst[l>>1].out
+  // (l&1==0) or .arg (l&1==1).  l == 0 denotes the empty list, okay because we
+  // start every program with a fail instruction, so we'll never want to point
+  // at its output link.
+
+  next(l: number): number {
+    const i = this.inst[l >> 1];
+    if ((l & 1) === 0) {
+      return i.out;
+    }
+    return i.arg;
+  }
+
+  patch(l: PatchList, val: number): void {
+    let head = l.head;
+    while (head !== 0) {
+      const i = this.inst[head >> 1];
+      if ((head & 1) === 0) {
+        head = i.out;
+        i.out = val;
+      } else {
+        head = i.arg;
+        i.arg = val;
+      }
+    }
+  }
+
+  append(l1: PatchList, l2: PatchList): PatchList {
+    if (l1.head === 0) return l2;
+    if (l2.head === 0) return l1;
+
+    // We know exactly where the tail is
+    const i = this.inst[l1.tail >> 1];
+    if ((l1.tail & 1) === 0) {
+      i.out = l2.head;
+    } else {
+      i.arg = l2.head;
+    }
+
+    return new PatchList(l1.head, l2.tail);
+  }
+}
+
+export { Prog, PatchList };
