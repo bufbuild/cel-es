@@ -1,6 +1,6 @@
 {
   "name": "@bufbuild/re2",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "An RE2-compatible regex engine tailored for CEL and Protovalidate",
   "keywords": [
     "javascript",
