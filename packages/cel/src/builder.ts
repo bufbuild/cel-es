@@ -233,6 +233,7 @@ export default class Builder {
       return this.newCallExpr(offset, "has", [target]);
     }
 
+    this.addMacroCall(target.id, "has", undefined, [target]);
     target.exprKind.value.testOnly = true;
     return target;
   }
@@ -438,48 +439,54 @@ export default class Builder {
         call.exprKind.value.target !== undefined &&
         varName.exprKind?.case === "identExpr"
       ) {
+        let expanded: Expr | undefined;
         if (callExpr.args.length === 2) {
           switch (callExpr.function) {
             case "exists":
-              return this.expandExistsMacro(
+              expanded = this.expandExistsMacro(
                 offset,
                 call.exprKind.value.target,
                 varName.exprKind.value.name,
                 call.exprKind.value.args[1],
               );
+              break;
             case "all":
-              return this.expandAllMacro(
+              expanded = this.expandAllMacro(
                 offset,
                 call.exprKind.value.target,
                 varName.exprKind.value.name,
                 call.exprKind.value.args[1],
               );
+              break;
             case "map":
-              return this.expandMapMacro(
+              expanded = this.expandMapMacro(
                 offset,
                 call.exprKind.value.target,
                 varName.exprKind.value.name,
                 call.exprKind.value.args[1],
               );
+              break;
             case "filter":
-              return this.expandFilterMacro(
+              expanded = this.expandFilterMacro(
                 offset,
                 call.exprKind.value.target,
                 varName.exprKind.value.name,
                 call.exprKind.value.args[1],
               );
+              break;
             case "exists_one":
             case "existsOne":
-              return this.expandExistsOne(
+              expanded = this.expandExistsOne(
                 offset,
                 call.exprKind.value.target,
                 varName.exprKind.value.name,
                 call.exprKind.value.args[1],
               );
+              break;
           }
         }
         if (callExpr.args.length === 3 && callExpr.function == "map") {
-          return this.expandMapFilterMacro(
+          expanded = this.expandMapFilterMacro(
             offset,
             call.exprKind.value.target,
             varName.exprKind.value.name,
@@ -487,9 +494,132 @@ export default class Builder {
             call.exprKind.value.args[2],
           );
         }
+        if (expanded !== undefined) {
+          this.addMacroCall(
+            expanded.id,
+            callExpr.function,
+            callExpr.target,
+            callExpr.args,
+          );
+          return expanded;
+        }
       }
     }
     return call;
+  }
+
+  addMacroCall(
+    exprId: bigint,
+    functionName: string,
+    target: Expr | undefined,
+    args: Expr[],
+  ): void {
+    const macroArgs = args.map((arg) => this.buildMacroCallArg(arg));
+    let macroTarget = target;
+    if (target !== undefined) {
+      if (this.sourceInfo.macroCalls[target.id.toString()] !== undefined) {
+        macroTarget = {
+          $typeName: "cel.expr.Expr",
+          id: target.id,
+          exprKind: { case: undefined, value: undefined },
+        };
+      } else {
+        macroTarget = this.buildMacroCallArg(target);
+      }
+    }
+    const macroCall: Expr =
+      macroTarget !== undefined
+        ? {
+            $typeName: "cel.expr.Expr",
+            id: 0n,
+            exprKind: {
+              case: "callExpr",
+              value: {
+                $typeName: "cel.expr.Expr.Call",
+                function: functionName,
+                target: macroTarget,
+                args: macroArgs,
+              },
+            },
+          }
+        : {
+            $typeName: "cel.expr.Expr",
+            id: 0n,
+            exprKind: {
+              case: "callExpr",
+              value: {
+                $typeName: "cel.expr.Expr.Call",
+                function: functionName,
+                args: macroArgs,
+              },
+            },
+          };
+    this.sourceInfo.macroCalls[exprId.toString()] = macroCall;
+  }
+
+  buildMacroCallArg(expr: Expr): Expr {
+    if (this.sourceInfo.macroCalls[expr.id.toString()] !== undefined) {
+      return {
+        $typeName: "cel.expr.Expr",
+        id: expr.id,
+        exprKind: { case: undefined, value: undefined },
+      };
+    }
+    if (expr.exprKind.case === "callExpr") {
+      const call = expr.exprKind.value;
+      const macroArgs = call.args.map((arg) => this.buildMacroCallArg(arg));
+      const macroTarget =
+        call.target !== undefined
+          ? this.buildMacroCallArg(call.target)
+          : undefined;
+      return {
+        $typeName: "cel.expr.Expr",
+        id: expr.id,
+        exprKind: {
+          case: "callExpr",
+          value: {
+            $typeName: "cel.expr.Expr.Call",
+            function: call.function,
+            target: macroTarget,
+            args: macroArgs,
+          },
+        },
+      };
+    }
+    if (expr.exprKind.case === "selectExpr") {
+      const sel = expr.exprKind.value;
+      return {
+        $typeName: "cel.expr.Expr",
+        id: expr.id,
+        exprKind: {
+          case: "selectExpr",
+          value: {
+            $typeName: "cel.expr.Expr.Select",
+            operand: sel.operand
+              ? this.buildMacroCallArg(sel.operand)
+              : undefined,
+            field: sel.field,
+            testOnly: sel.testOnly,
+          },
+        },
+      };
+    }
+    if (expr.exprKind.case === "listExpr") {
+      const list = expr.exprKind.value;
+      return {
+        $typeName: "cel.expr.Expr",
+        id: expr.id,
+        exprKind: {
+          case: "listExpr",
+          value: {
+            $typeName: "cel.expr.Expr.CreateList",
+            elements: list.elements.map((el) => this.buildMacroCallArg(el)),
+            optionalIndices: list.optionalIndices,
+          },
+        },
+      };
+    }
+    return expr;
   }
 
   newMapEntry(offset: number, key: Expr, value: Expr): Expr_CreateStruct_Entry {

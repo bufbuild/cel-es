@@ -44,5 +44,6 @@ export type {
 export { run } from "./run.js";
 export { plan } from "./plan.js";
 export { parse } from "./parse.js";
+export { unparse } from "./unparse.js";
 export { type CelEnv, celEnv } from "./env.js";
 export { type CelFunc, celMethod, celFunc } from "./func.js";

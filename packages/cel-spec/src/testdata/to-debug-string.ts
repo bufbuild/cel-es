@@ -26,6 +26,7 @@ import type {
   Expr_CreateList,
   Expr_CreateStruct,
   Expr_Comprehension,
+  ParsedExpr,
 } from "../gen/cel/expr/syntax_pb.ts";
 
 import type { Message } from "@bufbuild/protobuf";
@@ -56,11 +57,11 @@ const SPECIAL_ESCAPES: Map<number, string> = new Map([
  * @private Caution: This functions requires ES2024 features.
  */
 export function toDebugString(
-  expr: Expr,
+  expr: Expr | ParsedExpr,
   adorner: Adorner = EmptyAdorner.singleton,
 ): string {
   const writer = new Writer(adorner);
-  writer.buffer(expr);
+  writer.buffer(expr.$typeName == "cel.expr.Expr" ? expr : expr.expr);
 
   return writer.toString();
 }
