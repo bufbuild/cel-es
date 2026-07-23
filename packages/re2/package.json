@@ -43,7 +43,7 @@
   },
   "devDependencies": {
     "@unicode/unicode-15.0.0": "^1.6.17",
-    "@unicode/unicode-16.0.0": "^1.6.16",
+    "@unicode/unicode-16.0.0": "^1.6.17",
     "unicode-property-value-aliases": "^3.9.0"
   }
 }
