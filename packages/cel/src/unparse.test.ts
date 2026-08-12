@@ -93,6 +93,27 @@ void suite("unparse", () => {
       roundTrip("(a == b) < c", "a == b < c"));
   });
 
+  void suite("parenthesized operands", () => {
+    void test("select", () => roundTrip("(a + b).c"));
+    void test("select of logical", () => roundTrip("(a && b).c"));
+    void test("select of ternary", () => roundTrip("(a ? b : c).d"));
+    void test("select of unary", () => roundTrip("(!b).c"));
+    void test("select of negate", () => roundTrip("(-a).b"));
+    void test("index", () => roundTrip("(a + b)[0]"));
+    void test("index of ternary", () => roundTrip("(a ? b : c)[0]"));
+    void test("member call", () => roundTrip("(a + b).f()"));
+    void test("member call of ternary", () => roundTrip("(a ? b : c).f()"));
+    void test("macro target", () => roundTrip("(a + b).exists(y, y > 0)"));
+    void test("has operand", () => roundTrip("has((a + b).c)"));
+    void test("ternary in select operand", () =>
+      roundTrip("(a || b ? c : d).e", "((a || b) ? c : d).e"));
+    void test("select of ternary in ternary", () =>
+      roundTrip("x ? (a ? b : c).d : y"));
+    void test("index needs no parens", () => roundTrip("x[0][1]"));
+    void test("call needs no parens", () => roundTrip("f(a, b).c"));
+    void test("literal needs no parens", () => roundTrip("[1, 2][0]"));
+  });
+
   void suite("collections", () => {
     void test("empty list", () => roundTrip("[]"));
     void test("list", () => roundTrip("[1, 2, 3]"));

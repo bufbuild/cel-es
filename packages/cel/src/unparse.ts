@@ -111,6 +111,24 @@ const binaryOperators: Record<string, string> = {
   [IN]: "in",
 };
 
+// operators that need parens as the operand of ".", "[]" or ".f()"
+function isOperatorExpr(expr: Expr): boolean {
+  if (expr.exprKind.case !== "callExpr") {
+    return false;
+  }
+  const call = expr.exprKind.value;
+  switch (call.args.length) {
+    case 1:
+      return call.function === NEGATE || call.function === LOGICAL_NOT;
+    case 2:
+      return binaryOperators[call.function] !== undefined;
+    case 3:
+      return call.function === CONDITIONAL;
+    default:
+      return false;
+  }
+}
+
 class Unparser {
   str = "";
 
@@ -202,7 +220,7 @@ class Unparser {
       this.str += "has(";
     }
     if (sel.operand != undefined) {
-      this.visitMaybeNested(sel.operand, false);
+      this.visitMaybeNested(sel.operand, isOperatorExpr(sel.operand));
       this.str += ".";
     }
     this.str += sel.field;
@@ -226,7 +244,7 @@ class Unparser {
 
     // index operator
     if (fn === INDEX && call.args.length === 2) {
-      this.visitMaybeNested(call.args[0], false);
+      this.visitMaybeNested(call.args[0], isOperatorExpr(call.args[0]));
       this.str += "[";
       this.visit(call.args[1]);
       this.str += "]";
@@ -258,7 +276,7 @@ class Unparser {
 
     // member function call: target.func(args)
     if (call.target != undefined) {
-      this.visitMaybeNested(call.target, false);
+      this.visitMaybeNested(call.target, isOperatorExpr(call.target));
       this.str += "." + fn + "(";
       for (let i = 0; i < call.args.length; i++) {
         if (i > 0) this.str += ", ";
