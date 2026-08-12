@@ -93,3 +93,19 @@ const typedEvaluate = plan(
 
 result = typedEvaluate({ name: "tacocat", age: 5 });
 console.log(result); // true
+
+// Plug in a custom regex engine.
+//
+// matches() defaults to the built-in RE2 engine. Pass any object implementing
+// { compile(pattern): { test(text): boolean } } via the `re2` option to swap
+// it out — useful for sharing a compiled-pattern cache, enforcing a regex
+// timeout, or using an alternate engine like re2js.
+const jsRegexEngine = {
+  compile(pattern: string) {
+    const re = new RegExp(pattern);
+    return { test: (text: string) => re.test(text) };
+  },
+};
+
+result = run(`"hubba".matches("ubb")`, {}, { re2: jsRegexEngine });
+console.log(result); // true

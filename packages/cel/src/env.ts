@@ -14,13 +14,15 @@
 
 import type { Registry } from "@bufbuild/protobuf";
 import { createRegistryWithWKT } from "./registry.js";
-import type { CelFunc } from "./func.js";
+import { type CelFunc, celMethod } from "./func.js";
 import { createResolver, type FuncResolver } from "./resolver.js";
 import { default as cast } from "./std/cast.js";
 import { default as math } from "./std/math.js";
 import { default as logic } from "./std/logic.js";
 import { default as time } from "./std/time.js";
 import { createScope, type VariableDecl, type VariableScope } from "./scope.js";
+import * as olc from "./gen/dev/cel/expr/overload_const.js";
+import { CelScalar } from "./type.js";
 
 const privateSymbol = Symbol.for("@bufbuild/cel/env");
 
@@ -50,6 +52,14 @@ export interface CelEnv<Vars extends VariableDecl = VariableDecl> {
   readonly variables: VariableScope<Vars>;
 }
 
+export interface Matcher {
+  test(text: string): boolean;
+}
+
+export interface RE2 {
+  compile(pattern: string): Matcher;
+}
+
 export interface CelEnvOptions<Vars extends VariableDecl = VariableDecl> {
   /**
    * Namespace of the environment.
@@ -69,7 +79,13 @@ export interface CelEnvOptions<Vars extends VariableDecl = VariableDecl> {
    * Variables to add to the environment.
    */
   variables?: Vars;
+  /**
+   * An optional RE2 regex engine to override the built-in one
+   */
+  re2?: RE2;
 }
+
+const { BOOL, STRING } = CelScalar;
 
 /**
  * Creates a new CelEnv.
@@ -77,12 +93,29 @@ export interface CelEnvOptions<Vars extends VariableDecl = VariableDecl> {
 export function celEnv<const Vars extends VariableDecl = VariableDecl>(
   options?: CelEnvOptions<Vars>,
 ): CelEnv<Vars> {
+  // if re2 is present, we have another value to add at the end of createResolver list, which will override the match
+  // defined in logic
+  const re2Funcs: CelFunc[] = [];
+  if (options?.re2 !== undefined) {
+    const regex = options.re2;
+    re2Funcs.push(
+      celMethod(
+        olc.MATCHES,
+        STRING,
+        [STRING],
+        BOOL,
+        function (this: string, pattern: string): boolean {
+          return regex.compile(pattern).test(this);
+        },
+      ),
+    );
+  }
   return new _CelEnv(
     options?.namespace ?? "",
     options?.registry
       ? createRegistryWithWKT(options.registry)
       : createRegistryWithWKT(),
-    createResolver(math, cast, time, logic, options?.funcs ?? []),
+    createResolver(math, cast, time, logic, options?.funcs ?? [], re2Funcs),
     createScope(options?.variables),
   );
 }

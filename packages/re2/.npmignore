@@ -1,0 +1,8 @@
+src
+scripts
+tsconfig.json
+tsconfig.*.json
+turbo.json
+biome.json
+dist/**/*.test.js
+dist/**/*.test.d.ts

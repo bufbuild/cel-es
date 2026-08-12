@@ -17,15 +17,17 @@
 import { readFileSync, writeFileSync, existsSync, globSync } from "node:fs";
 import { dirname, join } from "node:path";
 
-if (process.argv.length !== 3 || !/^\d+\.\d+\.\d+$/.test(process.argv[2])) {
+if (
+  process.argv.length !== 3 ||
+  !/^\d+\.\d+\.\d+(-(?:alpha|beta|rc).*)?$/.test(process.argv[2])
+) {
   process.stderr.write(
     [
       `USAGE: ${process.argv[1]} <new-version>`,
       "",
-      "Walks through all workspace packages and sets the version of each ",
-      "package to the given version.",
-      "If a package depends on another package from the workspace, the",
-      "dependency version is updated as well.",
+      "Sets the version across all workspace packages. For example 1.2.3, or 2.0.0-alpha.0.",
+      "",
+      "This script exists because `npm version` does not update cross-workspace dependency entries.",
       "",
     ].join("\n"),
   );
@@ -187,10 +189,6 @@ function readPackage(path) {
   if (typeof json !== "object" || json === null) {
     throw new Error(`Failed to parse ${path}`);
   }
-  const lock = JSON.parse(readFileSync(path, "utf-8"));
-  if (typeof lock !== "object" || lock === null) {
-    throw new Error(`Failed to parse ${path}`);
-  }
   if (!("name" in json) || typeof json.name != "string") {
     throw new Error(`Missing "name" in ${path}`);
   }
@@ -201,7 +199,7 @@ function readPackage(path) {
   } else if (!("private" in json) || json.private !== true) {
     throw new Error(`Need either "version" or "private":true in ${path}`);
   }
-  return lock;
+  return json;
 }
 
 /**

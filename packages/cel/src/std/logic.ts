@@ -26,63 +26,10 @@ import { equals } from "../equals.js";
 import { celMethod, celFunc } from "../func.js";
 import type { CelList } from "../list.js";
 import type { CelMap } from "../map.js";
-
-/**
- * Patterns that are supported in ECMAScript RE and not in
- * RE2.
- *
- * ECMAScript Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions/Cheatsheet
- * RE2: https://github.com/google/re2/wiki/syntax
- */
-const invalidPatterns = [
-  /\\[1-9]/, // backreference eg: \1
-  /\\k<.>/, // backreference eg: \k<name>
-  /\(\?\=/, // lookahead eg: Jack(?=Sprat)
-  /\(\?\!/, // negative lookahead eg: Jack(?!Sprat)
-  /\(\?\<\=/, // lookbehind eg: (?<=Sprat)Jack
-  /\(\?\<\!/, // negative lookbehind eg: (?<!Sprat)Jack,
-  /\\c[A-Z]/, // control character eg: /\cM\cJ/
-  /\\u[0-9a-fA-F]{4}/, // UTF-16 code-unit
-  /\\0(?!\d)/, // NUL
-  /\[\\b.*\]/, // Backspace eg: [\b]
-];
-
-const flagPattern = new RegExp(/^\(\?(?<flags>[ims\-]+)\)/);
+import { RE2JS } from "@bufbuild/re2";
 
 export function matches(this: string, pattern: string): boolean {
-  for (const invalidPattern of invalidPatterns) {
-    if (invalidPattern.test(pattern)) {
-      throw new Error(
-        `Error evaluating pattern ${pattern}, invalid RE2 syntax`,
-      );
-    }
-  }
-  // CEL use RE2 syntax which is a subset of Ecmascript RE except for
-  // the flags and the ability to change the flags mid-sequence.
-  //
-  // The conformance tests use flags at the very beginning of the sequence, which
-  // is likely the most common place where this rare feature will be used.
-  //
-  // Instead of importing an RE2 engine to be able to support this niche, we
-  // can instead just check for the flags at the very beginning and apply them.
-  //
-  // Unsupported flags and flags mid-sequence will fail with to compile the regex.
-  //
-  // Users can choose to override this function and provide an RE2 engine if they really
-  // need to.
-  let flags = "";
-  const flagMatches = pattern.match(flagPattern);
-  if (flagMatches) {
-    for (let flag of flagMatches?.groups?.flags ?? "") {
-      if (flag == "-") {
-        break;
-      }
-      flags += flag;
-    }
-    pattern = pattern.substring(flagMatches[0].length);
-  }
-  const re = new RegExp(pattern, flags);
-  return re.test(this);
+  return RE2JS.compile(pattern).test(this);
 }
 
 function compareDuration(

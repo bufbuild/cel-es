@@ -5,12 +5,16 @@
     "all": "turbo run --ui tui build format lint test attw license-header update-readme",
     "setversion": "node scripts/set-workspace-version.js",
     "postsetversion": "npm run all",
-    "release": "npm run all && node scripts/release.js",
     "format": "biome format --write",
     "license-header": "license-header --ignore 'packages/**'",
     "lint": "biome lint --error-on-warnings"
   },
-  "workspaces": ["packages/cel-spec", "packages/cel", "packages/example"],
+  "workspaces": [
+    "packages/cel-spec",
+    "packages/cel",
+    "packages/example",
+    "packages/re2"
+  ],
   "type": "module",
   "packageManager": "npm@10.9.0",
   "licenseHeader": {
@@ -19,14 +23,14 @@
     "copyrightHolder": "Buf Technologies, Inc."
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.18.2",
+    "@arethetypeswrong/cli": "^0.18.5",
     "@biomejs/biome": "^1.9.4",
     "@bufbuild/buf": "^1.64.0",
     "@bufbuild/license-header": "^0.0.4",
     "@bufbuild/protoc-gen-es": "^2.10.2",
     "@types/node": "^25.1.0",
-    "tsx": "^4.21.0",
-    "turbo": "^2.8.1",
+    "tsx": "^4.23.1",
+    "turbo": "^2.10.7",
     "typescript": "^5.9.3"
   }
 }
