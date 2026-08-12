@@ -232,10 +232,12 @@ export default class Builder {
     if (target.exprKind.case !== "selectExpr") {
       return this.newCallExpr(offset, "has", [target]);
     }
-
-    this.addMacroCall(target.id, "has", undefined, [target]);
-    target.exprKind.value.testOnly = true;
-    return target;
+    const test = this.nextExpr(offset, {
+      case: "selectExpr",
+      value: { ...target.exprKind.value, testOnly: true },
+    });
+    this.addMacroCall(test.id, "has", undefined, [target]);
+    return test;
   }
 
   newListExpr(offset: number, elements: Expr[]): Expr {

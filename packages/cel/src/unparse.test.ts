@@ -112,6 +112,14 @@ void suite("unparse", () => {
     void test("has", () => roundTrip("has(x.field)"));
     void test("nested macros", () => roundTrip("x.exists(y, y.all(z, z > 0))"));
     void test("has in filter", () => roundTrip("x.filter(y, has(y.field))"));
+    // a macro call must not contain its own id
+    void test("has of has", () => roundTrip("has(has(a.b))"));
+    void test("has of has in list", () => roundTrip("[has(has(a.b))]"));
+    void test("has of has in macro", () =>
+      roundTrip("x.exists(y, has(has(y.f)))"));
+    void test("has of macro select", () => roundTrip("has(x.map(y, y)[0].f)"));
+    void test("has of select on macro", () =>
+      roundTrip("x.map(y, has(y.a)).all(z, has(z.b))"));
   });
 
   void suite("without sourceInfo (no macro recovery)", () => {

@@ -113,7 +113,6 @@ const binaryOperators: Record<string, string> = {
 
 class Unparser {
   str = "";
-  visitedMacros = new Set<string>();
 
   constructor(readonly sourceInfo: SourceInfo | undefined) {}
 
@@ -154,12 +153,10 @@ class Unparser {
     if (this.sourceInfo == undefined) {
       return false;
     }
-    const key = expr.id.toString();
-    const macroCall = this.sourceInfo.macroCalls[key];
-    if (macroCall == undefined || this.visitedMacros.has(key)) {
+    const macroCall = this.sourceInfo.macroCalls[expr.id.toString()];
+    if (macroCall == undefined) {
       return false;
     }
-    this.visitedMacros.add(key);
     this.visit(macroCall);
     return true;
   }
