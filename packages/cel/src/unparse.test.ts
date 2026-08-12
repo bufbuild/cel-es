@@ -85,6 +85,12 @@ void suite("unparse", () => {
       roundTrip("(a ? b : c) ? d : e"));
     void test("comparison in equality", () => roundTrip("a + b == c * d"));
     void test("unary negate with mul", () => roundTrip("-a * b"));
+    void test("comparison in equality rhs", () => roundTrip("a == (b > c)"));
+    void test("in in equality rhs", () => roundTrip("a != (b in c)"));
+    void test("equality in comparison rhs", () => roundTrip("a > (b == c)"));
+    void test("chained equality (left-assoc)", () => roundTrip("a == b == c"));
+    void test("equality in comparison lhs", () =>
+      roundTrip("(a == b) < c", "a == b < c"));
   });
 
   void suite("collections", () => {
