@@ -812,7 +812,7 @@
           "value": {
             "objectValue": {
               "@type": "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
-              "singleFloatWrapper": 0
+              "singleFloatWrapper": -0
             }
           }
         },

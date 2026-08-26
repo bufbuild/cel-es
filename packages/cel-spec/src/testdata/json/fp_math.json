@@ -120,7 +120,7 @@
           "name": "negative_zero",
           "expr": "-(0.0)",
           "value": {
-            "doubleValue": 0
+            "doubleValue": -0
           }
         },
         {

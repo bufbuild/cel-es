@@ -59,7 +59,10 @@ function convertTestDataToJson(testData, module, typeName) {
   for (const [name, content] of testData) {
     try {
       const jsonString = bufConvert(module, typeName, content);
-      const json = JSON.parse(jsonString);
+      const json = JSON.parse(jsonString, (_key, value, context) =>
+        // Keep -0 via rawJSON
+        typeof value === "number" ? JSON.rawJSON(context.source) : value,
+      );
       testFiles.push(json);
     } catch (e) {
       throw new Error(`Failed to convert ${name}`, { cause: e });
