@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from cel-go ../src/testdata/json
+// Generated from cel-go ../src/testdata/textproto
 import type { SerializedIncrementalTestSuite } from "./tests.js";
 export const tests: SerializedIncrementalTestSuite = {
   name: "conformance",

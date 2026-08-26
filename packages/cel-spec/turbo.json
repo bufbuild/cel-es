@@ -10,8 +10,8 @@
     },
     "fetch-testdata": {
       "inputs": ["scripts/fetch-testdata.js", "package.json"],
-      "outputs": ["src/testdata/conformance.ts", "src/testdata/json/*.json"],
-      "dependsOn": ["fetch-proto"],
+      "outputs": ["src/testdata/textproto/*.textproto"],
+      "dependsOn": [],
       "outputLogs": "new-only"
     },
     "fetch-parsing": {
@@ -39,7 +39,7 @@
         "scripts/*.go",
         "scripts/go.*",
         "package.json",
-        "src/testdata/json/*.json"
+        "src/testdata/textproto/*.textproto"
       ],
       "outputs": ["src/testdata/conformance.ts"],
       "env": ["GO*"],
