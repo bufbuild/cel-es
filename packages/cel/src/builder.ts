@@ -517,18 +517,8 @@ export default class Builder {
     args: Expr[],
   ): void {
     const macroArgs = args.map((arg) => this.buildMacroCallArg(arg));
-    let macroTarget = target;
-    if (target !== undefined) {
-      if (this.sourceInfo.macroCalls[target.id.toString()] !== undefined) {
-        macroTarget = {
-          $typeName: "cel.expr.Expr",
-          id: target.id,
-          exprKind: { case: undefined, value: undefined },
-        };
-      } else {
-        macroTarget = this.buildMacroCallArg(target);
-      }
-    }
+    const macroTarget =
+      target !== undefined ? this.buildMacroCallArg(target) : undefined;
     const macroCall: Expr =
       macroTarget !== undefined
         ? {
