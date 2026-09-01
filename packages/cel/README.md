@@ -19,6 +19,21 @@ run(
 
 That's it!
 
+The `math` extension is enabled the same way, and extensions can be combined by spreading their functions:
+
+```ts
+import { math, strings } from "@bufbuild/cel/ext";
+
+run(`math.abs(-4) == 4`, {}, { funcs: math }); // true
+
+// Combine multiple extensions:
+run(
+  `math.round(2.5) == 3.0 && 'tacocat'.upperAscii() == 'TACOCAT'`,
+  {},
+  { funcs: [...strings, ...math] },
+); // true
+```
+
 For an example of creating a reusable evaluator and more, refer to [example.ts](https://github.com/bufbuild/cel-es/blob/main/packages/example/src/example.ts).
 
 ### Types
