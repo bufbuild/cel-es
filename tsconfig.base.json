@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    // Silence TS 6.0 deprecation of moduleResolution=node10, which some builds still rely on.
+    "ignoreDeprecations": "6.0",
     "target": "es2023",
     "lib": ["ES2023"],
     "declaration": true,

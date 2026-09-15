@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import {
-  ParsedExprSchema,
-  type ParsedExpr,
+import type {
+  Expr,
+  ParsedExpr,
 } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
 import { parse as internalParse } from "./parser.js";
-import { create } from "@bufbuild/protobuf";
 
 /**
  * Parses a CEL expression string into an abstract syntax tree (AST) or
@@ -26,8 +25,11 @@ import { create } from "@bufbuild/protobuf";
  * This is the first stage of CEL evaluation. The resulting ParsedExpr
  * can be passed to plan() for execution planning.
  */
-export function parse(expr: string): ParsedExpr {
-  return create(ParsedExprSchema, {
-    expr: internalParse(expr),
-  });
+export function parse(expr: string): ParsedExpr & { expr: Expr } {
+  const result = internalParse(expr);
+  return {
+    $typeName: "cel.expr.ParsedExpr",
+    expr: result.expr,
+    sourceInfo: result.sourceInfo,
+  };
 }

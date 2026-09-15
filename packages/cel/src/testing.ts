@@ -29,7 +29,7 @@ import {
 } from "@bufbuild/protobuf";
 import * as assert from "node:assert/strict";
 import { suite, test } from "node:test";
-import { parse } from "./parser.js";
+import { parse } from "./parse.js";
 import type { MapValue, Value } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { ValueSchema } from "@bufbuild/cel-spec/cel/expr/value_pb.js";
 import { anyPack, anyUnpack, NullValue } from "@bufbuild/protobuf/wkt";

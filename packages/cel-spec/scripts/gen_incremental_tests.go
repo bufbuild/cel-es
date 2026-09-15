@@ -47,6 +47,7 @@ import (
 	proto3pb "github.com/google/cel-go/test/proto3pb"
 
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/encoding/prototext"
 )
 
 var (
@@ -176,7 +177,7 @@ func main() {
 	outputPath := flag.String("output", "output.json", "write result to file")
 	flag.Parse()
 	if len(flag.Args()) != 1 {
-		log.Fatalf("must provide path to a cel-go source file or testdata JSON directory")
+		log.Fatalf("must provide path to a cel-go source file or testdata textproto directory")
 	}
 	sourcePath := flag.Args()[0]
 	suite := &IncrementalSuite{}
@@ -189,14 +190,14 @@ func main() {
 		for _, path := range simpleTestFilePaths {
 			name := path.Name()
 
-			if strings.HasSuffix(name, ".json") {
+			if strings.HasSuffix(name, ".textproto") {
 				simpleTestFile, err := os.ReadFile(sourcePath + "/" + name)
 				if err != nil {
 					log.Fatalf("failed to read file: %v", err)
 				}
 
 				var file testpb.SimpleTestFile
-				err = protojson.Unmarshal(simpleTestFile, &file)
+				err = prototext.Unmarshal(simpleTestFile, &file)
 				if err != nil {
 					log.Fatalf("failed to unmarshal file: %v", err)
 				}

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from cel-go ../src/testdata/json
+// Generated from cel-go ../src/testdata/textproto
 import type { SerializedIncrementalTestSuite } from "./tests.js";
 export const tests: SerializedIncrementalTestSuite = {
   name: "conformance",
@@ -6425,7 +6425,7 @@ export const tests: SerializedIncrementalTestSuite = {
               original: {
                 name: "string_neg_zero",
                 expr: "double('-0.0')",
-                value: { doubleValue: 0 },
+                value: { doubleValue: -0 },
               },
               ast: 'double(\n  "-0.0"^#*expr.Constant_StringValue#\n)^#*expr.Expr_CallExpr#',
               checkedAst: 'double(\n  "-0.0"~string\n)~double^string_to_double',
@@ -8573,7 +8573,7 @@ export const tests: SerializedIncrementalTestSuite = {
                   objectValue: {
                     "@type":
                       "type.googleapis.com/cel.expr.conformance.proto3.TestAllTypes",
-                    singleFloatWrapper: 0,
+                    singleFloatWrapper: -0,
                   },
                 },
               },
@@ -13772,7 +13772,7 @@ export const tests: SerializedIncrementalTestSuite = {
               original: {
                 name: "negative_zero",
                 expr: "-(0.0)",
-                value: { doubleValue: 0 },
+                value: { doubleValue: -0 },
               },
               ast: "-_(\n  0^#*expr.Constant_DoubleValue#\n)^#*expr.Expr_CallExpr#",
               checkedAst: "-_(\n  0~double\n)~double^negate_double",

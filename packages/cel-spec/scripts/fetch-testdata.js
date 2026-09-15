@@ -12,14 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { extractFiles, fetchRepository, readPackageJson } from "./common.js";
-import { spawnSync } from "node:child_process";
-import { promises as fs } from "node:fs";
+import {
+  extractFiles,
+  fetchRepository,
+  readPackageJson,
+  writeFiles,
+} from "./common.js";
 
 /*
  * Fetch conformance test data from the upstream github.com/google/cel-spec
- * Because we convert the test data from textproto to JSON, this script depends
- * on the directory "proto" to contain the corresponding Protobuf files.
+ * The test data is stored as it is published upstream, in the Protobuf Text
+ * Format. See scripts/gen_incremental_tests.go for the conversion to TypeScript.
  */
 
 const { upstreamCelSpecRef } = readPackageJson("package.json");
@@ -27,72 +30,9 @@ const { upstreamCelSpecRef } = readPackageJson("package.json");
 // Fetch github.com/google/cel-spec
 const archive = await fetchRepository(upstreamCelSpecRef);
 // Extract testdata/simple/*.textproto
-const testdataTextProto = extractFiles(
+const testdata = extractFiles(
   archive,
   /^cel-spec-[^/]+\/tests\/simple\/testdata\/([^/]+\.textproto)$/,
 );
-// Convert textproto to JSON with `buf convert`, using the local module "proto".
-const testdataJsonFiles = convertTestDataToJson(
-  testdataTextProto,
-  "proto",
-  "cel.expr.conformance.test.SimpleTestFile",
-);
 
-// Write to JSON
-await Promise.all(
-  testdataJsonFiles.map((file) =>
-    fs.writeFile(
-      `src/testdata/json/${file.name}.json`,
-      JSON.stringify(file, null, 2),
-    ),
-  ),
-);
-
-/**
- * @param {[string, Uint8Array|string][]} testData
- * @param {string} module
- * @param {string} typeName
- * @return {any[]}
- */
-function convertTestDataToJson(testData, module, typeName) {
-  const testFiles = [];
-  for (const [name, content] of testData) {
-    try {
-      const jsonString = bufConvert(module, typeName, content);
-      const json = JSON.parse(jsonString);
-      testFiles.push(json);
-    } catch (e) {
-      throw new Error(`Failed to convert ${name}`, { cause: e });
-    }
-  }
-  return testFiles;
-}
-
-/**
- * @param {string} input
- * @param {string} typeName
- * @param {string | Uint8Array} from
- * @return {string}
- */
-function bufConvert(input, typeName, from) {
-  const command = "buf";
-  const args = [
-    "convert",
-    input,
-    `--type=${typeName}`,
-    "--from=-#format=txtpb",
-    "--to=-#format=json",
-  ];
-  const p = spawnSync(command, args, {
-    encoding: "buffer",
-    input: from,
-    windowsHide: true,
-  });
-  if (p.error !== undefined) {
-    throw p.error;
-  }
-  if (p.status !== 0) {
-    throw new Error(p.stderr.toString());
-  }
-  return p.stdout.toString();
-}
+writeFiles(testdata, "src/testdata/textproto");

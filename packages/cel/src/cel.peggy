@@ -13,11 +13,18 @@
 // limitations under the License.
 
 {{
-  import type { Expr, Expr_CreateStruct_Entry } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
+  import type { Expr, Expr_CreateStruct_Entry, SourceInfo } from "@bufbuild/cel-spec/cel/expr/syntax_pb.js";
   import Builder from "./builder.js";
   import LogicManager from "./logic-manager.js";
-  const builder = new Builder();
 }}
+
+{
+  const builder = new Builder();
+}
+
+Start
+  = expr:Expr
+    { return { expr, sourceInfo: builder.sourceInfo } }
 
 Expr
   = or:ConditionalOr S
