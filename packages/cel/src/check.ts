@@ -23,7 +23,6 @@ import { Checker, protoTypeToCelType } from "./checker.js";
 import type { CelEnv } from "./env.js";
 import type { CelType } from "./type.js";
 
-/** A source-aware diagnostic produced by static type checking. */
 export interface CelDiagnostic {
   readonly severity: "error" | "warning";
   readonly message: string;
@@ -36,7 +35,6 @@ export interface CelDiagnostic {
   };
 }
 
-/** Only successful checking produces a checked expression. */
 export type CelCheckResult =
   | {
       readonly kind: "success";
@@ -50,15 +48,6 @@ export type CelCheckResult =
       readonly diagnostics: readonly [CelDiagnostic, ...CelDiagnostic[]];
     };
 
-/**
- * Proposed callable contract for the public checker. The internal check
- * implementation below does not implement this contract yet.
- *
- * Uses the evaluation environment without executing functions or mutating
- * parsed input. Invalid expressions return diagnostics; malformed ASTs and
- * unexpected implementation failures remain exceptions. Result-type policy
- * (for example, requiring bool) belongs to the caller.
- */
 export type CelCheckFunction = (
   env: CelEnv,
   expr: ParsedExpr,
