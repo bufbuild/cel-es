@@ -4,8 +4,8 @@ import unicode16 from "@unicode/unicode-16.0.0";
 // loadCodePoints() below dynamically imports `@unicode/unicode-15.0.0/<prop>/<name>/code-points.js`
 // paths, and requires the package to be installed.
 import "@unicode/unicode-15.0.0";
-import CommonCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/C/code-points.js";
-import SimpleCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/S/code-points.js";
+import CommonCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/C/code-points.mjs";
+import SimpleCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/S/code-points.mjs";
 import unicodePropertyValueAliases from "unicode-property-value-aliases";
 
 const MAX_CODE_POINT = 0x10ffff;
@@ -92,7 +92,7 @@ const reducedOrbit = buildReducedOrbit();
 const loadCodePoints = async (pkg, type, name) => {
   try {
     const { default: codePoints } = await import(
-      `${pkg}/${type}/${name}/code-points.js`
+      `${pkg}/${type}/${name}/code-points.${pkg === "@unicode/unicode-16.0.0" ? "mjs" : "js"}`
     );
     return new Set(codePoints);
   } catch (_e) {
