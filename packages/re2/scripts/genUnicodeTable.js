@@ -395,10 +395,13 @@ const code = [
   "  }",
   '  let kind: "category" | "script" | null = null',
   "  let pattern: string | null = null",
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: These strings emit template literals.
   '  if (STABLE_CATEGORY_NAMES.has(name)) { kind = "category"; pattern = `\\\\p{General_Category=${name}}` }',
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: These strings emit template literals.
   '  else if (STABLE_SCRIPT_NAMES.has(name)) { kind = "script"; pattern = `\\\\p{Script=${name}}` }',
   "  else return null",
   "",
+  // biome-ignore lint/suspicious/noTemplateCurlyInString: This string emits a template literal.
   "  const cacheKey = `${kind}:${name}`",
   "  const cached = _sweepCache.get(cacheKey)",
   "  if (cached) return cached",

@@ -13,6 +13,7 @@ import { codePoint, codePointAtOrThrow } from "./chars.js";
 
 // Tests run only via tsx in ESM mode; the CJS-compiled output is never
 // executed, so suppress the CJS-only complaint about import.meta.
+// biome-ignore lint/suspicious/noTsIgnore: TS1343 is emitted only by the CJS build.
 // @ts-ignore -- TS1343 under --module commonjs; valid under Node16/ESM.
 const IMPORT_META_URL: string = import.meta.url;
 
@@ -58,8 +59,8 @@ const parseResult = (lineno: number, res: string): number[] | null => {
         let lo = -1;
         let hi = -2;
         try {
-          lo = parseInt(pair.substring(0, k));
-          hi = parseInt(pair.substring(k + 1));
+          lo = parseInt(pair.substring(0, k), 10);
+          hi = parseInt(pair.substring(k + 1), 10);
         } catch (_e) {
           /* fall through */
         }
@@ -260,7 +261,7 @@ const parseFowlerResult = (s: string): [number[], boolean[]] => {
     }
     const num = s.substring(0, i);
     if (num !== "?") {
-      result.push(parseInt(num));
+      result.push(parseInt(num, 10));
     } else {
       result.push(-1);
     }
