@@ -28,9 +28,9 @@
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
-    "fetch-comprehensions": {
+    "fetch-comprehension": {
       "inputs": ["scripts/*.go", "scripts/go.*", "package.json"],
-      "outputs": ["src/testdata/comprehensions.ts"],
+      "outputs": ["src/testdata/comprehension.ts"],
       "env": ["GO*"],
       "outputLogs": "new-only"
     },
@@ -50,7 +50,7 @@
         "generate",
         "fetch-parsing",
         "fetch-checking",
-        "fetch-comprehensions",
+        "fetch-comprehension",
         "fetch-conformance"
       ],
       "inputs": ["src/**", "scripts/**"],

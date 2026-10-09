@@ -100,6 +100,11 @@ const filter = createExpressionFilter([
   "[?a, ?b, 'world']",
   "null_int == null || null == null_int || null_msg == null || null == null_msg",
   "NotAMessage{}",
+  // Comprehension expressions are not yet supported by the checker.
+  "[{'z': 0}].exists(y, y.z == 0)",
+  "[{'y': 0}].exists(x, x.y == 0)",
+  "[0].exists(x, x != .x)",
+  "[{'z': 0}].exists(y, .y.z == y.z)",
   "{}.map(c,[c,type(c)])",
 ]);
 

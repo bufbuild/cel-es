@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from cel-go github.com/google/cel-go@v0.26.1/ext/comprehensions_test.go
+// Generated from cel-go github.com/google/cel-go@v0.29.0/ext/comprehensions_test.go
 import type { SerializedIncrementalTestSuite } from "./tests.js";
 export const tests: SerializedIncrementalTestSuite = {
-  name: "comprehensions",
+  name: "comprehension",
   tests: [
     {
       original: {

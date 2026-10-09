@@ -165,7 +165,7 @@ MemberTail
   = (S @Access)*
 
 Access
-  = "." S field:Selector S ![(]
+  = "." S field:FieldSelector S ![(]
     { return ((prevExpr: Expr) => builder.newSelectExpr(offset(), prevExpr, field)) }
   / "." S func:Selector S "(" args:ExprList ")"
     { return ((prevExpr: Expr) => builder.newMemberCallExpr(offset(), prevExpr, func, args)) }
@@ -191,7 +191,7 @@ ExprList
 
 FieldInits
   = (
-      S key:Selector $(S ":") value:Expr
+      S key:FieldSelector $(S ":") value:Expr
       { return builder.newStructEntry(offset(), key, value) }
     )|0.., ","|
 
@@ -224,6 +224,13 @@ Selector "selector"
 
       return selector;
     }
+
+FieldSelector
+  = Selector / QuotedIdentifier
+
+QuotedIdentifier "quoted identifier"
+  = "`" name:$([^`$]+) "`"
+    { return name }
 
 Literal
   = FloatLiteral / UnsignedIntLiteral / IntLiteral / StringLiteral / BytesLiteral / BooleanLiteral / NullLiteral

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from cel-go github.com/google/cel-go@v0.26.1/parser/parser_test.go
+// Generated from cel-go github.com/google/cel-go@v0.29.0/parser/parser_test.go
 import type { SerializedIncrementalTestSuite } from "./tests.js";
 export const tests: SerializedIncrementalTestSuite = {
   name: "parsing",
@@ -966,28 +966,39 @@ export const tests: SerializedIncrementalTestSuite = {
     },
     {
       original: { expr: "a.`b-c`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`b-c`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#.b-c^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`b-c`\n | ^",
     },
     {
       original: { expr: "a.`b c`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`b c`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#.b c^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`b c`\n | ^",
     },
     {
       original: { expr: "a.`b.c`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`b.c`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#.b.c^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`b.c`\n | ^",
     },
     {
       original: { expr: "a.`in`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`in`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#.in^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`in`\n | ^",
     },
     {
       original: { expr: "a.`/foo`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`/foo`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#./foo^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`/foo`\n | ^",
     },
     {
       original: { expr: "Message{`in`: true}" },
+      ast: "Message{\n  in:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
       error:
-        "ERROR: :1:9: unsupported syntax: '`'\n | Message{`in`: true}\n | ........^",
+        "ERROR: \u003cinput\u003e:1:8: undeclared reference to 'Message' (in container '')\n | Message{`in`: true}\n | .......^",
     },
     {
       original: { expr: "`b-c`" },
@@ -1007,28 +1018,37 @@ export const tests: SerializedIncrementalTestSuite = {
     {
       original: { expr: "a.`b.c`()" },
       error:
-        "ERROR: :1:3: unsupported syntax: '`'\n | a.`b.c`()\n | ..^\nERROR: :1:8: Syntax error: mismatched input '(' expecting \u003cEOF\u003e\n | a.`b.c`()\n | .......^",
+        "ERROR: :1:8: Syntax error: mismatched input '(' expecting \u003cEOF\u003e\n | a.`b.c`()\n | .......^",
     },
     {
       original: { expr: "a.`b-c`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`b-c`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#.b-c^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`b-c`\n | ^",
     },
     {
       original: { expr: "a.`b.c`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`b.c`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#.b.c^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`b.c`\n | ^",
     },
     {
       original: { expr: "a.`in`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`in`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#.in^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`in`\n | ^",
     },
     {
       original: { expr: "a.`/foo`" },
-      error: "ERROR: :1:3: unsupported syntax: '`'\n | a.`/foo`\n | ..^",
+      ast: "a^#*expr.Expr_IdentExpr#./foo^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:1: undeclared reference to 'a' (in container '')\n | a.`/foo`\n | ^",
     },
     {
       original: { expr: "Message{`in`: true}" },
+      ast: "Message{\n  in:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#",
       error:
-        "ERROR: :1:9: unsupported syntax: '`'\n | Message{`in`: true}\n | ........^",
+        "ERROR: \u003cinput\u003e:1:8: undeclared reference to 'Message' (in container '')\n | Message{`in`: true}\n | .......^",
     },
     {
       original: { expr: "noop_macro(123)" },

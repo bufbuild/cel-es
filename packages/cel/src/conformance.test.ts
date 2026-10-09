@@ -20,12 +20,8 @@ import {
 import { getConformanceSuite } from "@bufbuild/cel-spec/testdata/tests.js";
 
 const filter = createPathFilter([
-  // Requires update to the parser to support quoted fields.
-  ["fields", "quoted_map_fields"],
-  ["proto2", "quoted_fields"],
   ["proto2", "extensions_get"],
   ["proto2", "extensions_has"],
-  ["proto3", "quoted_fields"],
   // We don't have full support for type-checking.
   ["type_deductions", "complex_initializers"],
   ["type_deductions", "field_access"],

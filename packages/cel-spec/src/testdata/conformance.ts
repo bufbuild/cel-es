@@ -13222,8 +13222,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 expr: "{'/api/v1': true, '/api/v2': false}.`/api/v1`",
                 value: { boolValue: true },
               },
-              error:
-                "ERROR: field_access_slash:1:37: unsupported syntax: '`'\n | {'/api/v1': true, '/api/v2': false}.`/api/v1`\n | ....................................^",
+              ast: '{\n  "/api/v1"^#*expr.Constant_StringValue#:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#,\n  "/api/v2"^#*expr.Constant_StringValue#:false^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#./api/v1^#*expr.Expr_SelectExpr#',
+              checkedAst:
+                '{\n  "/api/v1"~string:true~bool,\n  "/api/v2"~string:false~bool\n}~map(string, bool)./api/v1~bool',
+              type: "bool",
             },
             {
               original: {
@@ -13231,8 +13233,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 expr: "{'content-type': 'application/json', 'content-length': 145}.`content-type` == 'application/json'",
                 value: { boolValue: true },
               },
-              error:
-                "ERROR: field_access_dash:1:61: unsupported syntax: '`'\n | {'content-type': 'application/json', 'content-length': 145}.`content-type` == 'application/json'\n | ............................................................^",
+              ast: '_==_(\n  {\n    "content-type"^#*expr.Constant_StringValue#:"application/json"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n    "content-length"^#*expr.Constant_StringValue#:145^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#.content-type^#*expr.Expr_SelectExpr#,\n  "application/json"^#*expr.Constant_StringValue#\n)^#*expr.Expr_CallExpr#',
+              checkedAst:
+                '_==_(\n  {\n    "content-type"~string:"application/json"~string,\n    "content-length"~string:145~int\n  }~map(string, dyn).content-type~dyn,\n  "application/json"~string\n)~bool^equals',
+              type: "bool",
             },
             {
               original: {
@@ -13240,8 +13244,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 expr: "{'foo.txt': 32, 'bar.csv': 1024}.`foo.txt`",
                 value: { int64Value: "32" },
               },
-              error:
-                "ERROR: field_access_dot:1:34: unsupported syntax: '`'\n | {'foo.txt': 32, 'bar.csv': 1024}.`foo.txt`\n | .................................^",
+              ast: '{\n  "foo.txt"^#*expr.Constant_StringValue#:32^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  "bar.csv"^#*expr.Constant_StringValue#:1024^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.foo.txt^#*expr.Expr_SelectExpr#',
+              checkedAst:
+                '{\n  "foo.txt"~string:32~int,\n  "bar.csv"~string:1024~int\n}~map(string, int).foo.txt~int',
+              type: "int",
             },
             {
               original: {
@@ -13249,8 +13255,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 expr: "has({'/api/v1': true, '/api/v2': false}.`/api/v3`)",
                 value: { boolValue: false },
               },
-              error:
-                "ERROR: has_field_slash:1:41: unsupported syntax: '`'\n | has({'/api/v1': true, '/api/v2': false}.`/api/v3`)\n | ........................................^",
+              ast: '{\n  "/api/v1"^#*expr.Constant_StringValue#:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#,\n  "/api/v2"^#*expr.Constant_StringValue#:false^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#./api/v3~test-only~^#*expr.Expr_SelectExpr#',
+              checkedAst:
+                '{\n  "/api/v1"~string:true~bool,\n  "/api/v2"~string:false~bool\n}~map(string, bool)./api/v3~test-only~~bool',
+              type: "bool",
             },
             {
               original: {
@@ -13258,8 +13266,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 expr: "has({'content-type': 'application/json', 'content-length': 145}.`content-type`)",
                 value: { boolValue: true },
               },
-              error:
-                "ERROR: has_field_dash:1:65: unsupported syntax: '`'\n | has({'content-type': 'application/json', 'content-length': 145}.`content-type`)\n | ................................................................^",
+              ast: '{\n  "content-type"^#*expr.Constant_StringValue#:"application/json"^#*expr.Constant_StringValue#^#*expr.Expr_CreateStruct_Entry#,\n  "content-length"^#*expr.Constant_StringValue#:145^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.content-type~test-only~^#*expr.Expr_SelectExpr#',
+              checkedAst:
+                '{\n  "content-type"~string:"application/json"~string,\n  "content-length"~string:145~int\n}~map(string, dyn).content-type~test-only~~bool',
+              type: "bool",
             },
             {
               original: {
@@ -13267,8 +13277,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 expr: "has({'foo.txt': 32, 'bar.csv': 1024}.`foo.txt`)",
                 value: { boolValue: true },
               },
-              error:
-                "ERROR: has_field_dot:1:38: unsupported syntax: '`'\n | has({'foo.txt': 32, 'bar.csv': 1024}.`foo.txt`)\n | .....................................^",
+              ast: '{\n  "foo.txt"^#*expr.Constant_StringValue#:32^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  "bar.csv"^#*expr.Constant_StringValue#:1024^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.foo.txt~test-only~^#*expr.Expr_SelectExpr#',
+              checkedAst:
+                '{\n  "foo.txt"~string:32~int,\n  "bar.csv"~string:1024~int\n}~map(string, int).foo.txt~test-only~~bool',
+              type: "bool",
             },
           ],
         },
@@ -19016,7 +19028,7 @@ export const tests: SerializedIncrementalTestSuite = {
               },
               ast: "_==_(\n  type(\n    optional^#*expr.Expr_IdentExpr#.none()^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  optional_type^#*expr.Expr_IdentExpr#\n)^#*expr.Expr_CallExpr#",
               checkedAst:
-                "_==_(\n  type(\n    optional.none()~optional_type(dyn)^optional_none\n  )~type(optional_type(dyn))^type,\n  optional_type~type(optional_type)^optional_type\n)~bool^equals",
+                "_==_(\n  type(\n    optional.none()~optional_type(dyn)^optional_none\n  )~type(optional_type(dyn))^type,\n  optional_type~type(optional_type(dyn))^optional_type\n)~bool^equals",
               type: "bool",
             },
             {
@@ -23687,8 +23699,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 container: "cel.expr.conformance.proto2",
                 value: { boolValue: false },
               },
-              error:
-                "ERROR: set_field_with_quoted_name:1:14: unsupported syntax: '`'\n | TestAllTypes{`in`: true} == TestAllTypes{}\n | .............^",
+              ast: "_==_(\n  TestAllTypes{\n    in:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  TestAllTypes{}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  cel.expr.conformance.proto2.TestAllTypes{\n    in:true~bool\n  }~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes,\n  cel.expr.conformance.proto2.TestAllTypes{}~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -23697,8 +23711,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 container: "cel.expr.conformance.proto2",
                 value: { boolValue: true },
               },
-              error:
-                "ERROR: get_field_with_quoted_name:1:14: unsupported syntax: '`'\n | TestAllTypes{`in`: true}.`in`\n | .............^\nERROR: get_field_with_quoted_name:1:26: unsupported syntax: '`'\n | TestAllTypes{`in`: true}.`in`\n | .........................^",
+              ast: "TestAllTypes{\n  in:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.in^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "cel.expr.conformance.proto2.TestAllTypes{\n  in:true~bool\n}~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes.in~bool",
+              type: "bool",
             },
           ],
         },
@@ -23731,8 +23747,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_int32:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.int32_ext`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.int32_ext~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.int32_ext~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23760,8 +23778,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_nested_ext:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.nested_ext`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.nested_ext~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.nested_ext~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23789,8 +23809,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_test_all_types_ext:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.test_all_types_ext`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.test_all_types_ext~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.test_all_types_ext~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23818,8 +23840,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_test_all_types_nested_enum_ext:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.nested_enum_ext`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.nested_enum_ext~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.nested_enum_ext~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23848,8 +23872,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_repeated_test_all_types:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.repeated_test_all_types`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.repeated_test_all_types~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.repeated_test_all_types~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23878,8 +23904,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_int64:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23908,8 +23936,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_nested_ext:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23938,8 +23968,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_nested_enum_ext:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext~test-only~~bool",
+              type: "bool",
             },
             {
               original: {
@@ -23968,8 +24000,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_repeated_test_all_types:1:9: unsupported syntax: '`'\n | has(msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types`)\n | ........^",
+              ast: "msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types~test-only~^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types~test-only~~bool",
+              type: "bool",
             },
           ],
         },
@@ -24002,8 +24036,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_int32:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.int32_ext` == 42\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.int32_ext^#*expr.Expr_SelectExpr#,\n  42^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.int32_ext~int,\n  42~int\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24031,8 +24067,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_nested_ext:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.nested_ext` == cel.expr.conformance.proto2.TestAllTypes{}\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.nested_ext^#*expr.Expr_SelectExpr#,\n  cel.expr.conformance.proto2.TestAllTypes{}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.nested_ext~cel.expr.conformance.proto2.TestAllTypes,\n  cel.expr.conformance.proto2.TestAllTypes{}~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24060,8 +24098,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_test_all_types_ext:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.test_all_types_ext` == cel.expr.conformance.proto2.TestAllTypes{}\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.test_all_types_ext^#*expr.Expr_SelectExpr#,\n  cel.expr.conformance.proto2.TestAllTypes{}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.test_all_types_ext~cel.expr.conformance.proto2.TestAllTypes,\n  cel.expr.conformance.proto2.TestAllTypes{}~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24089,8 +24129,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_test_all_types_nested_enum_ext:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.nested_enum_ext` == cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.nested_enum_ext^#*expr.Expr_SelectExpr#,\n  cel^#*expr.Expr_IdentExpr#.expr^#*expr.Expr_SelectExpr#.conformance^#*expr.Expr_SelectExpr#.proto2^#*expr.Expr_SelectExpr#.TestAllTypes^#*expr.Expr_SelectExpr#.NestedEnum^#*expr.Expr_SelectExpr#.BAR^#*expr.Expr_SelectExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.nested_enum_ext~int,\n  cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR~int^cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24119,8 +24161,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: package_scoped_repeated_test_all_types:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.repeated_test_all_types` == [cel.expr.conformance.proto2.TestAllTypes{single_int64: 1}, cel.expr.conformance.proto2.TestAllTypes{single_bool: true}]\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.repeated_test_all_types^#*expr.Expr_SelectExpr#,\n  [\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_int64:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_bool:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.repeated_test_all_types~list(cel.expr.conformance.proto2.TestAllTypes),\n  [\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_int64:1~int\n    }~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes,\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_bool:true~bool\n    }~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes\n  ]~list(cel.expr.conformance.proto2.TestAllTypes)\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24149,8 +24193,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_int64:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext` == 42\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext^#*expr.Expr_SelectExpr#,\n  42^#*expr.Constant_Int64Value#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.int64_ext~int,\n  42~int\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24179,8 +24225,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_nested_ext:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext` == cel.expr.conformance.proto2.TestAllTypes{}\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext^#*expr.Expr_SelectExpr#,\n  cel.expr.conformance.proto2.TestAllTypes{}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_nested_ext~cel.expr.conformance.proto2.TestAllTypes,\n  cel.expr.conformance.proto2.TestAllTypes{}~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24209,8 +24257,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_nested_enum_ext:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext` == cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext^#*expr.Expr_SelectExpr#,\n  cel^#*expr.Expr_IdentExpr#.expr^#*expr.Expr_SelectExpr#.conformance^#*expr.Expr_SelectExpr#.proto2^#*expr.Expr_SelectExpr#.TestAllTypes^#*expr.Expr_SelectExpr#.NestedEnum^#*expr.Expr_SelectExpr#.BAR^#*expr.Expr_SelectExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.nested_enum_ext~int,\n  cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR~int^cel.expr.conformance.proto2.TestAllTypes.NestedEnum.BAR\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -24239,8 +24289,10 @@ export const tests: SerializedIncrementalTestSuite = {
                   },
                 },
               },
-              error:
-                "ERROR: message_scoped_repeated_test_all_types:1:5: unsupported syntax: '`'\n | msg.`cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types` == [cel.expr.conformance.proto2.TestAllTypes{single_int64: 1}, cel.expr.conformance.proto2.TestAllTypes{single_bool: true}]\n | ....^",
+              ast: "_==_(\n  msg^#*expr.Expr_IdentExpr#.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types^#*expr.Expr_SelectExpr#,\n  [\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_int64:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#,\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_bool:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  ]^#*expr.Expr_ListExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  msg~cel.expr.conformance.proto2.TestAllTypes^msg.cel.expr.conformance.proto2.Proto2ExtensionScopedMessage.message_scoped_repeated_test_all_types~list(cel.expr.conformance.proto2.TestAllTypes),\n  [\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_int64:1~int\n    }~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes,\n    cel.expr.conformance.proto2.TestAllTypes{\n      single_bool:true~bool\n    }~cel.expr.conformance.proto2.TestAllTypes^cel.expr.conformance.proto2.TestAllTypes\n  ]~list(cel.expr.conformance.proto2.TestAllTypes)\n)~bool^equals",
+              type: "bool",
             },
           ],
         },
@@ -25976,8 +26028,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 container: "cel.expr.conformance.proto3",
                 value: { boolValue: false },
               },
-              error:
-                "ERROR: set_field:1:14: unsupported syntax: '`'\n | TestAllTypes{`in`: true} == TestAllTypes{}\n | .............^",
+              ast: "_==_(\n  TestAllTypes{\n    in:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n  }^#*expr.Expr_StructExpr#,\n  TestAllTypes{}^#*expr.Expr_StructExpr#\n)^#*expr.Expr_CallExpr#",
+              checkedAst:
+                "_==_(\n  cel.expr.conformance.proto3.TestAllTypes{\n    in:true~bool\n  }~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes,\n  cel.expr.conformance.proto3.TestAllTypes{}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes\n)~bool^equals",
+              type: "bool",
             },
             {
               original: {
@@ -25986,8 +26040,10 @@ export const tests: SerializedIncrementalTestSuite = {
                 container: "cel.expr.conformance.proto3",
                 value: { boolValue: true },
               },
-              error:
-                "ERROR: get_field:1:14: unsupported syntax: '`'\n | TestAllTypes{`in`: true}.`in`\n | .............^\nERROR: get_field:1:26: unsupported syntax: '`'\n | TestAllTypes{`in`: true}.`in`\n | .........................^",
+              ast: "TestAllTypes{\n  in:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.in^#*expr.Expr_SelectExpr#",
+              checkedAst:
+                "cel.expr.conformance.proto3.TestAllTypes{\n  in:true~bool\n}~cel.expr.conformance.proto3.TestAllTypes^cel.expr.conformance.proto3.TestAllTypes.in~bool",
+              type: "bool",
             },
           ],
         },

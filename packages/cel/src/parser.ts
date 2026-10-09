@@ -456,75 +456,87 @@ const item413: runtime.Expectation = {
   type: "literal",
   value: "{",
 };
-const item423: runtime.Expectation = {
+const item427: runtime.Expectation = {
+  type: "literal",
+  value: "`",
+};
+const item432: runtime.Expectation = {
+  type: "class",
+  value: "/^[^`$]/g",
+};
+const item436: runtime.Expectation = {
+  type: "other",
+  value: "quoted identifier",
+};
+const item440: runtime.Expectation = {
   type: "literal",
   value: ":",
 };
-const item432: runtime.Expectation = {
+const item449: runtime.Expectation = {
   type: "literal",
   value: "}",
 };
-const item451: runtime.Expectation = {
+const item467: runtime.Expectation = {
   type: "literal",
   value: "[",
 };
-const item456: runtime.Expectation = {
+const item472: runtime.Expectation = {
   type: "literal",
   value: "]",
 };
-const item524: runtime.Expectation = {
+const item540: runtime.Expectation = {
   type: "literal",
   value: "!",
 };
-const item540: runtime.Expectation = {
+const item556: runtime.Expectation = {
   type: "class",
   value: "/^[*\\/%]/g",
 };
-const item577: runtime.Expectation = {
+const item593: runtime.Expectation = {
   type: "literal",
   value: "<=",
 };
-const item579: runtime.Expectation = {
+const item595: runtime.Expectation = {
   type: "literal",
   value: "<",
 };
-const item581: runtime.Expectation = {
+const item597: runtime.Expectation = {
   type: "literal",
   value: ">=",
 };
-const item583: runtime.Expectation = {
+const item599: runtime.Expectation = {
   type: "literal",
   value: ">",
 };
-const item585: runtime.Expectation = {
+const item601: runtime.Expectation = {
   type: "literal",
   value: "==",
 };
-const item587: runtime.Expectation = {
+const item603: runtime.Expectation = {
   type: "literal",
   value: "!=",
 };
-const item591: runtime.Expectation = {
+const item607: runtime.Expectation = {
   type: "literal",
   value: "in",
 };
-const item593: runtime.Expectation = {
+const item609: runtime.Expectation = {
   type: "other",
   value: "relational operator",
 };
-const item601: runtime.Expectation = {
+const item617: runtime.Expectation = {
   type: "literal",
   value: "&&",
 };
-const item607: runtime.Expectation = {
+const item623: runtime.Expectation = {
   type: "literal",
   value: "||",
 };
-const item616: runtime.Expectation = {
+const item632: runtime.Expectation = {
   type: "literal",
   value: "?",
 };
-const item624: runtime.Expectation = {
+const item640: runtime.Expectation = {
   type: "end",
   value: "end of input",
 };
@@ -683,14 +695,17 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return selector;
   }
-  function item427(
+  function item435(name: string): string {
+    return name;
+  }
+  function item444(
     offset: () => number,
     key: string,
     value: Expr,
   ): Expr_CreateStruct_Entry {
     return builder.newStructEntry(offset(), key, value);
   }
-  function item434(
+  function item451(
     offset: () => number,
     dot: "." | null,
     name: string[],
@@ -702,32 +717,32 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       (dot !== null ? dot : "") + name.join("."),
     );
   }
-  function item441(offset: () => number, name: string): Expr {
+  function item457(offset: () => number, name: string): Expr {
     return builder.newIdentExpr(offset(), name);
   }
-  function item458(offset: () => number, elements: Expr[]): Expr {
+  function item474(offset: () => number, elements: Expr[]): Expr {
     return builder.newListExpr(offset(), elements);
   }
-  function item472(
+  function item488(
     offset: () => number,
     key: Expr,
     value: Expr,
   ): Expr_CreateStruct_Entry {
     return builder.newMapEntry(offset(), key, value);
   }
-  function item481(
+  function item497(
     offset: () => number,
     entries: Expr_CreateStruct_Entry[],
   ): Expr {
     return builder.newStructExpr(offset(), entries);
   }
-  function item497(
+  function item513(
     offset: () => number,
     field: string,
   ): (prevExpr: Expr) => Expr {
     return (prevExpr: Expr) => builder.newSelectExpr(offset(), prevExpr, field);
   }
-  function item506(
+  function item522(
     offset: () => number,
     func: string,
     args: Expr[],
@@ -735,21 +750,21 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return (prevExpr: Expr) =>
       builder.newMemberCallExpr(offset(), prevExpr, func, args);
   }
-  function item513(
+  function item529(
     offset: () => number,
     index: Expr,
   ): (prevExpr: Expr) => Expr {
     return (prevExpr: Expr) =>
       builder.newCallExpr(offset(), "_[_]", [prevExpr, index]);
   }
-  function item516(primary: Expr, tail: ((prevExpr: Expr) => Expr)[]): Expr {
+  function item532(primary: Expr, tail: ((prevExpr: Expr) => Expr)[]): Expr {
     /* : Expr */
     if (tail.length === 0) {
       return primary;
     }
     return tail.reduce((expr, op) => op(expr), primary);
   }
-  function item529(offset: () => number, ops: string, expr: Expr): Expr {
+  function item545(offset: () => number, ops: string, expr: Expr): Expr {
     /* : Expr */
     if (ops.length % 2 === 0) {
       return expr;
@@ -762,10 +777,10 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   }
-  function item541(o: string): string {
+  function item557(o: string): string {
     return `_${o}_`;
   }
-  function item544(
+  function item560(
     offset: () => number,
     operator: string,
     nextExpr: Expr,
@@ -773,7 +788,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return (prevExpr: Expr) =>
       builder.newCallExpr(offset(), operator, [prevExpr, nextExpr]);
   }
-  function item546(
+  function item562(
     unary: Expr,
     tail: ((prevExpr: Expr) => Expr)[] | null,
   ): Expr {
@@ -783,10 +798,10 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return tail.reduce((expr, op) => op(expr), unary);
   }
-  function item557(o: string): string {
+  function item573(o: string): string {
     return `_${o}_`;
   }
-  function item559(
+  function item575(
     offset: () => number,
     operator: string,
     nextExpr: Expr,
@@ -794,7 +809,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return (prevExpr: Expr) =>
       builder.newCallExpr(offset(), operator, [prevExpr, nextExpr]);
   }
-  function item561(
+  function item577(
     multiplication: Expr,
     tail: ((prevExpr: Expr) => Expr)[] | null,
   ): Expr {
@@ -804,13 +819,13 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return tail.reduce((expr, op) => op(expr), multiplication);
   }
-  function item588(operator: string): string {
+  function item604(operator: string): string {
     return `_${operator}_`;
   }
-  function item592(): string {
+  function item608(): string {
     return "@in";
   }
-  function item595(
+  function item611(
     offset: () => number,
     operator: string,
     nextExpr: Expr,
@@ -818,7 +833,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return (prevExpr: Expr) =>
       builder.newCallExpr(offset(), operator, [prevExpr, nextExpr]);
   }
-  function item597(
+  function item613(
     addition: Expr,
     tail: ((prevExpr: Expr) => Expr)[] | null,
   ): Expr {
@@ -828,7 +843,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return tail.reduce((expr, op) => op(expr), addition);
   }
-  function item603(offset: () => number, relation: Expr[]): Expr {
+  function item619(offset: () => number, relation: Expr[]): Expr {
     /* : Expr */
     if (relation.length === 1) {
       return relation[0];
@@ -843,7 +858,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return logicManager.toExpr();
   }
-  function item609(offset: () => number, and: Expr[]): Expr {
+  function item625(offset: () => number, and: Expr[]): Expr {
     /* : Expr */
     if (and.length === 1) {
       return and[0];
@@ -858,11 +873,11 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return logicManager.toExpr();
   }
-  function item621(t: Expr, f: Expr): [Expr, Expr] {
+  function item637(t: Expr, f: Expr): [Expr, Expr] {
     /* : [Expr, Expr] */
     return [t, f];
   }
-  function item623(
+  function item639(
     offset: () => number,
     or: Expr,
     tail: [Expr, Expr] | null,
@@ -884,7 +899,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
         remainder: result.remainder,
         failedExpectations: [
           {
-            expectation: item624,
+            expectation: item640,
             remainder: result.remainder,
           },
         ],
@@ -907,7 +922,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item623(
+        value: item639(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -956,7 +971,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = remainder.slice(result1[0].length);
-    const result2 = item611(remainder);
+    const result2 = item627(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
       return {
@@ -995,7 +1010,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item609(() => input.length - text.length, result.value),
+        value: item625(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1010,7 +1025,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     while (true) {
       let r = remainder;
       if (values.length > 0) {
-        const result = item604(r);
+        const result = item620(r);
         failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
@@ -1052,7 +1067,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item603(() => input.length - text.length, result.value),
+        value: item619(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1067,7 +1082,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     while (true) {
       let r = remainder;
       if (values.length > 0) {
-        const result = item598(r);
+        const result = item614(r);
         failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
@@ -1101,7 +1116,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item597(result.value[0], result.value[1]),
+        value: item613(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1126,7 +1141,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = result0.remainder;
-    const result1 = item563(remainder);
+    const result1 = item579(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -1157,7 +1172,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item561(result.value[0], result.value[1]),
+        value: item577(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1182,7 +1197,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = result0.remainder;
-    const result1 = item548(remainder);
+    const result1 = item564(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -1213,7 +1228,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item546(result.value[0], result.value[1]),
+        value: item562(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1238,7 +1253,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = result0.remainder;
-    const result1 = item531(remainder);
+    const result1 = item547(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -1270,7 +1285,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   // return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   // }
   function item28(text: string): runtime.Success<Expr> | runtime.Failure {
-    const choices = [item30, item517];
+    const choices = [item30, item533];
     let failedExpectations: runtime.FailedExpectation[] = [];
     for (
       let func = choices.shift();
@@ -1308,7 +1323,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item516(result.value[0], result.value[1]),
+        value: item532(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -1352,7 +1367,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = result1.remainder;
-    const result2 = item484(remainder);
+    const result2 = item500(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
       return {
@@ -1702,10 +1717,10 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       item65,
       item362,
       item391,
-      item435,
-      item442,
-      item447,
-      item459,
+      item452,
+      item458,
+      item463,
+      item475,
     ];
     let failedExpectations: runtime.FailedExpectation[] = [];
     for (
@@ -4438,7 +4453,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item434(
+        value: item451(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -4579,7 +4594,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     remainder = remainder.slice(result7[0].length);
     const result8 = remainder.match(/^\}/g);
     failedExpectations.push({
-      expectation: item432,
+      expectation: item449,
       remainder: remainder,
     });
     if (result8?.length !== 1) {
@@ -4816,7 +4831,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     };
   }
   // (
-  // S key:Selector $(S ":") value:Expr
+  // S key:FieldSelector $(S ":") value:Expr
   // { return builder.newStructEntry(offset(), key, value) }
   // )|0.., ","|
   function item416(
@@ -4828,7 +4843,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     while (true) {
       let r = remainder;
       if (values.length > 0) {
-        const result = item428(r);
+        const result = item445(r);
         failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
@@ -4845,7 +4860,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return { success: true, value: values, remainder, failedExpectations };
   }
-  // S key:Selector $(S ":") value:Expr
+  // S key:FieldSelector $(S ":") value:Expr
   // { return builder.newStructEntry(offset(), key, value) }
   function item417(
     text: string,
@@ -4854,7 +4869,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     if (result.success === true) {
       return {
         success: true,
-        value: item427(
+        value: item444(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -4865,7 +4880,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return result;
   }
-  // S key:Selector $(S ":") value:Expr
+  // S key:FieldSelector $(S ":") value:Expr
   function item418(
     text: string,
   ): runtime.Success<[string, Expr]> | runtime.Failure {
@@ -4892,7 +4907,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = remainder.slice(result0[0].length);
-    const result1 = item399(remainder);
+    const result1 = item421(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -4915,7 +4930,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
         remainder: remainder,
       },
       {
-        expectation: item423,
+        expectation: item440,
         remainder: remainder,
       },
     );
@@ -4944,8 +4959,137 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       failedExpectations,
     };
   }
+  // Selector / QuotedIdentifier
+  function item421(text: string): runtime.Success<string> | runtime.Failure {
+    const choices = [item399, item423];
+    let failedExpectations: runtime.FailedExpectation[] = [];
+    for (
+      let func = choices.shift();
+      func !== undefined;
+      func = choices.shift()
+    ) {
+      const result = func(text);
+      failedExpectations.push(...result.failedExpectations);
+      if (result.success === true) {
+        return {
+          success: true,
+          value: result.value,
+          remainder: result.remainder,
+          failedExpectations,
+        };
+      }
+    }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations,
+    };
+  }
+  // QuotedIdentifier "quoted identifier"
+  // = "`" name:$([^`$]+) "`"
+  // { return name }
+  //
+  function item423(text: string): runtime.Success<string> | runtime.Failure {
+    const result = item424(text);
+    if (result.success === true) {
+      return result;
+    }
+    return {
+      success: false,
+      remainder: result.remainder,
+      failedExpectations: [
+        {
+          expectation: item436,
+          remainder: result.remainder,
+        },
+      ],
+    };
+  }
+  // "`" name:$([^`$]+) "`"
+  // { return name }
+  function item424(text: string): runtime.Success<string> | runtime.Failure {
+    const result = item425(text);
+    if (result.success === true) {
+      return {
+        success: true,
+        value: item435(result.value[0]),
+        remainder: result.remainder,
+        failedExpectations: [],
+      };
+    }
+    return result;
+  }
+  // "`" name:$([^`$]+) "`"
+  function item425(text: string): runtime.Success<[string]> | runtime.Failure {
+    const failedExpectations: runtime.FailedExpectation[] = [];
+    let remainder = text;
+    const result0 = remainder.match(/^`/g);
+    failedExpectations.push({
+      expectation: item427,
+      remainder: remainder,
+    });
+    if (result0?.length !== 1) {
+      return {
+        success: false,
+        remainder,
+        failedExpectations,
+      };
+    }
+    remainder = remainder.slice(result0[0].length);
+    const result1 = item429(remainder);
+    failedExpectations.push(...result1.failedExpectations);
+    if (result1.success === false) {
+      return {
+        success: false,
+        remainder: result1.remainder,
+        failedExpectations,
+      };
+    }
+    remainder = result1.remainder;
+    const result2 = remainder.match(/^`/g);
+    failedExpectations.push({
+      expectation: item427,
+      remainder: remainder,
+    });
+    if (result2?.length !== 1) {
+      return {
+        success: false,
+        remainder,
+        failedExpectations,
+      };
+    }
+    remainder = remainder.slice(result2[0].length);
+    return {
+      success: true,
+      value: [result1.value],
+      remainder,
+      failedExpectations,
+    };
+  }
+  // $([^`$]+)
+  function item429(text: string): runtime.Success<string> | runtime.Failure {
+    const matches = text.match(/^([^`$])+/g);
+    if (matches?.length === 1) {
+      return {
+        success: true,
+        value: matches[0],
+        remainder: text.slice(matches[0].length),
+        failedExpectations: [],
+      };
+    }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item432,
+          remainder: text,
+        },
+      ],
+    };
+  }
   // ","
-  function item428(text: string): runtime.Success<","> | runtime.Failure {
+  function item445(text: string): runtime.Success<","> | runtime.Failure {
     if (text.startsWith(",")) {
       return {
         success: true,
@@ -4967,12 +5111,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // "."? S name:Selector
   // { return builder.newIdentExpr(offset(), name) }
-  function item435(text: string): runtime.Success<Expr> | runtime.Failure {
-    const result = item436(text);
+  function item452(text: string): runtime.Success<Expr> | runtime.Failure {
+    const result = item453(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item441(() => input.length - text.length, result.value[0]),
+        value: item457(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -4980,7 +5124,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // "."? S name:Selector
-  function item436(text: string): runtime.Success<[string]> | runtime.Failure {
+  function item453(text: string): runtime.Success<[string]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
     const result0 = remainder.match(/^(\.)?/g);
@@ -5035,7 +5179,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     };
   }
   // "(" @Expr ")"
-  function item442(text: string): runtime.Success<Expr> | runtime.Failure {
+  function item458(text: string): runtime.Success<Expr> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
     const result0 = remainder.match(/^\(/g);
@@ -5083,12 +5227,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // elements:("[" @ExprList (",")? S "]")
   // { return builder.newListExpr(offset(), elements) }
-  function item447(text: string): runtime.Success<Expr> | runtime.Failure {
-    const result = item449(text);
+  function item463(text: string): runtime.Success<Expr> | runtime.Failure {
+    const result = item465(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item458(() => input.length - text.length, result.value),
+        value: item474(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -5096,12 +5240,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // "[" @ExprList (",")? S "]"
-  function item449(text: string): runtime.Success<Expr[]> | runtime.Failure {
+  function item465(text: string): runtime.Success<Expr[]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
     const result0 = remainder.match(/^\[/g);
     failedExpectations.push({
-      expectation: item451,
+      expectation: item467,
       remainder: remainder,
     });
     if (result0?.length !== 1) {
@@ -5158,7 +5302,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     remainder = remainder.slice(result3[0].length);
     const result4 = remainder.match(/^\]/g);
     failedExpectations.push({
-      expectation: item456,
+      expectation: item472,
       remainder: remainder,
     });
     if (result4?.length !== 1) {
@@ -5178,12 +5322,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // entries:("{" @MapInits $((",")? S "}"))
   // { return builder.newStructExpr(offset(), entries) }
-  function item459(text: string): runtime.Success<Expr> | runtime.Failure {
-    const result = item461(text);
+  function item475(text: string): runtime.Success<Expr> | runtime.Failure {
+    const result = item477(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item481(() => input.length - text.length, result.value),
+        value: item497(() => input.length - text.length, result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -5191,7 +5335,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // "{" @MapInits $((",")? S "}")
-  function item461(
+  function item477(
     text: string,
   ): runtime.Success<Expr_CreateStruct_Entry[]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
@@ -5209,7 +5353,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = remainder.slice(result0[0].length);
-    const result1 = item465(remainder);
+    const result1 = item481(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -5236,7 +5380,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
         remainder: remainder,
       },
       {
-        expectation: item432,
+        expectation: item449,
         remainder: remainder,
       },
     );
@@ -5259,7 +5403,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   // key:Expr ":" value:Expr
   // { return builder.newMapEntry(offset(), key, value) }
   // )|0.., ","|
-  function item465(
+  function item481(
     text: string,
   ): runtime.Success<Expr_CreateStruct_Entry[]> | runtime.Failure {
     const values: Array<Expr_CreateStruct_Entry> = [];
@@ -5268,14 +5412,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     while (true) {
       let r = remainder;
       if (values.length > 0) {
-        const result = item473(r);
+        const result = item489(r);
         failedExpectations.push(...result.failedExpectations);
         if (result.success === false) {
           break;
         }
         r = result.remainder;
       }
-      const result = item466(r);
+      const result = item482(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
@@ -5287,14 +5431,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // key:Expr ":" value:Expr
   // { return builder.newMapEntry(offset(), key, value) }
-  function item466(
+  function item482(
     text: string,
   ): runtime.Success<Expr_CreateStruct_Entry> | runtime.Failure {
-    const result = item467(text);
+    const result = item483(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item472(
+        value: item488(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -5306,7 +5450,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // key:Expr ":" value:Expr
-  function item467(
+  function item483(
     text: string,
   ): runtime.Success<[Expr, Expr]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
@@ -5323,7 +5467,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     remainder = result0.remainder;
     const result1 = remainder.match(/^:/g);
     failedExpectations.push({
-      expectation: item423,
+      expectation: item440,
       remainder: remainder,
     });
     if (result1?.length !== 1) {
@@ -5352,7 +5496,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     };
   }
   // ","
-  function item473(text: string): runtime.Success<","> | runtime.Failure {
+  function item489(text: string): runtime.Success<","> | runtime.Failure {
     if (text.startsWith(",")) {
       return {
         success: true,
@@ -5373,7 +5517,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     };
   }
   // (S @Access)*
-  function item484(
+  function item500(
     text: string,
   ): runtime.Success<((prevExpr: Expr) => Expr)[]> | runtime.Failure {
     const values: Array<(prevExpr: Expr) => Expr> = [];
@@ -5381,7 +5525,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     let remainder = text;
     while (true) {
       let r = remainder;
-      const result = item485(r);
+      const result = item501(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
@@ -5392,7 +5536,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return { success: true, value: values, remainder, failedExpectations };
   }
   // S @Access
-  function item485(
+  function item501(
     text: string,
   ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
@@ -5418,7 +5562,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = remainder.slice(result0[0].length);
-    const result1 = item488(remainder);
+    const result1 = item504(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -5435,16 +5579,16 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       failedExpectations,
     };
   }
-  // "." S field:Selector S ![(]
+  // "." S field:FieldSelector S ![(]
   // { return ((prevExpr: Expr) => builder.newSelectExpr(offset(), prevExpr, field)) }
   // / "." S func:Selector S "(" args:ExprList ")"
   // { return ((prevExpr: Expr) => builder.newMemberCallExpr(offset(), prevExpr, func, args)) }
   // / "[" index:Expr "]"
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), "_[_]", [prevExpr, index])) }
-  function item488(
+  function item504(
     text: string,
   ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
-    const choices = [item489, item498, item507];
+    const choices = [item505, item514, item523];
     let failedExpectations: runtime.FailedExpectation[] = [];
     for (
       let func = choices.shift();
@@ -5468,24 +5612,24 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       failedExpectations,
     };
   }
-  // "." S field:Selector S ![(]
+  // "." S field:FieldSelector S ![(]
   // { return ((prevExpr: Expr) => builder.newSelectExpr(offset(), prevExpr, field)) }
-  function item489(
+  function item505(
     text: string,
   ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
-    const result = item490(text);
+    const result = item506(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item497(() => input.length - text.length, result.value[0]),
+        value: item513(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
     }
     return result;
   }
-  // "." S field:Selector S ![(]
-  function item490(text: string): runtime.Success<[string]> | runtime.Failure {
+  // "." S field:FieldSelector S ![(]
+  function item506(text: string): runtime.Success<[string]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
     const result0 = remainder.match(/^\./g);
@@ -5522,7 +5666,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = remainder.slice(result1[0].length);
-    const result2 = item399(remainder);
+    const result2 = item421(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
       return {
@@ -5572,14 +5716,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // "." S func:Selector S "(" args:ExprList ")"
   // { return ((prevExpr: Expr) => builder.newMemberCallExpr(offset(), prevExpr, func, args)) }
-  function item498(
+  function item514(
     text: string,
   ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
-    const result = item499(text);
+    const result = item515(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item506(
+        value: item522(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -5591,7 +5735,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // "." S func:Selector S "(" args:ExprList ")"
-  function item499(
+  function item515(
     text: string,
   ): runtime.Success<[string, Expr[]]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
@@ -5706,14 +5850,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // "[" index:Expr "]"
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), "_[_]", [prevExpr, index])) }
-  function item507(
+  function item523(
     text: string,
   ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
-    const result = item508(text);
+    const result = item524(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item513(() => input.length - text.length, result.value[0]),
+        value: item529(() => input.length - text.length, result.value[0]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -5721,12 +5865,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // "[" index:Expr "]"
-  function item508(text: string): runtime.Success<[Expr]> | runtime.Failure {
+  function item524(text: string): runtime.Success<[Expr]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
     const result0 = remainder.match(/^\[/g);
     failedExpectations.push({
-      expectation: item451,
+      expectation: item467,
       remainder: remainder,
     });
     if (result0?.length !== 1) {
@@ -5749,7 +5893,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     remainder = result1.remainder;
     const result2 = remainder.match(/^\]/g);
     failedExpectations.push({
-      expectation: item456,
+      expectation: item472,
       remainder: remainder,
     });
     if (result2?.length !== 1) {
@@ -5780,12 +5924,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   //
   // return builder.newCallExpr(offset(), `${ops[0]}_`, [expr]);
   // }
-  function item517(text: string): runtime.Success<Expr> | runtime.Failure {
-    const result = item518(text);
+  function item533(text: string): runtime.Success<Expr> | runtime.Failure {
+    const result = item534(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item529(
+        value: item545(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -5797,7 +5941,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // S ops:$( "!"+ / "-"+ ) expr:Member
-  function item518(
+  function item534(
     text: string,
   ): runtime.Success<[string, Expr]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
@@ -5823,7 +5967,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = remainder.slice(result0[0].length);
-    const result1 = item520(remainder);
+    const result1 = item536(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -5851,7 +5995,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     };
   }
   // $( "!"+ / "-"+ )
-  function item520(text: string): runtime.Success<string> | runtime.Failure {
+  function item536(text: string): runtime.Success<string> | runtime.Failure {
     const matches = text.match(/^((!)+|(-)+)/g);
     if (matches?.length === 1) {
       return {
@@ -5866,7 +6010,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       remainder: text,
       failedExpectations: [
         {
-          expectation: item524,
+          expectation: item540,
           remainder: text,
         },
         {
@@ -5877,10 +6021,10 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     };
   }
   // MultiplicationTail?
-  function item531(
+  function item547(
     text: string,
   ): runtime.Success<((prevExpr: Expr) => Expr)[] | null> | runtime.Failure {
-    const result = item533(text);
+    const result = item549(text);
     if (result.success === true) {
       return result;
     }
@@ -5895,7 +6039,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   // S operator:( o:[*/%] { return `_${o}_` } ) nextExpr:Unary
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
   // )+
-  function item533(
+  function item549(
     text: string,
   ): runtime.Success<((prevExpr: Expr) => Expr)[]> | runtime.Failure {
     const values: Array<(prevExpr: Expr) => Expr> = [];
@@ -5903,7 +6047,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     let remainder = text;
     while (true) {
       let r = remainder;
-      const result = item534(r);
+      const result = item550(r);
       failedExpectations.push(...result.failedExpectations);
       if (result.success === false) {
         break;
@@ -5918,14 +6062,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // S operator:( o:[*/%] { return `_${o}_` } ) nextExpr:Unary
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
-  function item534(
+  function item550(
     text: string,
   ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
-    const result = item535(text);
+    const result = item551(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item544(
+        value: item560(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -5937,7 +6081,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // S operator:( o:[*/%] { return `_${o}_` } ) nextExpr:Unary
-  function item535(
+  function item551(
     text: string,
   ): runtime.Success<[string, Expr]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
@@ -5963,7 +6107,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = remainder.slice(result0[0].length);
-    const result1 = item537(remainder);
+    const result1 = item553(remainder);
     failedExpectations.push(...result1.failedExpectations);
     if (result1.success === false) {
       return {
@@ -5991,12 +6135,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     };
   }
   // o:[*/%] { return `_${o}_` }
-  function item537(text: string): runtime.Success<string> | runtime.Failure {
-    const result = item539(text);
+  function item553(text: string): runtime.Success<string> | runtime.Failure {
+    const result = item555(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item541(result.value),
+        value: item557(result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -6004,7 +6148,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // [*/%]
-  function item539(text: string): runtime.Success<string> | runtime.Failure {
+  function item555(text: string): runtime.Success<string> | runtime.Failure {
     if (/^[*\/%]/g.test(text)) {
       return {
         success: true,
@@ -6018,17 +6162,17 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       remainder: text,
       failedExpectations: [
         {
-          expectation: item540,
+          expectation: item556,
           remainder: text,
         },
       ],
     };
   }
   // AdditionTail?
-  function item548(
+  function item564(
     text: string,
   ): runtime.Success<((prevExpr: Expr) => Expr)[] | null> | runtime.Failure {
-    const result = item550(text);
+    const result = item566(text);
     if (result.success === true) {
       return result;
     }
@@ -6043,185 +6187,37 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
   // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
   // )+
-  function item550(
-    text: string,
-  ): runtime.Success<((prevExpr: Expr) => Expr)[]> | runtime.Failure {
-    const values: Array<(prevExpr: Expr) => Expr> = [];
-    const failedExpectations: runtime.FailedExpectation[] = [];
-    let remainder = text;
-    while (true) {
-      let r = remainder;
-      const result = item551(r);
-      failedExpectations.push(...result.failedExpectations);
-      if (result.success === false) {
-        break;
-      }
-      remainder = result.remainder;
-      values.push(result.value);
-    }
-    if (values.length < 1) {
-      return { success: false, remainder: text, failedExpectations };
-    }
-    return { success: true, value: values, remainder, failedExpectations };
-  }
-  // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
-  // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
-  function item551(
-    text: string,
-  ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
-    const result = item552(text);
-    if (result.success === true) {
-      return {
-        success: true,
-        value: item559(
-          () => input.length - text.length,
-          result.value[0],
-          result.value[1],
-        ),
-        remainder: result.remainder,
-        failedExpectations: [],
-      };
-    }
-    return result;
-  }
-  // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
-  function item552(
-    text: string,
-  ): runtime.Success<[string, Expr]> | runtime.Failure {
-    const failedExpectations: runtime.FailedExpectation[] = [];
-    let remainder = text;
-    const result0 = remainder.match(
-      /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
-    );
-    failedExpectations.push(
-      {
-        expectation: item41,
-        remainder: remainder,
-      },
-      {
-        expectation: item58,
-        remainder: remainder,
-      },
-    );
-    if (result0?.length !== 1) {
-      return {
-        success: false,
-        remainder,
-        failedExpectations,
-      };
-    }
-    remainder = remainder.slice(result0[0].length);
-    const result1 = item554(remainder);
-    failedExpectations.push(...result1.failedExpectations);
-    if (result1.success === false) {
-      return {
-        success: false,
-        remainder: result1.remainder,
-        failedExpectations,
-      };
-    }
-    remainder = result1.remainder;
-    const result2 = item24(remainder);
-    failedExpectations.push(...result2.failedExpectations);
-    if (result2.success === false) {
-      return {
-        success: false,
-        remainder: result2.remainder,
-        failedExpectations,
-      };
-    }
-    remainder = result2.remainder;
-    return {
-      success: true,
-      value: [result1.value, result2.value],
-      remainder,
-      failedExpectations,
-    };
-  }
-  // o:[+-] { return `_${o}_` }
-  function item554(text: string): runtime.Success<string> | runtime.Failure {
-    const result = item556(text);
-    if (result.success === true) {
-      return {
-        success: true,
-        value: item557(result.value),
-        remainder: result.remainder,
-        failedExpectations: [],
-      };
-    }
-    return result;
-  }
-  // [+-]
-  function item556(text: string): runtime.Success<string> | runtime.Failure {
-    if (/^[+\-]/g.test(text)) {
-      return {
-        success: true,
-        value: text.slice(0, 1),
-        remainder: text.slice(1),
-        failedExpectations: [],
-      };
-    }
-    return {
-      success: false,
-      remainder: text,
-      failedExpectations: [
-        {
-          expectation: item93,
-          remainder: text,
-        },
-      ],
-    };
-  }
-  // RelationTail?
-  function item563(
-    text: string,
-  ): runtime.Success<((prevExpr: Expr) => Expr)[] | null> | runtime.Failure {
-    const result = item565(text);
-    if (result.success === true) {
-      return result;
-    }
-    return {
-      success: true,
-      value: null,
-      remainder: text,
-      failedExpectations: result.failedExpectations,
-    };
-  }
-  // (
-  // S operator:Relop nextExpr:Addition
-  // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
-  // )+
-  function item565(
-    text: string,
-  ): runtime.Success<((prevExpr: Expr) => Expr)[]> | runtime.Failure {
-    const values: Array<(prevExpr: Expr) => Expr> = [];
-    const failedExpectations: runtime.FailedExpectation[] = [];
-    let remainder = text;
-    while (true) {
-      let r = remainder;
-      const result = item566(r);
-      failedExpectations.push(...result.failedExpectations);
-      if (result.success === false) {
-        break;
-      }
-      remainder = result.remainder;
-      values.push(result.value);
-    }
-    if (values.length < 1) {
-      return { success: false, remainder: text, failedExpectations };
-    }
-    return { success: true, value: values, remainder, failedExpectations };
-  }
-  // S operator:Relop nextExpr:Addition
-  // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
   function item566(
     text: string,
+  ): runtime.Success<((prevExpr: Expr) => Expr)[]> | runtime.Failure {
+    const values: Array<(prevExpr: Expr) => Expr> = [];
+    const failedExpectations: runtime.FailedExpectation[] = [];
+    let remainder = text;
+    while (true) {
+      let r = remainder;
+      const result = item567(r);
+      failedExpectations.push(...result.failedExpectations);
+      if (result.success === false) {
+        break;
+      }
+      remainder = result.remainder;
+      values.push(result.value);
+    }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
+  }
+  // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
+  // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
+  function item567(
+    text: string,
   ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
-    const result = item567(text);
+    const result = item568(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item595(
+        value: item575(
           () => input.length - text.length,
           result.value[0],
           result.value[1],
@@ -6232,8 +6228,8 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     }
     return result;
   }
-  // S operator:Relop nextExpr:Addition
-  function item567(
+  // S operator:( o:[+-] { return `_${o}_` } ) nextExpr:Multiplication
+  function item568(
     text: string,
   ): runtime.Success<[string, Expr]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
@@ -6269,6 +6265,154 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       };
     }
     remainder = result1.remainder;
+    const result2 = item24(remainder);
+    failedExpectations.push(...result2.failedExpectations);
+    if (result2.success === false) {
+      return {
+        success: false,
+        remainder: result2.remainder,
+        failedExpectations,
+      };
+    }
+    remainder = result2.remainder;
+    return {
+      success: true,
+      value: [result1.value, result2.value],
+      remainder,
+      failedExpectations,
+    };
+  }
+  // o:[+-] { return `_${o}_` }
+  function item570(text: string): runtime.Success<string> | runtime.Failure {
+    const result = item572(text);
+    if (result.success === true) {
+      return {
+        success: true,
+        value: item573(result.value),
+        remainder: result.remainder,
+        failedExpectations: [],
+      };
+    }
+    return result;
+  }
+  // [+-]
+  function item572(text: string): runtime.Success<string> | runtime.Failure {
+    if (/^[+\-]/g.test(text)) {
+      return {
+        success: true,
+        value: text.slice(0, 1),
+        remainder: text.slice(1),
+        failedExpectations: [],
+      };
+    }
+    return {
+      success: false,
+      remainder: text,
+      failedExpectations: [
+        {
+          expectation: item93,
+          remainder: text,
+        },
+      ],
+    };
+  }
+  // RelationTail?
+  function item579(
+    text: string,
+  ): runtime.Success<((prevExpr: Expr) => Expr)[] | null> | runtime.Failure {
+    const result = item581(text);
+    if (result.success === true) {
+      return result;
+    }
+    return {
+      success: true,
+      value: null,
+      remainder: text,
+      failedExpectations: result.failedExpectations,
+    };
+  }
+  // (
+  // S operator:Relop nextExpr:Addition
+  // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
+  // )+
+  function item581(
+    text: string,
+  ): runtime.Success<((prevExpr: Expr) => Expr)[]> | runtime.Failure {
+    const values: Array<(prevExpr: Expr) => Expr> = [];
+    const failedExpectations: runtime.FailedExpectation[] = [];
+    let remainder = text;
+    while (true) {
+      let r = remainder;
+      const result = item582(r);
+      failedExpectations.push(...result.failedExpectations);
+      if (result.success === false) {
+        break;
+      }
+      remainder = result.remainder;
+      values.push(result.value);
+    }
+    if (values.length < 1) {
+      return { success: false, remainder: text, failedExpectations };
+    }
+    return { success: true, value: values, remainder, failedExpectations };
+  }
+  // S operator:Relop nextExpr:Addition
+  // { return ((prevExpr: Expr) => builder.newCallExpr(offset(), operator, [prevExpr, nextExpr])) }
+  function item582(
+    text: string,
+  ): runtime.Success<(prevExpr: Expr) => Expr> | runtime.Failure {
+    const result = item583(text);
+    if (result.success === true) {
+      return {
+        success: true,
+        value: item611(
+          () => input.length - text.length,
+          result.value[0],
+          result.value[1],
+        ),
+        remainder: result.remainder,
+        failedExpectations: [],
+      };
+    }
+    return result;
+  }
+  // S operator:Relop nextExpr:Addition
+  function item583(
+    text: string,
+  ): runtime.Success<[string, Expr]> | runtime.Failure {
+    const failedExpectations: runtime.FailedExpectation[] = [];
+    let remainder = text;
+    const result0 = remainder.match(
+      /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?/g,
+    );
+    failedExpectations.push(
+      {
+        expectation: item41,
+        remainder: remainder,
+      },
+      {
+        expectation: item58,
+        remainder: remainder,
+      },
+    );
+    if (result0?.length !== 1) {
+      return {
+        success: false,
+        remainder,
+        failedExpectations,
+      };
+    }
+    remainder = remainder.slice(result0[0].length);
+    const result1 = item586(remainder);
+    failedExpectations.push(...result1.failedExpectations);
+    if (result1.success === false) {
+      return {
+        success: false,
+        remainder: result1.remainder,
+        failedExpectations,
+      };
+    }
+    remainder = result1.remainder;
     const result2 = item20(remainder);
     failedExpectations.push(...result2.failedExpectations);
     if (result2.success === false) {
@@ -6293,8 +6437,8 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   // )
   // / "in" { return "@in" }
   //
-  function item570(text: string): runtime.Success<string> | runtime.Failure {
-    const result = item571(text);
+  function item586(text: string): runtime.Success<string> | runtime.Failure {
+    const result = item587(text);
     if (result.success === true) {
       return result;
     }
@@ -6303,7 +6447,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       remainder: result.remainder,
       failedExpectations: [
         {
-          expectation: item593,
+          expectation: item609,
           remainder: result.remainder,
         },
       ],
@@ -6314,8 +6458,8 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   // { return `_${operator}_` }
   // )
   // / "in" { return "@in" }
-  function item571(text: string): runtime.Success<string> | runtime.Failure {
-    const choices = [item572, item589];
+  function item587(text: string): runtime.Success<string> | runtime.Failure {
+    const choices = [item588, item605];
     let failedExpectations: runtime.FailedExpectation[] = [];
     for (
       let func = choices.shift();
@@ -6341,12 +6485,12 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   }
   // operator:$("<=" / "<" / ">=" / ">" / "==" / "!=")
   // { return `_${operator}_` }
-  function item572(text: string): runtime.Success<string> | runtime.Failure {
-    const result = item574(text);
+  function item588(text: string): runtime.Success<string> | runtime.Failure {
+    const result = item590(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item588(result.value),
+        value: item604(result.value),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -6354,7 +6498,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // $("<=" / "<" / ">=" / ">" / "==" / "!=")
-  function item574(text: string): runtime.Success<string> | runtime.Failure {
+  function item590(text: string): runtime.Success<string> | runtime.Failure {
     const matches = text.match(/^(<=|<|>=|>|==|!=)/g);
     if (matches?.length === 1) {
       return {
@@ -6369,39 +6513,39 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       remainder: text,
       failedExpectations: [
         {
-          expectation: item577,
+          expectation: item593,
           remainder: text,
         },
         {
-          expectation: item579,
+          expectation: item595,
           remainder: text,
         },
         {
-          expectation: item581,
+          expectation: item597,
           remainder: text,
         },
         {
-          expectation: item583,
+          expectation: item599,
           remainder: text,
         },
         {
-          expectation: item585,
+          expectation: item601,
           remainder: text,
         },
         {
-          expectation: item587,
+          expectation: item603,
           remainder: text,
         },
       ],
     };
   }
   // "in" { return "@in" }
-  function item589(text: string): runtime.Success<string> | runtime.Failure {
-    const result = item590(text);
+  function item605(text: string): runtime.Success<string> | runtime.Failure {
+    const result = item606(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item592(),
+        value: item608(),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -6409,7 +6553,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // "in"
-  function item590(text: string): runtime.Success<"in"> | runtime.Failure {
+  function item606(text: string): runtime.Success<"in"> | runtime.Failure {
     if (text.startsWith("in")) {
       return {
         success: true,
@@ -6423,14 +6567,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
       remainder: text,
       failedExpectations: [
         {
-          expectation: item591,
+          expectation: item607,
           remainder: text,
         },
       ],
     };
   }
   // $(S "&&")
-  function item598(text: string): runtime.Success<string> | runtime.Failure {
+  function item614(text: string): runtime.Success<string> | runtime.Failure {
     const matches = text.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?&&/g,
     );
@@ -6455,14 +6599,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
           remainder: text,
         },
         {
-          expectation: item601,
+          expectation: item617,
           remainder: text,
         },
       ],
     };
   }
   // $(S "||")
-  function item604(text: string): runtime.Success<string> | runtime.Failure {
+  function item620(text: string): runtime.Success<string> | runtime.Failure {
     const matches = text.match(
       /^(([\t\n\f\r ])+)?(\/\/([^\r\n])*([\r\n])+)?(([\t\n\f\r ])+)?\|\|/g,
     );
@@ -6487,17 +6631,17 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
           remainder: text,
         },
         {
-          expectation: item607,
+          expectation: item623,
           remainder: text,
         },
       ],
     };
   }
   // TernaryTail?
-  function item611(
+  function item627(
     text: string,
   ): runtime.Success<[Expr, Expr] | null> | runtime.Failure {
-    const result = item613(text);
+    const result = item629(text);
     if (result.success === true) {
       return result;
     }
@@ -6513,14 +6657,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
   // /* : [Expr, Expr] */
   // return [t, f];
   // }
-  function item613(
+  function item629(
     text: string,
   ): runtime.Success<[Expr, Expr]> | runtime.Failure {
-    const result = item614(text);
+    const result = item630(text);
     if (result.success === true) {
       return {
         success: true,
-        value: item621(result.value[0], result.value[1]),
+        value: item637(result.value[0], result.value[1]),
         remainder: result.remainder,
         failedExpectations: [],
       };
@@ -6528,14 +6672,14 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     return result;
   }
   // "?" t:ConditionalOr S ":" f:Expr S
-  function item614(
+  function item630(
     text: string,
   ): runtime.Success<[Expr, Expr]> | runtime.Failure {
     const failedExpectations: runtime.FailedExpectation[] = [];
     let remainder = text;
     const result0 = remainder.match(/^\?/g);
     failedExpectations.push({
-      expectation: item616,
+      expectation: item632,
       remainder: remainder,
     });
     if (result0?.length !== 1) {
@@ -6579,7 +6723,7 @@ export function parse(input: string, options: runtime.ParseOptions = {}): Expr {
     remainder = remainder.slice(result2[0].length);
     const result3 = remainder.match(/^:/g);
     failedExpectations.push({
-      expectation: item423,
+      expectation: item440,
       remainder: remainder,
     });
     if (result3?.length !== 1) {

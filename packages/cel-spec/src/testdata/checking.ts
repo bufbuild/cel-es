@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Generated from cel-go github.com/google/cel-go@v0.26.1/checker/checker_test.go
+// Generated from cel-go github.com/google/cel-go@v0.29.0/checker/checker_test.go
 import type { SerializedIncrementalTestSuite } from "./tests.js";
 export const tests: SerializedIncrementalTestSuite = {
   name: "checking",
@@ -1651,7 +1651,7 @@ export const tests: SerializedIncrementalTestSuite = {
       },
       ast: "NotAMessage{}^#*expr.Expr_StructExpr#",
       error:
-        "ERROR: \u003cinput\u003e:1:12: 'wrapper(int)' is not a type\n | NotAMessage{}\n | ...........^",
+        "ERROR: \u003cinput\u003e:1:12: undeclared reference to 'NotAMessage' (in container '')\n | NotAMessage{}\n | ...........^",
     },
     {
       original: { expr: "{}.map(c,[c,type(c)])" },
@@ -1659,6 +1659,95 @@ export const tests: SerializedIncrementalTestSuite = {
       checkedAst:
         "__comprehension__(\n  // Variable\n  c,\n  // Target\n  {}~map(dyn, dyn),\n  // Accumulator\n  @result,\n  // Init\n  []~list(list(dyn)),\n  // LoopCondition\n  true~bool,\n  // LoopStep\n  _+_(\n    @result~list(list(dyn))^@result,\n    [\n      [\n        c~dyn^c,\n        type(\n          c~dyn^c\n        )~type(dyn)^type\n      ]~list(dyn)\n    ]~list(list(dyn))\n  )~list(list(dyn))^add_list,\n  // Result\n  @result~list(list(dyn))^@result)~list(list(dyn))",
       type: "list(list(dyn))",
+    },
+    {
+      original: {
+        expr: "[{'z': 0}].exists(y, y.z == 0)",
+        typeEnv: [
+          {
+            name: "cel.example.y",
+            ident: {
+              type: {
+                mapType: {
+                  keyType: { primitive: "STRING" },
+                  valueType: { primitive: "INT64" },
+                },
+              },
+            },
+          },
+        ],
+      },
+      ast: '__comprehension__(\n  // Variable\n  y,\n  // Target\n  [\n    {\n      "z"^#*expr.Constant_StringValue#:0^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      y^#*expr.Expr_IdentExpr#.z^#*expr.Expr_SelectExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+      checkedAst:
+        '__comprehension__(\n  // Variable\n  y,\n  // Target\n  [\n    {\n      "z"~string:0~int\n    }~map(string, int)\n  ]~list(map(string, int)),\n  // Accumulator\n  @result,\n  // Init\n  false~bool,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result~bool^@result\n    )~bool^logical_not\n  )~bool^not_strictly_false,\n  // LoopStep\n  _||_(\n    @result~bool^@result,\n    _==_(\n      y~map(string, int)^y.z~int,\n      0~int\n    )~bool^equals\n  )~bool^logical_or,\n  // Result\n  @result~bool^@result)~bool',
+      type: "bool",
+    },
+    {
+      original: {
+        expr: "[{'y': 0}].exists(x, x.y == 0)",
+        typeEnv: [
+          {
+            name: "x",
+            ident: {
+              type: {
+                mapType: {
+                  keyType: { primitive: "STRING" },
+                  valueType: { primitive: "INT64" },
+                },
+              },
+            },
+          },
+        ],
+      },
+      ast: '__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    {\n      "y"^#*expr.Constant_StringValue#:0^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      x^#*expr.Expr_IdentExpr#.y^#*expr.Expr_SelectExpr#,\n      0^#*expr.Constant_Int64Value#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+      checkedAst:
+        '__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    {\n      "y"~string:0~int\n    }~map(string, int)\n  ]~list(map(string, int)),\n  // Accumulator\n  @result,\n  // Init\n  false~bool,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result~bool^@result\n    )~bool^logical_not\n  )~bool^not_strictly_false,\n  // LoopStep\n  _||_(\n    @result~bool^@result,\n    _==_(\n      x~map(string, int)^x.y~int,\n      0~int\n    )~bool^equals\n  )~bool^logical_or,\n  // Result\n  @result~bool^@result)~bool',
+      type: "bool",
+    },
+    {
+      original: {
+        expr: "[0].exists(x, x != .x)",
+        typeEnv: [{ name: "x", ident: { type: { primitive: "INT64" } } }],
+      },
+      ast: "__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    0^#*expr.Constant_Int64Value#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _!=_(\n      x^#*expr.Expr_IdentExpr#,\n      .x^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#",
+      checkedAst:
+        "__comprehension__(\n  // Variable\n  x,\n  // Target\n  [\n    0~int\n  ]~list(int),\n  // Accumulator\n  @result,\n  // Init\n  false~bool,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result~bool^@result\n    )~bool^logical_not\n  )~bool^not_strictly_false,\n  // LoopStep\n  _||_(\n    @result~bool^@result,\n    _!=_(\n      x~int^x,\n      .x~int^.x\n    )~bool^not_equals\n  )~bool^logical_or,\n  // Result\n  @result~bool^@result)~bool",
+      type: "bool",
+    },
+    {
+      original: {
+        expr: "[{'z': 0}].exists(y, .y.z == y.z)",
+        typeEnv: [{ name: "y.z", ident: { type: { primitive: "INT64" } } }],
+      },
+      ast: '__comprehension__(\n  // Variable\n  y,\n  // Target\n  [\n    {\n      "z"^#*expr.Constant_StringValue#:0^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#\n    }^#*expr.Expr_StructExpr#\n  ]^#*expr.Expr_ListExpr#,\n  // Accumulator\n  @result,\n  // Init\n  false^#*expr.Constant_BoolValue#,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result^#*expr.Expr_IdentExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // LoopStep\n  _||_(\n    @result^#*expr.Expr_IdentExpr#,\n    _==_(\n      .y^#*expr.Expr_IdentExpr#.z^#*expr.Expr_SelectExpr#,\n      y^#*expr.Expr_IdentExpr#.z^#*expr.Expr_SelectExpr#\n    )^#*expr.Expr_CallExpr#\n  )^#*expr.Expr_CallExpr#,\n  // Result\n  @result^#*expr.Expr_IdentExpr#)^#*expr.Expr_ComprehensionExpr#',
+      checkedAst:
+        '__comprehension__(\n  // Variable\n  y,\n  // Target\n  [\n    {\n      "z"~string:0~int\n    }~map(string, int)\n  ]~list(map(string, int)),\n  // Accumulator\n  @result,\n  // Init\n  false~bool,\n  // LoopCondition\n  @not_strictly_false(\n    !_(\n      @result~bool^@result\n    )~bool^logical_not\n  )~bool^not_strictly_false,\n  // LoopStep\n  _||_(\n    @result~bool^@result,\n    _==_(\n      .y.z~int^.y.z,\n      y~map(string, int)^y.z~int\n    )~bool^equals\n  )~bool^logical_or,\n  // Result\n  @result~bool^@result)~bool',
+      type: "bool",
+    },
+    {
+      original: {
+        expr: "TestAllTypes{?singleInt32: {}.?i}",
+        container: "google.expr.proto2.test",
+      },
+      error:
+        "ERROR: :1:14: unsupported syntax '?'\n | TestAllTypes{?singleInt32: {}.?i}\n | .............^",
+    },
+    {
+      original: {
+        expr: "TestAllTypes{?singleInt32: {'i': 20}.?i}.singleInt32",
+        container: "google.expr.proto2.test",
+      },
+      error:
+        "ERROR: :1:14: unsupported syntax '?'\n | TestAllTypes{?singleInt32: {'i': 20}.?i}.singleInt32\n | .............^",
+    },
+    {
+      original: {
+        expr: "TestAllTypes{singleInt32: 1, single_bool: true}.singleInt32",
+        container: "google.expr.proto2.test",
+      },
+      ast: "TestAllTypes{\n  singleInt32:1^#*expr.Constant_Int64Value#^#*expr.Expr_CreateStruct_Entry#,\n  single_bool:true^#*expr.Constant_BoolValue#^#*expr.Expr_CreateStruct_Entry#\n}^#*expr.Expr_StructExpr#.singleInt32^#*expr.Expr_SelectExpr#",
+      error:
+        "ERROR: \u003cinput\u003e:1:25: undefined field 'singleInt32'\n | TestAllTypes{singleInt32: 1, single_bool: true}.singleInt32\n | ........................^\nERROR: \u003cinput\u003e:1:48: undefined field 'singleInt32'\n | TestAllTypes{singleInt32: 1, single_bool: true}.singleInt32\n | ...............................................^",
     },
   ],
 } as const;
