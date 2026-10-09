@@ -42,7 +42,7 @@ const loadCodePoints = async (
 ): Promise<Set<number> | null> => {
   try {
     const mod = (await import(
-      `${pkg}/${property}/${longName}/code-points.js`
+      `${pkg}/${property}/${longName}/code-points.${pkg === "@unicode/unicode-16.0.0" ? "mjs" : "js"}`
     )) as { default: number[] };
     return new Set<number>(mod.default);
   } catch {
