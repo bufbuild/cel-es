@@ -134,9 +134,9 @@ class NativeMap implements CelMap {
     // biome-ignore lint/suspicious/noExplicitAny: Part of the Map interface.
     thisArg?: any,
   ): void {
-    this._map.forEach((value, key, _) =>
-      callback.call(thisArg, toCel(value), key, this),
-    );
+    this._map.forEach((value, key, _) => {
+      callback.call(thisArg, toCel(value), key, this);
+    });
   }
 
   *entries(): MapIterator<[string | bigint | boolean | CelUint, CelValue]> {
@@ -188,14 +188,14 @@ class ProtoMap implements CelMap {
     // biome-ignore lint/suspicious/noExplicitAny: Part of the Map interface.
     thisArg?: any,
   ): void {
-    this._map.forEach((value, key, _) =>
+    this._map.forEach((value, key, _) => {
       callback.call(
         thisArg,
         celFromMapValue(this._map.field(), value),
         celFromMapKey(this._map.field(), key),
         this,
-      ),
-    );
+      );
+    });
   }
 
   *entries(): MapIterator<[string | bigint | boolean | CelUint, CelValue]> {
