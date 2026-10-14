@@ -1,13 +1,8 @@
 {
   "compilerOptions": {
-    // Silence TS 6.0 deprecation of moduleResolution=node10, which some builds still rely on.
-    "ignoreDeprecations": "6.0",
     "target": "es2023",
     "lib": ["ES2023"],
     "declaration": true,
-    "types": ["@types/node"],
-    // We don't have dependencies that require interop
-    "esModuleInterop": false,
     // As strict as possible
     "strict": true,
     "forceConsistentCasingInFileNames": true,
