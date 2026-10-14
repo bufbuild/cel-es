@@ -21,7 +21,7 @@
     "test": "npx tsx --test ./src/*.test.ts ./src/*/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
-    "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --ignoreDeprecations 6.0 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:cjs": "node ../../scripts/build-cjs.js",
     "build:esm": "tsc --project tsconfig.json --outDir ./dist/esm",
     "format": "biome format --write",
     "lint": "biome lint --error-on-warnings",
