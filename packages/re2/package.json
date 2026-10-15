@@ -19,7 +19,7 @@
     "test": "npx tsx --test ./src/*.test.ts",
     "prebuild": "rm -rf ./dist/*",
     "build": "npm run build:cjs && npm run build:esm",
-    "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
+    "build:cjs": "tsc --project tsconfig.json --module commonjs --verbatimModuleSyntax false --moduleResolution node10 --ignoreDeprecations 6.0 --outDir ./dist/cjs && echo >./dist/cjs/package.json '{\"type\":\"commonjs\"}'",
     "build:esm": "tsc --project tsconfig.json --outDir ./dist/esm",
     "format": "biome format --write",
     "lint": "biome lint --error-on-warnings",
@@ -44,6 +44,6 @@
   "devDependencies": {
     "@unicode/unicode-15.0.0": "^1.6.17",
     "@unicode/unicode-16.0.0": "^1.6.17",
-    "unicode-property-value-aliases": "^3.9.0"
+    "unicode-property-value-aliases": "^4.0.0"
   }
 }
