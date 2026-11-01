@@ -41,8 +41,9 @@ const loadCodePoints = async (
   longName: string,
 ): Promise<Set<number> | null> => {
   try {
+    const extension = pkg === "@unicode/unicode-15.0.0" ? "mjs" : "js";
     const mod = (await import(
-      `${pkg}/${property}/${longName}/code-points.js`
+      `${pkg}/${property}/${longName}/code-points.${extension}`
     )) as { default: number[] };
     return new Set<number>(mod.default);
   } catch {
