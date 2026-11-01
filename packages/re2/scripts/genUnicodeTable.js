@@ -1,8 +1,8 @@
 import { CodepointRange } from "./codepointRange.js";
 import unicode16 from "@unicode/unicode-16.0.0";
 // Imported for its side effect of being a declared devDependency.
-// loadCodePoints() below dynamically imports `@unicode/unicode-15.0.0/<prop>/<name>/code-points.js`
-// paths, and requires the package to be installed.
+// loadCodePoints() below dynamically imports Unicode 15's `.mjs` data files
+// and requires the package to be installed.
 import "@unicode/unicode-15.0.0";
 import CommonCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/C/code-points.js";
 import SimpleCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/S/code-points.js";
@@ -91,8 +91,11 @@ const reducedOrbit = buildReducedOrbit();
 
 const loadCodePoints = async (pkg, type, name) => {
   try {
+    // Unicode 15 switched its data modules to ESM-only `.mjs` files in 2.x;
+    // Unicode 16 still uses `.js` files.
+    const extension = pkg === "@unicode/unicode-15.0.0" ? "mjs" : "js";
     const { default: codePoints } = await import(
-      `${pkg}/${type}/${name}/code-points.js`
+      `${pkg}/${type}/${name}/code-points.${extension}`
     );
     return new Set(codePoints);
   } catch (_e) {
