@@ -23,7 +23,7 @@ run(
 
 That's it!
 
-For an example of creating resusable evaluator and more, refer to the [example.ts](/packages/example/src/example.ts).
+For an example of creating a reusable evaluator and more, refer to [example.ts](/packages/example/src/example.ts).
 
 
 ## Packages
@@ -32,6 +32,8 @@ For an example of creating resusable evaluator and more, refer to the [example.t
   Provides a CEL evaluator for ECMAScript.
 - [@bufbuild/cel-spec](https://www.npmjs.com/package/@bufbuild/cel-spec):
   Provides CEL definitions and test data from [github.com/google/cel-spec](https://github.com/google/cel-spec).
+- [@bufbuild/re2](https://www.npmjs.com/package/@bufbuild/re2):
+  Provides an RE2-compatible regular expression engine.
 
 
 ## Status: Beta
@@ -46,4 +48,3 @@ Offered under the [Apache 2 license][license].
 [buf]: https://buf.build
 [cel]: https://cel.dev
 [license]: LICENSE
-[contributing]: .github/CONTRIBUTING.md
