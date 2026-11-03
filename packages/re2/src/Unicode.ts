@@ -108,20 +108,25 @@ function simpleFold(r: number): number {
   }
 
   // Fallback for 2-element orbits: use raw native case conversion.
-  // The length check rejects multi-char results (e.g., ß→SS) which
-  // would otherwise be truncated to a non-equivalent codepoint.
+  // Multi-char results (e.g., ß→SS) are rejected: truncating them to the
+  // first code point would produce a non-equivalent rune and send the
+  // orbit walk into a foreign cycle that never returns to |r|.
   const s = String.fromCodePoint(r);
-  const lower = s.toLowerCase();
-  if (lower.length === s.length) {
-    const lowerCp = lower.codePointAt(0);
-    if (lowerCp !== undefined && lowerCp !== r) return lowerCp;
-  }
-  const upper = s.toUpperCase();
-  if (upper.length === s.length) {
-    const upperCp = upper.codePointAt(0);
-    if (upperCp !== undefined && upperCp !== r) return upperCp;
-  }
+  const lowerCp = singleCodePoint(s.toLowerCase());
+  if (lowerCp !== undefined && lowerCp !== r) return lowerCp;
+  const upperCp = singleCodePoint(s.toUpperCase());
+  if (upperCp !== undefined && upperCp !== r) return upperCp;
   return r;
+}
+
+// singleCodePoint returns the only code point of |s|, or undefined if |s|
+// is empty or consists of more than one code point. Comparing UTF-16
+// lengths is not enough: for an astral rune (a surrogate pair) a two-char
+// mapping such as "SS" has the same length as the rune itself.
+function singleCodePoint(s: string): number | undefined {
+  const cp = s.codePointAt(0);
+  if (cp === undefined) return undefined;
+  return s.length === (cp > 0xffff ? 2 : 1) ? cp : undefined;
 }
 
 // equalsIgnoreCase performs case-insensitive equality comparison
