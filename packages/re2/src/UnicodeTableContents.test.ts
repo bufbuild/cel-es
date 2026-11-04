@@ -40,9 +40,10 @@ const loadCodePoints = async (
   property: "General_Category" | "Script",
   longName: string,
 ): Promise<Set<number> | null> => {
+  const extension = pkg === "@unicode/unicode-15.0.0" ? "mjs" : "js";
   try {
     const mod = (await import(
-      `${pkg}/${property}/${longName}/code-points.js`
+      `${pkg}/${property}/${longName}/code-points.${extension}`
     )) as { default: number[] };
     return new Set<number>(mod.default);
   } catch {
