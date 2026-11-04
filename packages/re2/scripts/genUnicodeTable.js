@@ -8,6 +8,18 @@ import CommonCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/C/code-point
 import SimpleCaseFolding from "@unicode/unicode-16.0.0/Case_Folding/S/code-points.js";
 import unicodePropertyValueAliases from "unicode-property-value-aliases";
 
+// Regenerate from packages/re2 with:
+//
+//   node scripts/genUnicodeTable.js > src/UnicodeTables.ts
+//   npx biome format --write src/UnicodeTables.ts
+//
+// The output depends on the Unicode version of the Node.js running this
+// script: CASE_ORBIT only keeps entries where the host's native
+// toLowerCase/toUpperCase disagrees with the Unicode 16.0 case folding. A host
+// on an older Unicode version omits overrides for characters that newer
+// engines fold, which makes case-insensitive matching depend on the runtime.
+// Run this on an official Node.js build (bundled ICU, Unicode 17.0).
+
 const MAX_CODE_POINT = 0x10ffff;
 const SKIP_CATEGORIES = ["cntrl", "Combining_Mark", "digit", "punct"];
 const aliasesToNames = unicodePropertyValueAliases.get("General_Category");
@@ -54,21 +66,20 @@ const generateCaseFoldOrbits = () => {
 const sortedOrbits = generateCaseFoldOrbits();
 
 // rawSimpleFold mirrors the runtime Unicode.simpleFold fallback: raw
-// String.prototype.toLowerCase/toUpperCase with a length check to reject
-// multi-char expansions (e.g. ß→SS). Used to reduce CASE_ORBIT to only
+// String.prototype.toLowerCase/toUpperCase, rejecting multi-code-point
+// expansions (e.g. ß→SS). Used to reduce CASE_ORBIT to only
 // entries where raw native disagrees with the correct fold.
+const singleCodePoint = (s) => {
+  const cp = s.codePointAt(0);
+  if (cp === undefined) return undefined;
+  return s.length === (cp > 0xffff ? 2 : 1) ? cp : undefined;
+};
 const rawSimpleFold = (r) => {
   const s = String.fromCodePoint(r);
-  const lower = s.toLowerCase();
-  if (lower.length === s.length) {
-    const lowerCp = lower.codePointAt(0);
-    if (lowerCp !== r) return lowerCp;
-  }
-  const upper = s.toUpperCase();
-  if (upper.length === s.length) {
-    const upperCp = upper.codePointAt(0);
-    if (upperCp !== r) return upperCp;
-  }
+  const lowerCp = singleCodePoint(s.toLowerCase());
+  if (lowerCp !== undefined && lowerCp !== r) return lowerCp;
+  const upperCp = singleCodePoint(s.toUpperCase());
+  if (upperCp !== undefined && upperCp !== r) return upperCp;
   return r;
 };
 
@@ -434,21 +445,21 @@ const code = [
   "    return false",
   "  }",
   "  // Inline simpleFold to avoid circular import with Unicode.ts.",
+  "  // Keep in sync with simpleFold / singleCodePoint in Unicode.ts.",
   "  const orbit = getCASE_ORBIT()",
+  "  const singleCodePoint = (s: string): number | undefined => {",
+  "    const cp = s.codePointAt(0)",
+  "    if (cp === undefined) return undefined",
+  "    return s.length === (cp > 0xffff ? 2 : 1) ? cp : undefined",
+  "  }",
   "  const simpleFold = (r: number): number => {",
   "    const folded = orbit.get(r)",
   "    if (folded !== undefined) return folded",
   "    const s = String.fromCodePoint(r)",
-  "    const lower = s.toLowerCase()",
-  "    if (lower.length === s.length) {",
-  "      const lowerCp = lower.codePointAt(0)",
-  "      if (lowerCp !== undefined && lowerCp !== r) return lowerCp",
-  "    }",
-  "    const upper = s.toUpperCase()",
-  "    if (upper.length === s.length) {",
-  "      const upperCp = upper.codePointAt(0)",
-  "      if (upperCp !== undefined && upperCp !== r) return upperCp",
-  "    }",
+  "    const lowerCp = singleCodePoint(s.toLowerCase())",
+  "    if (lowerCp !== undefined && lowerCp !== r) return lowerCp",
+  "    const upperCp = singleCodePoint(s.toUpperCase())",
+  "    if (upperCp !== undefined && upperCp !== r) return upperCp",
   "    return r",
   "  }",
   "  const extras = new Set<number>()",
