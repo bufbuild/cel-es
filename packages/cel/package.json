@@ -58,6 +58,6 @@
     "expect-type": "^1.4.0",
     "peggy": "^5.1.0",
     "peggy-ts": "github:hudlow/peggy-ts#v0.0.9",
-    "re2js": "^2.8.6"
+    "re2js": "^2.9.1"
   }
 }
