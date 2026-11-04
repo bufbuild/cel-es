@@ -14,7 +14,7 @@ const loadCodePoints = async (
   longName: string,
 ): Promise<number[]> => {
   const mod = await import(
-    `@unicode/unicode-16.0.0/${kind}/${longName}/code-points.js`
+    `@unicode/unicode-16.0.0/${kind}/${longName}/code-points.mjs`
   );
   return mod.default as number[];
 };
