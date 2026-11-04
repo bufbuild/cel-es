@@ -1,8 +1,12 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "root": true,
+  "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
   "extends": ["../../biome.base.json"],
+  "files": {
+    "includes": ["!**/dist"]
+  },
   "formatter": {
-    "ignore": ["dist", "src/gen"]
+    "includes": ["**", "!**/*.md", "!**/dist", "!**/src/gen"]
   },
   "linter": {
     "rules": {

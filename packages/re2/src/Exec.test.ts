@@ -13,6 +13,7 @@ import { codePoint, codePointAtOrThrow } from "./chars.js";
 
 // Tests run only via tsx in ESM mode; the CJS-compiled output is never
 // executed, so suppress the CJS-only complaint about import.meta.
+// biome-ignore lint/suspicious/noTsIgnore: This suppression is needed by the CommonJS build.
 // @ts-ignore -- TS1343 under --module commonjs; valid under Node16/ESM.
 const IMPORT_META_URL: string = import.meta.url;
 
