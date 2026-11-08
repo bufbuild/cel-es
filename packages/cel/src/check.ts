@@ -23,6 +23,36 @@ import { Checker, protoTypeToCelType } from "./checker.js";
 import type { CelEnv } from "./env.js";
 import type { CelType } from "./type.js";
 
+export interface CelDiagnostic {
+  readonly severity: "error" | "warning";
+  readonly message: string;
+  readonly exprId?: bigint;
+  readonly position?: {
+    /** One-based source line. */
+    readonly line: number;
+    /** Zero-based UTF-16 column. */
+    readonly column: number;
+  };
+}
+
+export type CelCheckResult =
+  | {
+      readonly kind: "success";
+      readonly expr: CheckedExpr;
+      /** May contain warnings, but no errors. */
+      readonly diagnostics: readonly CelDiagnostic[];
+    }
+  | {
+      readonly kind: "error";
+      /** Contains at least one error; no successful checked artifact. */
+      readonly diagnostics: readonly [CelDiagnostic, ...CelDiagnostic[]];
+    };
+
+export type CelCheckFunction = (
+  env: CelEnv,
+  expr: ParsedExpr,
+) => CelCheckResult;
+
 const cache = new WeakMap<CelEnv, Checker>();
 
 /**

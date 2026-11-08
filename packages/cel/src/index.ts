@@ -18,6 +18,11 @@ export {
   celError,
   isCelError,
 } from "./error.js";
+export type {
+  CelDiagnostic,
+  CelCheckResult,
+  CelCheckFunction,
+} from "./check.js";
 export { type CelMap, celMap, isCelMap } from "./map.js";
 export { type CelList, celList, isCelList, celListConcat } from "./list.js";
 export { type CelUint, celUint, isCelUint } from "./uint.js";
