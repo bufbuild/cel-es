@@ -13,11 +13,7 @@
 // limitations under the License.
 
 import { create, fromJson, isMessage, toJson } from "@bufbuild/protobuf";
-import {
-  DurationSchema,
-  timestampFromMs,
-  TimestampSchema,
-} from "@bufbuild/protobuf/wkt";
+import { DurationSchema, TimestampSchema } from "@bufbuild/protobuf/wkt";
 
 import { safeInt, safeUint } from "./math.js";
 import {
@@ -29,6 +25,7 @@ import {
   type CelValue,
 } from "../type.js";
 import { parseDuration } from "../duration.js";
+import { createTimestamp } from "../timestamp.js";
 import { celFunc } from "../func.js";
 import { getMsgDesc } from "../eval.js";
 
@@ -119,7 +116,7 @@ export default [
   // Timestamp
   celFunc("timestamp",  [TIMESTAMP],  TIMESTAMP,          identity),
   celFunc("timestamp",  [STRING],     TIMESTAMP,          stringToTimestamp),
-  celFunc("timestamp",  [INT],        TIMESTAMP,  (x) =>  timestampFromMs(Number(x))),
+  celFunc("timestamp",  [INT],        TIMESTAMP,  (x) =>  createTimestamp(x)),
   // Duration
   celFunc("duration",   [DURATION],   DURATION,           identity),
   celFunc("duration",   [STRING],     DURATION,           parseDuration),
