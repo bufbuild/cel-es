@@ -112,7 +112,9 @@ function timestampDifference(l: CelTimestamp, r: CelDuration) {
 function safeDivide(type: NumType, l: bigint, r: bigint) {
   if (r === 0n) throw celError(`${type.name} divide by zero`);
 
+  // uint / uint is always in range, so only int / int needs the check:
   // overflow possible if l = -9223372036854775808n, r = -1n
+  if (type === CelScalar.UINT) return l / r;
   return safeInt(l / r, `divide by ${r}`);
 }
 
