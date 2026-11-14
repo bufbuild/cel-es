@@ -20,7 +20,7 @@ import {
   isCelMap,
   plan,
 } from "./index.js";
-import { strings } from "./ext/index.js";
+import { math, strings } from "./ext/index.js";
 import {
   create,
   equals,
@@ -184,7 +184,7 @@ export function runSimpleTestCase(test: IncrementalTest, registry: Registry) {
   const env = celEnv({
     registry,
     namespace: testCase.container,
-    funcs: strings,
+    funcs: [...strings, ...math],
   });
   const celEval = plan(env, parsed);
   const bindings: Record<string, CelInput> = {};
